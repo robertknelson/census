@@ -52,6 +52,8 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
     padding: 0.85rem 1.5rem;
     background: var(--est-panel);
     border-bottom: 1px solid var(--est-line);
@@ -692,7 +694,8 @@ html, body {
 .est-header-right {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
 }
 
 .est-findings-btn strong { font-weight: 650; }

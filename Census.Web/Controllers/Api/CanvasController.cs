@@ -10,11 +10,22 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
 {
     public const string UnassignedOwner = "Unassigned";
 
+    [HttpGet("dates")]
+    public ActionResult<List<string>> GetDates() =>
+        Ok(censusStore.GetFleetDates().Select(d => d.ToString("yyyy-MM-dd")).ToList());
+
     [HttpGet]
-    public ActionResult<CanvasDto> GetCanvas()
+    public ActionResult<CanvasDto> GetCanvas([FromQuery] string? asOf)
     {
+        DateOnly? asOfDate = null;
+        if (asOf is not null)
+        {
+            if (!DateOnly.TryParseExact(asOf, "yyyy-MM-dd", out var parsed)) return BadRequest("asOf must be yyyy-MM-dd");
+            asOfDate = parsed;
+        }
+
         var assets = assetsStore.Load();
-        var findingsByMachine = findingsEngine.Compute().Findings
+        var findingsByMachine = findingsEngine.Compute(asOfDate).Findings
             .GroupBy(f => f.Machine, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 
@@ -31,7 +42,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
         var machines = new List<CanvasMachineDto>();
         foreach (var machine in universe)
         {
-            var envelope = censusStore.GetLatestSnapshot(machine);
+            var envelope = asOfDate is { } day ? censusStore.GetSnapshotAsOf(machine, day) : censusStore.GetLatestSnapshot(machine);
             var entry = assets.Assets.GetValueOrDefault(machine);
             var facets = assetsStore.FacetsFor(assets, machine);
             var owners = assetsStore.OwnershipValuesFor(assets, machine);
@@ -55,7 +66,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
                 Findings = findings,
                 HasData = envelope is not null,
                 OsProductName = envelope?.Os?.Data?.ProductName,
-                LatestDate = censusStore.GetSnapshotRefs(machine).LastOrDefault()?.Date.ToString("yyyy-MM-dd"),
+                LatestDate = (asOfDate is { } d2 ? censusStore.GetSnapshotRefAsOf(machine, d2) : censusStore.GetSnapshotRefs(machine).LastOrDefault())?.Date.ToString("yyyy-MM-dd"),
             });
         }
 

@@ -1,4 +1,4 @@
-import { fetchCanvas, fetchCompare, fetchSnapshot, fetchMachineDates, fetchCertificates } from './estate-api.mjs';
+import { fetchCanvas, fetchCompare, fetchSnapshot, fetchMachineDates, fetchCertificates, fetchFleetDates } from './estate-api.mjs';
 import { glyphSvg } from './machine-glyphs.mjs';
 import { dossierHtml, bindDossier } from './machine-dossier.mjs';
 import { AssignmentEditor } from './assignment-editor.mjs';
@@ -31,6 +31,7 @@ class EstatePage {
         this.selectedClasses = new Set();    // empty = ALL; non-empty widens to fleet scope when no owner is picked
         this.selectedMachines = new Set();
         this.panel = null;
+        this.asOf = null;                    // null = current; else a collected yyyy-MM-dd
         this.queueState = { severities: new Set(), owners: new Set(), query: '' };
 
         this.readHash();
@@ -45,6 +46,7 @@ class EstatePage {
         (params.get('owners') ?? '').split(',').filter(Boolean).forEach((o) => this.selectedOwners.add(o));
         (params.get('stages') ?? '').split(',').filter(Boolean).forEach((s) => this.selectedStages.add(s));
         (params.get('classes') ?? '').split(',').filter(Boolean).forEach((c) => this.selectedClasses.add(c));
+        this.asOf = params.get('asOf') || null;
     }
 
     writeHash() {
@@ -52,6 +54,7 @@ class EstatePage {
         if (this.selectedOwners.size) params.set('owners', [...this.selectedOwners].join(','));
         if (this.selectedStages.size) params.set('stages', [...this.selectedStages].join(','));
         if (this.selectedClasses.size) params.set('classes', [...this.selectedClasses].join(','));
+        if (this.asOf) params.set('asOf', this.asOf);
         const hash = params.toString();
         history.replaceState(null, '', hash ? `#${hash}` : window.location.pathname);
     }
@@ -91,6 +94,7 @@ class EstatePage {
                     <div class="est-wordmark">Census <span>/ estate</span></div>
                     <div class="est-legend" data-ref="legend"></div>
                     <div class="est-header-actions">
+                        <label class="est-asof"><span>as of</span><select class="est-edit-input" data-ref="asof-select"><option value="">current</option></select></label>
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
                         <button class="est-btn" data-ref="changes-btn">Changes</button>
                         <button class="est-btn" data-ref="software-btn">Software</button>
@@ -98,6 +102,7 @@ class EstatePage {
                         <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
                     </div>
                 </header>
+                <div class="est-asof-banner" data-ref="asof-banner" hidden></div>
                 <div class="est-body">
                     <aside class="est-rail" data-ref="rail"></aside>
                     <main class="est-main">
@@ -138,6 +143,10 @@ class EstatePage {
 
         this.root.querySelector('[data-ref="blacklist-btn"]').addEventListener('click', () => this.openBlacklist());
 
+        this.asofSelectEl = this.root.querySelector('[data-ref="asof-select"]');
+        this.asofBannerEl = this.root.querySelector('[data-ref="asof-banner"]');
+        this.asofSelectEl.addEventListener('change', (e) => this.setAsOf(e.target.value || null));
+
         this.certsBtnEl = this.root.querySelector('[data-ref="certs-btn"]');
         this.certsBtnEl.addEventListener('click', () => this.openCertificates());
 
@@ -154,10 +163,18 @@ class EstatePage {
     async load() {
         this.canvasEl.innerHTML = '<p class="est-status">Mapping the estate…</p>';
         try {
-            this.data = await fetchCanvas();
+            [this.data, this.fleetDates] = await Promise.all([fetchCanvas(this.asOf), fetchFleetDates()]);
         } catch (err) {
             this.canvasEl.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
             return;
+        }
+
+        // Only dates the census actually has — the picker never offers an empty day.
+        this.asofSelectEl.innerHTML = '<option value="">current</option>'
+            + this.fleetDates.map((d) => `<option value="${escapeHtml(d)}" ${d === this.asOf ? 'selected' : ''}>${escapeHtml(d)}</option>`).join('');
+        if (this.asOf && !this.fleetDates.includes(this.asOf)) {
+            this.asOf = null;
+            this.writeHash();
         }
         // Drop hash-restored selections that no longer exist.
         const known = new Set(this.data.owners.map((o) => o.value));
@@ -165,7 +182,7 @@ class EstatePage {
         this.renderAll();
 
         // Cert horizon only moves with collection, not with edits — one fetch per load.
-        fetchCertificates().then((certs) => {
+        fetchCertificates(this.asOf).then((certs) => {
             const soonest = certs
                 .map((c) => c.daysUntilExpiry)
                 .filter((d) => d !== null)
@@ -182,9 +199,35 @@ class EstatePage {
         this.renderCanvas();
         this.renderActionbar();
         this.renderFindingsButton();
+        this.renderAsOfBanner();
         this.legendEl.querySelectorAll('[data-class]').forEach((btn) => {
             btn.classList.toggle('is-active', this.selectedClasses.has(btn.dataset.class));
         });
+        // Changes and Software read the current fleet only — honest to disable in the past.
+        for (const ref of ['changes-btn', 'software-btn']) {
+            const btn = this.root.querySelector(`[data-ref="${ref}"]`);
+            btn.disabled = this.asOf !== null;
+            btn.title = this.asOf !== null ? 'Available on the current view only' : '';
+        }
+    }
+
+    setAsOf(value) {
+        this.asOf = value;
+        this.writeHash();
+        this.load();
+    }
+
+    renderAsOfBanner() {
+        if (!this.asOf) {
+            this.asofBannerEl.hidden = true;
+            return;
+        }
+        this.asofBannerEl.hidden = false;
+        this.asofBannerEl.innerHTML = `
+            Viewing the estate as of <strong>${escapeHtml(this.asOf)}</strong> — observations from that day,
+            judged under today's assignments and blacklist rules.
+            <button class="est-btn est-btn-sm" data-ref="asof-reset">Return to current</button>`;
+        this.asofBannerEl.querySelector('[data-ref="asof-reset"]').addEventListener('click', () => this.setAsOf(null));
     }
 
     renderFindingsButton() {
@@ -462,7 +505,7 @@ class EstatePage {
             '<div data-ref="certs"></div>');
         this.openPanel();
 
-        new CertificatesPanel((machine) => this.openDetails(machine))
+        new CertificatesPanel(this.asOf, (machine) => this.openDetails(machine))
             .mount(this.panelEl.querySelector('[data-ref="certs"]'));
     }
 
@@ -494,6 +537,7 @@ class EstatePage {
             this.data.ownership,
             this.queueState,
             (machine) => this.openDetails(machine),
+            this.asOf,
         ).mount(this.panelEl.querySelector('[data-ref="queue"]'));
     }
 
@@ -612,7 +656,7 @@ class EstatePage {
 
         let result;
         try {
-            result = await fetchCompare(machineNames, []);
+            result = await fetchCompare(machineNames, [], this.asOf);
         } catch (err) {
             this.panelEl.querySelector('.est-panel-body').innerHTML =
                 `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;

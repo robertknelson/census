@@ -83,6 +83,25 @@ public partial class CensusStore
         return latest is null ? null : ReadSnapshot(latest.FilePath);
     }
 
+    /// <summary>The machine's most recent snapshot on or before the given date.</summary>
+    public MachineSnapshotRef? GetSnapshotRefAsOf(string machineDir, DateOnly asOf) =>
+        GetSnapshotRefs(machineDir).LastOrDefault(r => r.Date <= asOf);
+
+    public CensusEnvelope? GetSnapshotAsOf(string machineDir, DateOnly asOf)
+    {
+        var match = GetSnapshotRefAsOf(machineDir, asOf);
+        return match is null ? null : ReadSnapshot(match.FilePath);
+    }
+
+    /// <summary>Every date any machine was collected on, newest first.</summary>
+    public List<DateOnly> GetFleetDates() =>
+        GetMachineDirs()
+            .SelectMany(GetSnapshotRefs)
+            .Select(r => r.Date)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToList();
+
     public CensusEnvelope? GetSnapshot(string machineDir, DateOnly date)
     {
         var match = GetSnapshotRefs(machineDir).FirstOrDefault(r => r.Date == date);

@@ -42,7 +42,8 @@ function groupByThumbprint(entries) {
 }
 
 export class CertificatesPanel {
-    constructor(onMachine) {
+    constructor(asOf, onMachine) {
+        this.asOf = asOf;
         this.onMachine = onMachine;
     }
 
@@ -51,7 +52,7 @@ export class CertificatesPanel {
         container.innerHTML = '<p class="est-status">Reading the fleet’s certificates…</p>';
         let entries;
         try {
-            entries = await fetchCertificates();
+            entries = await fetchCertificates(this.asOf);
         } catch (err) {
             container.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
             return;

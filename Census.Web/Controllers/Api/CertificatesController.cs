@@ -9,14 +9,25 @@ namespace Census.Web.Controllers.Api;
 public class CertificatesController(CensusStore censusStore) : ControllerBase
 {
     [HttpGet]
-    public ActionResult<List<CertificateRadarEntryDto>> GetCertificates()
+    public ActionResult<List<CertificateRadarEntryDto>> GetCertificates([FromQuery] string? asOf)
     {
-        var now = DateTimeOffset.UtcNow;
+        DateOnly? asOfDate = null;
+        if (asOf is not null)
+        {
+            if (!DateOnly.TryParseExact(asOf, "yyyy-MM-dd", out var parsed)) return BadRequest("asOf must be yyyy-MM-dd");
+            asOfDate = parsed;
+        }
+
+        var now = asOfDate is { } d
+            ? new DateTimeOffset(d.ToDateTime(new TimeOnly(23, 59, 59)), TimeSpan.Zero)
+            : DateTimeOffset.UtcNow;
 
         var entries = censusStore.GetMachineDirs()
             .SelectMany(machineDir =>
             {
-                var latestRef = censusStore.GetSnapshotRefs(machineDir).LastOrDefault();
+                var latestRef = asOfDate is { } day
+                    ? censusStore.GetSnapshotRefAsOf(machineDir, day)
+                    : censusStore.GetSnapshotRefs(machineDir).LastOrDefault();
                 if (latestRef is null) return [];
 
                 var envelope = censusStore.GetSnapshot(machineDir, latestRef.Date);

@@ -24,10 +24,11 @@ export class FindingsQueue {
      * @param state     persisted filter state: { severities:Set, owners:Set, query:string }
      * @param onMachine called with a machine name to pivot to its dossier
      */
-    constructor(machines, ownership, state, onMachine) {
+    constructor(machines, ownership, state, onMachine, asOf = null) {
         this.ownership = ownership;
         this.state = state;
         this.onMachine = onMachine;
+        this.asOf = asOf;
 
         this.findings = machines
             .flatMap((m) => m.findings)
@@ -86,7 +87,7 @@ export class FindingsQueue {
                 <div class="est-q-filter-row est-q-export-row">
                     <input class="est-filter" type="search" placeholder="Filter findings…"
                            value="${escapeHtml(this.state.query)}" data-ref="query">
-                    <a class="est-btn est-btn-sm" href="/api/export/compliance.csv" download title="Full compliance state, one row per machine-finding — audit evidence">Export CSV</a>
+                    <a class="est-btn est-btn-sm" href="/api/export/compliance.csv${this.asOf ? `?asOf=${encodeURIComponent(this.asOf)}` : ''}" download title="Full compliance state, one row per machine-finding — audit evidence${this.asOf ? ` as of ${escapeHtml(this.asOf)}` : ''}">Export CSV</a>
                 </div>
             </div>
             <ul class="est-queue" data-ref="list"></ul>`;

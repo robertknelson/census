@@ -14,10 +14,17 @@ namespace Census.Web.Controllers.Api;
 public class ExportController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine) : ControllerBase
 {
     [HttpGet("compliance.csv")]
-    public IActionResult GetComplianceCsv()
+    public IActionResult GetComplianceCsv([FromQuery] string? asOf)
     {
+        DateOnly? asOfDate = null;
+        if (asOf is not null)
+        {
+            if (!DateOnly.TryParseExact(asOf, "yyyy-MM-dd", out var parsed)) return BadRequest("asOf must be yyyy-MM-dd");
+            asOfDate = parsed;
+        }
+
         var assets = assetsStore.Load();
-        var result = findingsEngine.Compute();
+        var result = findingsEngine.Compute(asOfDate);
         var findingsByMachine = result.Findings
             .GroupBy(f => f.Machine, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
@@ -35,13 +42,14 @@ public class ExportController(CensusStore censusStore, AssetsStore assetsStore, 
 
         foreach (var machine in universe)
         {
-            var envelope = censusStore.GetLatestSnapshot(machine);
+            var envelope = asOfDate is { } day ? censusStore.GetSnapshotAsOf(machine, day) : censusStore.GetLatestSnapshot(machine);
             var entry = assets.Assets.GetValueOrDefault(machine);
             var (resolvedClass, _) = MachineClassifier.Resolve(entry?.Class, envelope?.Roles ?? []);
             var facets = assetsStore.FacetsFor(assets, machine);
             var owners = string.Join("; ", assetsStore.OwnershipValuesFor(assets, machine));
             var stages = string.Join("; ", facets.GetValueOrDefault("stage", []));
-            var lastCollected = censusStore.GetSnapshotRefs(machine).LastOrDefault()?.Date.ToString("yyyy-MM-dd") ?? "never";
+            var lastCollected = (asOfDate is { } d2 ? censusStore.GetSnapshotRefAsOf(machine, d2) : censusStore.GetSnapshotRefs(machine).LastOrDefault())
+                ?.Date.ToString("yyyy-MM-dd") ?? "never";
             var findings = findingsByMachine.GetValueOrDefault(machine, []);
 
             var posture = findings.Any(f => f.Severity.Equals("critical", StringComparison.OrdinalIgnoreCase)) ? "red"
@@ -63,7 +71,9 @@ public class ExportController(CensusStore censusStore, AssetsStore assetsStore, 
             }
         }
 
-        var fileName = $"census-compliance-{DateTime.UtcNow:yyyyMMdd}.csv";
+        var fileName = asOfDate is { } stamp
+            ? $"census-compliance-asof-{stamp:yyyyMMdd}.csv"
+            : $"census-compliance-{DateTime.UtcNow:yyyyMMdd}.csv";
         // UTF-8 BOM so Excel opens the em-dashes in finding text correctly.
         var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
         return File(bytes, "text/csv", fileName);

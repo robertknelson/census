@@ -189,6 +189,7 @@ a diagram), noted as an option for future topology sketches (e.g. app → machin
 | 2026-07-31 | Slide-in panel from right (~2/3 viewport) for dossier/compare/editors; click = select, action bar [Details]/[Compare], double-click = dossier |
 | 2026-07-31 | Delivered as importable components (cshtml/.mjs/.cs) into light gray/blue host; mermaid available but not used for canvas |
 | 2026-07-31 | Header legend doubles as fleet-wide class filter — class-only selection sweeps all owners; combines with owner/stage scoping |
+| 2026-07-31 | As-of time travel: picker offers collected dates only, default current; past view carries a loud banner and judges that day's observations under today's assignments/rules; Changes+Software disabled in the past; export honors asOf |
 
 ## 7. Open items
 

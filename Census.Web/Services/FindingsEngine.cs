@@ -14,15 +14,21 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
     private const int CertExpiryWarningDays = 30;
     private const int StaleCollectionDays = 3;
 
-    public FindingsResultDto Compute()
+    public FindingsResultDto Compute(DateOnly? asOf = null)
     {
         var assets = assetsStore.Load();
         var machineDirs = censusStore.GetMachineDirs();
         var configMachines = censusStore.GetMachinesConfig().Machines;
         var findings = new List<FindingDto>();
 
+        // "Now" for the as-of view is the end of that day — cert expiry and staleness are
+        // judged as they would have been judged then.
+        var now = asOf is { } d
+            ? new DateTimeOffset(d.ToDateTime(new TimeOnly(23, 59, 59)), TimeSpan.Zero)
+            : DateTimeOffset.UtcNow;
+
         var collected = machineDirs
-            .Select(m => (Machine: m, Envelope: censusStore.GetLatestSnapshot(m)))
+            .Select(m => (Machine: m, Envelope: asOf is { } day ? censusStore.GetSnapshotAsOf(m, day) : censusStore.GetLatestSnapshot(m)))
             .Where(x => x.Envelope is not null)
             .Select(x => (x.Machine, Envelope: x.Envelope!))
             .ToList();
@@ -36,7 +42,6 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                     hit.VersionUnparseable ? $"{hit.Reason} (version unparseable — needs manual review)" : hit.Reason));
             }
 
-            var now = DateTimeOffset.UtcNow;
             foreach (var cert in envelope.Certificates?.Data?.Certificates ?? [])
             {
                 if (cert.BoundTo.Count == 0 || !cert.NotAfter.HasValue) continue;
@@ -129,7 +134,9 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
 
         foreach (var machine in configMachines)
         {
-            var runLog = censusStore.GetRunLogFor(machine);
+            var runLog = censusStore.GetRunLogFor(machine)
+                .Where(e => e.FinishedUtc <= now)
+                .ToList();
             var lastOk = runLog.LastOrDefault(e => e.Outcome == "ok");
             if (lastOk is null)
             {
@@ -140,7 +147,7 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
             }
             else
             {
-                var ageDays = (int)(DateTimeOffset.UtcNow - lastOk.FinishedUtc).TotalDays;
+                var ageDays = (int)(now - lastOk.FinishedUtc).TotalDays;
                 if (ageDays > StaleCollectionDays)
                 {
                     findings.Add(Build(assets, machine, "stale-collection", "medium",

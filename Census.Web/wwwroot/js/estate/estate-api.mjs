@@ -11,14 +11,19 @@ async function getJson(url) {
     return response.json();
 }
 
-export function fetchCanvas() {
-    return getJson('/api/canvas');
+export function fetchCanvas(asOf) {
+    return getJson(`/api/canvas${asOf ? `?asOf=${encodeURIComponent(asOf)}` : ''}`);
 }
 
-export function fetchCompare(machines, aspects) {
+export function fetchFleetDates() {
+    return getJson('/api/canvas/dates');
+}
+
+export function fetchCompare(machines, aspects, asOf) {
     const params = new URLSearchParams();
     params.set('machines', machines.join(','));
     if (aspects?.length) params.set('aspects', aspects.join(','));
+    if (asOf) params.set('asOf', asOf);
     return getJson(`/api/compare?${params}`);
 }
 
@@ -39,8 +44,8 @@ export function fetchBlacklist() {
     return getJson('/api/blacklist');
 }
 
-export function fetchCertificates() {
-    return getJson('/api/certificates');
+export function fetchCertificates(asOf) {
+    return getJson(`/api/certificates${asOf ? `?asOf=${encodeURIComponent(asOf)}` : ''}`);
 }
 
 export function fetchChanges() {

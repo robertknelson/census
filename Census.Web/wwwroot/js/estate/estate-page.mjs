@@ -88,12 +88,12 @@ class EstatePage {
             <div class="est">
                 <header class="est-header">
                     <div class="est-wordmark">Census <span>/ estate</span></div>
-                    <div class="est-header-right">
+                    <div class="est-legend" data-ref="legend"></div>
+                    <div class="est-header-actions">
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
                         <button class="est-btn" data-ref="changes-btn">Changes</button>
                         <button class="est-btn" data-ref="certs-btn">Certificates</button>
                         <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
-                        <div class="est-legend" data-ref="legend"></div>
                     </div>
                 </header>
                 <div class="est-body">

@@ -394,7 +394,9 @@ class EstatePage {
     }
 
     panelShell(title, subtitle, bodyHtml) {
+        this.panelEl.style.width = '';
         this.panelEl.innerHTML = `
+            <div class="est-panel-grip" data-ref="grip" title="Drag to resize"></div>
             <header class="est-panel-head">
                 <div>
                     <div class="est-panel-title">${title}</div>
@@ -404,6 +406,24 @@ class EstatePage {
             </header>
             <div class="est-panel-body">${bodyHtml}</div>`;
         this.panelEl.querySelector('[data-act="close"]').addEventListener('click', () => this.closePanel());
+
+        const grip = this.panelEl.querySelector('[data-ref="grip"]');
+        grip.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            grip.setPointerCapture(e.pointerId);
+            this.panelEl.classList.add('est-panel-dragging');
+            const move = (ev) => {
+                const width = Math.min(Math.max(window.innerWidth - ev.clientX, 480), window.innerWidth * 0.95);
+                this.panelEl.style.width = `${width}px`;
+            };
+            const up = () => {
+                this.panelEl.classList.remove('est-panel-dragging');
+                grip.removeEventListener('pointermove', move);
+                grip.removeEventListener('pointerup', up);
+            };
+            grip.addEventListener('pointermove', move);
+            grip.addEventListener('pointerup', up);
+        });
     }
 
     openChanges() {
@@ -568,6 +588,10 @@ class EstatePage {
             `Compare <span class="est-mono">${machineNames.map(escapeHtml).join(' · ')}</span>`,
             'Differing rows only — volatile rows shown muted, never counted against equality',
             '<p class="est-status">Comparing…</p>');
+        // Size the panel to its columns: label column + one per machine, capped at 94vw.
+        // Beyond the cap, the table scrolls with the label column pinned.
+        const autoWidth = Math.max(860, 256 + machineNames.length * 220 + 90);
+        this.panelEl.style.width = `min(${autoWidth}px, 94vw)`;
         this.openPanel();
 
         let result;

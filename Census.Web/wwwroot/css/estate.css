@@ -469,6 +469,24 @@ html, body {
 
 .est-panel.is-open { transform: translateX(0); }
 
+.est-panel-dragging { transition: none; user-select: none; }
+
+.est-panel-grip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    cursor: ew-resize;
+    border-left: 3px solid transparent;
+    z-index: 2;
+}
+
+.est-panel-grip:hover,
+.est-panel-dragging .est-panel-grip {
+    border-left-color: var(--est-blue);
+}
+
 .est-panel-head {
     display: flex;
     align-items: flex-start;
@@ -1068,6 +1086,15 @@ html, body {
 .est-row-label { color: var(--est-muted); }
 
 .est-row-volatile td { color: var(--est-faint); }
+
+/* Pinned row labels so wide comparisons stay readable while scrolling. */
+.est-compare .est-row-label,
+.est-compare thead th:first-child {
+    position: sticky;
+    left: 0;
+    background: var(--est-panel);
+    z-index: 1;
+}
 
 .est-verdict {
     font-size: 0.72rem;

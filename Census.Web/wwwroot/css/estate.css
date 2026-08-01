@@ -660,6 +660,13 @@ html, body {
     color: var(--est-muted);
 }
 
+.est-sans {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
 /* --- compare table ------------------------------------------------------------------ */
 
 .est-compare-scroll { overflow-x: auto; }

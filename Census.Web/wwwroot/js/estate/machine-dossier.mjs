@@ -165,9 +165,13 @@ export function dossierHtml(m, envelope) {
                     <tbody>${certs.map((c) => {
                         const days = daysUntil(c.notAfter);
                         const cls = days === null ? '' : days < 0 ? 'est-catfail' : days <= 30 ? 'est-catwarn' : '';
+                        const sans = (c.sanDnsNames ?? []);
                         return `
                         <tr>
-                            <td>${escapeHtml(c.subject)}</td>
+                            <td>
+                                ${escapeHtml(c.subject)}
+                                ${sans.length > 0 ? `<div class="est-sans">${sans.map((s) => `<span class="est-badge">${escapeHtml(s)}</span>`).join(' ')}</div>` : ''}
+                            </td>
                             <td>${date(c.notAfter)}</td>
                             <td class="${cls}">${days === null ? '—' : `${days}d`}</td>
                             <td class="est-muted">${c.keySize ?? '—'}</td>

@@ -667,6 +667,86 @@ html, body {
     margin-top: 0.25rem;
 }
 
+/* --- assignment editor -------------------------------------------------------------- */
+
+.est-btn-sm {
+    padding: 0.08rem 0.55rem;
+    font-size: 0.72rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.est-editor {
+    border: 1px solid var(--est-blue);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    background: var(--est-blue-soft);
+}
+
+.est-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0;
+    flex-wrap: wrap;
+}
+
+.est-edit-chips {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.est-badge-removable {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    background: var(--est-panel);
+}
+
+.est-chip-x {
+    border: 0;
+    background: transparent;
+    color: var(--est-muted);
+    font-size: 0.8rem;
+    line-height: 1;
+    padding: 0 0.1rem;
+    cursor: pointer;
+}
+
+.est-chip-x:hover { color: var(--est-red); }
+
+.est-edit-input {
+    font: inherit;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--est-line);
+    border-radius: 6px;
+    background: var(--est-panel);
+    color: var(--est-ink);
+    max-width: 12rem;
+}
+
+.est-edit-input:focus {
+    outline: none;
+    border-color: var(--est-blue);
+}
+
+.est-edit-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.est-edit-error {
+    color: var(--est-red);
+    font-size: 0.8rem;
+}
+
 /* --- compare table ------------------------------------------------------------------ */
 
 .est-compare-scroll { overflow-x: auto; }

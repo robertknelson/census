@@ -25,3 +25,24 @@ export function fetchCompare(machines, aspects) {
 export function fetchSnapshot(machine, date) {
     return getJson(`/api/machines/${encodeURIComponent(machine)}/snapshots/${encodeURIComponent(date)}`);
 }
+
+export async function saveAssignment(machine, assignment) {
+    let response;
+    try {
+        response = await fetch(`/api/assets/${encodeURIComponent(machine)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(assignment),
+        });
+    } catch {
+        throw new Error('Census.Web is not reachable — is the app still running?');
+    }
+    if (!response.ok) {
+        let detail = `save failed (${response.status})`;
+        try {
+            const body = await response.json();
+            if (body.errors) detail = body.errors.join('; ');
+        } catch { /* keep the status-based message */ }
+        throw new Error(detail);
+    }
+}

@@ -1,6 +1,7 @@
 import { fetchCanvas, fetchCompare, fetchSnapshot } from './estate-api.mjs';
 import { glyphSvg } from './machine-glyphs.mjs';
 import { dossierHtml, bindDossier } from './machine-dossier.mjs';
+import { AssignmentEditor } from './assignment-editor.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -364,11 +365,25 @@ class EstatePage {
                 ${findings}
             </section>
             <section>
-                <h3>Assignment</h3>
-                ${facets}
+                <h3>Assignment <button class="est-btn est-btn-sm" data-ref="edit-assignment">Edit</button></h3>
+                <div data-ref="assignment-body">${facets}</div>
             </section>
             ${dossierPlaceholder}`);
         this.openPanel();
+
+        this.panelEl.querySelector('[data-ref="edit-assignment"]').addEventListener('click', () => {
+            const body = this.panelEl.querySelector('[data-ref="assignment-body"]');
+            new AssignmentEditor(
+                m,
+                this.data.machines,
+                async () => {
+                    this.data = await fetchCanvas();
+                    this.renderAll();
+                    this.openDetails(machineName);
+                },
+                () => this.openDetails(machineName),
+            ).mount(body);
+        });
 
         if (!m.hasData) return;
         let snapshot;

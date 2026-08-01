@@ -77,14 +77,16 @@ export function dossierHtml(m, envelope) {
                 ['Build', `<span class="est-mono">${escapeHtml(d.currentBuild)}.${escapeHtml(d.ubr)}</span> <span class="est-muted">${escapeHtml(d.displayVersion ?? '')}</span>`],
                 ['Architecture', escapeHtml(d.architecture)],
                 ['Installed', date(d.installDate)],
-                ['Last boot', dateTime(d.lastBootUpTime)],
-                ['Pending reboot', d.pendingReboot
-                    ? `<span class="est-catfail">yes — ${escapeHtml((d.pendingRebootReasons ?? []).join(', '))}</span>`
-                    : 'no'],
             ]))}
             ${category(envelope.updates, (d) => facts([
                 ['Last update check', d.lastDetectSuccessTime ? escapeHtml(d.lastDetectSuccessTime) : '—'],
                 ['Last update install', d.lastInstallSuccessTime ? escapeHtml(d.lastInstallSuccessTime) : '—'],
+            ]))}
+            ${category(os, (d) => facts([
+                ['Last booted', dateTime(d.lastBootUpTime)],
+                ['Pending reboot', d.pendingReboot
+                    ? `<span class="est-catfail">yes — ${escapeHtml((d.pendingRebootReasons ?? []).join(', '))}</span>`
+                    : 'no'],
             ]))}
         </section>
 

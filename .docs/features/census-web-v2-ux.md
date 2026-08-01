@@ -193,9 +193,21 @@ a diagram), noted as an option for future topology sketches (e.g. app → machin
 
 ## 7. Open items
 
+- **Approved-baseline blessing** (proposed 2026-08-01, parked undiscussed) — the inverse
+  of the blacklist: bless a trusted machine's software set as the approved baseline for a
+  class×stage; anything extra on matching machines becomes a finding. Turns the census
+  from "catches known-bad" into "notices anything unexpected" — the original
+  unapproved-software purpose. Needs a spec conversation before building (baseline
+  storage, matching rules, exemptions).
 - **Stage-aware severity** — a prod blacklist hit ≠ a dev one; an expiring bound cert in
   prod is an outage, in dev a shrug. Deferred; key=value facets keep the door open (e.g. a
-  future rule field `appliesTo: { "stage": ["prod"] }`).
+  future rule field `appliesTo: { "stage": ["prod"] }`). The `developer-edition-in-prod`
+  finding covers the sharpest case meanwhile.
+- **As-of calendar polish** — collected-day dots and prev/next-day arrows on the date
+  input, once months of real data make them worth having.
+- **First real end-to-end run** — the collector has never completed an authenticated WinRM
+  run against a real reachable target; `output/` awaits its first genuine snapshot.
+- **Host-app import** — execute `.docs/host-import-manifest.md` when the host is ready.
 - Inherited from v1 spec §8: severity tiers, cert-renewal heuristic.
 
 **Auth: out of scope, permanently** (Robert, 2026-07-31) — this UX will be incorporated

@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Estate";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/estate.css" asp-append-version="true" />
+}
+
+<div id="estate-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import estatePage from '/js/estate/estate-page.mjs';
+        estatePage.init({ rootId: 'estate-root' });
+    </script>
+}

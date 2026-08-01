@@ -15,5 +15,7 @@ public record OwnershipDimension
 
 public record AssetEntry
 {
+    /// <summary>Present-as class override (census-web-v2-ux.md §5.3). Null = derive from observed roles.</summary>
+    public string? Class { get; init; }
     public Dictionary<string, List<string>> Facets { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 }

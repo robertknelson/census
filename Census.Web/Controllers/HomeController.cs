@@ -18,6 +18,12 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpGet("/estate")]
+    public IActionResult Estate()
+    {
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

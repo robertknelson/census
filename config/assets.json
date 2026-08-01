@@ -17,6 +17,7 @@
       }
     },
     "APPSRV01": {
+      "class": "DevServer",
       "facets": {
         "stage": ["dev", "qa"],
         "team": ["InternalApps"],

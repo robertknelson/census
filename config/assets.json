@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "ownership": { "key": "team", "label": "Team" },
+  "assets": {
+    "WEB01": {
+      "facets": {
+        "stage": ["prod"],
+        "team": ["PublicApps"],
+        "app": ["OrderPortal"]
+      }
+    },
+    "SQL01": {
+      "facets": {
+        "stage": ["prod"],
+        "team": ["PublicApps"],
+        "app": ["OrderPortal", "BillingSvc"]
+      }
+    },
+    "APPSRV01": {
+      "facets": {
+        "stage": ["dev", "qa"],
+        "team": ["InternalApps"],
+        "app": ["IntranetSuite"]
+      }
+    },
+    "BUILDSRV01": {
+      "facets": {
+        "stage": ["dev"],
+        "team": ["InternalApps"]
+      }
+    },
+    "DEVBOX-JSMITH": {
+      "facets": {
+        "stage": ["dev"],
+        "team": ["PublicApps"]
+      }
+    },
+    "OLDFILESRV": {
+      "facets": {
+        "stage": ["prod"],
+        "team": ["InternalApps"]
+      }
+    }
+  }
+}

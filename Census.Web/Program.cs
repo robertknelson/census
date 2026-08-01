@@ -8,6 +8,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.Configure<CensusOptions>(builder.Configuration.GetSection(CensusOptions.SectionName));
 builder.Services.AddSingleton<CensusStore>();
 builder.Services.AddSingleton<BlacklistEvaluator>();
+builder.Services.AddSingleton<AssetsStore>();
+builder.Services.AddSingleton<FindingsEngine>();
 
 var app = builder.Build();
 

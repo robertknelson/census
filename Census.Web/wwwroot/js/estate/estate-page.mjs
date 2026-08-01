@@ -94,7 +94,7 @@ class EstatePage {
                     <div class="est-wordmark">Census <span>/ estate</span></div>
                     <div class="est-legend" data-ref="legend"></div>
                     <div class="est-header-actions">
-                        <label class="est-asof"><span>as of</span><select class="est-edit-input" data-ref="asof-select"><option value="">current</option></select></label>
+                        <label class="est-asof"><span>as of</span><input type="date" class="est-edit-input" data-ref="asof-input"></label>
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
                         <button class="est-btn" data-ref="changes-btn">Changes</button>
                         <button class="est-btn" data-ref="software-btn">Software</button>
@@ -143,9 +143,13 @@ class EstatePage {
 
         this.root.querySelector('[data-ref="blacklist-btn"]').addEventListener('click', () => this.openBlacklist());
 
-        this.asofSelectEl = this.root.querySelector('[data-ref="asof-select"]');
+        this.asofInputEl = this.root.querySelector('[data-ref="asof-input"]');
         this.asofBannerEl = this.root.querySelector('[data-ref="asof-banner"]');
-        this.asofSelectEl.addEventListener('change', (e) => this.setAsOf(e.target.value || null));
+        this.asofInputEl.addEventListener('change', (e) => {
+            const value = e.target.value;
+            // Today (or empty) means "current" — the live view, not a pinned day.
+            this.setAsOf(!value || value >= this.todayIso() ? null : value);
+        });
 
         this.certsBtnEl = this.root.querySelector('[data-ref="certs-btn"]');
         this.certsBtnEl.addEventListener('click', () => this.openCertificates());
@@ -169,11 +173,15 @@ class EstatePage {
             return;
         }
 
-        // Only dates the census actually has — the picker never offers an empty day.
-        this.asofSelectEl.innerHTML = '<option value="">current</option>'
-            + this.fleetDates.map((d) => `<option value="${escapeHtml(d)}" ${d === this.asOf ? 'selected' : ''}>${escapeHtml(d)}</option>`).join('');
-        if (this.asOf && !this.fleetDates.includes(this.asOf)) {
+        // Any date resolves to the newest snapshot on-or-before it, so the calendar is
+        // bounded, not enumerated: from the first collected day up to today.
+        const oldest = this.fleetDates[this.fleetDates.length - 1];
+        if (oldest) this.asofInputEl.min = oldest;
+        this.asofInputEl.max = this.todayIso();
+        this.asofInputEl.value = this.asOf ?? this.todayIso();
+        if (this.asOf && oldest && this.asOf < oldest) {
             this.asOf = null;
+            this.asofInputEl.value = this.todayIso();
             this.writeHash();
         }
         // Drop hash-restored selections that no longer exist.
@@ -211,6 +219,10 @@ class EstatePage {
         }
     }
 
+    todayIso() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
     setAsOf(value) {
         this.asOf = value;
         this.writeHash();
@@ -224,8 +236,8 @@ class EstatePage {
         }
         this.asofBannerEl.hidden = false;
         this.asofBannerEl.innerHTML = `
-            Viewing the estate as of <strong>${escapeHtml(this.asOf)}</strong> — observations from that day,
-            judged under today's assignments and blacklist rules.
+            Viewing the estate as of <strong>${escapeHtml(this.asOf)}</strong> — each machine shows its newest
+            snapshot on or before that day, judged under today's assignments and blacklist rules.
             <button class="est-btn est-btn-sm" data-ref="asof-reset">Return to current</button>`;
         this.asofBannerEl.querySelector('[data-ref="asof-reset"]').addEventListener('click', () => this.setAsOf(null));
     }

@@ -54,6 +54,9 @@ public static partial class CompareEngine
             Row("Build", envelopes, e => e?.Os?.Data is { } os ? $"{os.CurrentBuild}.{os.Ubr}" : null),
             Row("Display version", envelopes, e => e?.Os?.Data?.DisplayVersion),
             Row("Architecture", envelopes, e => e?.Os?.Data?.Architecture),
+            Row("OS installed", envelopes, e => e?.Os?.Data?.InstallDate?.ToString("yyyy-MM-dd"), isVolatile: true),
+            Row("Last booted", envelopes, e => e?.Os?.Data?.LastBootUpTime?.ToString("yyyy-MM-dd HH:mm"), isVolatile: true),
+            Row("Last update installed", envelopes, e => e?.Updates?.Data?.LastInstallSuccessTime, isVolatile: true),
             Row("Pending reboot", envelopes, e => e?.Os?.Data is { } o ? (o.PendingReboot ? "yes" : "no") : null, isVolatile: true),
         };
         return Group("os", "Operating system", rows);
@@ -88,7 +91,6 @@ public static partial class CompareEngine
         {
             DriveEntry? Find(CensusEnvelope? e) => (e?.Drives?.Data?.Drives ?? []).FirstOrDefault(d => d.DriveLetter == letter);
             rows.Add(Row($"{letter}: size (GB)", envelopes, e => Find(e)?.SizeBytes is { } b ? (b / 1_073_741_824.0).ToString("0.#") : null));
-            rows.Add(Row($"{letter}: file system", envelopes, e => Find(e)?.FileSystem));
             rows.Add(Row($"{letter}: % free", envelopes, e => Find(e)?.PercentFree?.ToString("0.#"), isVolatile: true));
         }
         return Group("drives", "Drives", rows);

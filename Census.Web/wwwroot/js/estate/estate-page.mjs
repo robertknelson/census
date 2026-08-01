@@ -482,7 +482,7 @@ class EstatePage {
         this.panel = { type: 'compare', machines: machineNames };
         this.panelShell(
             `Compare <span class="est-mono">${machineNames.map(escapeHtml).join(' · ')}</span>`,
-            'Differing rows only — volatile fields never count against equality',
+            'Differing rows only — volatile rows shown muted, never counted against equality',
             '<p class="est-status">Comparing…</p>');
         this.openPanel();
 
@@ -502,10 +502,10 @@ class EstatePage {
                 ? '<span class="est-verdict est-verdict-ok">identical</span>'
                 : `<span class="est-verdict est-verdict-diff">${g.differCount} difference${g.differCount === 1 ? '' : 's'}</span>`;
             const rows = g.rows
-                .filter((r) => r.differs && !r.volatile)
+                .filter((r) => r.differs)
                 .map((r) => `
-                    <tr>
-                        <td class="est-row-label">${escapeHtml(r.label)}</td>
+                    <tr class="${r.volatile ? 'est-row-volatile' : ''}">
+                        <td class="est-row-label">${escapeHtml(r.label)}${r.volatile ? ' <span class="est-muted">(volatile)</span>' : ''}</td>
                         ${r.values.map((v) => `<td>${v === null ? '<span class="est-muted">—</span>' : escapeHtml(v)}</td>`).join('')}
                     </tr>`).join('');
             return `

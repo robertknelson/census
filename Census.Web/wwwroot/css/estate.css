@@ -872,6 +872,8 @@ html, body {
 
 .est-row-label { color: var(--est-muted); }
 
+.est-row-volatile td { color: var(--est-faint); }
+
 .est-verdict {
     font-size: 0.72rem;
     font-weight: 600;

@@ -4,6 +4,7 @@ import { dossierHtml, bindDossier } from './machine-dossier.mjs';
 import { AssignmentEditor } from './assignment-editor.mjs';
 import { FindingsQueue, severityDotClass } from './findings-queue.mjs';
 import { MachineHistory } from './machine-history.mjs';
+import { BlacklistEditor } from './blacklist-editor.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -87,6 +88,7 @@ class EstatePage {
                     <div class="est-wordmark">Census <span>/ estate</span></div>
                     <div class="est-header-right">
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
+                        <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
                         <div class="est-legend" data-ref="legend"></div>
                     </div>
                 </header>
@@ -127,6 +129,8 @@ class EstatePage {
 
         this.findingsBtnEl = this.root.querySelector('[data-ref="findings-btn"]');
         this.findingsBtnEl.addEventListener('click', () => this.openFindings());
+
+        this.root.querySelector('[data-ref="blacklist-btn"]').addEventListener('click', () => this.openBlacklist());
 
         this.backdropEl.addEventListener('click', () => this.closePanel());
         document.addEventListener('keydown', (e) => {
@@ -380,6 +384,21 @@ class EstatePage {
             </header>
             <div class="est-panel-body">${bodyHtml}</div>`;
         this.panelEl.querySelector('[data-act="close"]').addEventListener('click', () => this.closePanel());
+    }
+
+    openBlacklist() {
+        this.panel = { type: 'blacklist' };
+        this.panelShell(
+            'Blacklist rules',
+            'Edits write straight back to config/blacklist.json and take effect on the next render. Inactive rules are kept, not evaluated.',
+            '<div data-ref="blacklist"></div>');
+        this.openPanel();
+
+        new BlacklistEditor(async () => {
+            // Hits may have appeared or vanished — refresh the whole substrate.
+            this.data = await fetchCanvas();
+            this.renderAll();
+        }).mount(this.panelEl.querySelector('[data-ref="blacklist"]'));
     }
 
     openFindings() {

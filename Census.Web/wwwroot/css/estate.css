@@ -764,6 +764,41 @@ html, body {
     color: var(--est-muted);
 }
 
+/* --- blacklist editor --------------------------------------------------------------- */
+
+.est-btn-danger {
+    border-color: var(--est-red);
+    background: var(--est-red);
+    color: #fff;
+}
+
+.est-btn-danger:hover { background: #c93d33; color: #fff; }
+
+.est-rule-inactive { opacity: 0.55; }
+
+.est-rule-id {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.est-rule-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 400;
+}
+
+.est-rule-line {
+    font-size: 0.84rem;
+    margin-bottom: 0.2rem;
+}
+
+.est-rule-reason {
+    font-size: 0.78rem;
+    color: var(--est-muted);
+}
+
 /* --- history ------------------------------------------------------------------------ */
 
 .est-history-controls {

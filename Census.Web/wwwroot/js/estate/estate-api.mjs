@@ -35,6 +35,31 @@ export function fetchMachineDiff(machine, fromDate, toDate) {
     return getJson(`/api/machines/${encodeURIComponent(machine)}/diff?${params}`);
 }
 
+export function fetchBlacklist() {
+    return getJson('/api/blacklist');
+}
+
+export async function saveBlacklist(config) {
+    let response;
+    try {
+        response = await fetch('/api/blacklist', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config),
+        });
+    } catch {
+        throw new Error('Census.Web is not reachable — is the app still running?');
+    }
+    if (!response.ok) {
+        let detail = `save failed (${response.status})`;
+        try {
+            const body = await response.json();
+            if (body.errors) detail = body.errors.join('; ');
+        } catch { /* keep the status-based message */ }
+        throw new Error(detail);
+    }
+}
+
 export async function saveAssignment(machine, assignment) {
     let response;
     try {

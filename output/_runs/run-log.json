@@ -1,82 +1,10 @@
-﻿[
+[
     {
-        "machine":  "extensoft-6",
-        "outcome":  "unreachable",
-        "reason":  "\u003cf:WSManFault xmlns:f=\"http://schemas.microsoft.com/wbem/wsman/1/wsmanfault\" Code=\"2150858770\" Machine=\"eXtensoft-6\"\u003e\u003cf:Message\u003eThe client cannot connect to the destination specified in the request. Verify that the service on the destination is running and is accepting requests. Consult the logs and documentation for the WS-Management service running on the destination, most commonly IIS or WinRM. If the destination is the WinRM service, run the following command on the destination to analyze and configure the WinRM service: \"winrm quickconfig\". \u003c/f:Message\u003e\u003c/f:WSManFault\u003e",
-        "startedUtc":  "2026-07-31T23:01:14.2906089Z",
-        "finishedUtc":  "2026-07-31T23:01:22.6163998Z",
-        "durationMs":  8324
-    },
-    {
-        "machine":  "web01",
-        "outcome":  "ok",
-        "reason":  null,
-        "startedUtc":  "2026-07-30T02:33:02.8940000Z",
-        "finishedUtc":  "2026-07-30T02:33:07.0000000Z",
-        "durationMs":  4106
-    },
-    {
-        "machine":  "web01",
-        "outcome":  "ok",
-        "reason":  null,
-        "startedUtc":  "2026-07-31T03:00:51.2640000Z",
-        "finishedUtc":  "2026-07-31T03:01:15.0000000Z",
-        "durationMs":  23736
-    },
-    {
-        "machine":  "sql01",
-        "outcome":  "ok",
-        "reason":  null,
-        "startedUtc":  "2026-07-31T01:30:56.3920000Z",
-        "finishedUtc":  "2026-07-31T01:31:04.0000000Z",
-        "durationMs":  7608
-    },
-    {
-        "machine":  "appsrv01",
-        "outcome":  "ok",
-        "reason":  null,
-        "startedUtc":  "2026-07-31T04:27:18.6540000Z",
-        "finishedUtc":  "2026-07-31T04:27:33.0000000Z",
-        "durationMs":  14346
-    },
-    {
-        "machine":  "devbox-jsmith",
-        "outcome":  "ok",
-        "reason":  null,
-        "startedUtc":  "2026-07-31T04:47:16.4050000Z",
-        "finishedUtc":  "2026-07-31T04:47:30.0000000Z",
-        "durationMs":  13595
-    },
-    {
-        "machine":  "buildsrv01",
-        "outcome":  "ok",
-        "reason":  null,
-        "startedUtc":  "2026-07-31T03:11:15.3760000Z",
-        "finishedUtc":  "2026-07-31T03:11:35.0000000Z",
-        "durationMs":  19624
-    },
-    {
-        "machine":  "legacy-dc01",
-        "outcome":  "ok",
-        "reason":  null,
-        "startedUtc":  "2026-07-31T03:02:09.7230000Z",
-        "finishedUtc":  "2026-07-31T03:02:24.0000000Z",
-        "durationMs":  14277
-    },
-    {
-        "machine":  "oldvm01",
-        "outcome":  "unreachable",
-        "reason":  "The client cannot connect to the destination specified in the request. Verify that the service on the destination is running and is accepting requests.",
-        "startedUtc":  "2026-07-31T23:05:00.0000000Z",
-        "finishedUtc":  "2026-07-31T23:05:08.0000000Z",
-        "durationMs":  8000
-    },
-    {
-        "machine":  "dcbackup01",
-        "outcome":  "failed",
-        "reason":  "Access is denied. Connecting user does not have sufficient rights on the target machine.",
-        "startedUtc":  "2026-07-31T23:06:00.0000000Z",
-        "finishedUtc":  "2026-07-31T23:06:04.0000000Z",
-        "durationMs":  4000
+        "machine": "extensoft-6",
+        "outcome": "unreachable",
+        "reason": "<f:WSManFault xmlns:f=\"http://schemas.microsoft.com/wbem/wsman/1/wsmanfault\" Code=\"2150858770\" Machine=\"eXtensoft-6\"><f:Message>The client cannot connect to the destination specified in the request. Verify that the service on the destination is running and is accepting requests. Consult the logs and documentation for the WS-Management service running on the destination, most commonly IIS or WinRM. If the destination is the WinRM service, run the following command on the destination to analyze and configure the WinRM service: \"winrm quickconfig\". </f:Message></f:WSManFault>",
+        "startedUtc": "2026-07-31T23:01:14.2906089Z",
+        "finishedUtc": "2026-07-31T23:01:22.6163998Z",
+        "durationMs": 8324
     }
 ]

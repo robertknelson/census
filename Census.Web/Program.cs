@@ -23,9 +23,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// In development, browsers heuristically cache the ES modules and serve stale code after
-// edits; force revalidation so a plain refresh always reflects the working tree.
-app.UseStaticFiles(app.Environment.IsDevelopment()
+// In development (and the demo profile), browsers heuristically cache the ES modules and
+// serve stale code after edits; force revalidation so a plain refresh always reflects the
+// working tree.
+app.UseStaticFiles(app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Demo")
     ? new StaticFileOptions
     {
         OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "no-cache",

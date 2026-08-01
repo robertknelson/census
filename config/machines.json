@@ -1,13 +1,5 @@
 {
   "machines": [
-    "extensoft-6",
-    "WEB01",
-    "SQL01",
-    "APPSRV01",
-    "DEVBOX-JSMITH",
-    "BUILDSRV01",
-    "LEGACY-DC01",
-    "OLDVM01",
-    "DCBACKUP01"
+    "extensoft-6"
   ]
 }

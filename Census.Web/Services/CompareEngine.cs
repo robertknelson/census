@@ -55,7 +55,6 @@ public static partial class CompareEngine
             Row("Display version", envelopes, e => e?.Os?.Data?.DisplayVersion),
             Row("Architecture", envelopes, e => e?.Os?.Data?.Architecture),
             Row("OS installed", envelopes, e => e?.Os?.Data?.InstallDate?.ToString("yyyy-MM-dd"), isVolatile: true),
-            Row("Last booted", envelopes, e => e?.Os?.Data?.LastBootUpTime?.ToString("yyyy-MM-dd HH:mm"), isVolatile: true),
             Row("Last update installed", envelopes, e => e?.Updates?.Data?.LastInstallSuccessTime, isVolatile: true),
             Row("Pending reboot", envelopes, e => e?.Os?.Data is { } o ? (o.PendingReboot ? "yes" : "no") : null, isVolatile: true),
         };

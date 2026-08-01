@@ -26,6 +26,15 @@ export function fetchSnapshot(machine, date) {
     return getJson(`/api/machines/${encodeURIComponent(machine)}/snapshots/${encodeURIComponent(date)}`);
 }
 
+export function fetchMachineDates(machine) {
+    return getJson(`/api/machines/${encodeURIComponent(machine)}/dates`);
+}
+
+export function fetchMachineDiff(machine, fromDate, toDate) {
+    const params = new URLSearchParams({ from: fromDate, to: toDate });
+    return getJson(`/api/machines/${encodeURIComponent(machine)}/diff?${params}`);
+}
+
 export async function saveAssignment(machine, assignment) {
     let response;
     try {

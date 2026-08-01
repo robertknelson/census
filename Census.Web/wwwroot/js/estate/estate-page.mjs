@@ -1,8 +1,9 @@
-import { fetchCanvas, fetchCompare, fetchSnapshot } from './estate-api.mjs';
+import { fetchCanvas, fetchCompare, fetchSnapshot, fetchMachineDates } from './estate-api.mjs';
 import { glyphSvg } from './machine-glyphs.mjs';
 import { dossierHtml, bindDossier } from './machine-dossier.mjs';
 import { AssignmentEditor } from './assignment-editor.mjs';
 import { FindingsQueue, severityDotClass } from './findings-queue.mjs';
+import { MachineHistory } from './machine-history.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -444,6 +445,11 @@ class EstatePage {
                 <h3>Assignment <button class="est-btn est-btn-sm" data-ref="edit-assignment">Edit</button></h3>
                 <div data-ref="assignment-body">${facets}</div>
             </section>
+            ${m.hasData ? `
+            <section>
+                <h3>History</h3>
+                <div data-ref="history"><p class="est-status">Loading collected days…</p></div>
+            </section>` : ''}
             ${dossierPlaceholder}`);
         this.openPanel();
 
@@ -462,6 +468,21 @@ class EstatePage {
         });
 
         if (!m.hasData) return;
+
+        fetchMachineDates(m.machine).then((dates) => {
+            if (this.panel?.type !== 'details' || this.panel.machine !== machineName) return;
+            const historyEl = this.panelEl.querySelector('[data-ref="history"]');
+            if (!historyEl) return;
+            if (dates.length < 2) {
+                historyEl.innerHTML = '<p class="est-status">Only one day collected so far — history begins with the next run.</p>';
+                return;
+            }
+            new MachineHistory(m.machine, dates).mount(historyEl);
+        }).catch((err) => {
+            const historyEl = this.panelEl.querySelector('[data-ref="history"]');
+            if (historyEl) historyEl.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
+        });
+
         let snapshot;
         try {
             snapshot = await fetchSnapshot(m.machine, m.latestDate);

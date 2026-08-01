@@ -764,6 +764,48 @@ html, body {
     color: var(--est-muted);
 }
 
+/* --- history ------------------------------------------------------------------------ */
+
+.est-history-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+    font-size: 0.84rem;
+}
+
+.est-history-group {
+    margin-bottom: 0.8rem;
+}
+
+.est-history-group-name {
+    font-size: 0.74rem;
+    font-weight: 650;
+    color: var(--est-muted);
+    margin-bottom: 0.25rem;
+}
+
+.est-history-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    padding: 0.18rem 0;
+    font-size: 0.84rem;
+}
+
+.est-history-sym {
+    font-family: var(--est-mono);
+    font-weight: 700;
+    width: 1rem;
+    text-align: center;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.est-history-sym-added { color: #2e7d4f; background: #e7f3ec; }
+.est-history-sym-removed { color: var(--est-red); background: var(--est-red-soft); }
+.est-history-sym-changed { color: var(--est-amber); background: var(--est-amber-soft); }
+
 /* --- assignment editor -------------------------------------------------------------- */
 
 .est-btn-sm {

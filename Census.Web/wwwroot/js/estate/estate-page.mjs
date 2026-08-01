@@ -7,6 +7,7 @@ import { MachineHistory } from './machine-history.mjs';
 import { BlacklistEditor } from './blacklist-editor.mjs';
 import { CertificatesPanel, certUrgencyClass } from './certificates-panel.mjs';
 import { ChangesFeed } from './changes-feed.mjs';
+import { SoftwarePanel } from './software-panel.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -92,6 +93,7 @@ class EstatePage {
                     <div class="est-header-actions">
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
                         <button class="est-btn" data-ref="changes-btn">Changes</button>
+                        <button class="est-btn" data-ref="software-btn">Software</button>
                         <button class="est-btn" data-ref="certs-btn">Certificates</button>
                         <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
                     </div>
@@ -140,6 +142,8 @@ class EstatePage {
         this.certsBtnEl.addEventListener('click', () => this.openCertificates());
 
         this.root.querySelector('[data-ref="changes-btn"]').addEventListener('click', () => this.openChanges());
+        this.root.querySelector('[data-ref="software-btn"]').addEventListener('click', () => this.openSoftware());
+        this.softwareState = { query: '' };
 
         this.backdropEl.addEventListener('click', () => this.closePanel());
         document.addEventListener('keydown', (e) => {
@@ -424,6 +428,18 @@ class EstatePage {
             grip.addEventListener('pointermove', move);
             grip.addEventListener('pointerup', up);
         });
+    }
+
+    openSoftware() {
+        this.panel = { type: 'software' };
+        this.panelShell(
+            'Software inventory',
+            'The fleet pivoted by application — every machine carrying it, version spread visible. Machine names open dossiers.',
+            '<div data-ref="software"></div>');
+        this.openPanel();
+
+        new SoftwarePanel(this.softwareState, (machine) => this.openDetails(machine))
+            .mount(this.panelEl.querySelector('[data-ref="software"]'));
     }
 
     openChanges() {

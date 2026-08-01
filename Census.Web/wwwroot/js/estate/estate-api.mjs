@@ -47,6 +47,10 @@ export function fetchChanges() {
     return getJson('/api/changes');
 }
 
+export function fetchSoftware() {
+    return getJson('/api/software');
+}
+
 export async function saveBlacklist(config) {
     let response;
     try {

@@ -803,6 +803,45 @@ html, body {
     color: var(--est-muted);
 }
 
+/* --- software inventory ------------------------------------------------------------- */
+
+.est-sw {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--est-line-soft);
+}
+
+.est-sw-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin-bottom: 0.2rem;
+}
+
+.est-sw-name { font-weight: 600; font-size: 0.88rem; }
+
+.est-sw-count {
+    margin-left: auto;
+    font-size: 0.72rem;
+    color: var(--est-muted);
+    white-space: nowrap;
+}
+
+.est-sw-version {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    padding: 0.12rem 0 0.12rem 0.9rem;
+    font-size: 0.8rem;
+}
+
+.est-sw-vlabel { min-width: 7.5rem; color: var(--est-muted); }
+
+.est-sw-machines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.8rem;
+}
+
 /* --- changes feed ------------------------------------------------------------------- */
 
 .est-changes-machine {

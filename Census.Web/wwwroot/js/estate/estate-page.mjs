@@ -1,5 +1,6 @@
-import { fetchCanvas, fetchCompare } from './estate-api.mjs';
+import { fetchCanvas, fetchCompare, fetchSnapshot } from './estate-api.mjs';
 import { glyphSvg } from './machine-glyphs.mjs';
+import { dossierHtml, bindDossier } from './machine-dossier.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -319,7 +320,7 @@ class EstatePage {
         this.panelEl.querySelector('[data-act="close"]').addEventListener('click', () => this.closePanel());
     }
 
-    openDetails(machineName) {
+    async openDetails(machineName) {
         const m = this.data.machines.find((x) => x.machine === machineName);
         if (!m) return;
         this.panel = { type: 'details', machine: machineName };
@@ -350,9 +351,13 @@ class EstatePage {
                     ${m.facets[key].map((v) => `<span class="est-badge">${escapeHtml(v)}</span>`).join('')}
                 </div>`).join('');
 
+        const dossierPlaceholder = m.hasData
+            ? '<div data-ref="dossier"><p class="est-status">Loading full snapshot…</p></div>'
+            : `<section><h3>Snapshot</h3><p class="est-status">Never collected — nothing beyond the assignment is known about this machine.</p></section>`;
+
         this.panelShell(
             `${glyphSvg(m.class, 22)} <span class="est-mono">${escapeHtml(m.machine)}</span>`,
-            `${escapeHtml(classLabel)} · ${provenance}`,
+            `${escapeHtml(classLabel)} · ${provenance}${m.latestDate ? ` · <span class="est-muted">collected ${escapeHtml(m.latestDate)}</span>` : ''}`,
             `
             <section>
                 <h3>Findings</h3>
@@ -362,15 +367,24 @@ class EstatePage {
                 <h3>Assignment</h3>
                 ${facets}
             </section>
-            <section>
-                <h3>Snapshot</h3>
-                <dl class="est-facts">
-                    <dt>OS</dt><dd>${escapeHtml(m.osProductName) || '—'}</dd>
-                    <dt>Last collected</dt><dd>${escapeHtml(m.latestDate) || '<span class="est-crit">never</span>'}</dd>
-                    <dt>Observed roles</dt><dd>${escapeHtml(m.observedRoles.join(', ')) || '—'}</dd>
-                </dl>
-            </section>`);
+            ${dossierPlaceholder}`);
         this.openPanel();
+
+        if (!m.hasData) return;
+        let snapshot;
+        try {
+            snapshot = await fetchSnapshot(m.machine, m.latestDate);
+        } catch (err) {
+            const slot = this.panelEl.querySelector('[data-ref="dossier"]');
+            if (slot) slot.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
+            return;
+        }
+        if (this.panel?.type !== 'details' || this.panel.machine !== machineName) return;
+
+        const slot = this.panelEl.querySelector('[data-ref="dossier"]');
+        if (!slot) return;
+        slot.innerHTML = dossierHtml(m, snapshot.envelope);
+        bindDossier(slot);
     }
 
     async openCompare(machineNames) {

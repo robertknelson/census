@@ -551,6 +551,115 @@ html, body {
 .est-facts dt { color: var(--est-muted); }
 .est-facts dd { margin: 0; }
 
+/* --- dossier ------------------------------------------------------------------------ */
+
+.est-catfail { color: var(--est-red); font-weight: 600; }
+.est-catwarn { color: var(--est-amber); font-weight: 600; }
+
+.est-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+}
+
+.est-table th,
+.est-table td {
+    text-align: left;
+    padding: 0.35rem 0.65rem;
+    border-bottom: 1px solid var(--est-line-soft);
+}
+
+.est-table thead th {
+    font-size: 0.7rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--est-faint);
+    border-bottom: 1px solid var(--est-line);
+}
+
+.est-bar-cell { width: 30%; }
+
+.est-bar {
+    display: block;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--est-line-soft);
+    overflow: hidden;
+}
+
+.est-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--est-faint);
+}
+
+.est-bar-low { background: var(--est-red); }
+
+.est-chipline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.4rem;
+}
+
+.est-badge-sdk {
+    border-color: var(--est-blue);
+    color: var(--est-blue);
+    background: var(--est-blue-soft);
+}
+
+.est-filter {
+    width: 100%;
+    box-sizing: border-box;
+    font: inherit;
+    font-size: 0.84rem;
+    padding: 0.4rem 0.7rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--est-line);
+    border-radius: 6px;
+    background: var(--est-paper);
+    color: var(--est-ink);
+}
+
+.est-filter:focus {
+    outline: none;
+    border-color: var(--est-blue);
+    background: var(--est-panel);
+}
+
+.est-apps-scroll {
+    max-height: 22rem;
+    overflow-y: auto;
+    border: 1px solid var(--est-line-soft);
+    border-radius: 6px;
+}
+
+.est-subcard {
+    border: 1px solid var(--est-line-soft);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 0.6rem;
+}
+
+.est-subcard-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin-bottom: 0.35rem;
+}
+
+.est-binding {
+    display: flex;
+    gap: 0.8rem;
+    font-size: 0.8rem;
+    padding: 0.15rem 0;
+    color: var(--est-muted);
+}
+
 /* --- compare table ------------------------------------------------------------------ */
 
 .est-compare-scroll { overflow-x: auto; }

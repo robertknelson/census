@@ -1,5 +1,10 @@
 async function getJson(url) {
-    const response = await fetch(url);
+    let response;
+    try {
+        response = await fetch(url);
+    } catch {
+        throw new Error('Census.Web is not reachable — is the app still running?');
+    }
     if (!response.ok) {
         throw new Error(`${url} failed (${response.status})`);
     }

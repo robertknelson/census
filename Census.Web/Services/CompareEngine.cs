@@ -89,8 +89,25 @@ public static partial class CompareEngine
         foreach (var letter in letters)
         {
             DriveEntry? Find(CensusEnvelope? e) => (e?.Drives?.Data?.Drives ?? []).FirstOrDefault(d => d.DriveLetter == letter);
-            rows.Add(Row($"{letter}: size (GB)", envelopes, e => Find(e)?.SizeBytes is { } b ? (b / 1_073_741_824.0).ToString("0.#") : null));
-            rows.Add(Row($"{letter}: % free", envelopes, e => Find(e)?.PercentFree?.ToString("0.#"), isVolatile: true));
+
+            // One row per drive: "size · % free" in a single cell, but equality judged on
+            // size alone — free space is volatile and must never count against the verdict.
+            var sizes = envelopes.Select(e => Find(e)?.SizeBytes is { } b ? (b / 1_073_741_824.0).ToString("0.#") : null).ToList();
+            var values = envelopes.Select(e =>
+            {
+                var drive = Find(e);
+                if (drive is null) return null;
+                var size = drive.SizeBytes is { } b ? $"{b / 1_073_741_824.0:0.#} GB" : "size unknown";
+                return drive.PercentFree is { } p ? $"{size} · {p:0.#}% free" : size;
+            }).ToList();
+
+            rows.Add(new CompareRowDto
+            {
+                Label = $"{letter}:",
+                Values = values,
+                Differs = sizes.Select(v => v ?? "\0absent").Distinct().Count() > 1,
+                Volatile = false,
+            });
         }
         return Group("drives", "Drives", rows);
     }

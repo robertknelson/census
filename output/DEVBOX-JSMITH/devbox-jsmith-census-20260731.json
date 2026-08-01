@@ -1,0 +1,175 @@
+﻿{
+    "schemaVersion":  1,
+    "computerName":  "DEVBOX-JSMITH",
+    "collectedUtc":  "2026-07-31T04:47:30.0000000Z",
+    "identity":  {
+                     "status":  "ok",
+                     "data":  {
+                                  "domain":  "corp.example.com",
+                                  "manufacturer":  "Dell Inc.",
+                                  "model":  "Latitude 5540",
+                                  "smbiosUuid":  "1f3e5d70-6c8b-4a9e-8d0f-5e6f7a8b9c04",
+                                  "machineGuid":  "e9f5f9e3-5c4d-4d5e-9f0a-4d5e6f7a8b04",
+                                  "biosSerialNumber":  "JSMITHLT0007",
+                                  "isVirtual":  false,
+                                  "hypervisorSignals":  [
+
+                                                        ],
+                                  "cpuSockets":  1,
+                                  "cpuCores":  10,
+                                  "cpuLogicalProcessors":  12
+                              },
+                     "durationMs":  250
+                 },
+    "memory":  {
+                   "status":  "ok",
+                   "data":  {
+                                "totalPhysicalMemoryBytes":  34359738368,
+                                "totalPhysicalMemoryGB":  32
+                            },
+                   "durationMs":  9
+               },
+    "os":  {
+               "status":  "ok",
+               "data":  {
+                            "productName":  "Windows 11 Pro",
+                            "editionId":  "Professional",
+                            "installationType":  "Client",
+                            "currentBuild":  "26100",
+                            "ubr":  4652,
+                            "displayVersion":  "24H2",
+                            "architecture":  "64-bit",
+                            "installDate":  "2025-01-14T08:20:00.0000000-05:00",
+                            "lastBootUpTime":  "2026-07-30T07:45:00.0000000-04:00",
+                            "pendingReboot":  false,
+                            "pendingRebootReasons":  [
+
+                                                     ]
+                        },
+               "durationMs":  76
+           },
+    "updates":  {
+                    "status":  "ok",
+                    "data":  {
+                                 "currentBuild":  "26100",
+                                 "ubr":  4652,
+                                 "lastDetectSuccessTime":  null,
+                                 "lastInstallSuccessTime":  null
+                             },
+                    "durationMs":  33
+                },
+    "dotnet":  {
+                   "status":  "ok",
+                   "data":  {
+                                "frameworkReleaseId":  533320,
+                                "coreRuntimes":  [
+                                                     "Microsoft.AspNetCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+                                                     "Microsoft.AspNetCore.App 9.0.16 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+                                                     "Microsoft.NETCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]",
+                                                     "Microsoft.NETCore.App 9.0.16 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]"
+                                                 ],
+                                "sdks":  [
+                                             "8.0.412 [C:\\Program Files\\dotnet\\sdk]",
+                                             "9.0.305 [C:\\Program Files\\dotnet\\sdk]"
+                                         ]
+                            },
+                   "durationMs":  41
+               },
+    "drives":  {
+                   "status":  "ok",
+                   "data":  {
+                                "drives":  [
+                                               {
+                                                   "driveLetter":  "C",
+                                                   "label":  "Windows",
+                                                   "fileSystem":  "NTFS",
+                                                   "driveType":  "Fixed",
+                                                   "healthStatus":  "Healthy",
+                                                   "sizeBytes":  1023413714944,
+                                                   "freeBytes":  409365485978,
+                                                   "usedBytes":  614048228966,
+                                                   "percentFree":  40
+                                               }
+                                           ]
+                            },
+                   "durationMs":  190
+               },
+    "apps":  {
+                 "status":  "ok",
+                 "data":  {
+                              "count":  4,
+                              "entries":  [
+                                              {
+                                                  "displayName":  "Visual Studio Code",
+                                                  "displayVersion":  "1.94.2",
+                                                  "publisher":  "Microsoft Corporation",
+                                                  "installDate":  null,
+                                                  "installLocation":  "C:\\Users\\jsmith\\AppData\\Local\\Programs\\Microsoft VS Code",
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              },
+                                              {
+                                                  "displayName":  "Git",
+                                                  "displayVersion":  "2.46.0",
+                                                  "publisher":  "The Git Development Community",
+                                                  "installDate":  "2025-01-15",
+                                                  "installLocation":  "C:\\Program Files\\Git\\",
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              },
+                                              {
+                                                  "displayName":  "Docker Desktop",
+                                                  "displayVersion":  "4.34.2",
+                                                  "publisher":  "Docker Inc.",
+                                                  "installDate":  null,
+                                                  "installLocation":  "C:\\Program Files\\Docker\\Docker",
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              },
+                                              {
+                                                  "displayName":  "Microsoft SQL Server Management Studio",
+                                                  "displayVersion":  "20.2",
+                                                  "publisher":  "Microsoft Corporation",
+                                                  "installDate":  "2025-02-01",
+                                                  "installLocation":  null,
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              }
+                                          ]
+                          },
+                 "durationMs":  520
+             },
+    "iis":  {
+                "status":  "not-present",
+                "reason":  "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent",
+                "durationMs":  5
+            },
+    "certificates":  {
+                         "status":  "ok",
+                         "data":  {
+                                      "certificates":  [
+
+                                                       ],
+                                      "rdpQueryError":  "Invalid namespace ",
+                                      "httpSysQueryError":  null
+                                  },
+                         "durationMs":  60
+                     },
+    "sqlserver":  {
+                      "status":  "not-present",
+                      "reason":  "HKLM:\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL absent",
+                      "durationMs":  4
+                  },
+    "requestedName":  "devbox-jsmith",
+    "roles":  [
+                  "DevLaptop"
+              ]
+}

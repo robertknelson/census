@@ -1,0 +1,191 @@
+﻿{
+    "schemaVersion":  1,
+    "computerName":  "SQL01",
+    "collectedUtc":  "2026-07-31T01:31:04.0000000Z",
+    "identity":  {
+                     "status":  "ok",
+                     "data":  {
+                                  "domain":  "corp.example.com",
+                                  "manufacturer":  "Microsoft Corporation",
+                                  "model":  "Virtual Machine",
+                                  "smbiosUuid":  "7a1c9e40-3b2d-4f5e-8a6b-9c0d1e2f3a02",
+                                  "machineGuid":  "c7f3f7e1-3a2b-4b4c-8d9e-2b3c4d5e6f02",
+                                  "biosSerialNumber":  "7783-1234-5678-9012-3456-7890-12",
+                                  "isVirtual":  true,
+                                  "hypervisorSignals":  [
+                                                            "Hyper-V"
+                                                        ],
+                                  "cpuSockets":  2,
+                                  "cpuCores":  8,
+                                  "cpuLogicalProcessors":  16
+                              },
+                     "durationMs":  340
+                 },
+    "memory":  {
+                   "status":  "ok",
+                   "data":  {
+                                "totalPhysicalMemoryBytes":  68719476736,
+                                "totalPhysicalMemoryGB":  64
+                            },
+                   "durationMs":  10
+               },
+    "os":  {
+               "status":  "ok",
+               "data":  {
+                            "productName":  "Windows Server 2019 Standard",
+                            "editionId":  "ServerStandard",
+                            "installationType":  "Server",
+                            "currentBuild":  "17763",
+                            "ubr":  6414,
+                            "displayVersion":  "1809",
+                            "architecture":  "64-bit",
+                            "installDate":  "2023-01-20T14:30:00.0000000-05:00",
+                            "lastBootUpTime":  "2026-07-10T01:00:00.0000000-04:00",
+                            "pendingReboot":  false,
+                            "pendingRebootReasons":  [
+
+                                                     ]
+                        },
+               "durationMs":  92
+           },
+    "updates":  {
+                    "status":  "ok",
+                    "data":  {
+                                 "currentBuild":  "17763",
+                                 "ubr":  6414,
+                                 "lastDetectSuccessTime":  null,
+                                 "lastInstallSuccessTime":  null
+                             },
+                    "durationMs":  40
+                },
+    "dotnet":  {
+                   "status":  "ok",
+                   "data":  {
+                                "frameworkReleaseId":  528449,
+                                "coreRuntimes":  [
+
+                                                 ],
+                                "sdks":  [
+
+                                         ]
+                            },
+                   "durationMs":  20
+               },
+    "drives":  {
+                   "status":  "ok",
+                   "data":  {
+                                "drives":  [
+                                               {
+                                                   "driveLetter":  "C",
+                                                   "label":  "OS",
+                                                   "fileSystem":  "NTFS",
+                                                   "driveType":  "Fixed",
+                                                   "healthStatus":  "Healthy",
+                                                   "sizeBytes":  107374182400,
+                                                   "freeBytes":  42949672960,
+                                                   "usedBytes":  64424509440,
+                                                   "percentFree":  40
+                                               },
+                                               {
+                                                   "driveLetter":  "D",
+                                                   "label":  "SQLDATA",
+                                                   "fileSystem":  "NTFS",
+                                                   "driveType":  "Fixed",
+                                                   "healthStatus":  "Healthy",
+                                                   "sizeBytes":  1099511627776,
+                                                   "freeBytes":  329853488742,
+                                                   "usedBytes":  769658139034,
+                                                   "percentFree":  30
+                                               }
+                                           ]
+                            },
+                   "durationMs":  180
+               },
+    "apps":  {
+                 "status":  "ok",
+                 "data":  {
+                              "count":  2,
+                              "entries":  [
+                                              {
+                                                  "displayName":  "Microsoft SQL Server 2019 (64-bit)",
+                                                  "displayVersion":  "15.0.4345.5",
+                                                  "publisher":  "Microsoft Corporation",
+                                                  "installDate":  "2023-01-21",
+                                                  "installLocation":  null,
+                                                  "systemComponent":  true,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              },
+                                              {
+                                                  "displayName":  "SQL Server 2019 Management Studio",
+                                                  "displayVersion":  "19.3.0",
+                                                  "publisher":  "Microsoft Corporation",
+                                                  "installDate":  "2023-01-22",
+                                                  "installLocation":  null,
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              }
+                                          ]
+                          },
+                 "durationMs":  410
+             },
+    "iis":  {
+                "status":  "not-present",
+                "reason":  "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent",
+                "durationMs":  6
+            },
+    "certificates":  {
+                         "status":  "failed",
+                         "reason":  "Access to the path \u0027Cert:\\LocalMachine\u0027 is denied.",
+                         "durationMs":  88
+                     },
+    "sqlserver":  {
+                      "status":  "ok",
+                      "data":  {
+                                   "instances":  [
+                                                     {
+                                                         "instanceName":  "MSSQLSERVER",
+                                                         "edition":  "Standard Edition (64-bit)",
+                                                         "version":  "15.0.4345.5",
+                                                         "patchLevel":  "15.0.4345.5",
+                                                         "sqlBinRoot":  "D:\\Program Files\\Microsoft SQL Server\\MSSQL15.MSSQLSERVER\\MSSQL\\Binn",
+                                                         "sqlDataRoot":  "D:\\Program Files\\Microsoft SQL Server\\MSSQL15.MSSQLSERVER\\MSSQL",
+                                                         "collation":  "SQL_Latin1_General_CP1_CI_AS",
+                                                         "loginMode":  2,
+                                                         "backupDirectory":  "D:\\Backups",
+                                                         "tcpPort":  "1433",
+                                                         "tcpDynamicPorts":  "",
+                                                         "serviceAccount":  "NT Service\\MSSQLSERVER",
+                                                         "serviceState":  "Running",
+                                                         "agentServiceAccount":  "NT Service\\SQLSERVERAGENT",
+                                                         "agentServiceState":  "Running"
+                                                     },
+                                                     {
+                                                         "instanceName":  "REPORTING",
+                                                         "edition":  "Standard Edition (64-bit)",
+                                                         "version":  "15.0.4345.5",
+                                                         "patchLevel":  "15.0.4345.5",
+                                                         "sqlBinRoot":  "D:\\Program Files\\Microsoft SQL Server\\MSSQL15.REPORTING\\MSSQL\\Binn",
+                                                         "sqlDataRoot":  "D:\\Program Files\\Microsoft SQL Server\\MSSQL15.REPORTING\\MSSQL",
+                                                         "collation":  "SQL_Latin1_General_CP1_CI_AS",
+                                                         "loginMode":  1,
+                                                         "backupDirectory":  "D:\\Backups",
+                                                         "tcpPort":  "1434",
+                                                         "tcpDynamicPorts":  "",
+                                                         "serviceAccount":  "NT Service\\MSSQL$REPORTING",
+                                                         "serviceState":  "Running",
+                                                         "agentServiceAccount":  "NT Service\\SQLAgent$REPORTING",
+                                                         "agentServiceState":  "Stopped"
+                                                     }
+                                                 ]
+                               },
+                      "durationMs":  260
+                  },
+    "requestedName":  "sql01",
+    "roles":  [
+                  "DatabaseServer"
+              ]
+}

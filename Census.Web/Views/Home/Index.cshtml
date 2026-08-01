@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "Census";
+}
+
+<div id="census-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import censusPage from '/js/census/census-page.mjs';
+        censusPage.init({ rootId: 'census-root' });
+    </script>
+}

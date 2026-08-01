@@ -1,0 +1,215 @@
+﻿{
+    "schemaVersion":  1,
+    "computerName":  "APPSRV01",
+    "collectedUtc":  "2026-07-31T04:27:33.0000000Z",
+    "identity":  {
+                     "status":  "ok",
+                     "data":  {
+                                  "domain":  "corp.example.com",
+                                  "manufacturer":  "Dell Inc.",
+                                  "model":  "PowerEdge R650",
+                                  "smbiosUuid":  "9d2e5b70-4c3d-4a5e-8b6c-1d2e3f4a5b03",
+                                  "machineGuid":  "d8f4f8e2-4b3c-4c5d-9e0f-3c4d5e6f7a03",
+                                  "biosSerialNumber":  "APPSRV01SN0042",
+                                  "isVirtual":  false,
+                                  "hypervisorSignals":  [
+
+                                                        ],
+                                  "cpuSockets":  2,
+                                  "cpuCores":  16,
+                                  "cpuLogicalProcessors":  32
+                              },
+                     "durationMs":  298
+                 },
+    "memory":  {
+                   "status":  "ok",
+                   "data":  {
+                                "totalPhysicalMemoryBytes":  34359738368,
+                                "totalPhysicalMemoryGB":  32
+                            },
+                   "durationMs":  11
+               },
+    "os":  {
+               "status":  "ok",
+               "data":  {
+                            "productName":  "Windows Server 2022 Standard",
+                            "editionId":  "ServerStandard",
+                            "installationType":  "Server",
+                            "currentBuild":  "20348",
+                            "ubr":  3630,
+                            "displayVersion":  "21H2",
+                            "architecture":  "64-bit",
+                            "installDate":  "2023-09-05T11:00:00.0000000-04:00",
+                            "lastBootUpTime":  "2026-05-02T22:14:00.0000000-04:00",
+                            "pendingReboot":  true,
+                            "pendingRebootReasons":  [
+                                                         "WindowsUpdate"
+                                                     ]
+                        },
+               "durationMs":  101
+           },
+    "updates":  {
+                    "status":  "ok",
+                    "data":  {
+                                 "currentBuild":  "20348",
+                                 "ubr":  3630,
+                                 "lastDetectSuccessTime":  "2026-07-30 03:00:11",
+                                 "lastInstallSuccessTime":  "2026-07-30 03:45:52"
+                             },
+                    "durationMs":  39
+                },
+    "dotnet":  {
+                   "status":  "ok",
+                   "data":  {
+                                "frameworkReleaseId":  528040,
+                                "coreRuntimes":  [
+                                                     "Microsoft.AspNetCore.App 6.0.36 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]"
+                                                 ],
+                                "sdks":  [
+
+                                         ]
+                            },
+                   "durationMs":  28
+               },
+    "drives":  {
+                   "status":  "ok",
+                   "data":  {
+                                "drives":  [
+                                               {
+                                                   "driveLetter":  "C",
+                                                   "label":  "OS",
+                                                   "fileSystem":  "NTFS",
+                                                   "driveType":  "Fixed",
+                                                   "healthStatus":  "Healthy",
+                                                   "sizeBytes":  214748364800,
+                                                   "freeBytes":  38654705664,
+                                                   "usedBytes":  176093659136,
+                                                   "percentFree":  18
+                                               }
+                                           ]
+                            },
+                   "durationMs":  205
+               },
+    "apps":  {
+                 "status":  "ok",
+                 "data":  {
+                              "count":  2,
+                              "entries":  [
+                                              {
+                                                  "displayName":  "Microsoft SQL Server 2019 Express",
+                                                  "displayVersion":  "15.0.2000.5",
+                                                  "publisher":  "Microsoft Corporation",
+                                                  "installDate":  "2023-09-06",
+                                                  "installLocation":  null,
+                                                  "systemComponent":  true,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              },
+                                              {
+                                                  "displayName":  "IIS URL Rewrite Module 2",
+                                                  "displayVersion":  "7.2.2100",
+                                                  "publisher":  "Microsoft Corporation",
+                                                  "installDate":  "2023-09-06",
+                                                  "installLocation":  null,
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              }
+                                          ]
+                          },
+                 "durationMs":  388
+             },
+    "iis":  {
+                "status":  "ok",
+                "data":  {
+                             "sites":  [
+                                           {
+                                               "name":  "Default Web Site",
+                                               "id":  "1",
+                                               "state":  "Started",
+                                               "bindings":  [
+                                                                {
+                                                                    "protocol":  "http",
+                                                                    "bindingInformation":  "*:80:",
+                                                                    "sslFlags":  null,
+                                                                    "certificateHash":  null,
+                                                                    "certificateStoreName":  null
+                                                                }
+                                                            ]
+                                           },
+                                           {
+                                               "name":  "intranet-app",
+                                               "id":  "2",
+                                               "state":  "Started",
+                                               "bindings":  [
+                                                                {
+                                                                    "protocol":  "https",
+                                                                    "bindingInformation":  "*:443:intranet.corp.example.com",
+                                                                    "sslFlags":  "0",
+                                                                    "certificateHash":  "CAFEBABE00112233445566778899AABBCCDDEE",
+                                                                    "certificateStoreName":  "My"
+                                                                }
+                                                            ]
+                                           }
+                                       ]
+                         },
+                "durationMs":  64
+            },
+    "certificates":  {
+                         "status":  "ok",
+                         "data":  {
+                                      "certificates":  [
+                                                           {
+                                                               "thumbprint":  "CAFEBABE00112233445566778899AABBCCDDEE",
+                                                               "subject":  "CN=intranet.corp.example.com",
+                                                               "sanDnsNames":  [
+                                                                                   "intranet.corp.example.com"
+                                                                               ],
+                                                               "issuer":  "CN=corp-CA01",
+                                                               "notBefore":  "2025-09-01T00:00:00.0000000-04:00",
+                                                               "notAfter":  "2027-09-01T00:00:00.0000000-04:00",
+                                                               "keySize":  2048,
+                                                               "daysUntilExpiry":  396,
+                                                               "boundTo":  [
+                                                                               "IIS"
+                                                                           ]
+                                                           }
+                                                       ],
+                                      "rdpQueryError":  null,
+                                      "httpSysQueryError":  null
+                                  },
+                         "durationMs":  355
+                     },
+    "sqlserver":  {
+                      "status":  "ok",
+                      "data":  {
+                                   "instances":  [
+                                                     {
+                                                         "instanceName":  "SQLEXPRESS",
+                                                         "edition":  "Express Edition (64-bit)",
+                                                         "version":  "15.0.2000.5",
+                                                         "patchLevel":  "15.0.2000.5",
+                                                         "sqlBinRoot":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.SQLEXPRESS\\MSSQL\\Binn",
+                                                         "sqlDataRoot":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.SQLEXPRESS\\MSSQL",
+                                                         "collation":  "SQL_Latin1_General_CP1_CI_AS",
+                                                         "loginMode":  2,
+                                                         "backupDirectory":  "C:\\Backups",
+                                                         "tcpPort":  "",
+                                                         "tcpDynamicPorts":  "51203",
+                                                         "serviceAccount":  "NT Service\\MSSQL$SQLEXPRESS",
+                                                         "serviceState":  "Running",
+                                                         "agentServiceAccount":  null,
+                                                         "agentServiceState":  null
+                                                     }
+                                                 ]
+                               },
+                      "durationMs":  240
+                  },
+    "requestedName":  "appsrv01",
+    "roles":  [
+                  "WebServer",
+                  "DatabaseServer"
+              ]
+}

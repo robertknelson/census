@@ -1,0 +1,202 @@
+﻿{
+    "schemaVersion":  1,
+    "computerName":  "WEB01",
+    "collectedUtc":  "2026-07-30T02:33:07.0000000Z",
+    "identity":  {
+                     "status":  "ok",
+                     "data":  {
+                                  "domain":  "corp.example.com",
+                                  "manufacturer":  "VMware, Inc.",
+                                  "model":  "VMware7,1",
+                                  "smbiosUuid":  "4212a9b0-1e3a-4e1e-9a8e-2f7c6b9d1a01",
+                                  "machineGuid":  "b6f2e6d0-2f1a-4a3b-9c9e-1a2b3c4d5e01",
+                                  "biosSerialNumber":  "VMware-42 12 a9 b0 1e 3a 4e 1e-9a 8e 2f 7c 6b 9d 1a 01",
+                                  "isVirtual":  true,
+                                  "hypervisorSignals":  [
+                                                            "VMware"
+                                                        ],
+                                  "cpuSockets":  1,
+                                  "cpuCores":  4,
+                                  "cpuLogicalProcessors":  4
+                              },
+                     "durationMs":  312
+                 },
+    "memory":  {
+                   "status":  "ok",
+                   "data":  {
+                                "totalPhysicalMemoryBytes":  17179869184,
+                                "totalPhysicalMemoryGB":  16
+                            },
+                   "durationMs":  12
+               },
+    "os":  {
+               "status":  "ok",
+               "data":  {
+                            "productName":  "Windows Server 2022 Standard",
+                            "editionId":  "ServerStandard",
+                            "installationType":  "Server",
+                            "currentBuild":  "20348",
+                            "ubr":  3807,
+                            "displayVersion":  "21H2",
+                            "architecture":  "64-bit",
+                            "installDate":  "2024-03-11T09:12:04.0000000-04:00",
+                            "lastBootUpTime":  "2026-07-24T02:07:00.0000000-04:00",
+                            "pendingReboot":  true,
+                            "pendingRebootReasons":  [
+                                                         "WindowsUpdate"
+                                                     ]
+                        },
+               "durationMs":  88
+           },
+    "updates":  {
+                    "status":  "ok",
+                    "data":  {
+                                 "currentBuild":  "20348",
+                                 "ubr":  3807,
+                                 "lastDetectSuccessTime":  "2026-07-29 03:15:42",
+                                 "lastInstallSuccessTime":  "2026-07-22 04:02:10"
+                             },
+                    "durationMs":  45
+                },
+    "dotnet":  {
+                   "status":  "ok",
+                   "data":  {
+                                "frameworkReleaseId":  528449,
+                                "coreRuntimes":  [
+                                                     "Microsoft.AspNetCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+                                                     "Microsoft.NETCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]"
+                                                 ],
+                                "sdks":  [
+
+                                         ]
+                            },
+                   "durationMs":  34
+               },
+    "drives":  {
+                   "status":  "ok",
+                   "data":  {
+                                "drives":  [
+                                               {
+                                                   "driveLetter":  "C",
+                                                   "label":  "OS",
+                                                   "fileSystem":  "NTFS",
+                                                   "driveType":  "Fixed",
+                                                   "healthStatus":  "Healthy",
+                                                   "sizeBytes":  107374182400,
+                                                   "freeBytes":  55834574848,
+                                                   "usedBytes":  51539607552,
+                                                   "percentFree":  52
+                                               }
+                                           ]
+                            },
+                   "durationMs":  220
+               },
+    "apps":  {
+                 "status":  "ok",
+                 "data":  {
+                              "count":  2,
+                              "entries":  [
+                                              {
+                                                  "displayName":  "URL Rewrite 2.1",
+                                                  "displayVersion":  "7.2.2100",
+                                                  "publisher":  "Microsoft Corporation",
+                                                  "installDate":  "2024-03-12",
+                                                  "installLocation":  null,
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              },
+                                              {
+                                                  "displayName":  "Microsoft ODBC Driver 17 for SQL Server",
+                                                  "displayVersion":  "17.10.6.1",
+                                                  "publisher":  "Microsoft Corporation",
+                                                  "installDate":  "2024-03-12",
+                                                  "installLocation":  null,
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              }
+                                          ]
+                          },
+                 "durationMs":  640
+             },
+    "iis":  {
+                "status":  "ok",
+                "data":  {
+                             "sites":  [
+                                           {
+                                               "name":  "Default Web Site",
+                                               "id":  "1",
+                                               "state":  "Started",
+                                               "bindings":  [
+                                                                {
+                                                                    "protocol":  "http",
+                                                                    "bindingInformation":  "*:80:",
+                                                                    "sslFlags":  null,
+                                                                    "certificateHash":  null,
+                                                                    "certificateStoreName":  null
+                                                                }
+                                                            ]
+                                           },
+                                           {
+                                               "name":  "portal.example.com",
+                                               "id":  "2",
+                                               "state":  "Started",
+                                               "bindings":  [
+                                                                {
+                                                                    "protocol":  "http",
+                                                                    "bindingInformation":  "*:80:portal.example.com",
+                                                                    "sslFlags":  null,
+                                                                    "certificateHash":  null,
+                                                                    "certificateStoreName":  null
+                                                                },
+                                                                {
+                                                                    "protocol":  "https",
+                                                                    "bindingInformation":  "*:443:portal.example.com",
+                                                                    "sslFlags":  "1",
+                                                                    "certificateHash":  "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678",
+                                                                    "certificateStoreName":  "My"
+                                                                }
+                                                            ]
+                                           }
+                                       ]
+                         },
+                "durationMs":  71
+            },
+    "certificates":  {
+                         "status":  "ok",
+                         "data":  {
+                                      "certificates":  [
+                                                           {
+                                                               "thumbprint":  "11AA22BB33CC44DD55EE66FF778899AABBCCDDEE",
+                                                               "subject":  "CN=WEB01.corp.example.com",
+                                                               "sanDnsNames":  [
+                                                                                   "WEB01.corp.example.com"
+                                                                               ],
+                                                               "issuer":  "CN=corp-CA01",
+                                                               "notBefore":  "2025-08-01T00:00:00.0000000-04:00",
+                                                               "notAfter":  "2027-08-01T00:00:00.0000000-04:00",
+                                                               "keySize":  2048,
+                                                               "daysUntilExpiry":  366,
+                                                               "boundTo":  [
+                                                                               "RDP"
+                                                                           ]
+                                                           }
+                                                       ],
+                                      "rdpQueryError":  null,
+                                      "httpSysQueryError":  null
+                                  },
+                         "durationMs":  410
+                     },
+    "sqlserver":  {
+                      "status":  "not-present",
+                      "reason":  "HKLM:\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL absent",
+                      "durationMs":  9
+                  },
+    "requestedName":  "web01",
+    "roles":  [
+                  "WebServer"
+              ]
+}

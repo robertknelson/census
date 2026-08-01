@@ -1,0 +1,139 @@
+﻿{
+    "schemaVersion":  1,
+    "computerName":  "LEGACY-DC01",
+    "collectedUtc":  "2026-07-31T03:02:24.0000000Z",
+    "identity":  {
+                     "status":  "ok",
+                     "data":  {
+                                  "domain":  "corp.example.com",
+                                  "manufacturer":  "VMware, Inc.",
+                                  "model":  "VMware7,1",
+                                  "smbiosUuid":  "3b5a7f90-8e0d-4c1a-af2b-7a8b9c0d1e06",
+                                  "machineGuid":  "a1b7b1a5-7e6f-4f7a-b1c2-6f7a8b9c0d06",
+                                  "biosSerialNumber":  "VMware-3b 5a 7f 90 8e 0d 4c 1a-af 2b 7a 8b 9c 0d 1e 06",
+                                  "isVirtual":  true,
+                                  "hypervisorSignals":  [
+                                                            "VMware"
+                                                        ],
+                                  "cpuSockets":  1,
+                                  "cpuCores":  2,
+                                  "cpuLogicalProcessors":  2
+                              },
+                     "durationMs":  260
+                 },
+    "memory":  {
+                   "status":  "ok",
+                   "data":  {
+                                "totalPhysicalMemoryBytes":  8589934592,
+                                "totalPhysicalMemoryGB":  8
+                            },
+                   "durationMs":  8
+               },
+    "os":  {
+               "status":  "ok",
+               "data":  {
+                            "productName":  "Windows Server 2012 R2 Standard",
+                            "editionId":  "ServerStandard",
+                            "installationType":  "Server",
+                            "currentBuild":  "9600",
+                            "ubr":  21776,
+                            "displayVersion":  null,
+                            "architecture":  "64-bit",
+                            "installDate":  "2015-04-02T10:00:00.0000000-04:00",
+                            "lastBootUpTime":  "2025-12-01T05:00:00.0000000-05:00",
+                            "pendingReboot":  true,
+                            "pendingRebootReasons":  [
+                                                         "ComponentBasedServicing",
+                                                         "WindowsUpdate"
+                                                     ]
+                        },
+               "durationMs":  95
+           },
+    "updates":  {
+                    "status":  "ok",
+                    "data":  {
+                                 "currentBuild":  "9600",
+                                 "ubr":  21776,
+                                 "lastDetectSuccessTime":  "2026-07-15 01:00:00",
+                                 "lastInstallSuccessTime":  "2026-06-10 01:30:00"
+                             },
+                    "durationMs":  42
+                },
+    "dotnet":  {
+                   "status":  "ok",
+                   "data":  {
+                                "frameworkReleaseId":  461814,
+                                "coreRuntimes":  [
+
+                                                 ],
+                                "sdks":  [
+
+                                         ]
+                            },
+                   "durationMs":  15
+               },
+    "drives":  {
+                   "status":  "ok",
+                   "data":  {
+                                "drives":  [
+                                               {
+                                                   "driveLetter":  "C",
+                                                   "label":  "OS",
+                                                   "fileSystem":  "NTFS",
+                                                   "driveType":  "Fixed",
+                                                   "healthStatus":  "Healthy",
+                                                   "sizeBytes":  53687091200,
+                                                   "freeBytes":  1717986918,
+                                                   "usedBytes":  51969104282,
+                                                   "percentFree":  3.2
+                                               }
+                                           ]
+                            },
+                   "durationMs":  300
+               },
+    "apps":  {
+                 "status":  "ok",
+                 "data":  {
+                              "count":  1,
+                              "entries":  [
+                                              {
+                                                  "displayName":  "Symantec Endpoint Protection",
+                                                  "displayVersion":  "12.1.7454.7000",
+                                                  "publisher":  "Symantec Corporation",
+                                                  "installDate":  "2015-04-03",
+                                                  "installLocation":  null,
+                                                  "systemComponent":  false,
+                                                  "hive":  "HKLM",
+                                                  "architecture":  "x64",
+                                                  "sid":  ""
+                                              }
+                                          ]
+                          },
+                 "durationMs":  700
+             },
+    "iis":  {
+                "status":  "not-present",
+                "reason":  "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent",
+                "durationMs":  4
+            },
+    "certificates":  {
+                         "status":  "ok",
+                         "data":  {
+                                      "certificates":  [
+
+                                                       ],
+                                      "rdpQueryError":  null,
+                                      "httpSysQueryError":  null
+                                  },
+                         "durationMs":  45
+                     },
+    "sqlserver":  {
+                      "status":  "not-present",
+                      "reason":  "HKLM:\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL absent",
+                      "durationMs":  3
+                  },
+    "requestedName":  "legacy-dc01",
+    "roles":  [
+
+              ]
+}

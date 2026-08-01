@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "BL-2026-001",
+      "target": "dotnet.coreRuntimes",
+      "match": {
+        "field": "name",
+        "matchType": "exact",
+        "value": "Microsoft.NETCore.App"
+      },
+      "version": {
+        "op": "<",
+        "value": "8.0.0"
+      },
+      "severity": "critical",
+      "reason": "EOL .NET runtime (.NET 6 went out of support) — org policy #97",
+      "active": true
+    },
+    {
+      "id": "BL-2026-002",
+      "target": "dotnet.coreRuntimes",
+      "match": {
+        "field": "name",
+        "matchType": "exact",
+        "value": "Microsoft.AspNetCore.App"
+      },
+      "version": {
+        "op": "<",
+        "value": "8.0.0"
+      },
+      "severity": "critical",
+      "reason": "EOL .NET runtime (.NET 6 went out of support) — org policy #97",
+      "active": true
+    },
+    {
+      "id": "BL-2026-003",
+      "target": "apps",
+      "match": {
+        "field": "displayName",
+        "matchType": "exact",
+        "value": "Docker Desktop"
+      },
+      "version": {
+        "op": "<",
+        "value": "4.40.0"
+      },
+      "severity": "high",
+      "reason": "Below minimum patched version — org policy #142",
+      "active": true
+    }
+  ]
+}

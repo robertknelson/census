@@ -29,9 +29,11 @@ to dev-ops.
 ## 3. The semantic layer — observed below, asserted above
 
 **Observed** (from the collector, never hand-assigned): everything in the census files,
-including **class** (WebServer / DatabaseServer / DevServer / DevLaptop). Ratified: class
-stays observed-only — a hand-maintained class list would inherit exactly the drift problem
-the census exists to kill.
+including **class** (WebServer / DatabaseServer / DevServer / DevLaptop). Class is
+observed by default; a single present-as override may be asserted in assets.json with
+visible provenance — see §5.3, which supersedes the original "observed-only" ruling. The
+underlying observation is never destroyed, which is what keeps the drift problem (the
+thing the census exists to kill) closed.
 
 **Asserted** (from humans, never on the machine): ownership and stage. Lives in
 `config/assets.json`, a third operator-owned config sibling to `machines.json` and
@@ -104,20 +106,67 @@ filter, not a hunt.
 **No lifecycle** (ratified 2026-07-31): no acknowledge / snooze / won't-fix. The stream is
 raw truth, recomputed every read. Revisit only if raw truth demonstrably drowns the signal.
 
-## 5. Information architecture
+## 5. The experience — one surface, walked to different depths
 
-- **Estate** — governance's front door. Matrix of class × stage with a group-by selector
-  over any facet key. Each cell is a compliance *posture* (ok / degraded / red, with
-  counts), not a number to read; drill into any cell for the machine set behind it.
-  Read-only.
-- **Findings** — dev-ops' front door. The unified stream of §4, facet-filterable,
-  severity-ordered. The "effect compliance" surface.
-- **Assignments** — the `assets.json` editor plus the unassigned queue. Same
-  file-is-the-artifact pattern as the blacklist editor.
-- **Working tools**, kept beneath: Machines (browse/detail/diff), Compare (upgraded to
-  select by facet-group, not just observed role), Blacklist editor.
-- **Absorbed from v1**: Dashboard → Estate; Certificates and Coverage views → findings
-  categories (detail tables remain reachable from machine detail / drill-downs).
+Ratified 2026-07-31 (Robert's flow), superseding the earlier Estate/Findings two-room
+sketch. Both personas walk the same narrowing path; governance just stops earlier.
+
+### 5.1 The walk
+
+1. **Owner selector** (1–n multi-select). Each owner carries its posture rollup — a red
+   count badge computed from the findings stream — so "which owners are red" is answered
+   before anything is clicked. This *is* the governance estate view. Includes an
+   **Unassigned** pseudo-owner (the loud-unassigned ratification lives here).
+2. **Stage multi-selector** — appears once ≥1 owner is selected, **defaults to ALL**,
+   filters the canvas live.
+3. **The canvas** — responding machines as selectable glyph tiles, sectioned per owner
+   when multiple owners are selected (union, with per-owner section headers).
+4. **Selection → action**: click = toggle select; action bar shows **[Details]** at
+   exactly one selected, **[Compare]** at two-plus; double-click = dossier shortcut.
+5. **Dossier / comparison** open as a **slide-in panel from the right** (~2/3 viewport)
+   over the dimmed canvas — selection state preserved beneath, ESC/click-outside returns.
+   The same panel pattern serves dossier, comparison, and editors: one interaction to
+   learn, and embed-friendly (an overlay, not a layout contract on the host app).
+
+The Findings stream survives as the dev-ops working queue — a panel, not a nav
+destination. Machine names, owner chips, stage badges are pivots wherever they appear.
+
+### 5.2 The glyph — three orthogonal visual channels
+
+- **Shape/iconography = class** (distinct silhouette per class: DB, web, dev). Shape, not
+  hue, because the host theme is light grays/blues and color must stay reserved.
+- **Color = status only.** Red/amber ring = findings posture; everything else neutral. A
+  red pixel always means something is wrong.
+- **Badges = stage(s).** Never position — a dev+qa machine sits in one place with two
+  badges (covers-not-partitions applies to geometry too).
+
+### 5.3 Class: observed default, assertable override — REVERSES an earlier ruling
+
+"Class stays observed-only" (§3, 2026-07-31 morning) is **superseded** (2026-07-31
+evening): the reader layer may override class, stored in `assets.json` as a single
+**present-as** value (`"class": "DevServer"`). Why: observed roles answer "what runs on
+it"; the canvas needs "what *is* it organizationally" — and the dev box on a Server SKU
+with VS + SQL Express is observationally three things, organizationally one dev machine.
+
+The original principle survives as **provenance**: the glyph renders the override with a
+visible asserted-marker; observed roles stay one hover away and are never destroyed.
+Without an override, the glyph's class derives from observed roles by fixed precedence:
+DatabaseServer > WebServer > DevServer > DevLaptop.
+
+### 5.4 Retained working tools
+
+Compare engine (drives the multi-select comparison), machine detail/diff (dossier
+content), blacklist editor, assignments editor (assets.json; same file-is-the-artifact
+pattern). Absorbed from v1: Dashboard → owner-selector rollups; Certificates and Coverage
+→ findings categories with detail reachable from dossiers.
+
+### 5.5 Delivery constraint
+
+Ships as importable pieces — cshtml, `.mjs` modules, supporting `.cs` — into a host app
+with a **light gray/blue theme** and its own auth and navigation. Design views as
+components with theme tokens (CSS variables), not as an app with chrome. Mermaid is
+available in the host; not used for the canvas (it's an interactive selection surface, not
+a diagram), noted as an option for future topology sketches (e.g. app → machines).
 
 ## 6. Ratified decisions log
 
@@ -129,6 +178,11 @@ raw truth, recomputed every read. Revisit only if raw truth demonstrably drowns 
 | 2026-07-31 | Findings have no lifecycle — raw truth, recomputed per read |
 | 2026-07-31 | Estate cell posture: red = any critical finding, degraded = any finding, ok = clean |
 | 2026-07-31 | Ownership dimension: operator-designated facet key + display label (`ownership` in assets.json), first-class in UX, no baked-in name |
+| 2026-07-31 | UX flow: owner selector (with posture rollups + Unassigned pseudo-owner) → stage multi-select (post-owner, default ALL) → glyph canvas → slide-in dossier/compare |
+| 2026-07-31 | **Supersedes "class observed-only"**: single present-as class override in assets.json, provenance visible, observed roles never destroyed; derivation precedence DB > Web > DevServer > DevLaptop |
+| 2026-07-31 | Glyph channels: shape = class, color = status only, badges = stage; multi-owner canvas = union with per-owner sections |
+| 2026-07-31 | Slide-in panel from right (~2/3 viewport) for dossier/compare/editors; click = select, action bar [Details]/[Compare], double-click = dossier |
+| 2026-07-31 | Delivered as importable components (cshtml/.mjs/.cs) into light gray/blue host; mermaid available but not used for canvas |
 
 ## 7. Open items
 

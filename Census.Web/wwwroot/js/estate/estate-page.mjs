@@ -1,10 +1,11 @@
-import { fetchCanvas, fetchCompare, fetchSnapshot, fetchMachineDates } from './estate-api.mjs';
+import { fetchCanvas, fetchCompare, fetchSnapshot, fetchMachineDates, fetchCertificates } from './estate-api.mjs';
 import { glyphSvg } from './machine-glyphs.mjs';
 import { dossierHtml, bindDossier } from './machine-dossier.mjs';
 import { AssignmentEditor } from './assignment-editor.mjs';
 import { FindingsQueue, severityDotClass } from './findings-queue.mjs';
 import { MachineHistory } from './machine-history.mjs';
 import { BlacklistEditor } from './blacklist-editor.mjs';
+import { CertificatesPanel, certUrgencyClass } from './certificates-panel.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -88,6 +89,7 @@ class EstatePage {
                     <div class="est-wordmark">Census <span>/ estate</span></div>
                     <div class="est-header-right">
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
+                        <button class="est-btn" data-ref="certs-btn">Certificates</button>
                         <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
                         <div class="est-legend" data-ref="legend"></div>
                     </div>
@@ -132,6 +134,9 @@ class EstatePage {
 
         this.root.querySelector('[data-ref="blacklist-btn"]').addEventListener('click', () => this.openBlacklist());
 
+        this.certsBtnEl = this.root.querySelector('[data-ref="certs-btn"]');
+        this.certsBtnEl.addEventListener('click', () => this.openCertificates());
+
         this.backdropEl.addEventListener('click', () => this.closePanel());
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.panel) this.closePanel();
@@ -150,6 +155,17 @@ class EstatePage {
         const known = new Set(this.data.owners.map((o) => o.value));
         [...this.selectedOwners].filter((o) => !known.has(o)).forEach((o) => this.selectedOwners.delete(o));
         this.renderAll();
+
+        // Cert horizon only moves with collection, not with edits — one fetch per load.
+        fetchCertificates().then((certs) => {
+            const soonest = certs
+                .map((c) => c.daysUntilExpiry)
+                .filter((d) => d !== null)
+                .sort((a, b) => a - b)[0];
+            if (soonest === undefined) return;
+            const label = soonest < 0 ? `expired ${Math.abs(soonest)}d ago` : `next ${soonest}d`;
+            this.certsBtnEl.innerHTML = `Certificates · <span class="${certUrgencyClass(soonest)}">${label}</span>`;
+        }).catch(() => { /* button stays plain */ });
     }
 
     renderAll() {
@@ -384,6 +400,18 @@ class EstatePage {
             </header>
             <div class="est-panel-body">${bodyHtml}</div>`;
         this.panelEl.querySelector('[data-act="close"]').addEventListener('click', () => this.closePanel());
+    }
+
+    openCertificates() {
+        this.panel = { type: 'certificates' };
+        this.panelShell(
+            'Certificate renewals',
+            'One row per certificate across the fleet — a cert on many machines is one renewal. Soonest first.',
+            '<div data-ref="certs"></div>');
+        this.openPanel();
+
+        new CertificatesPanel((machine) => this.openDetails(machine))
+            .mount(this.panelEl.querySelector('[data-ref="certs"]'));
     }
 
     openBlacklist() {

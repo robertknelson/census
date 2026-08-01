@@ -39,6 +39,10 @@ export function fetchBlacklist() {
     return getJson('/api/blacklist');
 }
 
+export function fetchCertificates() {
+    return getJson('/api/certificates');
+}
+
 export async function saveBlacklist(config) {
     let response;
     try {

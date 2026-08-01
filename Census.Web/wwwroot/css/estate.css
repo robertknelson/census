@@ -764,6 +764,86 @@ html, body {
     color: var(--est-muted);
 }
 
+/* --- certificates panel ------------------------------------------------------------- */
+
+.est-certband { margin-bottom: 1.4rem; }
+
+.est-certband-head {
+    font-size: 0.74rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--est-muted);
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--est-line);
+    margin-bottom: 0.5rem;
+}
+
+.est-certband-expired .est-certband-head { color: var(--est-red); border-bottom-color: var(--est-red); }
+.est-certband-soon .est-certband-head { color: var(--est-amber); border-bottom-color: var(--est-amber); }
+
+.est-cert {
+    display: flex;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--est-line-soft);
+}
+
+.est-cert-when {
+    width: 8.5rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.est-cert-date {
+    font-family: var(--est-mono);
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.est-cert-days { font-size: 0.74rem; }
+
+.est-cert-body { flex: 1; min-width: 0; }
+
+.est-cert-subject { font-weight: 600; font-size: 0.88rem; }
+
+.est-cert-meta { font-size: 0.76rem; margin-top: 0.15rem; }
+
+.est-runway {
+    display: block;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--est-line-soft);
+    margin-top: 0.45rem;
+    overflow: hidden;
+}
+
+.est-runway-fill {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--est-faint);
+}
+
+.est-runway-soon { background: var(--est-amber); }
+.est-runway-expired { background: var(--est-red); }
+
+.est-cert-where {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+}
+
+.est-cert-machines {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+}
+
 /* --- blacklist editor --------------------------------------------------------------- */
 
 .est-btn-danger {

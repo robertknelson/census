@@ -25,6 +25,7 @@
 | Assignment editor | `wwwroot/js/estate/assignment-editor.mjs` |
 | Findings queue | `wwwroot/js/estate/findings-queue.mjs` |
 | Blacklist editor | `wwwroot/js/estate/blacklist-editor.mjs` |
+| Certificate renewals | `wwwroot/js/estate/certificates-panel.mjs` |
 
 Theming: every color/spacing/type decision derives from the `:root` custom properties at
 the top of `estate.css`. Override those variables in host CSS to retheme; no rule edits
@@ -43,17 +44,18 @@ Controllers (`Controllers/Api/`):
 - `CompareController.cs` — GET `/api/compare` (multi-select comparison)
 - `MachinesController.cs` — GET `dates` / `snapshots/{date}` / `diff` (dossier + history).
   Its `GET /api/machines` list endpoint is v1-only; harmless to keep, fine to trim.
-- NOT needed: `ComplianceController`, `CertificatesController`, `CoverageController`,
-  `FindingsController` (the estate computes its queue from `/api/canvas`; lift
-  `FindingsController` only if the host wants a raw findings feed).
+- `CertificatesController.cs` — GET `/api/certificates` (renewal panel + header glance)
+- NOT needed: `ComplianceController`, `CoverageController`, `FindingsController` (the
+  estate computes its queue from `/api/canvas`; lift `FindingsController` only if the
+  host wants a raw findings feed).
 
 Services (`Services/`): `CensusStore`, `AssetsStore`, `BlacklistEvaluator`,
 `FindingsEngine`, `CompareEngine`, `DiffEngine`, `MachineClassifier`, `SeverityRanking`.
 
 Models: `Models/Census/*`, `Models/Assets/*`, `Models/Blacklist/*`, and from
 `Models/Api/`: `CanvasDto`, `FindingDto`, `CompareResultDto`, `SnapshotDetailDto`,
-`SnapshotDiffDto`. (`MachineSummaryDto`, `ComplianceSummaryDto`,
-`CertificateRadarEntryDto`, `MachineCoverageDto` are v1-only.)
+`SnapshotDiffDto`, `CertificateRadarEntryDto`. (`MachineSummaryDto`,
+`ComplianceSummaryDto`, `MachineCoverageDto` are v1-only.)
 
 Options + DI: `Options/CensusOptions.cs`; registration lines from `Program.cs`:
 

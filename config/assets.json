@@ -76,6 +76,10 @@
           "InternalApps"
         ]
       }
+    },
+    "extensoft-6": {
+      "class": "DevLaptop",
+      "facets": {}
     }
   }
 }

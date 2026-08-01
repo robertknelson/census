@@ -83,8 +83,11 @@ export class FindingsQueue {
                     <span class="est-stagebar-label">${escapeHtml(this.ownership?.label ?? 'owner')}</span>
                     ${ownerChips}
                 </div>
-                <input class="est-filter" type="search" placeholder="Filter findings…"
-                       value="${escapeHtml(this.state.query)}" data-ref="query">
+                <div class="est-q-filter-row est-q-export-row">
+                    <input class="est-filter" type="search" placeholder="Filter findings…"
+                           value="${escapeHtml(this.state.query)}" data-ref="query">
+                    <a class="est-btn est-btn-sm" href="/api/export/compliance.csv" download title="Full compliance state, one row per machine-finding — audit evidence">Export CSV</a>
+                </div>
             </div>
             <ul class="est-queue" data-ref="list"></ul>`;
 

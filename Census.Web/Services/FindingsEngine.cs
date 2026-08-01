@@ -21,11 +21,14 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
         var configMachines = censusStore.GetMachinesConfig().Machines;
         var findings = new List<FindingDto>();
 
-        foreach (var machine in machineDirs)
-        {
-            var envelope = censusStore.GetLatestSnapshot(machine);
-            if (envelope is null) continue;
+        var collected = machineDirs
+            .Select(m => (Machine: m, Envelope: censusStore.GetLatestSnapshot(m)))
+            .Where(x => x.Envelope is not null)
+            .Select(x => (x.Machine, Envelope: x.Envelope!))
+            .ToList();
 
+        foreach (var (machine, envelope) in collected)
+        {
             foreach (var hit in blacklistEvaluator.Evaluate(envelope))
             {
                 findings.Add(Build(assets, machine, "blacklist-hit", hit.Severity,
@@ -64,6 +67,63 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 findings.Add(Build(assets, machine, "unassigned", "medium",
                     "No asset assignment",
                     "Machine is collected but carries no facets — invisible to every grouping."));
+            }
+
+            // SQL edition (observed) × stage (asserted): Developer Edition on a prod-staged
+            // machine is a straight license violation.
+            var stages = assetsStore.FacetsFor(assets, machine).GetValueOrDefault("stage", []);
+            if (stages.Contains("prod", StringComparer.OrdinalIgnoreCase))
+            {
+                foreach (var instance in envelope.SqlServer?.Data?.Instances ?? [])
+                {
+                    if (instance.Edition?.Contains("Developer", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        findings.Add(Build(assets, machine, "developer-edition-in-prod", "critical",
+                            $"SQL Server Developer Edition on a prod machine ({instance.InstanceName})",
+                            $"{instance.Edition} — Developer Edition is not licensed for production use."));
+                    }
+                }
+            }
+        }
+
+        // Fleet-relative patch drift: within one OS build line (same CurrentBuild), a
+        // machine whose UBR trails the newest observed is self-evidently behind — no
+        // Microsoft catalog needed, the fleet itself is the reference.
+        foreach (var line in collected
+            .Where(x => x.Envelope.Os?.Data?.CurrentBuild is not null)
+            .GroupBy(x => x.Envelope.Os!.Data!.CurrentBuild!))
+        {
+            var newestUbr = line.Max(x => x.Envelope.Os!.Data!.Ubr);
+            foreach (var (machine, envelope) in line.Where(x => x.Envelope.Os!.Data!.Ubr < newestUbr))
+            {
+                var ubr = envelope.Os!.Data!.Ubr;
+                findings.Add(Build(assets, machine, "behind-fleet-patch", "medium",
+                    $"Behind fleet patch level ({line.Key}.{ubr})",
+                    $"Newest observed for this OS line in the fleet is {line.Key}.{newestUbr}."));
+            }
+        }
+
+        // Two machines sharing a machine identity = a VM cloned without sysprep. Breaks
+        // WSUS, MDM and licensing in ways nobody traces back — a finding, never deduped.
+        foreach (var (selector, label) in new (Func<Models.Census.CensusEnvelope, string?>, string)[]
+        {
+            (e => e.Identity?.Data?.MachineGuid, "machine GUID"),
+            (e => e.Identity?.Data?.SmbiosUuid, "SMBIOS UUID"),
+        })
+        {
+            foreach (var dupes in collected
+                .Select(x => (x.Machine, Value: selector(x.Envelope)))
+                .Where(x => !string.IsNullOrEmpty(x.Value))
+                .GroupBy(x => x.Value!, StringComparer.OrdinalIgnoreCase)
+                .Where(g => g.Count() > 1))
+            {
+                var members = dupes.Select(x => x.Machine).ToList();
+                foreach (var machine in members)
+                {
+                    findings.Add(Build(assets, machine, "duplicate-machine-identity", "high",
+                        $"Shares its {label} with {string.Join(", ", members.Where(m => m != machine))}",
+                        "Identical hardware identity across machines means a VM was cloned without sysprep."));
+                }
             }
         }
 

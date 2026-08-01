@@ -6,6 +6,7 @@ import { FindingsQueue, severityDotClass } from './findings-queue.mjs';
 import { MachineHistory } from './machine-history.mjs';
 import { BlacklistEditor } from './blacklist-editor.mjs';
 import { CertificatesPanel, certUrgencyClass } from './certificates-panel.mjs';
+import { ChangesFeed } from './changes-feed.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -89,6 +90,7 @@ class EstatePage {
                     <div class="est-wordmark">Census <span>/ estate</span></div>
                     <div class="est-header-right">
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
+                        <button class="est-btn" data-ref="changes-btn">Changes</button>
                         <button class="est-btn" data-ref="certs-btn">Certificates</button>
                         <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
                         <div class="est-legend" data-ref="legend"></div>
@@ -136,6 +138,8 @@ class EstatePage {
 
         this.certsBtnEl = this.root.querySelector('[data-ref="certs-btn"]');
         this.certsBtnEl.addEventListener('click', () => this.openCertificates());
+
+        this.root.querySelector('[data-ref="changes-btn"]').addEventListener('click', () => this.openChanges());
 
         this.backdropEl.addEventListener('click', () => this.closePanel());
         document.addEventListener('keydown', (e) => {
@@ -400,6 +404,18 @@ class EstatePage {
             </header>
             <div class="est-panel-body">${bodyHtml}</div>`;
         this.panelEl.querySelector('[data-act="close"]').addEventListener('click', () => this.closePanel());
+    }
+
+    openChanges() {
+        this.panel = { type: 'changes' };
+        this.panelShell(
+            'Fleet changes',
+            'Latest collection vs the one before, for every machine with both. Machine names open dossiers.',
+            '<div data-ref="changes"></div>');
+        this.openPanel();
+
+        new ChangesFeed((machine) => this.openDetails(machine))
+            .mount(this.panelEl.querySelector('[data-ref="changes"]'));
     }
 
     openCertificates() {

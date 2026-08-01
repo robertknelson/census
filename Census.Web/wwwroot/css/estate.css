@@ -707,6 +707,20 @@ html, body {
 
 .est-q-filters { margin-bottom: 0.9rem; }
 
+.est-q-export-row {
+    flex-wrap: nowrap;
+}
+
+.est-q-export-row .est-filter {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.est-q-export-row .est-btn {
+    text-decoration: none;
+    white-space: nowrap;
+}
+
 .est-q-filter-row {
     display: flex;
     align-items: center;
@@ -763,6 +777,23 @@ html, body {
     text-align: center;
     color: var(--est-muted);
 }
+
+/* --- changes feed ------------------------------------------------------------------- */
+
+.est-changes-machine {
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--est-line-soft);
+}
+
+.est-changes-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    margin-bottom: 0.3rem;
+}
+
+.est-changes-head .est-q-machine { font-size: 0.88rem; font-weight: 600; }
 
 /* --- certificates panel ------------------------------------------------------------- */
 

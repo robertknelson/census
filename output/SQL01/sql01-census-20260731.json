@@ -165,7 +165,7 @@
                                                      },
                                                      {
                                                          "instanceName":  "REPORTING",
-                                                         "edition":  "Standard Edition (64-bit)",
+                                                         "edition":  "Developer Edition (64-bit)",
                                                          "version":  "15.0.4345.5",
                                                          "patchLevel":  "15.0.4345.5",
                                                          "sqlBinRoot":  "D:\\Program Files\\Microsoft SQL Server\\MSSQL15.REPORTING\\MSSQL\\Binn",

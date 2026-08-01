@@ -173,6 +173,7 @@ html, body {
 .est-dot-red { background: var(--est-red); }
 .est-dot-amber { background: var(--est-amber); }
 .est-dot-quiet { background: var(--est-line); }
+.est-dot-low { background: var(--est-faint); }
 
 /* --- stage bar ---------------------------------------------------------------------- */
 
@@ -665,6 +666,83 @@ html, body {
     flex-wrap: wrap;
     gap: 0.25rem;
     margin-top: 0.25rem;
+}
+
+/* --- findings queue ----------------------------------------------------------------- */
+
+.est-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.est-findings-btn strong { font-weight: 650; }
+
+.est-findings-btn-critical { border-color: var(--est-red); }
+
+.est-chip-count {
+    font-family: var(--est-mono);
+    font-size: 0.68rem;
+    opacity: 0.75;
+}
+
+.est-q-filters { margin-bottom: 0.9rem; }
+
+.est-q-filter-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.45rem;
+}
+
+.est-queue {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.est-q-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--est-line-soft);
+}
+
+.est-q-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.est-q-title { font-weight: 600; font-size: 0.86rem; }
+.est-q-detail { font-size: 0.76rem; color: var(--est-muted); }
+
+.est-q-machine {
+    border: 0;
+    background: transparent;
+    font-size: 0.76rem;
+    color: var(--est-blue);
+    cursor: pointer;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.est-q-machine:hover { text-decoration: underline; }
+
+.est-q-owners {
+    display: flex;
+    gap: 0.25rem;
+    white-space: nowrap;
+}
+
+.est-q-empty {
+    padding: 2.5rem 0;
+    text-align: center;
+    color: var(--est-muted);
 }
 
 /* --- assignment editor -------------------------------------------------------------- */

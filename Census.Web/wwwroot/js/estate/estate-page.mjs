@@ -2,6 +2,7 @@ import { fetchCanvas, fetchCompare, fetchSnapshot } from './estate-api.mjs';
 import { glyphSvg } from './machine-glyphs.mjs';
 import { dossierHtml, bindDossier } from './machine-dossier.mjs';
 import { AssignmentEditor } from './assignment-editor.mjs';
+import { FindingsQueue, severityDotClass } from './findings-queue.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -24,6 +25,7 @@ class EstatePage {
         this.selectedStages = new Set();     // empty = ALL
         this.selectedMachines = new Set();
         this.panel = null;
+        this.queueState = { severities: new Set(), owners: new Set(), query: '' };
 
         this.readHash();
         this.renderSkeleton();
@@ -66,7 +68,10 @@ class EstatePage {
             <div class="est">
                 <header class="est-header">
                     <div class="est-wordmark">Census <span>/ estate</span></div>
-                    <div class="est-legend" data-ref="legend"></div>
+                    <div class="est-header-right">
+                        <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
+                        <div class="est-legend" data-ref="legend"></div>
+                    </div>
                 </header>
                 <div class="est-body">
                     <aside class="est-rail" data-ref="rail"></aside>
@@ -91,6 +96,9 @@ class EstatePage {
             ['DatabaseServer', 'WebServer', 'DevServer', 'DevLaptop']
                 .map((c) => `<span class="est-legend-item">${glyphSvg(c, 15)} ${escapeHtml(CLASS_LABELS[c])}</span>`)
                 .join('');
+
+        this.findingsBtnEl = this.root.querySelector('[data-ref="findings-btn"]');
+        this.findingsBtnEl.addEventListener('click', () => this.openFindings());
 
         this.backdropEl.addEventListener('click', () => this.closePanel());
         document.addEventListener('keydown', (e) => {
@@ -117,6 +125,17 @@ class EstatePage {
         this.renderStagebar();
         this.renderCanvas();
         this.renderActionbar();
+        this.renderFindingsButton();
+    }
+
+    renderFindingsButton() {
+        const total = this.data.machines.reduce((n, m) => n + m.findingCount, 0);
+        const critical = this.data.machines.reduce((n, m) => n + m.findings.filter((f) => f.severity === 'critical').length, 0);
+        this.findingsBtnEl.hidden = false;
+        this.findingsBtnEl.classList.toggle('est-findings-btn-critical', critical > 0);
+        this.findingsBtnEl.innerHTML = total === 0
+            ? 'Findings · clear'
+            : `Findings · <strong>${total}</strong>${critical > 0 ? ` <span class="est-crit">(${critical} critical)</span>` : ''}`;
     }
 
     // --- owner rail -----------------------------------------------------------------------
@@ -321,6 +340,22 @@ class EstatePage {
         this.panelEl.querySelector('[data-act="close"]').addEventListener('click', () => this.closePanel());
     }
 
+    openFindings() {
+        this.panel = { type: 'findings' };
+        this.panelShell(
+            'Findings queue',
+            'Raw truth, recomputed every read — worst first. Machine names open dossiers.',
+            '<div data-ref="queue"></div>');
+        this.openPanel();
+
+        new FindingsQueue(
+            this.data.machines,
+            this.data.ownership,
+            this.queueState,
+            (machine) => this.openDetails(machine),
+        ).mount(this.panelEl.querySelector('[data-ref="queue"]'));
+    }
+
     async openDetails(machineName) {
         const m = this.data.machines.find((x) => x.machine === machineName);
         if (!m) return;
@@ -335,7 +370,7 @@ class EstatePage {
             ? '<p class="est-status">No findings. Clean as collected.</p>'
             : `<ul class="est-findings">${m.findings.map((f) => `
                 <li>
-                    <span class="est-dot est-dot-${f.severity === 'critical' ? 'red' : f.severity === 'high' ? 'red' : 'amber'}"></span>
+                    <span class="est-dot ${severityDotClass(f.severity)}"></span>
                     <span class="est-finding-body">
                         <span class="est-finding-title">${escapeHtml(f.title)}</span>
                         ${f.detail ? `<span class="est-finding-detail">${escapeHtml(f.detail)}</span>` : ''}

@@ -134,7 +134,12 @@ destination. Machine names, owner chips, stage badges are pivots wherever they a
 ### 5.2 The glyph — three orthogonal visual channels
 
 - **Shape/iconography = class** (distinct silhouette per class: DB, web, dev). Shape, not
-  hue, because the host theme is light grays/blues and color must stay reserved.
+  hue, because the host theme is light grays/blues and color must stay reserved. The
+  header legend that teaches the shapes **is also a fleet-wide class filter** (ratified
+  2026-07-31, Robert's read of the legend as clickable): with no owner selected, picking a
+  class answers "show me ALL database servers regardless of team/stage"; combined with
+  owner/stage selection it narrows within them. Class joins owners and stages in the URL
+  hash.
 - **Color = status only.** Red/amber ring = findings posture; everything else neutral. A
   red pixel always means something is wrong.
 - **Badges = stage(s).** Never position — a dev+qa machine sits in one place with two
@@ -183,6 +188,7 @@ a diagram), noted as an option for future topology sketches (e.g. app → machin
 | 2026-07-31 | Glyph channels: shape = class, color = status only, badges = stage; multi-owner canvas = union with per-owner sections |
 | 2026-07-31 | Slide-in panel from right (~2/3 viewport) for dossier/compare/editors; click = select, action bar [Details]/[Compare], double-click = dossier |
 | 2026-07-31 | Delivered as importable components (cshtml/.mjs/.cs) into light gray/blue host; mermaid available but not used for canvas |
+| 2026-07-31 | Header legend doubles as fleet-wide class filter — class-only selection sweeps all owners; combines with owner/stage scoping |
 
 ## 7. Open items
 

@@ -23,6 +23,7 @@ class EstatePage {
         this.root = document.getElementById(config.rootId);
         this.selectedOwners = new Set();
         this.selectedStages = new Set();     // empty = ALL
+        this.selectedClasses = new Set();    // empty = ALL; non-empty widens to fleet scope when no owner is picked
         this.selectedMachines = new Set();
         this.panel = null;
         this.queueState = { severities: new Set(), owners: new Set(), query: '' };
@@ -38,19 +39,34 @@ class EstatePage {
         const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
         (params.get('owners') ?? '').split(',').filter(Boolean).forEach((o) => this.selectedOwners.add(o));
         (params.get('stages') ?? '').split(',').filter(Boolean).forEach((s) => this.selectedStages.add(s));
+        (params.get('classes') ?? '').split(',').filter(Boolean).forEach((c) => this.selectedClasses.add(c));
     }
 
     writeHash() {
         const params = new URLSearchParams();
         if (this.selectedOwners.size) params.set('owners', [...this.selectedOwners].join(','));
         if (this.selectedStages.size) params.set('stages', [...this.selectedStages].join(','));
+        if (this.selectedClasses.size) params.set('classes', [...this.selectedClasses].join(','));
         const hash = params.toString();
         history.replaceState(null, '', hash ? `#${hash}` : window.location.pathname);
     }
 
+    classMatches(machine) {
+        return this.selectedClasses.size === 0 || this.selectedClasses.has(machine.class);
+    }
+
     visibleMachines() {
-        if (this.selectedOwners.size === 0) return [];
-        return this.data.machines.filter((m) => m.owners.some((o) => this.selectedOwners.has(o)));
+        // Owner selection scopes the canvas; a class selection with no owner widens the
+        // scope to the whole fleet — "all database servers regardless of team/stage."
+        let base;
+        if (this.selectedOwners.size > 0) {
+            base = this.data.machines.filter((m) => m.owners.some((o) => this.selectedOwners.has(o)));
+        } else if (this.selectedClasses.size > 0) {
+            base = this.data.machines;
+        } else {
+            return [];
+        }
+        return base.filter((m) => this.classMatches(m));
     }
 
     stageMatches(machine) {
@@ -92,10 +108,21 @@ class EstatePage {
         this.backdropEl = this.root.querySelector('[data-ref="backdrop"]');
         this.panelEl = this.root.querySelector('[data-ref="panel"]');
 
-        this.root.querySelector('[data-ref="legend"]').innerHTML =
+        // Legend doubles as a fleet-wide class filter: with no owner selected, picking a
+        // class shows every machine of that class across all owners.
+        this.legendEl = this.root.querySelector('[data-ref="legend"]');
+        this.legendEl.innerHTML =
             ['DatabaseServer', 'WebServer', 'DevServer', 'DevLaptop']
-                .map((c) => `<span class="est-legend-item">${glyphSvg(c, 15)} ${escapeHtml(CLASS_LABELS[c])}</span>`)
+                .map((c) => `<button class="est-legend-item" data-class="${escapeHtml(c)}" title="Show all ${escapeHtml(CLASS_LABELS[c])}s">${glyphSvg(c, 15)} ${escapeHtml(CLASS_LABELS[c])}</button>`)
                 .join('');
+        this.legendEl.querySelectorAll('[data-class]').forEach((btn) => btn.addEventListener('click', () => {
+            const cls = btn.dataset.class;
+            if (this.selectedClasses.has(cls)) this.selectedClasses.delete(cls);
+            else this.selectedClasses.add(cls);
+            this.pruneHiddenSelections();
+            this.writeHash();
+            this.renderAll();
+        }));
 
         this.findingsBtnEl = this.root.querySelector('[data-ref="findings-btn"]');
         this.findingsBtnEl.addEventListener('click', () => this.openFindings());
@@ -126,6 +153,9 @@ class EstatePage {
         this.renderCanvas();
         this.renderActionbar();
         this.renderFindingsButton();
+        this.legendEl.querySelectorAll('[data-class]').forEach((btn) => {
+            btn.classList.toggle('is-active', this.selectedClasses.has(btn.dataset.class));
+        });
     }
 
     renderFindingsButton() {
@@ -175,7 +205,7 @@ class EstatePage {
     // --- stage bar ------------------------------------------------------------------------
 
     renderStagebar() {
-        if (this.selectedOwners.size === 0) {
+        if (this.selectedOwners.size === 0 && this.selectedClasses.size === 0) {
             this.stagebarEl.innerHTML = '';
             return;
         }
@@ -209,21 +239,31 @@ class EstatePage {
     // --- canvas ---------------------------------------------------------------------------
 
     renderCanvas() {
-        if (this.selectedOwners.size === 0) {
+        const ownerScoped = this.selectedOwners.size > 0;
+        const classScoped = this.selectedClasses.size > 0;
+
+        if (!ownerScoped && !classScoped) {
             const label = (this.data.ownership?.label ?? 'owner').toLowerCase();
             this.canvasEl.innerHTML = `
                 <div class="est-empty">
                     <div class="est-empty-glyphs">${glyphSvg('WebServer', 44)}${glyphSvg('DatabaseServer', 44)}${glyphSvg('DevLaptop', 44)}</div>
-                    <p>Select a ${escapeHtml(label)} to map its machines.</p>
+                    <p>Select a ${escapeHtml(label)} on the left — or a machine class above — to map the estate.</p>
                 </div>`;
             return;
         }
 
-        const sections = [...this.selectedOwners]
+        // Owner-scoped: render the chosen owners (even when a stage/class filter empties
+        // one). Class-only: sweep every owner, skipping the ones with no matches.
+        const owners = ownerScoped
+            ? [...this.selectedOwners]
+            : this.data.owners.map((o) => o.value);
+
+        const sections = owners
             .sort((a, b) => (a === 'Unassigned') - (b === 'Unassigned') || a.localeCompare(b))
             .map((owner) => {
                 const machines = this.data.machines
-                    .filter((m) => m.owners.includes(owner) && this.stageMatches(m));
+                    .filter((m) => m.owners.includes(owner) && this.stageMatches(m) && this.classMatches(m));
+                if (machines.length === 0 && !ownerScoped) return '';
                 const critical = machines.reduce((n, m) => n + m.findings.filter((f) => f.severity === 'critical').length, 0);
                 const meta = [`${machines.length} machine${machines.length === 1 ? '' : 's'}`];
                 if (critical > 0) meta.push(`<span class="est-crit">${critical} critical</span>`);
@@ -235,12 +275,13 @@ class EstatePage {
                             <span class="est-section-meta">${meta.join(' · ')}</span>
                         </header>
                         <div class="est-grid">
-                            ${machines.map((m) => this.renderTile(m)).join('') || '<p class="est-status">No machines match this stage filter.</p>'}
+                            ${machines.map((m) => this.renderTile(m)).join('') || '<p class="est-status">No machines match these filters.</p>'}
                         </div>
                     </section>`;
             }).join('');
 
-        this.canvasEl.innerHTML = sections;
+        this.canvasEl.innerHTML = sections
+            || '<div class="est-empty"><p>No machines of the selected class anywhere in the fleet.</p></div>';
 
         this.canvasEl.querySelectorAll('[data-machine]').forEach((tile) => {
             tile.addEventListener('click', () => {

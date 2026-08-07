@@ -367,6 +367,131 @@ gets built blind:
 | **W-3** | The runtime badge is a reader derivation in one function, because the collector deliberately emits raw signals and picks no winner. |
 | **W-4** | Log statistics are excluded from diffing as volatile; log configuration is diffed. |
 | **W-5** | `output-demo/` is fabricated permanently, and must cover every render branch. |
+
+---
+
+## 10. SQL payload v2 — reader sync (S0 + S1)
+
+> **Ratified 2026-08-07.** The `sqlserver` collector now connects and returns databases and
+> database files (`.docs/features/census-collector.md` §8.8.1). This section is what the reader
+> does with it. Same split as §9: S0 stops the silence, S1 surfaces it. S2 and S3 are named in
+> §10.6 and are not in this slice.
+
+### 10.1 What the reader is missing
+
+Four consumers assume the registry-only shape: `SqlInstance` in `CensusEnvelope.cs`,
+`DiffEngine.DiffSqlInstances`, the dossier's SQL section (`machine-dossier.mjs:338`), and
+`CompareEngine`. As in §9.1, an unchanged reader does not break — it goes quiet.
+
+The new payload adds, per instance: `connectedStatus`, `connectedReason`, `permissions`,
+`serverProperties`, `databases`, `databaseFiles`.
+
+### 10.2 Model — `Models/Census/CensusEnvelope.cs`
+
+| Record | Carries |
+|---|---|
+| `SqlInstance` | existing registry fields **plus** `ConnectedStatus`, `ConnectedReason`, `Permissions`, `ServerProperties`, `Databases`, `DatabaseFiles` |
+| `SqlPermissions` | `LoginName`, `IsSysadmin`, `ViewAnyDefinition`, `ViewServerState` |
+| `SqlServerProperties` | `ProductVersion`, `Edition`, `ServerCollation` |
+| `SqlDatabase` | name, id, state, recovery model, compatibility level, collation, read-only, encrypted, owner, create date |
+| `SqlDatabaseFile` | database, file id, type, logical name, physical name, directory, size pages/bytes, max size, growth, percent growth, `IsUnc` |
+
+**Registry discovery and connected data stay separate.** `Edition` from `Setup` and
+`ServerProperties.Edition` from `SERVERPROPERTY` are different observations of the same thing
+and can legitimately disagree — a patched instance reports one version in the registry and
+another from the engine. Do not merge them; the disagreement is informative (§8.10 makes the
+same argument for the three memory figures).
+
+### 10.3 Diff — `Services/DiffEngine.cs`
+
+| Section | Key | Compared |
+|---|---|---|
+| `sqlInstances` | `InstanceName` | existing four, **plus** `ConnectedStatus` and `ViewAnyDefinition` |
+| `sqlDatabases` | (`InstanceName`, `DatabaseName`) | state, recovery model, compatibility level, read-only, encrypted, owner |
+| `sqlDatabaseFiles` | (`InstanceName`, `DatabaseName`, `LogicalFileName`) | physical path, max size, growth, percent growth |
+
+Keys are already fixed in collector §6.4 — **not** `database_id` (reused after a drop), **not**
+`physical_name` (changes when a file is moved, which is the change you want to *see*).
+
+> **File sizes must not be diffed.** `SizePages` and `SizeBytes` grow continuously; diffing
+> them would make every database on every server appear changed every day and bury the real
+> findings. `MaxSize`, `Growth` and `IsPercentGrowth` are *configuration* and are compared.
+> This is the volatile-field rule (collector §6.3) — the same call as W-4 for IIS log statistics.
+
+**Diffing `ViewAnyDefinition` is deliberate.** The permission stamp exists because a rights
+change silently shrinks the database list. Surfacing the stamp flipping to `false` in the
+changes feed is what turns that from a silent shrink into an event — the whole reason the
+collector emits it.
+
+### 10.4 Dossier — `wwwroot/js/estate/machine-dossier.mjs`
+
+The SQL section keeps its instance card and gains three blocks:
+
+1. **Instance** — existing facts, plus connected status and the login the census used.
+2. **Databases** — filterable table: name, state, recovery model, compatibility, owner, flags.
+3. **Storage** — files grouped by directory, answering "where does data actually live on this
+   box", with sizes.
+
+Rendering rules:
+
+- **`insufficient-rights` must never render as an empty list.** If `ViewAnyDefinition` is
+  false the block shows the permission failure and the login name — not "0 databases". This is
+  the single rule the whole permission stamp exists to enable; getting it wrong here wastes
+  the collector-side work entirely.
+- **`connectedStatus` other than `ok` renders its reason inline** — `skipped` for a stopped
+  service is a normal, expected state and should read as such, not as an error.
+- **Non-`ONLINE` databases are flagged.** `OFFLINE`, `RESTORING`, `SUSPECT` and
+  `RECOVERY_PENDING` are findings on sight.
+- **System databases are shown but muted.** `master`, `model`, `msdb`, `tempdb` are four rows
+  of noise in a list of twenty — but their *file locations* genuinely matter, so they are
+  de-emphasised rather than hidden.
+- **The login name is always shown; missing rights are shown loudly.** Silence means the
+  census saw everything. Who observed it is an audit fact worth carrying even when it worked.
+- **UNC file paths are flagged** — they are a cross-machine dependency (collector §8.9).
+- **Filter box reuses the installed-software pattern** (`est-filter` + scroll container). A
+  production instance can carry hundreds of databases; the apps table already solved this and
+  the solution is already approved.
+
+### 10.5 Demo data — `output-demo/`
+
+`SQL01` is the database box and carries the new payload; `WEB01` and `APPSRV01` keep
+registry-only discovery with `connectedStatus`. Fabricated permanently, per W-5.
+
+Branches the fabricated set must cover, or the views get built blind:
+
+- an instance where the census had full rights, and **one where `ViewAnyDefinition` is false**
+  so the `insufficient-rights` path renders
+- a **stopped** instance, so `skipped` renders
+- an `OFFLINE` database alongside `ONLINE` ones
+- system databases mixed with user databases
+- data and log files in **different directories**, and one file on a **UNC path**
+- a database with `SIMPLE` and one with `FULL` recovery
+- a database owned by a personal account rather than `sa`
+
+> `SQL01` has only one snapshot today. To exercise the three diff sections it needs a second
+> date differing in at least one comparable field — the same requirement §9.6 put on `WEB01`.
+
+### 10.6 Deliberately not in this slice
+
+- **S2 — the storage pivot.** "Where does database X live across the estate", derived from
+  `software-panel.mjs` exactly as the IIS pivots would be.
+- **S2 — the corroboration join.** IIS dependency edges claim `SQL01\PROD / Portal`; SQL01's
+  census can now *confirm* that database exists. This is the graph-interop §7 class-1
+  contradiction detector and deserves its own slice rather than being smuggled into a dossier.
+- **S3 — findings.** `OFFLINE` database, data and log on the same volume, database file on the
+  OS drive, `SIMPLE` recovery on something that looks like production, personal-account
+  database owner, permission stamp regression. Entangled with stage-aware severity, parked in
+  v2-UX §7.
+
+### 10.7 Decisions
+
+| | Decision |
+|---|---|
+| **S-1** | Registry discovery and connected `SERVERPROPERTY` data are kept as separate observations; disagreement between them is informative and is never merged away. |
+| **S-2** | File sizes are excluded from diffing as volatile; file configuration is diffed. |
+| **S-3** | `ViewAnyDefinition` is a diffed field, so a rights regression surfaces as an event. |
+| **S-4** | `insufficient-rights` renders as a permission failure, never as an empty database list. |
+| **S-5** | System databases are muted, not hidden — their file locations still matter. |
 - **`dotnet.frameworkReleaseId` blacklist matching** — deferred; needs a release-id → version
   table if it turns out to matter.
 - **Version-string parse failures** — confirm "flag for manual review" (§4.2) is the right

@@ -25,6 +25,8 @@ public static class DiffEngine
                 DiffCertificates(from, to),
                 DiffDrives(from, to),
                 DiffSqlInstances(from, to),
+                DiffSqlDatabases(from, to),
+                DiffSqlDatabaseFiles(from, to),
                 DiffIisSites(from, to),
                 DiffIisAppPools(from, to),
                 DiffIisApplications(from, to),
@@ -111,6 +113,58 @@ public static class DiffEngine
                 if (a.PatchLevel != b.PatchLevel) changes.Add(new DiffFieldChange("patchLevel", a.PatchLevel, b.PatchLevel));
                 if (a.ServiceState != b.ServiceState) changes.Add(new DiffFieldChange("serviceState", a.ServiceState, b.ServiceState));
                 if (a.ServiceAccount != b.ServiceAccount) changes.Add(new DiffFieldChange("serviceAccount", a.ServiceAccount, b.ServiceAccount));
+                if (a.ConnectedStatus != b.ConnectedStatus) changes.Add(new DiffFieldChange("connectedStatus", a.ConnectedStatus, b.ConnectedStatus));
+                // The permission stamp exists because a rights change silently shrinks the
+                // database list. Diffing it turns that silent shrink into an event.
+                if (a.Permissions?.ViewAnyDefinition != b.Permissions?.ViewAnyDefinition)
+                    changes.Add(new DiffFieldChange("viewAnyDefinition", a.Permissions?.ViewAnyDefinition.ToString().ToLowerInvariant(), b.Permissions?.ViewAnyDefinition.ToString().ToLowerInvariant()));
+                return changes;
+            });
+    }
+
+    private static IEnumerable<(string Key, string Instance, SqlDatabase Db)> SqlDatabasesOf(CensusEnvelope e) =>
+        (e.SqlServer?.Data?.Instances ?? [])
+            .SelectMany(i => i.Databases.Select(d => ($"{i.InstanceName}|{d.Name}", i.InstanceName ?? "", d)));
+
+    private static DiffSection DiffSqlDatabases(CensusEnvelope from, CensusEnvelope to)
+    {
+        var fromEntries = SqlDatabasesOf(from).ToDictionary(x => x.Key, x => x);
+        var toEntries = SqlDatabasesOf(to).ToDictionary(x => x.Key, x => x);
+        return DiffKeyed("sqlDatabases", fromEntries, toEntries,
+            label: x => $"{x.Instance}: {x.Db.Name}",
+            compare: (a, b) =>
+            {
+                var changes = new List<DiffFieldChange>();
+                if (a.Db.StateDesc != b.Db.StateDesc) changes.Add(new DiffFieldChange("state", a.Db.StateDesc, b.Db.StateDesc));
+                if (a.Db.RecoveryModelDesc != b.Db.RecoveryModelDesc) changes.Add(new DiffFieldChange("recoveryModel", a.Db.RecoveryModelDesc, b.Db.RecoveryModelDesc));
+                if (a.Db.CompatibilityLevel != b.Db.CompatibilityLevel) changes.Add(new DiffFieldChange("compatibilityLevel", a.Db.CompatibilityLevel?.ToString(), b.Db.CompatibilityLevel?.ToString()));
+                if (a.Db.IsReadOnly != b.Db.IsReadOnly) changes.Add(new DiffFieldChange("isReadOnly", a.Db.IsReadOnly.ToString().ToLowerInvariant(), b.Db.IsReadOnly.ToString().ToLowerInvariant()));
+                if (a.Db.IsEncrypted != b.Db.IsEncrypted) changes.Add(new DiffFieldChange("isEncrypted", a.Db.IsEncrypted.ToString().ToLowerInvariant(), b.Db.IsEncrypted.ToString().ToLowerInvariant()));
+                if (a.Db.Owner != b.Db.Owner) changes.Add(new DiffFieldChange("owner", a.Db.Owner, b.Db.Owner));
+                return changes;
+            });
+    }
+
+    private static IEnumerable<(string Key, string Instance, SqlDatabaseFile File)> SqlFilesOf(CensusEnvelope e) =>
+        (e.SqlServer?.Data?.Instances ?? [])
+            .SelectMany(i => i.DatabaseFiles.Select(f => ($"{i.InstanceName}|{f.DatabaseName}|{f.LogicalName}", i.InstanceName ?? "", f)));
+
+    // File sizes are NOT compared: data files grow continuously, so diffing them would mark
+    // every database on every server as changed every day and bury the real findings. Only
+    // file configuration is compared. See census-web.md 10.3, decision S-2.
+    private static DiffSection DiffSqlDatabaseFiles(CensusEnvelope from, CensusEnvelope to)
+    {
+        var fromEntries = SqlFilesOf(from).ToDictionary(x => x.Key, x => x);
+        var toEntries = SqlFilesOf(to).ToDictionary(x => x.Key, x => x);
+        return DiffKeyed("sqlDatabaseFiles", fromEntries, toEntries,
+            label: x => $"{x.Instance}: {x.File.DatabaseName} / {x.File.LogicalName}",
+            compare: (a, b) =>
+            {
+                var changes = new List<DiffFieldChange>();
+                if (a.File.PhysicalName != b.File.PhysicalName) changes.Add(new DiffFieldChange("physicalName", a.File.PhysicalName, b.File.PhysicalName));
+                if (a.File.MaxSizePages != b.File.MaxSizePages) changes.Add(new DiffFieldChange("maxSizePages", a.File.MaxSizePages?.ToString(), b.File.MaxSizePages?.ToString()));
+                if (a.File.Growth != b.File.Growth) changes.Add(new DiffFieldChange("growth", a.File.Growth?.ToString(), b.File.Growth?.ToString()));
+                if (a.File.IsPercentGrowth != b.File.IsPercentGrowth) changes.Add(new DiffFieldChange("isPercentGrowth", a.File.IsPercentGrowth.ToString().ToLowerInvariant(), b.File.IsPercentGrowth.ToString().ToLowerInvariant()));
                 return changes;
             });
     }

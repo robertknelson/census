@@ -17,6 +17,8 @@ const SECTION_TITLES = {
     certificates: 'Certificates',
     drives: 'Drives',
     sqlInstances: 'SQL Server',
+    sqlDatabases: 'SQL databases',
+    sqlDatabaseFiles: 'SQL database files',
     iisSites: 'IIS sites',
     iisAppPools: 'IIS app pools',
     iisApplications: 'IIS applications',

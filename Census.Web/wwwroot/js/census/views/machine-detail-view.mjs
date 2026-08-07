@@ -136,8 +136,8 @@ export class MachineDetailView {
             ${sqlInstances.length > 0 ? `
                 <h4>SQL Server instances</h4>
                 <table class="census-table census-table-compact">
-                    <thead><tr><th>Instance</th><th>Edition</th><th>Patch level</th><th>State</th></tr></thead>
-                    <tbody>${sqlInstances.map((i) => `<tr><td>${escapeHtml(i.instanceName)}</td><td>${escapeHtml(i.edition)}</td><td>${escapeHtml(i.patchLevel)}</td><td>${escapeHtml(i.serviceState)}</td></tr>`).join('')}</tbody>
+                    <thead><tr><th>Instance</th><th>Edition</th><th>Patch level</th><th>State</th><th>Databases</th></tr></thead>
+                    <tbody>${sqlInstances.map((i) => `<tr><td>${escapeHtml(i.instanceName)}</td><td>${escapeHtml(i.edition)}</td><td>${escapeHtml(i.patchLevel)}</td><td>${escapeHtml(i.serviceState)}</td><td>${i.connectedStatus === 'ok' ? (i.databases?.length ?? 0) : escapeHtml(i.connectedStatus ?? '—')}</td></tr>`).join('')}</tbody>
                 </table>` : ''}
 
             ${iisSites.length > 0 ? `

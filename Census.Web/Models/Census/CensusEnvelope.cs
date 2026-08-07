@@ -339,6 +339,66 @@ public record SqlInstance
     public string? ServiceState { get; init; }
     public string? AgentServiceAccount { get; init; }
     public string? AgentServiceState { get; init; }
+
+    // Connected data. Registry discovery above always runs; everything below exists only when
+    // the collector could open a connection.
+    public string? ConnectedStatus { get; init; }
+    public string? ConnectedReason { get; init; }
+    public SqlPermissions? Permissions { get; init; }
+    public SqlServerProperties? ServerProperties { get; init; }
+    public List<SqlDatabase> Databases { get; init; } = [];
+    public List<SqlDatabaseFile> DatabaseFiles { get; init; } = [];
+}
+
+// Without ViewAnyDefinition, sys.databases silently returns only what the login can see - a
+// short list that looks complete. The reader must render that as a permission failure, never
+// as an empty database list.
+public record SqlPermissions
+{
+    public string? LoginName { get; init; }
+    public bool IsSysadmin { get; init; }
+    public bool ViewAnyDefinition { get; init; }
+    public bool ViewServerState { get; init; }
+}
+
+// Deliberately separate from the registry fields on SqlInstance: Setup's Edition and
+// SERVERPROPERTY's Edition are different observations of the same thing and can legitimately
+// disagree after a patch. The disagreement is informative; it is not merged away.
+public record SqlServerProperties
+{
+    public string? ProductVersion { get; init; }
+    public string? Edition { get; init; }
+    public string? ServerCollation { get; init; }
+}
+
+public record SqlDatabase
+{
+    public string? Name { get; init; }
+    public int? DatabaseId { get; init; }
+    public string? StateDesc { get; init; }
+    public string? RecoveryModelDesc { get; init; }
+    public int? CompatibilityLevel { get; init; }
+    public string? CollationName { get; init; }
+    public bool IsReadOnly { get; init; }
+    public bool IsEncrypted { get; init; }
+    public string? Owner { get; init; }
+    public DateTimeOffset? CreateDate { get; init; }
+}
+
+public record SqlDatabaseFile
+{
+    public string? DatabaseName { get; init; }
+    public int? FileId { get; init; }
+    public string? TypeDesc { get; init; }
+    public string? LogicalName { get; init; }
+    public string? PhysicalName { get; init; }
+    public string? Directory { get; init; }
+    public long? SizePages { get; init; }
+    public long? SizeBytes { get; init; }
+    public long? MaxSizePages { get; init; }
+    public long? Growth { get; init; }
+    public bool IsPercentGrowth { get; init; }
+    public bool IsUnc { get; init; }
 }
 
 public record SqlServerData

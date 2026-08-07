@@ -124,6 +124,70 @@ function logLine(logFile) {
     return `<div class="est-muted">Logs: ${bytes(stats.totalBytes)} in ${stats.fileCount} files · newest ${date(stats.newestUtc)}${stats.truncated ? ' · truncated' : ''}</div>`;
 }
 
+const SQL_SYSTEM_DATABASES = ['master', 'model', 'msdb', 'tempdb'];
+
+/// Shown but muted: four rows of noise in a list of twenty, except their file locations
+/// genuinely matter.
+function isSystemDatabase(name) {
+    return SQL_SYSTEM_DATABASES.includes(String(name ?? '').toLowerCase());
+}
+
+/// The single rule the collector's permission stamp exists to enable: a filtered list must
+/// never render as an empty one.
+function sqlConnectedBlock(instance) {
+    const status = instance.connectedStatus;
+    if (status === 'insufficient-rights') {
+        return `<p class="est-catfail">Insufficient rights<span class="est-muted"> — ${escapeHtml(instance.connectedReason)}</span></p>
+                <p class="est-muted">The database list would be silently partial, so none is shown.</p>`;
+    }
+    if (status === 'skipped') {
+        return `<p class="est-status">Not queried<span class="est-muted"> — ${escapeHtml(instance.connectedReason)}</span></p>`;
+    }
+    if (status && status !== 'ok') {
+        return `<p class="est-catfail">${escapeHtml(status)}<span class="est-muted"> — ${escapeHtml(instance.connectedReason)}</span></p>`;
+    }
+    return null;
+}
+
+function sqlDatabaseFlags(db) {
+    const flags = [];
+    if (db.stateDesc && db.stateDesc !== 'ONLINE') flags.push(`<span class="est-badge est-badge-warn">${escapeHtml(db.stateDesc)}</span>`);
+    if (db.isReadOnly) flags.push('<span class="est-badge">read-only</span>');
+    if (db.isEncrypted) flags.push('<span class="est-badge">encrypted</span>');
+    return flags.join('');
+}
+
+/// Files grouped by directory - the question is "where does data actually live on this box",
+/// which a flat file list does not answer.
+function sqlStorageBlock(files) {
+    if (files.length === 0) return '';
+    const byDirectory = new Map();
+    for (const file of files) {
+        const key = file.directory ?? '—';
+        if (!byDirectory.has(key)) byDirectory.set(key, []);
+        byDirectory.get(key).push(file);
+    }
+    const groups = [...byDirectory.entries()].sort((a, b) => b[1].length - a[1].length);
+    return groups.map(([directory, group]) => {
+        const total = group.reduce((sum, f) => sum + (f.sizeBytes ?? 0), 0);
+        const unc = group.some((f) => f.isUnc);
+        return `
+        <div class="est-subcard">
+            <div class="est-subcard-head">
+                <span class="est-mono">${escapeHtml(directory)}${unc ? ' <span class="est-badge est-badge-warn">UNC</span>' : ''}</span>
+                <span class="est-muted">${group.length} file${group.length === 1 ? '' : 's'} · ${bytes(total)}</span>
+            </div>
+            ${group.map((f) => `
+                <div class="est-binding">
+                    <span class="est-mono">${escapeHtml(f.databaseName)}</span>
+                    <span class="est-muted">${escapeHtml(f.typeDesc)}</span>
+                    <span class="est-mono">${escapeHtml(f.logicalName)}</span>
+                    <span class="est-muted">${bytes(f.sizeBytes)}</span>
+                </div>`).join('')}
+        </div>`;
+    }).join('');
+}
+
 function dependencyTarget(d) {
     if (d.kind === 'http') return `${d.scheme}://${d.host}${d.port ? ':' + d.port : ''}${d.path ?? ''}`;
     if (d.kind === 'file') return d.filePath ?? '—';
@@ -352,14 +416,51 @@ export function dossierHtml(m, envelope) {
                         ['Service account', `<span class="est-mono">${escapeHtml(i.serviceAccount)}</span>`],
                         ['Agent', i.agentServiceAccount ? `<span class="est-mono">${escapeHtml(i.agentServiceAccount)}</span> <span class="est-muted">(${escapeHtml(i.agentServiceState)})</span>` : '—'],
                         ['Backups', `<span class="est-mono">${escapeHtml(i.backupDirectory)}</span>`],
+                        ...(i.permissions?.loginName
+                            ? [['Census read as', `<span class="est-mono">${escapeHtml(i.permissions.loginName)}</span>${i.permissions.viewAnyDefinition ? '' : ' <span class="est-badge est-badge-warn">no VIEW ANY DEFINITION</span>'}`]]
+                            : []),
                     ])}
+                    ${(() => {
+                        const blocked = sqlConnectedBlock(i);
+                        if (blocked) return blocked;
+                        const databases = i.databases ?? [];
+                        const files = i.databaseFiles ?? [];
+                        if (databases.length === 0) return '';
+                        const userCount = databases.filter((d) => !isSystemDatabase(d.name)).length;
+                        return `
+                        <h4 class="est-subhead">Databases <span class="est-muted">${userCount} user + ${databases.length - userCount} system</span></h4>
+                        <input class="est-filter" type="search" placeholder="Filter ${databases.length} databases…" data-ref="sql-filter">
+                        <div class="est-apps-scroll">
+                            <table class="est-table" data-ref="sql-table">
+                                <thead><tr><th>Database</th><th>Recovery</th><th>Compat</th><th>Owner</th><th></th></tr></thead>
+                                <tbody>${databases.map((d) => `
+                                    <tr data-filter="${escapeHtml(String(d.name ?? '').toLowerCase())}" class="${isSystemDatabase(d.name) ? 'est-muted' : ''}">
+                                        <td>${escapeHtml(d.name)}</td>
+                                        <td class="est-muted">${escapeHtml(d.recoveryModelDesc)}</td>
+                                        <td class="est-muted">${escapeHtml(d.compatibilityLevel)}</td>
+                                        <td class="est-mono">${escapeHtml(d.owner)}</td>
+                                        <td>${sqlDatabaseFlags(d)}</td>
+                                    </tr>`).join('')}</tbody>
+                            </table>
+                        </div>
+                        <h4 class="est-subhead">Storage <span class="est-muted">${files.length} files</span></h4>
+                        ${sqlStorageBlock(files)}`;
+                    })()}
                 </div>`).join('') || '<p class="est-status">No instances.</p>')}
         </section>`;
 }
 
 export function bindDossier(container) {
-    const filter = container.querySelector('[data-ref="app-filter"]');
-    const table = container.querySelector('[data-ref="app-table"]');
+    // Several filter/table pairs now - installed software, and one per SQL instance. The
+    // early return on a missing pair is what lets a machine with no SQL bind cleanly.
+    bindFilter(container.querySelector('[data-ref="app-filter"]'), container.querySelector('[data-ref="app-table"]'));
+
+    const sqlFilters = container.querySelectorAll('[data-ref="sql-filter"]');
+    const sqlTables = container.querySelectorAll('[data-ref="sql-table"]');
+    sqlFilters.forEach((filter, index) => bindFilter(filter, sqlTables[index]));
+}
+
+function bindFilter(filter, table) {
     if (!filter || !table) return;
     filter.addEventListener('input', () => {
         const needle = filter.value.trim().toLowerCase();

@@ -5,38 +5,38 @@ Nothing needs building or configuring to switch — they are two URLs on one run
 
 | UX | URL | Front end | Landing view |
 |---|---|---|---|
-| v1 (classic CRUD) | `/` | `wwwroot/js/census/*`, `wwwroot/css/site.css` | `Views/Home/Index.cshtml` |
-| v2 (Estate) | `/estate` | `wwwroot/js/estate/*`, `wwwroot/css/estate.css` | `Views/Home/Estate.cshtml` |
+| v2 (Estate) — **default** | `/` and `/estate` | `wwwroot/js/estate/*`, `wwwroot/css/estate.css` | `Views/Home/Estate.cshtml` |
+| v1 (classic CRUD) | `/classic` | `wwwroot/js/census/*`, `wwwroot/css/site.css` | `Views/Home/Index.cshtml` |
+
+**Changed 2026-08-07.** The Estate now owns `/`; v1 moved to `/classic`. Before this, `/`
+served v1 and the Estate was only reachable at `/estate` — which reads as "the re-imagined
+UX is missing" to anyone who browses to the root and takes what they see as the whole app.
+Defaults are a claim about which UI is the real one, so the default was made to match.
+
+**`/estate` still works.** `Estate()` carries both route attributes deliberately, so
+existing bookmarks, the `demo` launch profile's `launchUrl`, and every doc that names
+`/estate` keep resolving. Retiring that second route is a later, separate decision.
 
 ## Day-to-day toggling
 
 Browse to the other URL. That's it. Both are always live; neither disables the other.
 
-## Making v2 the default landing page
+## Which view owns `/`
 
-Swap the routes in `Controllers/HomeController.cs`:
-
-```csharp
-// current: Index() serves v1 at "/", Estate() serves v2 at "/estate"
-public IActionResult Index() { return View(); }
-
-[HttpGet("/estate")]
-public IActionResult Estate() { return View(); }
-```
-
-To land on the Estate at `/` instead, move the attribute so v1 gets the named route and
-Estate takes the default:
+It is the route attributes in `Controllers/HomeController.cs`, nothing else:
 
 ```csharp
 [HttpGet("/classic")]
-public IActionResult Index() { return View(); }     // v1 moves to /classic
+public IActionResult Index() { return View(); }      // v1
 
-public IActionResult Estate() { return View(); }    // conventional route still maps /Home/Estate
+[HttpGet("/")]
+[HttpGet("/estate")]
+public IActionResult Estate() { return View(); }     // v2, owns the root
 ```
 
-…and add `[HttpGet("/")]` to `Estate()` (or point the default route's action at it in
-`Program.cs`: `pattern: "{controller=Home}/{action=Estate}/{id?}"`). One-line choice of
-which view owns `/`.
+To put v1 back at `/`, swap which action carries `[HttpGet("/")]`. Note that an action with
+any attribute route is no longer reachable through the conventional `{controller}/{action}`
+pattern in `Program.cs` — so `/Home/Index` does not serve v1 anymore; `/classic` does.
 
 ## Retiring v1 entirely (e.g., at host-app import time)
 

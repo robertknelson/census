@@ -13,11 +13,13 @@ public class HomeController : Controller
         _logger = logger;
     }
 
+    [HttpGet("/classic")]
     public IActionResult Index()
     {
         return View();
     }
 
+    [HttpGet("/")]
     [HttpGet("/estate")]
     public IActionResult Estate()
     {

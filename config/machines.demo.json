@@ -15,7 +15,9 @@
   ],
   "machines": [
     { "name": "WEB01",         "bucket": "corp", "expected": true,  "notes": "" },
+    { "name": "WEB02",         "bucket": "corp", "expected": true,  "notes": "physical; second web tier" },
     { "name": "SQL01",         "bucket": "corp", "expected": true,  "notes": "" },
+    { "name": "SQL02",         "bucket": "corp", "expected": true,  "notes": "2016; default instance" },
     { "name": "APPSRV01",      "bucket": "corp", "expected": true,  "notes": "" },
     { "name": "DEVBOX-JSMITH", "bucket": "corp", "expected": true,  "notes": "laptop; often off" },
     { "name": "BUILDSRV01",    "bucket": "corp", "expected": true,  "notes": "" },

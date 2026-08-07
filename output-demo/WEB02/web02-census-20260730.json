@@ -1,0 +1,707 @@
+{
+  "schemaVersion": 1,
+  "collectorVersion": "1.0.0",
+  "computerName": "WEB02",
+  "collectedUtc": "2026-07-30T03:04:22Z",
+  "identity": {
+    "status": "ok",
+    "data": {
+      "domain": "corp.example.com",
+      "manufacturer": "Dell Inc.",
+      "model": "PowerEdge R650",
+      "smbiosUuid": "4c4c4544-0052-3610-8052-b7c04f565331",
+      "machineGuid": "b2c3d4e5-6f70-4812-9a3b-4c5d6e7f8a06",
+      "biosSerialNumber": "JR6Q2S3",
+      "isVirtual": false,
+      "hypervisorSignals": [],
+      "cpuSockets": 2,
+      "cpuCores": 16,
+      "cpuLogicalProcessors": 32
+    },
+    "durationMs": 288
+  },
+  "memory": {
+    "status": "ok",
+    "data": {
+      "totalPhysicalMemoryBytes": 137438953472,
+      "totalPhysicalMemoryGB": 128
+    },
+    "durationMs": 9
+  },
+  "os": {
+    "status": "ok",
+    "data": {
+      "productName": "Windows Server 2022 Standard",
+      "editionId": "ServerStandard",
+      "installationType": "Server",
+      "currentBuild": "20348",
+      "ubr": 2762,
+      "displayVersion": "21H2",
+      "architecture": "64-bit",
+      "installDate": "2023-06-14T11:20:00-04:00",
+      "lastBootUpTime": "2026-07-19T02:15:00-04:00",
+      "pendingReboot": false,
+      "pendingRebootReasons": []
+    },
+    "durationMs": 91
+  },
+  "updates": {
+    "status": "ok",
+    "data": {
+      "currentBuild": "20348",
+      "ubr": 2762,
+      "lastDetectSuccessTime": "2026-07-30 01:55:00",
+      "lastInstallSuccessTime": "2026-07-14 03:05:00"
+    },
+    "durationMs": 41
+  },
+  "dotnet": {
+    "status": "ok",
+    "data": {
+      "frameworkReleaseId": 533320,
+      "coreRuntimes": [
+        "Microsoft.AspNetCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+        "Microsoft.NETCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]"
+      ],
+      "sdks": []
+    },
+    "durationMs": 44
+  },
+  "drives": {
+    "status": "ok",
+    "data": {
+      "drives": [
+        {
+          "driveLetter": "C",
+          "label": "OS",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 214748364800,
+          "freeBytes": 96636764160,
+          "usedBytes": 118111600640,
+          "percentFree": 45.0
+        },
+        {
+          "driveLetter": "W",
+          "label": "Web",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 1099511627776,
+          "freeBytes": 659706976665,
+          "usedBytes": 439804651111,
+          "percentFree": 60.0
+        }
+      ]
+    },
+    "durationMs": 232
+  },
+  "apps": {
+    "status": "insufficient-rights",
+    "reason": "Enumerating HKEY_USERS requires elevation; the census account is not an administrator on this machine",
+    "durationMs": 640
+  },
+  "iis": {
+    "status": "ok",
+    "data": {
+      "server": {
+        "versionString": "10.0.20348.1",
+        "majorVersion": 10,
+        "pathWwwRoot": "C:\\inetpub\\wwwroot",
+        "configPath": "C:\\Windows\\System32\\inetsrv\\config\\applicationHost.config",
+        "configLastWriteUtc": "2026-05-28T08:03:19Z",
+        "configSha256": "c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081"
+      },
+      "sites": [
+        {
+          "name": "Default Web Site",
+          "id": "1",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "%SystemDrive%\\inetpub\\wwwroot",
+            "expanded": "C:\\inetpub\\wwwroot",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "C:\\inetpub\\logs\\LogFiles\\W3SVC1",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "C:\\inetpub\\logs\\LogFiles\\W3SVC1",
+              "exists": true,
+              "fileCount": 12,
+              "totalBytes": 3145728,
+              "oldestUtc": "2026-07-05T00:02:19Z",
+              "newestUtc": "2026-07-31T23:41:05Z",
+              "last24hBytes": 262144,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        },
+        {
+          "name": "svc.example.com",
+          "id": "2",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "W:\\sites\\svc",
+            "expanded": "W:\\sites\\svc",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:svc.example.com",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "svc.example.com",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            },
+            {
+              "protocol": "https",
+              "bindingInformation": "*:443:svc.example.com",
+              "ip": "*",
+              "port": 443,
+              "hostHeader": "svc.example.com",
+              "parsed": true,
+              "sslFlags": "1",
+              "certificateHash": "B2C3D4E5F60718293A4B5C6D7E8F90123456789A",
+              "certificateStoreName": "My"
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "W:\\logs\\W3SVC2",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "W:\\logs\\W3SVC2",
+              "exists": true,
+              "fileCount": 22,
+              "totalBytes": 18874368,
+              "oldestUtc": "2026-06-11T00:07:52Z",
+              "newestUtc": "2026-07-31T23:59:14Z",
+              "last24hBytes": 917504,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        },
+        {
+          "name": "legacy.example.com",
+          "id": "3",
+          "serverAutoStart": "false",
+          "physicalPath": {
+            "raw": "W:\\sites\\legacy",
+            "expanded": "W:\\sites\\legacy",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "https",
+              "bindingInformation": "*:443:legacy.example.com",
+              "ip": "*",
+              "port": 443,
+              "hostHeader": "legacy.example.com",
+              "parsed": true,
+              "sslFlags": "1",
+              "certificateHash": "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678",
+              "certificateStoreName": "My"
+            }
+          ],
+          "logFile": {
+            "enabled": "false",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "W:\\logs\\W3SVC3",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "W:\\logs\\W3SVC3",
+              "exists": true,
+              "fileCount": 3,
+              "totalBytes": 401408,
+              "oldestUtc": "2025-11-02T00:14:07Z",
+              "newestUtc": "2026-02-18T23:12:44Z",
+              "last24hBytes": 0,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        }
+      ],
+      "appPools": [
+        {
+          "name": "DefaultAppPool",
+          "managedRuntimeVersion": "v4.0",
+          "managedRuntimeVersionSource": "applicationPoolDefaults",
+          "managedPipelineMode": "Integrated",
+          "identityType": "ApplicationPoolIdentity",
+          "identityTypeSource": "pool",
+          "userName": null
+        },
+        {
+          "name": "SvcPool",
+          "managedRuntimeVersion": "",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Integrated",
+          "identityType": "ApplicationPoolIdentity",
+          "identityTypeSource": "pool",
+          "userName": null
+        },
+        {
+          "name": "IntegrationPool",
+          "managedRuntimeVersion": "v4.0",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Classic",
+          "identityType": "SpecificUser",
+          "identityTypeSource": "pool",
+          "userName": "CORP\\svc-integration"
+        },
+        {
+          "name": "LegacyStaticPool",
+          "managedRuntimeVersion": "v4.0",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Integrated",
+          "identityType": "LocalSystem",
+          "identityTypeSource": "pool",
+          "userName": null
+        }
+      ],
+      "applications": [
+        {
+          "siteName": "Default Web Site",
+          "path": "/",
+          "physicalPath": {
+            "raw": "%SystemDrive%\\inetpub\\wwwroot",
+            "expanded": "C:\\inetpub\\wwwroot",
+            "expandable": true
+          },
+          "applicationPool": "DefaultAppPool",
+          "poolManagedRuntimeVersion": "v4.0",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "ApplicationPoolIdentity",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "v4.0",
+            "aspNetCore": null,
+            "hasAppSettingsJson": false,
+            "hasRuntimeConfigJson": false
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "serverDefault"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "serverDefault"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "%SystemDrive%\\inetpub\\wwwroot",
+                "expanded": "C:\\inetpub\\wwwroot",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "not-present",
+              "path": "C:\\inetpub\\wwwroot\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "not-present"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "svc.example.com",
+          "path": "/",
+          "physicalPath": {
+            "raw": "W:\\sites\\svc",
+            "expanded": "W:\\sites\\svc",
+            "expandable": true
+          },
+          "applicationPool": "SvcPool",
+          "poolManagedRuntimeVersion": "",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "ApplicationPoolIdentity",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "",
+            "aspNetCore": {
+              "processPath": ".\\Svc.Gateway.exe",
+              "arguments": "",
+              "hostingModel": "outofprocess",
+              "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Staging"
+              }
+            },
+            "hasAppSettingsJson": true,
+            "hasRuntimeConfigJson": true
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "webConfig"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "serverDefault"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "W:\\sites\\svc",
+                "expanded": "W:\\sites\\svc",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "W:\\sites\\svc\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "ok",
+              "path": "W:\\sites\\svc\\appsettings.json"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "svc.example.com",
+          "path": "/integration",
+          "physicalPath": {
+            "raw": "W:\\sites\\svc\\integration",
+            "expanded": "W:\\sites\\svc\\integration",
+            "expandable": true
+          },
+          "applicationPool": "IntegrationPool",
+          "poolManagedRuntimeVersion": "v4.0",
+          "poolManagedPipelineMode": "Classic",
+          "poolIdentityType": "SpecificUser",
+          "poolUserName": "CORP\\svc-integration",
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "v4.0",
+            "aspNetCore": null,
+            "hasAppSettingsJson": false,
+            "hasRuntimeConfigJson": false
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "location"
+            },
+            "windowsAuthentication": {
+              "enabled": true,
+              "userName": null,
+              "source": "webConfig"
+            },
+            "basicAuthentication": {
+              "enabled": true,
+              "userName": null,
+              "source": "webConfig"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "W:\\sites\\svc\\integration",
+                "expanded": "W:\\sites\\svc\\integration",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "W:\\sites\\svc\\integration\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "not-present"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "legacy.example.com",
+          "path": "/",
+          "physicalPath": {
+            "raw": "W:\\sites\\legacy",
+            "expanded": "W:\\sites\\legacy",
+            "expandable": true
+          },
+          "applicationPool": "LegacyStaticPool",
+          "poolManagedRuntimeVersion": "v4.0",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "LocalSystem",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "v4.0",
+            "aspNetCore": null,
+            "hasAppSettingsJson": false,
+            "hasRuntimeConfigJson": false
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "serverDefault"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "serverDefault"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "W:\\sites\\legacy",
+                "expanded": "W:\\sites\\legacy",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "not-present",
+              "path": "W:\\sites\\legacy\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "not-present"
+            }
+          },
+          "status": "ok"
+        }
+      ],
+      "dependencies": [
+        {
+          "siteName": "svc.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "GatewayDb",
+          "host": "SQL02",
+          "rawHost": "SQL02",
+          "isLocal": false,
+          "instance": null,
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "Gateway",
+          "authMode": "integrated",
+          "provider": "System.Data.SqlClient",
+          "encrypt": null,
+          "trustServerCertificate": null,
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "cff5ff214b8ceec2097a995479d3a5651a854ccba0aea5200ca7a6acef5562f3"
+        },
+        {
+          "siteName": "svc.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "http",
+          "name": "Upstream:Orders",
+          "scheme": "https",
+          "host": "portal.example.com",
+          "rawHost": "portal.example.com",
+          "isLocal": false,
+          "port": 443,
+          "path": "/api/v1",
+          "hadCredentials": false,
+          "hadQuery": false,
+          "sha256": "d9b9abdf01a0615b4469ccfc1e3ed55e0b732ec66f2d44a3a828314919f66d3a"
+        },
+        {
+          "siteName": "svc.example.com",
+          "appPath": "/integration",
+          "sourceFile": "web.config",
+          "kind": "database",
+          "name": "MainframeLink",
+          "host": null,
+          "rawHost": "DSN=MFPROD;UID=svcint",
+          "isLocal": false,
+          "instance": null,
+          "port": null,
+          "protocol": null,
+          "filePath": null,
+          "database": null,
+          "authMode": null,
+          "provider": "System.Data.Odbc",
+          "encrypt": null,
+          "trustServerCertificate": null,
+          "secretsPresent": true,
+          "parseStatus": "unrecognized",
+          "sha256": "1c3d8011d8ac4b31dd475fafa3efe38ef893aa28c6b9a8bd613647e0f37059fb"
+        }
+      ]
+    },
+    "durationMs": 76
+  },
+  "certificates": {
+    "status": "ok",
+    "data": {
+      "certificates": [
+        {
+          "subject": "CN=legacy.example.com",
+          "sanDnsNames": [
+            "legacy.example.com"
+          ],
+          "issuer": "CN=Corp Issuing CA 1, DC=corp, DC=example, DC=com",
+          "thumbprint": "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678",
+          "notBefore": "2024-05-02T00:00:00-04:00",
+          "notAfter": "2026-05-02T00:00:00-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": -97,
+          "boundTo": [
+            "legacy.example.com:443"
+          ]
+        },
+        {
+          "subject": "CN=WEB02.corp.example.com",
+          "sanDnsNames": [
+            "WEB02.corp.example.com",
+            "web02"
+          ],
+          "issuer": "CN=Corp Issuing CA 1, DC=corp, DC=example, DC=com",
+          "thumbprint": "B2C3D4E5F60718293A4B5C6D7E8F90123456789A",
+          "notBefore": "2025-09-18T00:00:00-04:00",
+          "notAfter": "2027-09-18T00:00:00-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": 407,
+          "boundTo": []
+        }
+      ],
+      "rdpQueryError": null,
+      "httpSysQueryError": null
+    },
+    "durationMs": 61
+  },
+  "sqlserver": {
+    "status": "not-present",
+    "reason": "HKLM:\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL absent",
+    "durationMs": 4
+  },
+  "requestedName": "web02",
+  "roles": [
+    "WebServer"
+  ],
+  "aliases": {
+    "status": "ok",
+    "data": {
+      "aliases": [
+        {
+          "kind": "netbios",
+          "value": "WEB02",
+          "source": "identity"
+        },
+        {
+          "kind": "fqdn",
+          "value": "web02.corp.example.com",
+          "source": "identity"
+        },
+        {
+          "kind": "machineGuid",
+          "value": "b2c3d4e5-6f70-4812-9a3b-4c5d6e7f8a06",
+          "source": "identity"
+        },
+        {
+          "kind": "ipv4",
+          "value": "10.0.0.12",
+          "source": "network"
+        },
+        {
+          "kind": "bindingHostHeader",
+          "value": "svc.example.com",
+          "source": "iis"
+        },
+        {
+          "kind": "certSan",
+          "value": "legacy.example.com",
+          "source": "certificates"
+        }
+      ],
+      "sources": {
+        "identity": "ok",
+        "sqlserver": "not-present",
+        "iis": "ok",
+        "certificates": "ok",
+        "network": "ok"
+      }
+    },
+    "durationMs": 41
+  }
+}

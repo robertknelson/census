@@ -76,6 +76,34 @@
           "InternalApps"
         ]
       }
+    },
+    "WEB02": {
+      "facets": {
+        "stage": [
+          "prod",
+          "staging"
+        ],
+        "team": [
+          "PublicApps"
+        ],
+        "app": [
+          "SvcGateway",
+          "OrderPortal"
+        ]
+      }
+    },
+    "SQL02": {
+      "facets": {
+        "stage": [
+          "prod"
+        ],
+        "team": [
+          "InternalApps"
+        ],
+        "app": [
+          "SvcGateway"
+        ]
+      }
     }
   }
 }

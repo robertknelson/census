@@ -223,8 +223,114 @@ $sql01AliasCategory = [PSCustomObject]([ordered]@{
     durationMs = 38
 })
 
+# --- SQL02 --------------------------------------------------------------------------------
+# The second dedicated database server (New-DemoMachines.ps1). Two branches SQL01 cannot
+# reach, because every instance on SQL01 is named:
+#   - THE DEFAULT INSTANCE. Its instanceName is 'MSSQLSERVER' and the string anything connects
+#     to is the bare host name, 'SQL02' with no backslash - so the sqlInstance alias is the
+#     host name itself (census-collector.md 8.1.1). A reader that assumes HOST\INSTANCE
+#     everywhere renders this wrong, and until now nothing in the tree would have caught it.
+#   - connectedStatus 'timed-out'. SQL01 covers ok, insufficient-rights and skipped; a
+#     connection that hung is a fourth outcome with a different remediation.
+$sql02DataDir = 'C:\Program Files\Microsoft SQL Server\MSSQL13.MSSQLSERVER\MSSQL\DATA'
+$sql02SystemFiles = @(
+    (DbFile 'master' 1 'ROWS' 'master'   "$sql02DataDir\master.mdf"   1024 -1 10 $true),
+    (DbFile 'master' 2 'LOG'  'mastlog'  "$sql02DataDir\mastlog.ldf"   256 -1 10 $true),
+    (DbFile 'tempdb' 1 'ROWS' 'tempdev'  "$sql02DataDir\tempdb.mdf"   4096 -1 65536),
+    (DbFile 'tempdb' 2 'LOG'  'templog'  "$sql02DataDir\templog.ldf"  1024 -1 65536),
+    (DbFile 'model'  1 'ROWS' 'modeldev' "$sql02DataDir\model.mdf"     512 -1 65536),
+    (DbFile 'model'  2 'LOG'  'modellog' "$sql02DataDir\modellog.ldf"  256 -1 65536),
+    (DbFile 'msdb'   1 'ROWS' 'MSDBData' "$sql02DataDir\MSDBData.mdf" 2376 -1 10 $true),
+    (DbFile 'msdb'   2 'LOG'  'MSDBLog'  "$sql02DataDir\MSDBLog.ldf"  1024 -1 10 $true)
+)
+
+# Compatibility level 130 throughout: a 2016-era instance nobody has raised, which is the
+# thing an estate view should surface next to SQL01's 160.
+$sql02Databases = $systemDatabases + @(
+    (Db 'Gateway'    5 'ONLINE' 'FULL'   130 'sa'),
+    (Db 'GatewayStg' 6 'ONLINE' 'SIMPLE' 130 'CORP\jsmith'),
+    (Db 'Telemetry'  7 'ONLINE' 'SIMPLE' 130 'sa')
+)
+$sql02Files = $sql02SystemFiles + @(
+    (DbFile 'Gateway'    1 'ROWS' 'Gateway'        'D:\sqldata\Gateway.mdf'         393216 -1 262144),
+    (DbFile 'Gateway'    2 'LOG'  'Gateway_log'    'L:\sqllogs\Gateway_log.ldf'      98304 -1 131072),
+    (DbFile 'GatewayStg' 1 'ROWS' 'GatewayStg'     'D:\sqldata\GatewayStg.mdf'      131072 -1 262144),
+    (DbFile 'GatewayStg' 2 'LOG'  'GatewayStg_log' 'L:\sqllogs\GatewayStg_log.ldf'   32768 -1 131072),
+    (DbFile 'Telemetry'  1 'ROWS' 'Telemetry'      'D:\sqldata\Telemetry.mdf'       786432 -1 262144),
+    (DbFile 'Telemetry'  2 'LOG'  'Telemetry_log'  'L:\sqllogs\Telemetry_log.ldf'    16384 -1 131072)
+)
+
+function Sql02Instances {
+    param($Databases, $Files, [int]$GatewayCompat)
+    @(
+        [ordered]@{
+            instanceName = 'MSSQLSERVER'; edition = 'Standard Edition'; version = '13.0.1601.5'
+            patchLevel = '13.0.6300.2'; sqlBinRoot = 'C:\Program Files\Microsoft SQL Server\MSSQL13.MSSQLSERVER\MSSQL\Binn'
+            sqlDataRoot = 'C:\Program Files\Microsoft SQL Server\MSSQL13.MSSQLSERVER\MSSQL'
+            collation = 'SQL_Latin1_General_CP1_CI_AS'; loginMode = 2
+            backupDirectory = 'D:\sqlbackups'; tcpPort = '1433'; tcpDynamicPorts = $null
+            serviceAccount = 'CORP\svc-sql2'; serviceState = 'Running'
+            agentServiceAccount = 'CORP\svc-sqlagent'; agentServiceState = 'Running'
+            connectedStatus = 'ok'; connectedReason = $null
+            permissions = Perms 'CORP\svc-census'
+            serverProperties = [ordered]@{ productVersion = '13.0.6300.2'; edition = 'Standard Edition (64-bit)'; serverCollation = 'SQL_Latin1_General_CP1_CI_AS' }
+            databases = $Databases
+            databaseFiles = $Files
+        },
+        # Reached, accepted the credential, then never answered inside the command budget. Not
+        # the same as refused (insufficient-rights) and not the same as never tried (skipped) -
+        # this one may well be a healthy instance under load, and the truth is simply unknown.
+        [ordered]@{
+            instanceName = 'ETL'; edition = 'Standard Edition'; version = '13.0.1601.5'
+            patchLevel = '13.0.6300.2'; sqlBinRoot = 'C:\Program Files\Microsoft SQL Server\MSSQL13.ETL\MSSQL\Binn'
+            sqlDataRoot = 'C:\Program Files\Microsoft SQL Server\MSSQL13.ETL\MSSQL'
+            collation = 'SQL_Latin1_General_CP1_CI_AS'; loginMode = 1
+            backupDirectory = 'D:\sqlbackups'; tcpPort = $null; tcpDynamicPorts = '51433'
+            serviceAccount = 'NT Service\MSSQL$ETL'; serviceState = 'Running'
+            agentServiceAccount = $null; agentServiceState = 'Stopped'
+            connectedStatus = 'timed-out'
+            connectedReason = 'catalog query exceeded the 15s command budget; instance is running but did not answer'
+            permissions = $null; serverProperties = $null
+            databases = @(); databaseFiles = @()
+        }
+    )
+}
+
+# Day 2: Gateway is raised from compatibility 130 to 140, and an audit database appears.
+$sql02Day2Databases = ($sql02Databases | ForEach-Object {
+    $copy = [ordered]@{}
+    $_.GetEnumerator() | ForEach-Object { $copy[$_.Key] = $_.Value }
+    if ($copy.name -eq 'Gateway') { $copy.compatibilityLevel = 140 }
+    $copy
+}) + @( (Db 'GatewayAudit' 8 'ONLINE' 'FULL' 140 'sa') )
+$sql02Day2Files = $sql02Files + @(
+    (DbFile 'GatewayAudit' 1 'ROWS' 'GatewayAudit'     'D:\sqldata\GatewayAudit.mdf'      65536 -1 262144),
+    (DbFile 'GatewayAudit' 2 'LOG'  'GatewayAudit_log' 'L:\sqllogs\GatewayAudit_log.ldf'  16384 -1 131072)
+)
+
+# A default instance is addressed by the bare host name - no backslash, no instance segment.
+$sql02AliasCategory = [PSCustomObject]([ordered]@{
+    status     = 'ok'
+    data       = [ordered]@{
+        aliases = @(
+            [ordered]@{ kind = 'netbios';     value = 'SQL02';                  source = 'identity' },
+            [ordered]@{ kind = 'fqdn';        value = 'sql02.corp.example.com'; source = 'identity' },
+            [ordered]@{ kind = 'machineGuid'; value = 'c3d4e5f6-7081-4923-ab4c-5d6e7f8a9b07'; source = 'identity' },
+            [ordered]@{ kind = 'ipv4';        value = '10.0.0.21';              source = 'network' },
+            [ordered]@{ kind = 'sqlInstance'; value = 'SQL02';                  source = 'sqlserver' },
+            [ordered]@{ kind = 'sqlInstance'; value = 'SQL02\ETL';              source = 'sqlserver' }
+        )
+        sources = [ordered]@{ identity = 'ok'; sqlserver = 'ok'; iis = 'not-present'; certificates = 'ok'; network = 'ok' }
+    }
+    durationMs = 33
+})
+
 $targets = @(
-    @{ File = 'SQL01\sql01-census-20260731.json'; Instances = $sql01Instances;     Duration = 1180 }
+    @{ File = 'SQL01\sql01-census-20260731.json'; Instances = $sql01Instances;     Duration = 1180; Aliases = $sql01AliasCategory }
+    @{ File = 'SQL02\sql02-census-20260730.json'
+       Instances = (Sql02Instances $sql02Databases $sql02Files 130);         Duration = 940;  Aliases = $sql02AliasCategory }
+    @{ File = 'SQL02\sql02-census-20260731.json'
+       Instances = (Sql02Instances $sql02Day2Databases $sql02Day2Files 140); Duration = 1012; Aliases = $sql02AliasCategory }
 )
 
 foreach ($target in $targets) {
@@ -236,7 +342,7 @@ foreach ($target in $targets) {
         data       = [ordered]@{ instances = $target.Instances }
         durationMs = $target.Duration
     })
-    $envelope | Add-Member -NotePropertyName aliases -NotePropertyValue $sql01AliasCategory -Force
+    $envelope | Add-Member -NotePropertyName aliases -NotePropertyValue $target.Aliases -Force
     $envelope | ConvertTo-Json -Depth 15 | Set-Content -LiteralPath $path -Encoding utf8
     Write-Host "rewrote $($target.File)"
 }

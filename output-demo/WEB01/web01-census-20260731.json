@@ -1,822 +1,818 @@
-﻿{
-    "schemaVersion":  1,
-    "computerName":  "WEB01",
-    "collectedUtc":  "2026-07-31T03:01:15.0000000Z",
-    "identity":  {
-                     "status":  "ok",
-                     "data":  {
-                                  "domain":  "corp.example.com",
-                                  "manufacturer":  "VMware, Inc.",
-                                  "model":  "VMware7,1",
-                                  "smbiosUuid":  "4212a9b0-1e3a-4e1e-9a8e-2f7c6b9d1a01",
-                                  "machineGuid":  "b6f2e6d0-2f1a-4a3b-9c9e-1a2b3c4d5e01",
-                                  "biosSerialNumber":  "VMware-42 12 a9 b0 1e 3a 4e 1e-9a 8e 2f 7c 6b 9d 1a 01",
-                                  "isVirtual":  true,
-                                  "hypervisorSignals":  [
-                                                            "VMware"
-                                                        ],
-                                  "cpuSockets":  1,
-                                  "cpuCores":  4,
-                                  "cpuLogicalProcessors":  4
-                              },
-                     "durationMs":  312
-                 },
-    "memory":  {
-                   "status":  "ok",
-                   "data":  {
-                                "totalPhysicalMemoryBytes":  17179869184,
-                                "totalPhysicalMemoryGB":  16
-                            },
-                   "durationMs":  12
-               },
-    "os":  {
-               "status":  "ok",
-               "data":  {
-                            "productName":  "Windows Server 2022 Standard",
-                            "editionId":  "ServerStandard",
-                            "installationType":  "Server",
-                            "currentBuild":  "20348",
-                            "ubr":  3807,
-                            "displayVersion":  "21H2",
-                            "architecture":  "64-bit",
-                            "installDate":  "2024-03-11T09:12:04.0000000-04:00",
-                            "lastBootUpTime":  "2026-07-24T02:07:00.0000000-04:00",
-                            "pendingReboot":  false,
-                            "pendingRebootReasons":  [
-
-                                                     ]
-                        },
-               "durationMs":  88
-           },
-    "updates":  {
-                    "status":  "ok",
-                    "data":  {
-                                 "currentBuild":  "20348",
-                                 "ubr":  3807,
-                                 "lastDetectSuccessTime":  "2026-07-29 03:15:42",
-                                 "lastInstallSuccessTime":  "2026-07-22 04:02:10"
-                             },
-                    "durationMs":  45
-                },
-    "dotnet":  {
-                   "status":  "ok",
-                   "data":  {
-                                "frameworkReleaseId":  528449,
-                                "coreRuntimes":  [
-                                                     "Microsoft.AspNetCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
-                                                     "Microsoft.NETCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]"
-                                                 ],
-                                "sdks":  [
-
-                                         ]
-                            },
-                   "durationMs":  34
-               },
-    "drives":  {
-                   "status":  "ok",
-                   "data":  {
-                                "drives":  [
-                                               {
-                                                   "driveLetter":  "C",
-                                                   "label":  "OS",
-                                                   "fileSystem":  "NTFS",
-                                                   "driveType":  "Fixed",
-                                                   "healthStatus":  "Healthy",
-                                                   "sizeBytes":  107374182400,
-                                                   "freeBytes":  51539607552,
-                                                   "usedBytes":  55834574848,
-                                                   "percentFree":  48
-                                               }
-                                           ]
-                            },
-                   "durationMs":  220
-               },
-    "apps":  {
-                 "status":  "ok",
-                 "data":  {
-                              "count":  3,
-                              "entries":  [
-                                              {
-                                                  "displayName":  "URL Rewrite 2.1",
-                                                  "displayVersion":  "7.2.2100",
-                                                  "publisher":  "Microsoft Corporation",
-                                                  "installDate":  "2024-03-12",
-                                                  "installLocation":  null,
-                                                  "systemComponent":  false,
-                                                  "hive":  "HKLM",
-                                                  "architecture":  "x64",
-                                                  "sid":  ""
-                                              },
-                                              {
-                                                  "displayName":  "Microsoft ODBC Driver 17 for SQL Server",
-                                                  "displayVersion":  "17.10.6.1",
-                                                  "publisher":  "Microsoft Corporation",
-                                                  "installDate":  "2024-03-12",
-                                                  "installLocation":  null,
-                                                  "systemComponent":  false,
-                                                  "hive":  "HKLM",
-                                                  "architecture":  "x64",
-                                                  "sid":  ""
-                                              },
-                                              {
-                                                  "displayName":  "ASP.NET Core Module V2",
-                                                  "displayVersion":  "18.0.24127",
-                                                  "publisher":  "Microsoft Corporation",
-                                                  "installDate":  "2025-11-02",
-                                                  "installLocation":  null,
-                                                  "systemComponent":  true,
-                                                  "hive":  "HKLM",
-                                                  "architecture":  "x64",
-                                                  "sid":  ""
-                                              }
-                                          ]
-                          },
-                 "durationMs":  640
-             },
-    "iis":  {
-                "status":  "ok",
-                "data":  {
-                             "server":  {
-                                            "versionString":  "10.0.20348.1",
-                                            "majorVersion":  10,
-                                            "pathWwwRoot":  "C:\\inetpub\\wwwroot",
-                                            "configPath":  "C:\\Windows\\System32\\inetsrv\\config\\applicationHost.config",
-                                            "configLastWriteUtc":  "2026-07-31T06:41:02Z",
-                                            "configSha256":  "e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7"
-                                        },
-                             "sites":  [
-                                           {
-                                               "name":  "Default Web Site",
-                                               "id":  "1",
-                                               "serverAutoStart":  "true",
-                                               "physicalPath":  {
-                                                                    "raw":  "%SystemDrive%\\inetpub\\wwwroot",
-                                                                    "expanded":  "C:\\inetpub\\wwwroot",
-                                                                    "expandable":  true
-                                                                },
-                                               "bindings":  [
-                                                                {
-                                                                    "protocol":  "http",
-                                                                    "bindingInformation":  "*:80:",
-                                                                    "ip":  "*",
-                                                                    "port":  80,
-                                                                    "hostHeader":  "",
-                                                                    "parsed":  true,
-                                                                    "sslFlags":  null,
-                                                                    "certificateHash":  null,
-                                                                    "certificateStoreName":  null
-                                                                }
-                                                            ],
-                                               "logFile":  {
-                                                               "enabled":  "true",
-                                                               "directory":  {
-                                                                                 "raw":  "%SystemDrive%\\inetpub\\logs\\LogFiles",
-                                                                                 "expanded":  "C:\\inetpub\\logs\\LogFiles\\W3SVC1",
-                                                                                 "expandable":  true
-                                                                             },
-                                                               "directorySource":  "siteDefaults",
-                                                               "logFormat":  "W3C",
-                                                               "period":  "Daily",
-                                                               "truncateSize":  null,
-                                                               "logTargetW3C":  "File",
-                                                               "centralLogFileMode":  "Site",
-                                                               "stats":  {
-                                                                             "enumerationStatus":  "ok",
-                                                                             "resolvedDirectory":  "C:\\inetpub\\logs\\LogFiles\\W3SVC1",
-                                                                             "exists":  true,
-                                                                             "fileCount":  31,
-                                                                             "totalBytes":  48123904,
-                                                                             "oldestUtc":  "2026-07-01T00:04:11Z",
-                                                                             "newestUtc":  "2026-07-31T23:58:02Z",
-                                                                             "last24hBytes":  1583104,
-                                                                             "truncated":  false,
-                                                                             "enumerationCap":  5000
-                                                                         }
-                                                           }
-                                           },
-                                           {
-                                               "name":  "portal.example.com",
-                                               "id":  "2",
-                                               "serverAutoStart":  "true",
-                                               "physicalPath":  {
-                                                                    "raw":  "D:\\sites\\portal",
-                                                                    "expanded":  "D:\\sites\\portal",
-                                                                    "expandable":  true
-                                                                },
-                                               "bindings":  [
-                                                                {
-                                                                    "protocol":  "http",
-                                                                    "bindingInformation":  "*:80:portal.example.com",
-                                                                    "ip":  "*",
-                                                                    "port":  80,
-                                                                    "hostHeader":  "portal.example.com",
-                                                                    "parsed":  true,
-                                                                    "sslFlags":  null,
-                                                                    "certificateHash":  null,
-                                                                    "certificateStoreName":  null
-                                                                },
-                                                                {
-                                                                    "protocol":  "https",
-                                                                    "bindingInformation":  "*:443:portal.example.com",
-                                                                    "ip":  "*",
-                                                                    "port":  443,
-                                                                    "hostHeader":  "portal.example.com",
-                                                                    "parsed":  true,
-                                                                    "sslFlags":  "1",
-                                                                    "certificateHash":  "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678",
-                                                                    "certificateStoreName":  "My"
-                                                                }
-                                                            ],
-                                               "logFile":  {
-                                                               "enabled":  "true",
-                                                               "directory":  {
-                                                                                 "raw":  "%SystemDrive%\\inetpub\\logs\\LogFiles",
-                                                                                 "expanded":  "D:\\logs\\W3SVC2",
-                                                                                 "expandable":  true
-                                                                             },
-                                                               "directorySource":  "siteDefaults",
-                                                               "logFormat":  "W3C",
-                                                               "period":  "Daily",
-                                                               "truncateSize":  null,
-                                                               "logTargetW3C":  "File",
-                                                               "centralLogFileMode":  "Site",
-                                                               "stats":  {
-                                                                             "enumerationStatus":  "ok",
-                                                                             "resolvedDirectory":  "D:\\logs\\W3SVC2",
-                                                                             "exists":  true,
-                                                                             "fileCount":  8,
-                                                                             "totalBytes":  9216,
-                                                                             "oldestUtc":  "2026-04-02T00:11:44Z",
-                                                                             "newestUtc":  "2026-05-12T18:22:41Z",
-                                                                             "last24hBytes":  0,
-                                                                             "truncated":  false,
-                                                                             "enumerationCap":  5000
-                                                                         }
-                                                           }
-                                           }
-                                       ],
-                             "appPools":  [
-                                              {
-                                                  "name":  "DefaultAppPool",
-                                                  "managedRuntimeVersion":  "v4.0",
-                                                  "managedRuntimeVersionSource":  "applicationPoolDefaults",
-                                                  "managedPipelineMode":  "Integrated",
-                                                  "identityType":  "ApplicationPoolIdentity",
-                                                  "identityTypeSource":  "pool",
-                                                  "userName":  null
-                                              },
-                                              {
-                                                  "name":  "PortalAppPool",
-                                                  "managedRuntimeVersion":  "v4.0",
-                                                  "managedRuntimeVersionSource":  "pool",
-                                                  "managedPipelineMode":  "Integrated",
-                                                  "identityType":  "SpecificUser",
-                                                  "identityTypeSource":  "pool",
-                                                  "userName":  "CORP\\svc-portal"
-                                              },
-                                              {
-                                                  "name":  "PortalApiPool",
-                                                  "managedRuntimeVersion":  "",
-                                                  "managedRuntimeVersionSource":  "pool",
-                                                  "managedPipelineMode":  "Integrated",
-                                                  "identityType":  "ApplicationPoolIdentity",
-                                                  "identityTypeSource":  "pool",
-                                                  "userName":  null
-                                              },
-                                              {
-                                                  "name":  "LegacyReportsPool",
-                                                  "managedRuntimeVersion":  "v2.0",
-                                                  "managedRuntimeVersionSource":  "pool",
-                                                  "managedPipelineMode":  "Classic",
-                                                  "identityType":  "NetworkService",
-                                                  "identityTypeSource":  "pool",
-                                                  "userName":  null
-                                              }
-                                          ],
-                             "applications":  [
-                                                  {
-                                                      "siteName":  "Default Web Site",
-                                                      "path":  "/",
-                                                      "physicalPath":  {
-                                                                           "raw":  "%SystemDrive%\\inetpub\\wwwroot",
-                                                                           "expanded":  "C:\\inetpub\\wwwroot",
-                                                                           "expandable":  true
-                                                                       },
-                                                      "applicationPool":  "DefaultAppPool",
-                                                      "poolManagedRuntimeVersion":  "v4.0",
-                                                      "poolManagedPipelineMode":  "Integrated",
-                                                      "poolIdentityType":  "ApplicationPoolIdentity",
-                                                      "poolUserName":  null,
-                                                      "enabledProtocols":  "http",
-                                                      "runtime":  {
-                                                                      "poolManagedRuntimeVersion":  "v4.0",
-                                                                      "aspNetCore":  null,
-                                                                      "hasAppSettingsJson":  false,
-                                                                      "hasRuntimeConfigJson":  false
-                                                                  },
-                                                      "auth":  {
-                                                                   "anonymousAuthentication":  {
-                                                                                                   "enabled":  true,
-                                                                                                   "userName":  "IUSR",
-                                                                                                   "source":  "serverDefault"
-                                                                                               },
-                                                                   "windowsAuthentication":  {
-                                                                                                 "enabled":  false,
-                                                                                                 "userName":  null,
-                                                                                                 "source":  "serverDefault"
-                                                                                             }
-                                                               },
-                                                      "virtualDirectories":  [
-                                                                                 {
-                                                                                     "path":  "/",
-                                                                                     "physicalPath":  {
-                                                                                                          "raw":  "%SystemDrive%\\inetpub\\wwwroot",
-                                                                                                          "expanded":  "C:\\inetpub\\wwwroot",
-                                                                                                          "expandable":  true
-                                                                                                      },
-                                                                                     "userName":  null,
-                                                                                     "logonMethod":  null
-                                                                                 }
-                                                                             ],
-                                                      "configFiles":  {
-                                                                          "webConfig":  {
-                                                                                            "status":  "not-present",
-                                                                                            "path":  "C:\\inetpub\\wwwroot\\web.config"
-                                                                                        },
-                                                                          "appSettingsJson":  {
-                                                                                                  "status":  "not-present"
-                                                                                              }
-                                                                      },
-                                                      "status":  "ok"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "path":  "/",
-                                                      "physicalPath":  {
-                                                                           "raw":  "D:\\sites\\portal",
-                                                                           "expanded":  "D:\\sites\\portal",
-                                                                           "expandable":  true
-                                                                       },
-                                                      "applicationPool":  "PortalAppPool",
-                                                      "poolManagedRuntimeVersion":  "v4.0",
-                                                      "poolManagedPipelineMode":  "Integrated",
-                                                      "poolIdentityType":  "SpecificUser",
-                                                      "poolUserName":  "CORP\\svc-portal",
-                                                      "enabledProtocols":  "http",
-                                                      "runtime":  {
-                                                                      "poolManagedRuntimeVersion":  "v4.0",
-                                                                      "aspNetCore":  null,
-                                                                      "hasAppSettingsJson":  false,
-                                                                      "hasRuntimeConfigJson":  false
-                                                                  },
-                                                      "auth":  {
-                                                                   "anonymousAuthentication":  {
-                                                                                                   "enabled":  false,
-                                                                                                   "userName":  "IUSR",
-                                                                                                   "source":  "location"
-                                                                                               },
-                                                                   "windowsAuthentication":  {
-                                                                                                 "enabled":  true,
-                                                                                                 "userName":  null,
-                                                                                                 "source":  "location"
-                                                                                             }
-                                                               },
-                                                      "virtualDirectories":  [
-                                                                                 {
-                                                                                     "path":  "/",
-                                                                                     "physicalPath":  {
-                                                                                                          "raw":  "D:\\sites\\portal",
-                                                                                                          "expanded":  "D:\\sites\\portal",
-                                                                                                          "expandable":  true
-                                                                                                      },
-                                                                                     "userName":  null,
-                                                                                     "logonMethod":  null
-                                                                                 }
-                                                                             ],
-                                                      "configFiles":  {
-                                                                          "webConfig":  {
-                                                                                            "status":  "ok",
-                                                                                            "path":  "D:\\sites\\portal\\web.config",
-                                                                                            "sha256":  "4f1c9b2e7a3d5086c1f4b9e2a7d3c5081f4b9e2a7d3c5086c1f4b9e2a7d3c508"
-                                                                                        },
-                                                                          "appSettingsJson":  {
-                                                                                                  "status":  "not-present"
-                                                                                              }
-                                                                      },
-                                                      "status":  "ok"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "path":  "/api",
-                                                      "physicalPath":  {
-                                                                           "raw":  "D:\\sites\\portal\\api",
-                                                                           "expanded":  "D:\\sites\\portal\\api",
-                                                                           "expandable":  true
-                                                                       },
-                                                      "applicationPool":  "PortalApiPool",
-                                                      "poolManagedRuntimeVersion":  "",
-                                                      "poolManagedPipelineMode":  "Integrated",
-                                                      "poolIdentityType":  "ApplicationPoolIdentity",
-                                                      "poolUserName":  null,
-                                                      "enabledProtocols":  "http",
-                                                      "runtime":  {
-                                                                      "poolManagedRuntimeVersion":  "",
-                                                                      "aspNetCore":  {
-                                                                                         "processPath":  "dotnet",
-                                                                                         "arguments":  ".\\Portal.Api.dll",
-                                                                                         "hostingModel":  "inprocess",
-                                                                                         "environmentVariables":  {
-                                                                                                                      "ASPNETCORE_ENVIRONMENT":  "Production"
-                                                                                                                  }
-                                                                                     },
-                                                                      "hasAppSettingsJson":  true,
-                                                                      "hasRuntimeConfigJson":  true
-                                                                  },
-                                                      "auth":  {
-                                                                   "anonymousAuthentication":  {
-                                                                                                   "enabled":  true,
-                                                                                                   "userName":  "IUSR",
-                                                                                                   "source":  "serverDefault"
-                                                                                               },
-                                                                   "windowsAuthentication":  {
-                                                                                                 "enabled":  false,
-                                                                                                 "userName":  null,
-                                                                                                 "source":  "serverDefault"
-                                                                                             }
-                                                               },
-                                                      "virtualDirectories":  [
-                                                                                 {
-                                                                                     "path":  "/",
-                                                                                     "physicalPath":  {
-                                                                                                          "raw":  "D:\\sites\\portal\\api",
-                                                                                                          "expanded":  "D:\\sites\\portal\\api",
-                                                                                                          "expandable":  true
-                                                                                                      },
-                                                                                     "userName":  null,
-                                                                                     "logonMethod":  null
-                                                                                 }
-                                                                             ],
-                                                      "configFiles":  {
-                                                                          "webConfig":  {
-                                                                                            "status":  "ok",
-                                                                                            "path":  "D:\\sites\\portal\\api\\web.config"
-                                                                                        },
-                                                                          "appSettingsJson":  {
-                                                                                                  "status":  "ok",
-                                                                                                  "path":  "D:\\sites\\portal\\api\\appsettings.json"
-                                                                                              }
-                                                                      },
-                                                      "status":  "ok"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "path":  "/reports",
-                                                      "physicalPath":  {
-                                                                           "raw":  "D:\\sites\\portal\\reports",
-                                                                           "expanded":  "D:\\sites\\portal\\reports",
-                                                                           "expandable":  true
-                                                                       },
-                                                      "applicationPool":  "LegacyReportsPool",
-                                                      "poolManagedRuntimeVersion":  "v2.0",
-                                                      "poolManagedPipelineMode":  "Classic",
-                                                      "poolIdentityType":  "NetworkService",
-                                                      "poolUserName":  null,
-                                                      "enabledProtocols":  "http",
-                                                      "runtime":  {
-                                                                      "poolManagedRuntimeVersion":  "v2.0",
-                                                                      "aspNetCore":  null,
-                                                                      "hasAppSettingsJson":  false,
-                                                                      "hasRuntimeConfigJson":  false
-                                                                  },
-                                                      "auth":  {
-                                                                   "anonymousAuthentication":  {
-                                                                                                   "enabled":  false,
-                                                                                                   "userName":  "IUSR",
-                                                                                                   "source":  "location"
-                                                                                               },
-                                                                   "windowsAuthentication":  {
-                                                                                                 "enabled":  true,
-                                                                                                 "userName":  null,
-                                                                                                 "source":  "location"
-                                                                                             }
-                                                               },
-                                                      "virtualDirectories":  [
-                                                                                 {
-                                                                                     "path":  "/",
-                                                                                     "physicalPath":  {
-                                                                                                          "raw":  "D:\\sites\\portal\\reports",
-                                                                                                          "expanded":  "D:\\sites\\portal\\reports",
-                                                                                                          "expandable":  true
-                                                                                                      },
-                                                                                     "userName":  null,
-                                                                                     "logonMethod":  null
-                                                                                 },
-                                                                                 {
-                                                                                     "path":  "/archive",
-                                                                                     "physicalPath":  {
-                                                                                                          "raw":  "\\\\fs01\\reports-archive",
-                                                                                                          "expanded":  "\\\\fs01\\reports-archive",
-                                                                                                          "expandable":  true
-                                                                                                      },
-                                                                                     "userName":  "CORP\\svc-reports",
-                                                                                     "logonMethod":  "ClearText"
-                                                                                 }
-                                                                             ],
-                                                      "configFiles":  {
-                                                                          "webConfig":  {
-                                                                                            "status":  "ok",
-                                                                                            "path":  "D:\\sites\\portal\\reports\\web.config"
-                                                                                        },
-                                                                          "appSettingsJson":  {
-                                                                                                  "status":  "not-present"
-                                                                                              }
-                                                                      },
-                                                      "status":  "ok"
-                                                  }
-                                              ],
-                             "dependencies":  [
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/",
-                                                      "sourceFile":  "web.config",
-                                                      "kind":  "database",
-                                                      "name":  "PortalDb",
-                                                      "host":  "SQL01",
-                                                      "rawHost":  "SQL01",
-                                                      "isLocal":  false,
-                                                      "instance":  "PROD",
-                                                      "port":  null,
-                                                      "protocol":  null,
-                                                      "filePath":  null,
-                                                      "database":  "Portal",
-                                                      "authMode":  "integrated",
-                                                      "provider":  "System.Data.SqlClient",
-                                                      "encrypt":  null,
-                                                      "trustServerCertificate":  null,
-                                                      "secretsPresent":  false,
-                                                      "parseStatus":  "ok",
-                                                      "sha256":  "607afb12ab28a13eb3f301b0d10ef6d0fc08c51346c10d1261d12774afc56932"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/",
-                                                      "sourceFile":  "web.config",
-                                                      "kind":  "database",
-                                                      "name":  "DefaultConnection",
-                                                      "host":  "WEB01",
-                                                      "rawHost":  "WEB01",
-                                                      "isLocal":  true,
-                                                      "instance":  null,
-                                                      "port":  null,
-                                                      "protocol":  null,
-                                                      "filePath":  null,
-                                                      "database":  "PortalLocal",
-                                                      "authMode":  "integrated",
-                                                      "provider":  "System.Data.SqlClient",
-                                                      "encrypt":  null,
-                                                      "trustServerCertificate":  null,
-                                                      "secretsPresent":  false,
-                                                      "parseStatus":  "ok",
-                                                      "sha256":  "8d0eebf0db601f74d352e3978b8433fe301e476a98bc7e541d76c5aa8a18665a"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/",
-                                                      "sourceFile":  "web.config",
-                                                      "kind":  "http",
-                                                      "name":  "PaymentGatewayUrl",
-                                                      "scheme":  "https",
-                                                      "host":  "payments.vendor.example.com",
-                                                      "rawHost":  "payments.vendor.example.com",
-                                                      "isLocal":  false,
-                                                      "port":  443,
-                                                      "path":  "/v2/charge",
-                                                      "hadCredentials":  false,
-                                                      "hadQuery":  true,
-                                                      "sha256":  "5d5402b78bb4703639896c356bb6d8289a5162d72a1d9401c7b3a25f865b28c6"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/reports",
-                                                      "sourceFile":  "web.config",
-                                                      "kind":  "http",
-                                                      "name":  "LegacyFeedUrl",
-                                                      "scheme":  "http",
-                                                      "host":  "legacy-reports.example.com",
-                                                      "rawHost":  "legacy-reports.example.com",
-                                                      "isLocal":  false,
-                                                      "port":  80,
-                                                      "path":  "/feed",
-                                                      "hadCredentials":  true,
-                                                      "hadQuery":  false,
-                                                      "sha256":  "9dc89881f099843aa79fa9d9d50a25e947679633f0a6b96d2528633dec2ca88b"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/",
-                                                      "sourceFile":  "web.config",
-                                                      "kind":  "database",
-                                                      "name":  "BillingDb",
-                                                      "host":  "sql01.corp.local",
-                                                      "rawHost":  "sql01.corp.local",
-                                                      "isLocal":  false,
-                                                      "instance":  "PROD",
-                                                      "port":  null,
-                                                      "protocol":  null,
-                                                      "filePath":  null,
-                                                      "database":  "Billing",
-                                                      "authMode":  "integrated",
-                                                      "provider":  "System.Data.SqlClient",
-                                                      "encrypt":  null,
-                                                      "trustServerCertificate":  null,
-                                                      "secretsPresent":  false,
-                                                      "parseStatus":  "ok",
-                                                      "sha256":  "e07bbba577cc9e63d3a2e0d522fae3a78b78e2f43c8ffdf054e8d5e3ff7587d2"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/",
-                                                      "sourceFile":  "web.config",
-                                                      "kind":  "database",
-                                                      "name":  "SharedCertDb",
-                                                      "host":  "sqlfarm.corp.local",
-                                                      "rawHost":  "sqlfarm.corp.local",
-                                                      "isLocal":  false,
-                                                      "instance":  null,
-                                                      "port":  null,
-                                                      "protocol":  null,
-                                                      "filePath":  null,
-                                                      "database":  "Portal",
-                                                      "authMode":  "integrated",
-                                                      "provider":  "System.Data.SqlClient",
-                                                      "encrypt":  null,
-                                                      "trustServerCertificate":  null,
-                                                      "secretsPresent":  false,
-                                                      "parseStatus":  "ok",
-                                                      "sha256":  "e0257686c69a02ebd318d0ff4495c0b43832a08c60d093930acf8f963b23f2ff"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/",
-                                                      "sourceFile":  "web.config",
-                                                      "kind":  "database",
-                                                      "name":  "VipDb",
-                                                      "host":  "10.0.0.50",
-                                                      "rawHost":  "10.0.0.50",
-                                                      "isLocal":  false,
-                                                      "instance":  null,
-                                                      "port":  null,
-                                                      "protocol":  null,
-                                                      "filePath":  null,
-                                                      "database":  "Portal",
-                                                      "authMode":  "integrated",
-                                                      "provider":  "System.Data.SqlClient",
-                                                      "encrypt":  null,
-                                                      "trustServerCertificate":  null,
-                                                      "secretsPresent":  false,
-                                                      "parseStatus":  "ok",
-                                                      "sha256":  "4c98d499d7de28339ec0caa339aabb9c1b567f971518f8c3ca7db88bc0c5a03e"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/api",
-                                                      "sourceFile":  "appsettings.json",
-                                                      "kind":  "database",
-                                                      "name":  "Reporting",
-                                                      "host":  "SQL01",
-                                                      "rawHost":  "SQL01",
-                                                      "isLocal":  false,
-                                                      "instance":  "PROD",
-                                                      "port":  1433,
-                                                      "protocol":  null,
-                                                      "filePath":  null,
-                                                      "database":  "Reporting",
-                                                      "authMode":  "sql",
-                                                      "provider":  "System.Data.SqlClient",
-                                                      "encrypt":  null,
-                                                      "trustServerCertificate":  null,
-                                                      "secretsPresent":  true,
-                                                      "parseStatus":  "ok",
-                                                      "sha256":  "c8a5f9e90a5a20a1d98e9e2706ecd650c759a0ac30eeb669062a02f918110fef"
-                                                  },
-                                                  {
-                                                      "siteName":  "portal.example.com",
-                                                      "appPath":  "/api",
-                                                      "sourceFile":  "appsettings.json",
-                                                      "kind":  "http",
-                                                      "name":  "Services:Billing:BaseUrl",
-                                                      "scheme":  "https",
-                                                      "host":  "billing.example.com",
-                                                      "rawHost":  "billing.example.com",
-                                                      "isLocal":  false,
-                                                      "port":  443,
-                                                      "path":  "/api/v1",
-                                                      "hadCredentials":  false,
-                                                      "hadQuery":  false,
-                                                      "sha256":  "12547679e84249aba8429a3ef4ec4b503c2c70238759f1d07b21a634db750918"
-                                                  }
-                                              ]
-                         },
-                "durationMs":  88
+{
+  "schemaVersion": 1,
+  "computerName": "WEB01",
+  "collectedUtc": "2026-07-31T03:01:15Z",
+  "identity": {
+    "status": "ok",
+    "data": {
+      "domain": "corp.example.com",
+      "manufacturer": "VMware, Inc.",
+      "model": "VMware7,1",
+      "smbiosUuid": "4212a9b0-1e3a-4e1e-9a8e-2f7c6b9d1a01",
+      "machineGuid": "b6f2e6d0-2f1a-4a3b-9c9e-1a2b3c4d5e01",
+      "biosSerialNumber": "VMware-42 12 a9 b0 1e 3a 4e 1e-9a 8e 2f 7c 6b 9d 1a 01",
+      "isVirtual": true,
+      "hypervisorSignals": [
+        "VMware"
+      ],
+      "cpuSockets": 1,
+      "cpuCores": 4,
+      "cpuLogicalProcessors": 4
+    },
+    "durationMs": 312
+  },
+  "memory": {
+    "status": "ok",
+    "data": {
+      "totalPhysicalMemoryBytes": 17179869184,
+      "totalPhysicalMemoryGB": 16
+    },
+    "durationMs": 12
+  },
+  "os": {
+    "status": "ok",
+    "data": {
+      "productName": "Windows Server 2022 Standard",
+      "editionId": "ServerStandard",
+      "installationType": "Server",
+      "currentBuild": "20348",
+      "ubr": 3807,
+      "displayVersion": "21H2",
+      "architecture": "64-bit",
+      "installDate": "2024-03-11T09:12:04-04:00",
+      "lastBootUpTime": "2026-07-24T02:07:00-04:00",
+      "pendingReboot": false,
+      "pendingRebootReasons": []
+    },
+    "durationMs": 88
+  },
+  "updates": {
+    "status": "ok",
+    "data": {
+      "currentBuild": "20348",
+      "ubr": 3807,
+      "lastDetectSuccessTime": "2026-07-29 03:15:42",
+      "lastInstallSuccessTime": "2026-07-22 04:02:10"
+    },
+    "durationMs": 45
+  },
+  "dotnet": {
+    "status": "ok",
+    "data": {
+      "frameworkReleaseId": 528449,
+      "coreRuntimes": [
+        "Microsoft.AspNetCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+        "Microsoft.NETCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]"
+      ],
+      "sdks": []
+    },
+    "durationMs": 34
+  },
+  "drives": {
+    "status": "ok",
+    "data": {
+      "drives": [
+        {
+          "driveLetter": "C",
+          "label": "OS",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 107374182400,
+          "freeBytes": 51539607552,
+          "usedBytes": 55834574848,
+          "percentFree": 48
+        }
+      ]
+    },
+    "durationMs": 220
+  },
+  "apps": {
+    "status": "ok",
+    "data": {
+      "count": 3,
+      "entries": [
+        {
+          "displayName": "URL Rewrite 2.1",
+          "displayVersion": "7.2.2100",
+          "publisher": "Microsoft Corporation",
+          "installDate": "2024-03-12",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": ""
+        },
+        {
+          "displayName": "Microsoft ODBC Driver 17 for SQL Server",
+          "displayVersion": "17.10.6.1",
+          "publisher": "Microsoft Corporation",
+          "installDate": "2024-03-12",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": ""
+        },
+        {
+          "displayName": "ASP.NET Core Module V2",
+          "displayVersion": "18.0.24127",
+          "publisher": "Microsoft Corporation",
+          "installDate": "2025-11-02",
+          "installLocation": null,
+          "systemComponent": true,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": ""
+        }
+      ]
+    },
+    "durationMs": 640
+  },
+  "iis": {
+    "status": "ok",
+    "data": {
+      "server": {
+        "versionString": "10.0.20348.1",
+        "majorVersion": 10,
+        "pathWwwRoot": "C:\\inetpub\\wwwroot",
+        "configPath": "C:\\Windows\\System32\\inetsrv\\config\\applicationHost.config",
+        "configLastWriteUtc": "2026-07-31T06:41:02Z",
+        "configSha256": "e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7"
+      },
+      "sites": [
+        {
+          "name": "Default Web Site",
+          "id": "1",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "%SystemDrive%\\inetpub\\wwwroot",
+            "expanded": "C:\\inetpub\\wwwroot",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "C:\\inetpub\\logs\\LogFiles\\W3SVC1",
+              "expandable": true
             },
-    "certificates":  {
-                         "status":  "ok",
-                         "data":  {
-                                      "certificates":  [
-                                                           {
-                                                               "thumbprint":  "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678",
-                                                               "subject":  "CN=portal.example.com",
-                                                               "sanDnsNames":  [
-                                                                                   "portal.example.com",
-                                                                                   "www.portal.example.com"
-                                                                               ],
-                                                               "issuer":  "CN=DigiCert TLS RSA SHA256 2020 CA1",
-                                                               "notBefore":  "2026-06-30T00:00:00.0000000-04:00",
-                                                               "notAfter":  "2026-08-15T23:59:59.0000000-04:00",
-                                                               "keySize":  2048,
-                                                               "daysUntilExpiry":  15,
-                                                               "boundTo":  [
-                                                                               "IIS"
-                                                                           ]
-                                                           },
-                                                           {
-                                                               "thumbprint":  "11AA22BB33CC44DD55EE66FF778899AABBCCDDEE",
-                                                               "subject":  "CN=WEB01.corp.example.com",
-                                                               "sanDnsNames":  [
-                                                                                   "WEB01.corp.example.com"
-                                                                               ],
-                                                               "issuer":  "CN=corp-CA01",
-                                                               "notBefore":  "2025-08-01T00:00:00.0000000-04:00",
-                                                               "notAfter":  "2027-08-01T00:00:00.0000000-04:00",
-                                                               "keySize":  2048,
-                                                               "daysUntilExpiry":  366,
-                                                               "boundTo":  [
-                                                                               "RDP"
-                                                                           ]
-                                                           }
-                                                       ],
-                                      "rdpQueryError":  null,
-                                      "httpSysQueryError":  null
-                                  },
-                         "durationMs":  410
-                     },
-    "sqlserver":  {
-                      "status":  "not-present",
-                      "reason":  "HKLM:\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL absent",
-                      "durationMs":  9
-                  },
-    "requestedName":  "web01",
-    "roles":  [
-                  "WebServer"
-              ],
-    "aliases":  {
-                    "status":  "ok",
-                    "data":  {
-                                 "aliases":  [
-                                                 {
-                                                     "kind":  "netbios",
-                                                     "value":  "WEB01",
-                                                     "source":  "identity"
-                                                 },
-                                                 {
-                                                     "kind":  "fqdn",
-                                                     "value":  "web01.corp.local",
-                                                     "source":  "identity"
-                                                 },
-                                                 {
-                                                     "kind":  "machineGuid",
-                                                     "value":  "f2c1a7d4-90bb-4e11-8a33-6d2e5c0f9a71",
-                                                     "source":  "identity"
-                                                 },
-                                                 {
-                                                     "kind":  "ipv4",
-                                                     "value":  "10.0.0.10",
-                                                     "source":  "network"
-                                                 },
-                                                 {
-                                                     "kind":  "ipv4",
-                                                     "value":  "10.0.0.50",
-                                                     "source":  "network"
-                                                 },
-                                                 {
-                                                     "kind":  "bindingHostHeader",
-                                                     "value":  "portal.example.com",
-                                                     "source":  "iis"
-                                                 },
-                                                 {
-                                                     "kind":  "certSan",
-                                                     "value":  "portal.example.com",
-                                                     "source":  "certificates"
-                                                 }
-                                             ],
-                                 "sources":  {
-                                                 "identity":  "ok",
-                                                 "sqlserver":  "not-present",
-                                                 "iis":  "ok",
-                                                 "certificates":  "ok",
-                                                 "network":  "ok"
-                                             }
-                             },
-                    "durationMs":  41
-                }
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "C:\\inetpub\\logs\\LogFiles\\W3SVC1",
+              "exists": true,
+              "fileCount": 31,
+              "totalBytes": 48123904,
+              "oldestUtc": "2026-07-01T00:04:11Z",
+              "newestUtc": "2026-07-31T23:58:02Z",
+              "last24hBytes": 1583104,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        },
+        {
+          "name": "portal.example.com",
+          "id": "2",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "D:\\sites\\portal",
+            "expanded": "D:\\sites\\portal",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:portal.example.com",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "portal.example.com",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            },
+            {
+              "protocol": "https",
+              "bindingInformation": "*:443:portal.example.com",
+              "ip": "*",
+              "port": 443,
+              "hostHeader": "portal.example.com",
+              "parsed": true,
+              "sslFlags": "1",
+              "certificateHash": "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678",
+              "certificateStoreName": "My"
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "D:\\logs\\W3SVC2",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "D:\\logs\\W3SVC2",
+              "exists": true,
+              "fileCount": 8,
+              "totalBytes": 9216,
+              "oldestUtc": "2026-04-02T00:11:44Z",
+              "newestUtc": "2026-05-12T18:22:41Z",
+              "last24hBytes": 0,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        }
+      ],
+      "appPools": [
+        {
+          "name": "DefaultAppPool",
+          "managedRuntimeVersion": "v4.0",
+          "managedRuntimeVersionSource": "applicationPoolDefaults",
+          "managedPipelineMode": "Integrated",
+          "identityType": "ApplicationPoolIdentity",
+          "identityTypeSource": "pool",
+          "userName": null
+        },
+        {
+          "name": "PortalAppPool",
+          "managedRuntimeVersion": "v4.0",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Integrated",
+          "identityType": "SpecificUser",
+          "identityTypeSource": "pool",
+          "userName": "CORP\\svc-portal"
+        },
+        {
+          "name": "PortalApiPool",
+          "managedRuntimeVersion": "",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Integrated",
+          "identityType": "ApplicationPoolIdentity",
+          "identityTypeSource": "pool",
+          "userName": null
+        },
+        {
+          "name": "LegacyReportsPool",
+          "managedRuntimeVersion": "v2.0",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Classic",
+          "identityType": "NetworkService",
+          "identityTypeSource": "pool",
+          "userName": null
+        }
+      ],
+      "applications": [
+        {
+          "siteName": "Default Web Site",
+          "path": "/",
+          "physicalPath": {
+            "raw": "%SystemDrive%\\inetpub\\wwwroot",
+            "expanded": "C:\\inetpub\\wwwroot",
+            "expandable": true
+          },
+          "applicationPool": "DefaultAppPool",
+          "poolManagedRuntimeVersion": "v4.0",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "ApplicationPoolIdentity",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "v4.0",
+            "aspNetCore": null,
+            "hasAppSettingsJson": false,
+            "hasRuntimeConfigJson": false
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "serverDefault"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "serverDefault"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "%SystemDrive%\\inetpub\\wwwroot",
+                "expanded": "C:\\inetpub\\wwwroot",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "not-present",
+              "path": "C:\\inetpub\\wwwroot\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "not-present"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "portal.example.com",
+          "path": "/",
+          "physicalPath": {
+            "raw": "D:\\sites\\portal",
+            "expanded": "D:\\sites\\portal",
+            "expandable": true
+          },
+          "applicationPool": "PortalAppPool",
+          "poolManagedRuntimeVersion": "v4.0",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "SpecificUser",
+          "poolUserName": "CORP\\svc-portal",
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "v4.0",
+            "aspNetCore": null,
+            "hasAppSettingsJson": false,
+            "hasRuntimeConfigJson": false
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": false,
+              "userName": "IUSR",
+              "source": "location"
+            },
+            "windowsAuthentication": {
+              "enabled": true,
+              "userName": null,
+              "source": "location"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "D:\\sites\\portal",
+                "expanded": "D:\\sites\\portal",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "D:\\sites\\portal\\web.config",
+              "sha256": "4f1c9b2e7a3d5086c1f4b9e2a7d3c5081f4b9e2a7d3c5086c1f4b9e2a7d3c508"
+            },
+            "appSettingsJson": {
+              "status": "not-present"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "portal.example.com",
+          "path": "/api",
+          "physicalPath": {
+            "raw": "D:\\sites\\portal\\api",
+            "expanded": "D:\\sites\\portal\\api",
+            "expandable": true
+          },
+          "applicationPool": "PortalApiPool",
+          "poolManagedRuntimeVersion": "",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "ApplicationPoolIdentity",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "",
+            "aspNetCore": {
+              "processPath": "dotnet",
+              "arguments": ".\\Portal.Api.dll",
+              "hostingModel": "inprocess",
+              "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Production"
+              }
+            },
+            "hasAppSettingsJson": true,
+            "hasRuntimeConfigJson": true
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "serverDefault"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "serverDefault"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "D:\\sites\\portal\\api",
+                "expanded": "D:\\sites\\portal\\api",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "D:\\sites\\portal\\api\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "ok",
+              "path": "D:\\sites\\portal\\api\\appsettings.json"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "portal.example.com",
+          "path": "/reports",
+          "physicalPath": {
+            "raw": "D:\\sites\\portal\\reports",
+            "expanded": "D:\\sites\\portal\\reports",
+            "expandable": true
+          },
+          "applicationPool": "LegacyReportsPool",
+          "poolManagedRuntimeVersion": "v2.0",
+          "poolManagedPipelineMode": "Classic",
+          "poolIdentityType": "NetworkService",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "v2.0",
+            "aspNetCore": null,
+            "hasAppSettingsJson": false,
+            "hasRuntimeConfigJson": false
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": false,
+              "userName": "IUSR",
+              "source": "location"
+            },
+            "windowsAuthentication": {
+              "enabled": true,
+              "userName": null,
+              "source": "location"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "D:\\sites\\portal\\reports",
+                "expanded": "D:\\sites\\portal\\reports",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            },
+            {
+              "path": "/archive",
+              "physicalPath": {
+                "raw": "\\\\fs01\\reports-archive",
+                "expanded": "\\\\fs01\\reports-archive",
+                "expandable": true
+              },
+              "userName": "CORP\\svc-reports",
+              "logonMethod": "ClearText"
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "D:\\sites\\portal\\reports\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "not-present"
+            }
+          },
+          "status": "ok"
+        }
+      ],
+      "dependencies": [
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/",
+          "sourceFile": "web.config",
+          "kind": "database",
+          "name": "PortalDb",
+          "host": "SQL01",
+          "rawHost": "SQL01",
+          "isLocal": false,
+          "instance": "PROD",
+          "port": null,
+          "protocol": null,
+          "filePath": null,
+          "database": "Portal",
+          "authMode": "integrated",
+          "provider": "System.Data.SqlClient",
+          "encrypt": null,
+          "trustServerCertificate": null,
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "607afb12ab28a13eb3f301b0d10ef6d0fc08c51346c10d1261d12774afc56932"
+        },
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/",
+          "sourceFile": "web.config",
+          "kind": "database",
+          "name": "DefaultConnection",
+          "host": "WEB01",
+          "rawHost": "WEB01",
+          "isLocal": true,
+          "instance": null,
+          "port": null,
+          "protocol": null,
+          "filePath": null,
+          "database": "PortalLocal",
+          "authMode": "integrated",
+          "provider": "System.Data.SqlClient",
+          "encrypt": null,
+          "trustServerCertificate": null,
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "8d0eebf0db601f74d352e3978b8433fe301e476a98bc7e541d76c5aa8a18665a"
+        },
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/",
+          "sourceFile": "web.config",
+          "kind": "http",
+          "name": "PaymentGatewayUrl",
+          "scheme": "https",
+          "host": "payments.vendor.example.com",
+          "rawHost": "payments.vendor.example.com",
+          "isLocal": false,
+          "port": 443,
+          "path": "/v2/charge",
+          "hadCredentials": false,
+          "hadQuery": true,
+          "sha256": "5d5402b78bb4703639896c356bb6d8289a5162d72a1d9401c7b3a25f865b28c6"
+        },
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/reports",
+          "sourceFile": "web.config",
+          "kind": "http",
+          "name": "LegacyFeedUrl",
+          "scheme": "http",
+          "host": "legacy-reports.example.com",
+          "rawHost": "legacy-reports.example.com",
+          "isLocal": false,
+          "port": 80,
+          "path": "/feed",
+          "hadCredentials": true,
+          "hadQuery": false,
+          "sha256": "9dc89881f099843aa79fa9d9d50a25e947679633f0a6b96d2528633dec2ca88b"
+        },
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/",
+          "sourceFile": "web.config",
+          "kind": "database",
+          "name": "BillingDb",
+          "host": "sql01.corp.local",
+          "rawHost": "sql01.corp.local",
+          "isLocal": false,
+          "instance": "PROD",
+          "port": null,
+          "protocol": null,
+          "filePath": null,
+          "database": "Billing",
+          "authMode": "integrated",
+          "provider": "System.Data.SqlClient",
+          "encrypt": null,
+          "trustServerCertificate": null,
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "e07bbba577cc9e63d3a2e0d522fae3a78b78e2f43c8ffdf054e8d5e3ff7587d2"
+        },
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/",
+          "sourceFile": "web.config",
+          "kind": "database",
+          "name": "SharedCertDb",
+          "host": "sqlfarm.corp.local",
+          "rawHost": "sqlfarm.corp.local",
+          "isLocal": false,
+          "instance": null,
+          "port": null,
+          "protocol": null,
+          "filePath": null,
+          "database": "Portal",
+          "authMode": "integrated",
+          "provider": "System.Data.SqlClient",
+          "encrypt": null,
+          "trustServerCertificate": null,
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "e0257686c69a02ebd318d0ff4495c0b43832a08c60d093930acf8f963b23f2ff"
+        },
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/",
+          "sourceFile": "web.config",
+          "kind": "database",
+          "name": "VipDb",
+          "host": "10.0.0.50",
+          "rawHost": "10.0.0.50",
+          "isLocal": false,
+          "instance": null,
+          "port": null,
+          "protocol": null,
+          "filePath": null,
+          "database": "Portal",
+          "authMode": "integrated",
+          "provider": "System.Data.SqlClient",
+          "encrypt": null,
+          "trustServerCertificate": null,
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "4c98d499d7de28339ec0caa339aabb9c1b567f971518f8c3ca7db88bc0c5a03e"
+        },
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/api",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "Reporting",
+          "host": "SQL01",
+          "rawHost": "SQL01",
+          "isLocal": false,
+          "instance": "PROD",
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "Reporting",
+          "authMode": "sql",
+          "provider": "System.Data.SqlClient",
+          "encrypt": null,
+          "trustServerCertificate": null,
+          "secretsPresent": true,
+          "parseStatus": "ok",
+          "sha256": "c8a5f9e90a5a20a1d98e9e2706ecd650c759a0ac30eeb669062a02f918110fef"
+        },
+        {
+          "siteName": "portal.example.com",
+          "appPath": "/api",
+          "sourceFile": "appsettings.json",
+          "kind": "http",
+          "name": "Services:Billing:BaseUrl",
+          "scheme": "https",
+          "host": "billing.example.com",
+          "rawHost": "billing.example.com",
+          "isLocal": false,
+          "port": 443,
+          "path": "/api/v1",
+          "hadCredentials": false,
+          "hadQuery": false,
+          "sha256": "12547679e84249aba8429a3ef4ec4b503c2c70238759f1d07b21a634db750918"
+        }
+      ]
+    },
+    "durationMs": 88
+  },
+  "certificates": {
+    "status": "ok",
+    "data": {
+      "certificates": [
+        {
+          "thumbprint": "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678",
+          "subject": "CN=portal.example.com",
+          "sanDnsNames": [
+            "portal.example.com",
+            "www.portal.example.com"
+          ],
+          "issuer": "CN=DigiCert TLS RSA SHA256 2020 CA1",
+          "notBefore": "2026-06-30T00:00:00-04:00",
+          "notAfter": "2026-08-15T23:59:59-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": 15,
+          "boundTo": [
+            "IIS"
+          ]
+        },
+        {
+          "thumbprint": "11AA22BB33CC44DD55EE66FF778899AABBCCDDEE",
+          "subject": "CN=WEB01.corp.example.com",
+          "sanDnsNames": [
+            "WEB01.corp.example.com"
+          ],
+          "issuer": "CN=corp-CA01",
+          "notBefore": "2025-08-01T00:00:00-04:00",
+          "notAfter": "2027-08-01T00:00:00-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": 366,
+          "boundTo": [
+            "RDP"
+          ]
+        }
+      ],
+      "rdpQueryError": null,
+      "httpSysQueryError": null
+    },
+    "durationMs": 410
+  },
+  "sqlserver": {
+    "status": "not-present",
+    "reason": "HKLM:\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL absent",
+    "durationMs": 9
+  },
+  "requestedName": "web01",
+  "roles": [
+    "WebServer"
+  ],
+  "aliases": {
+    "status": "ok",
+    "data": {
+      "aliases": [
+        {
+          "kind": "netbios",
+          "value": "WEB01",
+          "source": "identity"
+        },
+        {
+          "kind": "fqdn",
+          "value": "web01.corp.local",
+          "source": "identity"
+        },
+        {
+          "kind": "machineGuid",
+          "value": "f2c1a7d4-90bb-4e11-8a33-6d2e5c0f9a71",
+          "source": "identity"
+        },
+        {
+          "kind": "ipv4",
+          "value": "10.0.0.10",
+          "source": "network"
+        },
+        {
+          "kind": "ipv4",
+          "value": "10.0.0.50",
+          "source": "network"
+        },
+        {
+          "kind": "bindingHostHeader",
+          "value": "portal.example.com",
+          "source": "iis"
+        },
+        {
+          "kind": "certSan",
+          "value": "portal.example.com",
+          "source": "certificates"
+        }
+      ],
+      "sources": {
+        "identity": "ok",
+        "sqlserver": "not-present",
+        "iis": "ok",
+        "certificates": "ok",
+        "network": "ok"
+      }
+    },
+    "durationMs": 41
+  }
 }

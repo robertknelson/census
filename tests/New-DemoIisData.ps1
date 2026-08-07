@@ -274,6 +274,149 @@ $web01ApiDeps = @(
     (HttpEdge 'portal.example.com' '/api' 'appsettings.json' 'Services:Billing:BaseUrl' 'https' 'billing.example.com' 443 '/api/v1')
 )
 
+# --- WEB02 --------------------------------------------------------------------------------
+# The second dedicated web server. It exists mostly so estate-level views have two of them
+# (New-DemoMachines.ps1), but it carries the IIS branches WEB01 and APPSRV01 leave unrendered:
+#   - hostingModel 'outofprocess'      (WEB01's ASP.NET Core app is in-process)
+#   - a self-contained processPath     (a bare .exe, not `dotnet` - census-collector.md 8.6.5)
+#   - anonymous AND windows both enabled on one application, which is legal, common, and the
+#     case 8.6.6 forbids collapsing into a single "auth mode"
+#   - a dependency edge the parser did not understand: parseStatus 'unrecognized' with a null
+#     host, which 8.6.7 requires instead of a guess. Every existing edge is 'ok'.
+$web02Aliases = @(
+    (Alias 'netbios' 'WEB02' 'identity'),
+    (Alias 'fqdn' 'web02.corp.example.com' 'identity'),
+    (Alias 'machineGuid' 'b2c3d4e5-6f70-4812-9a3b-4c5d6e7f8a06' 'identity'),
+    (Alias 'ipv4' '10.0.0.12' 'network'),
+    (Alias 'bindingHostHeader' 'svc.example.com' 'iis'),
+    # A SAN from the expired certificate. Weak by construction (8.1.1) and never join-eligible -
+    # having one in the tree is what proves the reader honours that.
+    (Alias 'certSan' 'legacy.example.com' 'certificates')
+)
+$web02AliasSources = [ordered]@{ identity = 'ok'; sqlserver = 'not-present'; iis = 'ok'; certificates = 'ok'; network = 'ok' }
+
+$web02Sites = @(
+    [ordered]@{
+        name = 'Default Web Site'; id = '1'; serverAutoStart = 'true'
+        physicalPath = Path2 '%SystemDrive%\inetpub\wwwroot' 'C:\inetpub\wwwroot'
+        bindings = @((Binding 'http' '*:80:' '*' 80 '' $null $null))
+        logFile = LogFile 'C:\inetpub\logs\LogFiles\W3SVC1' 'true' 12 3145728 '2026-07-05T00:02:19Z' '2026-07-31T23:41:05Z' 262144
+    },
+    [ordered]@{
+        name = 'svc.example.com'; id = '2'; serverAutoStart = 'true'
+        physicalPath = Path2 'W:\sites\svc'
+        bindings = @(
+            (Binding 'http'  '*:80:svc.example.com'  '*' 80  'svc.example.com' $null $null),
+            (Binding 'https' '*:443:svc.example.com' '*' 443 'svc.example.com' '1' 'B2C3D4E5F60718293A4B5C6D7E8F90123456789A')
+        )
+        logFile = LogFile 'W:\logs\W3SVC2' 'true' 22 18874368 '2026-06-11T00:07:52Z' '2026-07-31T23:59:14Z' 917504
+    },
+    # Bound to the expired certificate and no longer started. The pair - an expired cert on a
+    # stopped site - is the shape an estate accumulates and nobody notices.
+    [ordered]@{
+        name = 'legacy.example.com'; id = '3'; serverAutoStart = 'false'
+        physicalPath = Path2 'W:\sites\legacy'
+        bindings = @(
+            (Binding 'https' '*:443:legacy.example.com' '*' 443 'legacy.example.com' '1' 'A1B2C3D4E5F60718293A4B5C6D7E8F9012345678')
+        )
+        logFile = LogFile 'W:\logs\W3SVC3' 'false' 3 401408 '2025-11-02T00:14:07Z' '2026-02-18T23:12:44Z' 0
+    }
+)
+
+$web02Pools = {
+    param([string]$SvcIdentity, [string]$SvcUser)
+    @(
+        (Pool 'DefaultAppPool'        'v4.0' 'applicationPoolDefaults' 'Integrated' 'ApplicationPoolIdentity' $null),
+        (Pool 'SvcPool'               ''     'pool'                    'Integrated' $SvcIdentity $SvcUser),
+        # Classic pipeline on a domain account. WEB01's Classic pool runs as NetworkService, so
+        # the combination that actually carries a rotation obligation was never in the tree.
+        (Pool 'IntegrationPool'       'v4.0' 'pool'                    'Classic'    'SpecificUser' 'CORP\svc-integration'),
+        (Pool 'LegacyStaticPool'      'v4.0' 'pool'                    'Integrated' 'LocalSystem' $null)
+    )
+}
+
+$web02RootApp = [ordered]@{
+    siteName = 'Default Web Site'; path = '/'; physicalPath = Path2 '%SystemDrive%\inetpub\wwwroot' 'C:\inetpub\wwwroot'
+    applicationPool = 'DefaultAppPool'; poolManagedRuntimeVersion = 'v4.0'; poolManagedPipelineMode = 'Integrated'
+    poolIdentityType = 'ApplicationPoolIdentity'; poolUserName = $null; enabledProtocols = 'http'
+    runtime = [ordered]@{ poolManagedRuntimeVersion = 'v4.0'; aspNetCore = $null; hasAppSettingsJson = $false; hasRuntimeConfigJson = $false }
+    auth = Auth $true 'serverDefault' $false 'serverDefault'
+    virtualDirectories = @([ordered]@{ path = '/'; physicalPath = Path2 '%SystemDrive%\inetpub\wwwroot' 'C:\inetpub\wwwroot'; userName = $null; logonMethod = $null })
+    configFiles = [ordered]@{ webConfig = [ordered]@{ status = 'not-present'; path = 'C:\inetpub\wwwroot\web.config' }; appSettingsJson = [ordered]@{ status = 'not-present' } }
+    status = 'ok'
+}
+
+# Out-of-process, and self-contained: processPath is a bare .exe rather than `dotnet`, which
+# 8.6.5 calls out as the framework-dependent/self-contained discriminator.
+$web02SvcApp = [ordered]@{
+    siteName = 'svc.example.com'; path = '/'; physicalPath = Path2 'W:\sites\svc'
+    applicationPool = 'SvcPool'; poolManagedRuntimeVersion = ''; poolManagedPipelineMode = 'Integrated'
+    poolIdentityType = 'ApplicationPoolIdentity'; poolUserName = $null; enabledProtocols = 'http'
+    runtime = [ordered]@{
+        poolManagedRuntimeVersion = ''
+        aspNetCore = [ordered]@{
+            processPath = '.\Svc.Gateway.exe'
+            arguments = ''
+            hostingModel = 'outofprocess'
+            environmentVariables = [ordered]@{ ASPNETCORE_ENVIRONMENT = 'Staging' }
+        }
+        hasAppSettingsJson = $true; hasRuntimeConfigJson = $true
+    }
+    auth = Auth $true 'webConfig' $false 'serverDefault'
+    virtualDirectories = @([ordered]@{ path = '/'; physicalPath = Path2 'W:\sites\svc'; userName = $null; logonMethod = $null })
+    configFiles = [ordered]@{ webConfig = [ordered]@{ status = 'ok'; path = 'W:\sites\svc\web.config' }; appSettingsJson = [ordered]@{ status = 'ok'; path = 'W:\sites\svc\appsettings.json' } }
+    status = 'ok'
+}
+
+# Anonymous AND Windows both enabled. Anonymous wins unless authorization rules deny, and
+# 8.6.6 forbids collapsing the pair into one value - so the tree needs a row that has both.
+$web02IntegrationApp = [ordered]@{
+    siteName = 'svc.example.com'; path = '/integration'; physicalPath = Path2 'W:\sites\svc\integration'
+    applicationPool = 'IntegrationPool'; poolManagedRuntimeVersion = 'v4.0'; poolManagedPipelineMode = 'Classic'
+    poolIdentityType = 'SpecificUser'; poolUserName = 'CORP\svc-integration'; enabledProtocols = 'http'
+    runtime = [ordered]@{ poolManagedRuntimeVersion = 'v4.0'; aspNetCore = $null; hasAppSettingsJson = $false; hasRuntimeConfigJson = $false }
+    auth = [ordered]@{
+        anonymousAuthentication = [ordered]@{ enabled = $true; userName = 'IUSR'; source = 'location' }
+        windowsAuthentication   = [ordered]@{ enabled = $true; userName = $null;  source = 'webConfig' }
+        basicAuthentication     = [ordered]@{ enabled = $true; userName = $null;  source = 'webConfig' }
+    }
+    virtualDirectories = @([ordered]@{ path = '/'; physicalPath = Path2 'W:\sites\svc\integration'; userName = $null; logonMethod = $null })
+    configFiles = [ordered]@{ webConfig = [ordered]@{ status = 'ok'; path = 'W:\sites\svc\integration\web.config' }; appSettingsJson = [ordered]@{ status = 'not-present' } }
+    status = 'ok'
+}
+
+$web02LegacyApp = [ordered]@{
+    siteName = 'legacy.example.com'; path = '/'; physicalPath = Path2 'W:\sites\legacy'
+    applicationPool = 'LegacyStaticPool'; poolManagedRuntimeVersion = 'v4.0'; poolManagedPipelineMode = 'Integrated'
+    poolIdentityType = 'LocalSystem'; poolUserName = $null; enabledProtocols = 'http'
+    runtime = [ordered]@{ poolManagedRuntimeVersion = 'v4.0'; aspNetCore = $null; hasAppSettingsJson = $false; hasRuntimeConfigJson = $false }
+    auth = Auth $true 'serverDefault' $false 'serverDefault'
+    virtualDirectories = @([ordered]@{ path = '/'; physicalPath = Path2 'W:\sites\legacy'; userName = $null; logonMethod = $null })
+    configFiles = [ordered]@{ webConfig = [ordered]@{ status = 'not-present'; path = 'W:\sites\legacy\web.config' }; appSettingsJson = [ordered]@{ status = 'not-present' } }
+    status = 'ok'
+}
+
+$web02BaseDeps = @(
+    (DbEdge 'svc.example.com' '/' 'appsettings.json' 'GatewayDb' 'SQL02' $null 1433 'Gateway' 'integrated'),
+    (HttpEdge 'svc.example.com' '/' 'appsettings.json' 'Upstream:Orders' 'https' 'portal.example.com' 443 '/api/v1'),
+    # The parser did not recognise this shape. host is null and parseStatus says so, rather
+    # than a guess that would put a wrong node on the dependency map (8.6.7).
+    ([ordered]@{
+        siteName = 'svc.example.com'; appPath = '/integration'; sourceFile = 'web.config'
+        kind = 'database'; name = 'MainframeLink'
+        host = $null; rawHost = 'DSN=MFPROD;UID=svcint'; isLocal = $false
+        instance = $null; port = $null; protocol = $null; filePath = $null
+        database = $null; authMode = $null
+        provider = 'System.Data.Odbc'; encrypt = $null; trustServerCertificate = $null
+        secretsPresent = $true; parseStatus = 'unrecognized'
+        sha256 = FakeSha 'svc.example.com|/integration|web.config|MainframeLink|odbc'
+    })
+)
+
+$web02Day2Deps = @(
+    (HttpEdge 'svc.example.com' '/integration' 'web.config' 'Partner:Callback' 'https' 'partner.example.net' 443 '/hooks/inbound' $true $true)
+)
+
 $targets = @(
     @{
         Aliases = AliasCategory $web01Aliases $aliasSources
@@ -400,6 +543,38 @@ $targets = @(
             )
         }
         Duration = 63
+    },
+    # WEB02, two snapshots. The diff between them: SvcPool is promoted from
+    # ApplicationPoolIdentity to a domain account, and the /integration application grows an
+    # outbound partner callback edge.
+    @{
+        Aliases = AliasCategory $web02Aliases $web02AliasSources
+        File = 'WEB02\web02-census-20260730.json'
+        Iis  = [ordered]@{
+            server       = Server '10.0.20348.1' '2026-05-28T08:03:19Z' 'c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081'
+            sites        = $web02Sites
+            appPools     = & $web02Pools 'ApplicationPoolIdentity' $null
+            applications = @($web02RootApp, $web02SvcApp, $web02IntegrationApp, $web02LegacyApp)
+            dependencies = $web02BaseDeps
+        }
+        Duration = 76
+    },
+    @{
+        Aliases = AliasCategory $web02Aliases $web02AliasSources
+        File = 'WEB02\web02-census-20260731.json'
+        Iis  = [ordered]@{
+            server       = Server '10.0.20348.1' '2026-07-31T05:18:44Z' 'd3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c50'
+            sites        = $web02Sites
+            appPools     = & $web02Pools 'SpecificUser' 'CORP\svc-gateway'
+            applications = @(
+                $web02RootApp,
+                ($web02SvcApp | ForEach-Object { $c = [ordered]@{}; $_.GetEnumerator() | ForEach-Object { $c[$_.Key] = $_.Value }; $c.poolIdentityType = 'SpecificUser'; $c.poolUserName = 'CORP\svc-gateway'; $c }),
+                $web02IntegrationApp,
+                $web02LegacyApp
+            )
+            dependencies = @($web02BaseDeps + $web02Day2Deps)
+        }
+        Duration = 84
     }
 )
 

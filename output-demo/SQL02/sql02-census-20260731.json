@@ -1,0 +1,569 @@
+{
+  "schemaVersion": 1,
+  "collectorVersion": "1.0.0",
+  "computerName": "SQL02",
+  "collectedUtc": "2026-07-31T02:41:33Z",
+  "identity": {
+    "status": "ok",
+    "data": {
+      "domain": "corp.example.com",
+      "manufacturer": "Microsoft Corporation",
+      "model": "Virtual Machine",
+      "smbiosUuid": "7e1c2d3f-4a5b-4c6d-8e9f-0a1b2c3d4e07",
+      "machineGuid": "c3d4e5f6-7081-4923-ab4c-5d6e7f8a9b07",
+      "biosSerialNumber": "9821-4471-0033-2210-5566-7788-91",
+      "isVirtual": true,
+      "hypervisorSignals": [
+        "Hyper-V"
+      ],
+      "cpuSockets": 1,
+      "cpuCores": 12,
+      "cpuLogicalProcessors": 24
+    },
+    "durationMs": 301
+  },
+  "memory": {
+    "status": "ok",
+    "data": {
+      "totalPhysicalMemoryBytes": 68719476736,
+      "totalPhysicalMemoryGB": 64
+    },
+    "durationMs": 11
+  },
+  "os": {
+    "status": "ok",
+    "data": {
+      "productName": "Windows Server 2016 Standard",
+      "editionId": "ServerStandard",
+      "installationType": "Server",
+      "currentBuild": "14393",
+      "ubr": 7159,
+      "displayVersion": "1607",
+      "architecture": "64-bit",
+      "installDate": "2019-02-08T09:45:00-05:00",
+      "lastBootUpTime": "2026-05-30T04:20:00-04:00",
+      "pendingReboot": true,
+      "pendingRebootReasons": [
+        "Component Based Servicing",
+        "Windows Update"
+      ]
+    },
+    "durationMs": 96
+  },
+  "updates": {
+    "status": "ok",
+    "data": {
+      "currentBuild": "14393",
+      "ubr": 7159,
+      "lastDetectSuccessTime": "2026-07-29 03:40:00",
+      "lastInstallSuccessTime": "2026-06-09 02:30:00"
+    },
+    "durationMs": 52
+  },
+  "dotnet": {
+    "status": "ok",
+    "data": {
+      "frameworkReleaseId": 461814,
+      "coreRuntimes": [],
+      "sdks": []
+    },
+    "durationMs": 38
+  },
+  "drives": {
+    "status": "ok",
+    "data": {
+      "drives": [
+        {
+          "driveLetter": "C",
+          "label": "OS",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 107374182400,
+          "freeBytes": 21474836480,
+          "usedBytes": 85899345920,
+          "percentFree": 20.0
+        },
+        {
+          "driveLetter": "D",
+          "label": "SQLData",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 2199023255552,
+          "freeBytes": 615164846080,
+          "usedBytes": 1583858409472,
+          "percentFree": 28.0
+        },
+        {
+          "driveLetter": "L",
+          "label": "SQLLogs",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 549755813888,
+          "freeBytes": 439804651110,
+          "usedBytes": 109951162778,
+          "percentFree": 80.0
+        }
+      ]
+    },
+    "durationMs": 256
+  },
+  "apps": {
+    "status": "ok",
+    "data": {
+      "count": 0,
+      "entries": []
+    },
+    "durationMs": 810
+  },
+  "iis": {
+    "status": "not-present",
+    "reason": "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent",
+    "durationMs": 5
+  },
+  "certificates": {
+    "status": "ok",
+    "data": {
+      "certificates": [],
+      "rdpQueryError": "Access denied reading the RDP certificate binding",
+      "httpSysQueryError": null
+    },
+    "durationMs": 44
+  },
+  "sqlserver": {
+    "status": "ok",
+    "data": {
+      "instances": [
+        {
+          "instanceName": "MSSQLSERVER",
+          "edition": "Standard Edition",
+          "version": "13.0.1601.5",
+          "patchLevel": "13.0.6300.2",
+          "sqlBinRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\Binn",
+          "sqlDataRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL",
+          "collation": "SQL_Latin1_General_CP1_CI_AS",
+          "loginMode": 2,
+          "backupDirectory": "D:\\sqlbackups",
+          "tcpPort": "1433",
+          "tcpDynamicPorts": null,
+          "serviceAccount": "CORP\\svc-sql2",
+          "serviceState": "Running",
+          "agentServiceAccount": "CORP\\svc-sqlagent",
+          "agentServiceState": "Running",
+          "connectedStatus": "ok",
+          "connectedReason": null,
+          "permissions": {
+            "loginName": "CORP\\svc-census",
+            "isSysadmin": true,
+            "viewAnyDefinition": true,
+            "viewServerState": true
+          },
+          "serverProperties": {
+            "productVersion": "13.0.6300.2",
+            "edition": "Standard Edition (64-bit)",
+            "serverCollation": "SQL_Latin1_General_CP1_CI_AS"
+          },
+          "databases": [
+            {
+              "name": "master",
+              "databaseId": 1,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2022-10-08T06:31:57.5500000-04:00"
+            },
+            {
+              "name": "tempdb",
+              "databaseId": 2,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2026-07-31T02:10:44.0000000-04:00"
+            },
+            {
+              "name": "model",
+              "databaseId": 3,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2022-10-08T06:31:57.5500000-04:00"
+            },
+            {
+              "name": "msdb",
+              "databaseId": 4,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2022-10-08T06:31:57.5500000-04:00"
+            },
+            {
+              "name": "Gateway",
+              "databaseId": 5,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 140,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            },
+            {
+              "name": "GatewayStg",
+              "databaseId": 6,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 130,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "CORP\\jsmith",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            },
+            {
+              "name": "Telemetry",
+              "databaseId": 7,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 130,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            },
+            {
+              "name": "GatewayAudit",
+              "databaseId": 8,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 140,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            }
+          ],
+          "databaseFiles": [
+            {
+              "databaseName": "master",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "master",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA\\master.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 1024,
+              "sizeBytes": 8388608,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "master",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "mastlog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA\\mastlog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 256,
+              "sizeBytes": 2097152,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "tempdb",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "tempdev",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA\\tempdb.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 4096,
+              "sizeBytes": 33554432,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "tempdb",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "templog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA\\templog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 1024,
+              "sizeBytes": 8388608,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "model",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "modeldev",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA\\model.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 512,
+              "sizeBytes": 4194304,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "model",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "modellog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA\\modellog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 256,
+              "sizeBytes": 2097152,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "msdb",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "MSDBData",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA\\MSDBData.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 2376,
+              "sizeBytes": 19464192,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "msdb",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "MSDBLog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA\\MSDBLog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 1024,
+              "sizeBytes": 8388608,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Gateway",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "Gateway",
+              "physicalName": "D:\\sqldata\\Gateway.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 393216,
+              "sizeBytes": 3221225472,
+              "maxSizePages": -1,
+              "growth": 262144,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Gateway",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "Gateway_log",
+              "physicalName": "L:\\sqllogs\\Gateway_log.ldf",
+              "directory": "L:\\sqllogs",
+              "sizePages": 98304,
+              "sizeBytes": 805306368,
+              "maxSizePages": -1,
+              "growth": 131072,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "GatewayStg",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "GatewayStg",
+              "physicalName": "D:\\sqldata\\GatewayStg.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 131072,
+              "sizeBytes": 1073741824,
+              "maxSizePages": -1,
+              "growth": 262144,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "GatewayStg",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "GatewayStg_log",
+              "physicalName": "L:\\sqllogs\\GatewayStg_log.ldf",
+              "directory": "L:\\sqllogs",
+              "sizePages": 32768,
+              "sizeBytes": 268435456,
+              "maxSizePages": -1,
+              "growth": 131072,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Telemetry",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "Telemetry",
+              "physicalName": "D:\\sqldata\\Telemetry.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 786432,
+              "sizeBytes": 6442450944,
+              "maxSizePages": -1,
+              "growth": 262144,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Telemetry",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "Telemetry_log",
+              "physicalName": "L:\\sqllogs\\Telemetry_log.ldf",
+              "directory": "L:\\sqllogs",
+              "sizePages": 16384,
+              "sizeBytes": 134217728,
+              "maxSizePages": -1,
+              "growth": 131072,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "GatewayAudit",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "GatewayAudit",
+              "physicalName": "D:\\sqldata\\GatewayAudit.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 65536,
+              "sizeBytes": 536870912,
+              "maxSizePages": -1,
+              "growth": 262144,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "GatewayAudit",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "GatewayAudit_log",
+              "physicalName": "L:\\sqllogs\\GatewayAudit_log.ldf",
+              "directory": "L:\\sqllogs",
+              "sizePages": 16384,
+              "sizeBytes": 134217728,
+              "maxSizePages": -1,
+              "growth": 131072,
+              "isPercentGrowth": false,
+              "isUnc": false
+            }
+          ]
+        },
+        {
+          "instanceName": "ETL",
+          "edition": "Standard Edition",
+          "version": "13.0.1601.5",
+          "patchLevel": "13.0.6300.2",
+          "sqlBinRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.ETL\\MSSQL\\Binn",
+          "sqlDataRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.ETL\\MSSQL",
+          "collation": "SQL_Latin1_General_CP1_CI_AS",
+          "loginMode": 1,
+          "backupDirectory": "D:\\sqlbackups",
+          "tcpPort": null,
+          "tcpDynamicPorts": "51433",
+          "serviceAccount": "NT Service\\MSSQL$ETL",
+          "serviceState": "Running",
+          "agentServiceAccount": null,
+          "agentServiceState": "Stopped",
+          "connectedStatus": "timed-out",
+          "connectedReason": "catalog query exceeded the 15s command budget; instance is running but did not answer",
+          "permissions": null,
+          "serverProperties": null,
+          "databases": [],
+          "databaseFiles": []
+        }
+      ]
+    },
+    "durationMs": 1012
+  },
+  "requestedName": "sql02",
+  "roles": [
+    "DatabaseServer"
+  ],
+  "aliases": {
+    "status": "ok",
+    "data": {
+      "aliases": [
+        {
+          "kind": "netbios",
+          "value": "SQL02",
+          "source": "identity"
+        },
+        {
+          "kind": "fqdn",
+          "value": "sql02.corp.example.com",
+          "source": "identity"
+        },
+        {
+          "kind": "machineGuid",
+          "value": "c3d4e5f6-7081-4923-ab4c-5d6e7f8a9b07",
+          "source": "identity"
+        },
+        {
+          "kind": "ipv4",
+          "value": "10.0.0.21",
+          "source": "network"
+        },
+        {
+          "kind": "sqlInstance",
+          "value": "SQL02",
+          "source": "sqlserver"
+        },
+        {
+          "kind": "sqlInstance",
+          "value": "SQL02\\ETL",
+          "source": "sqlserver"
+        }
+      ],
+      "sources": {
+        "identity": "ok",
+        "sqlserver": "ok",
+        "iis": "not-present",
+        "certificates": "ok",
+        "network": "ok"
+      }
+    },
+    "durationMs": 33
+  }
+}

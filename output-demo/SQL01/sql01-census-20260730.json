@@ -1,709 +1,695 @@
-﻿{
-    "schemaVersion":  1,
-    "computerName":  "SQL01",
-    "collectedUtc":  "2026-07-30T03:00:41.0000000Z",
-    "identity":  {
-                     "status":  "ok",
-                     "data":  {
-                                  "domain":  "corp.example.com",
-                                  "manufacturer":  "Microsoft Corporation",
-                                  "model":  "Virtual Machine",
-                                  "smbiosUuid":  "7a1c9e40-3b2d-4f5e-8a6b-9c0d1e2f3a02",
-                                  "machineGuid":  "c7f3f7e1-3a2b-4b4c-8d9e-2b3c4d5e6f02",
-                                  "biosSerialNumber":  "7783-1234-5678-9012-3456-7890-12",
-                                  "isVirtual":  true,
-                                  "hypervisorSignals":  [
-                                                            "Hyper-V"
-                                                        ],
-                                  "cpuSockets":  2,
-                                  "cpuCores":  8,
-                                  "cpuLogicalProcessors":  16
-                              },
-                     "durationMs":  340
-                 },
-    "memory":  {
-                   "status":  "ok",
-                   "data":  {
-                                "totalPhysicalMemoryBytes":  68719476736,
-                                "totalPhysicalMemoryGB":  64
-                            },
-                   "durationMs":  10
-               },
-    "os":  {
-               "status":  "ok",
-               "data":  {
-                            "productName":  "Windows Server 2019 Standard",
-                            "editionId":  "ServerStandard",
-                            "installationType":  "Server",
-                            "currentBuild":  "17763",
-                            "ubr":  6414,
-                            "displayVersion":  "1809",
-                            "architecture":  "64-bit",
-                            "installDate":  "2023-01-20T14:30:00.0000000-05:00",
-                            "lastBootUpTime":  "2026-07-10T01:00:00.0000000-04:00",
-                            "pendingReboot":  false,
-                            "pendingRebootReasons":  [
-
-                                                     ]
-                        },
-               "durationMs":  92
-           },
-    "updates":  {
-                    "status":  "ok",
-                    "data":  {
-                                 "currentBuild":  "17763",
-                                 "ubr":  6414,
-                                 "lastDetectSuccessTime":  null,
-                                 "lastInstallSuccessTime":  null
-                             },
-                    "durationMs":  40
-                },
-    "dotnet":  {
-                   "status":  "ok",
-                   "data":  {
-                                "frameworkReleaseId":  528449,
-                                "coreRuntimes":  [
-
-                                                 ],
-                                "sdks":  [
-
-                                         ]
-                            },
-                   "durationMs":  20
-               },
-    "drives":  {
-                   "status":  "ok",
-                   "data":  {
-                                "drives":  [
-                                               {
-                                                   "driveLetter":  "C",
-                                                   "label":  "OS",
-                                                   "fileSystem":  "NTFS",
-                                                   "driveType":  "Fixed",
-                                                   "healthStatus":  "Healthy",
-                                                   "sizeBytes":  107374182400,
-                                                   "freeBytes":  42949672960,
-                                                   "usedBytes":  64424509440,
-                                                   "percentFree":  40
-                                               },
-                                               {
-                                                   "driveLetter":  "D",
-                                                   "label":  "SQLDATA",
-                                                   "fileSystem":  "NTFS",
-                                                   "driveType":  "Fixed",
-                                                   "healthStatus":  "Healthy",
-                                                   "sizeBytes":  1099511627776,
-                                                   "freeBytes":  329853488742,
-                                                   "usedBytes":  769658139034,
-                                                   "percentFree":  30
-                                               }
-                                           ]
-                            },
-                   "durationMs":  180
-               },
-    "apps":  {
-                 "status":  "ok",
-                 "data":  {
-                              "count":  2,
-                              "entries":  [
-                                              {
-                                                  "displayName":  "Microsoft SQL Server 2019 (64-bit)",
-                                                  "displayVersion":  "15.0.4345.5",
-                                                  "publisher":  "Microsoft Corporation",
-                                                  "installDate":  "2023-01-21",
-                                                  "installLocation":  null,
-                                                  "systemComponent":  true,
-                                                  "hive":  "HKLM",
-                                                  "architecture":  "x64",
-                                                  "sid":  ""
-                                              },
-                                              {
-                                                  "displayName":  "SQL Server 2019 Management Studio",
-                                                  "displayVersion":  "19.3.0",
-                                                  "publisher":  "Microsoft Corporation",
-                                                  "installDate":  "2023-01-22",
-                                                  "installLocation":  null,
-                                                  "systemComponent":  false,
-                                                  "hive":  "HKLM",
-                                                  "architecture":  "x64",
-                                                  "sid":  ""
-                                              }
-                                          ]
-                          },
-                 "durationMs":  410
-             },
-    "iis":  {
-                "status":  "not-present",
-                "reason":  "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent",
-                "durationMs":  6
+{
+  "schemaVersion": 1,
+  "computerName": "SQL01",
+  "collectedUtc": "2026-07-30T03:00:41.0000000Z",
+  "identity": {
+    "status": "ok",
+    "data": {
+      "domain": "corp.example.com",
+      "manufacturer": "Microsoft Corporation",
+      "model": "Virtual Machine",
+      "smbiosUuid": "7a1c9e40-3b2d-4f5e-8a6b-9c0d1e2f3a02",
+      "machineGuid": "c7f3f7e1-3a2b-4b4c-8d9e-2b3c4d5e6f02",
+      "biosSerialNumber": "7783-1234-5678-9012-3456-7890-12",
+      "isVirtual": true,
+      "hypervisorSignals": [
+        "Hyper-V"
+      ],
+      "cpuSockets": 2,
+      "cpuCores": 8,
+      "cpuLogicalProcessors": 16
+    },
+    "durationMs": 340
+  },
+  "memory": {
+    "status": "ok",
+    "data": {
+      "totalPhysicalMemoryBytes": 68719476736,
+      "totalPhysicalMemoryGB": 64
+    },
+    "durationMs": 10
+  },
+  "os": {
+    "status": "ok",
+    "data": {
+      "productName": "Windows Server 2019 Standard",
+      "editionId": "ServerStandard",
+      "installationType": "Server",
+      "currentBuild": "17763",
+      "ubr": 6414,
+      "displayVersion": "1809",
+      "architecture": "64-bit",
+      "installDate": "2023-01-20T14:30:00-05:00",
+      "lastBootUpTime": "2026-07-10T01:00:00-04:00",
+      "pendingReboot": false,
+      "pendingRebootReasons": []
+    },
+    "durationMs": 92
+  },
+  "updates": {
+    "status": "ok",
+    "data": {
+      "currentBuild": "17763",
+      "ubr": 6414,
+      "lastDetectSuccessTime": null,
+      "lastInstallSuccessTime": null
+    },
+    "durationMs": 40
+  },
+  "dotnet": {
+    "status": "ok",
+    "data": {
+      "frameworkReleaseId": 528449,
+      "coreRuntimes": [],
+      "sdks": []
+    },
+    "durationMs": 20
+  },
+  "drives": {
+    "status": "ok",
+    "data": {
+      "drives": [
+        {
+          "driveLetter": "C",
+          "label": "OS",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 107374182400,
+          "freeBytes": 42949672960,
+          "usedBytes": 64424509440,
+          "percentFree": 40
+        },
+        {
+          "driveLetter": "D",
+          "label": "SQLDATA",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 1099511627776,
+          "freeBytes": 329853488742,
+          "usedBytes": 769658139034,
+          "percentFree": 30
+        }
+      ]
+    },
+    "durationMs": 180
+  },
+  "apps": {
+    "status": "ok",
+    "data": {
+      "count": 2,
+      "entries": [
+        {
+          "displayName": "Microsoft SQL Server 2019 (64-bit)",
+          "displayVersion": "15.0.4345.5",
+          "publisher": "Microsoft Corporation",
+          "installDate": "2023-01-21",
+          "installLocation": null,
+          "systemComponent": true,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": ""
+        },
+        {
+          "displayName": "SQL Server 2019 Management Studio",
+          "displayVersion": "19.3.0",
+          "publisher": "Microsoft Corporation",
+          "installDate": "2023-01-22",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": ""
+        }
+      ]
+    },
+    "durationMs": 410
+  },
+  "iis": {
+    "status": "not-present",
+    "reason": "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent",
+    "durationMs": 6
+  },
+  "certificates": {
+    "status": "failed",
+    "reason": "Access to the path 'Cert:\\LocalMachine' is denied.",
+    "durationMs": 88
+  },
+  "sqlserver": {
+    "status": "ok",
+    "data": {
+      "instances": [
+        {
+          "instanceName": "PROD",
+          "edition": "Enterprise Edition",
+          "version": "15.0.2000.5",
+          "patchLevel": "15.0.4335.1",
+          "sqlBinRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\Binn",
+          "sqlDataRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL",
+          "collation": "SQL_Latin1_General_CP1_CI_AS",
+          "loginMode": 2,
+          "backupDirectory": "\\\\fs01\\sqlbackups\\SQL01",
+          "tcpPort": "1433",
+          "tcpDynamicPorts": null,
+          "serviceAccount": "CORP\\svc-sql",
+          "serviceState": "Running",
+          "agentServiceAccount": "CORP\\svc-sqlagent",
+          "agentServiceState": "Running",
+          "connectedStatus": "ok",
+          "connectedReason": null,
+          "permissions": {
+            "loginName": "CORP\\svc-census",
+            "isSysadmin": true,
+            "viewAnyDefinition": true,
+            "viewServerState": true
+          },
+          "serverProperties": {
+            "productVersion": "15.0.4335.1",
+            "edition": "Enterprise Edition (64-bit)",
+            "serverCollation": "SQL_Latin1_General_CP1_CI_AS"
+          },
+          "databases": [
+            {
+              "name": "master",
+              "databaseId": 1,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2022-10-08T06:31:57.5500000-04:00"
             },
-    "certificates":  {
-                         "status":  "failed",
-                         "reason":  "Access to the path \u0027Cert:\\LocalMachine\u0027 is denied.",
-                         "durationMs":  88
-                     },
-    "sqlserver":  {
-                      "status":  "ok",
-                      "data":  {
-                                   "instances":  [
-                                                     {
-                                                         "instanceName":  "PROD",
-                                                         "edition":  "Enterprise Edition",
-                                                         "version":  "15.0.2000.5",
-                                                         "patchLevel":  "15.0.4335.1",
-                                                         "sqlBinRoot":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\Binn",
-                                                         "sqlDataRoot":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL",
-                                                         "collation":  "SQL_Latin1_General_CP1_CI_AS",
-                                                         "loginMode":  2,
-                                                         "backupDirectory":  "\\\\fs01\\sqlbackups\\SQL01",
-                                                         "tcpPort":  "1433",
-                                                         "tcpDynamicPorts":  null,
-                                                         "serviceAccount":  "CORP\\svc-sql",
-                                                         "serviceState":  "Running",
-                                                         "agentServiceAccount":  "CORP\\svc-sqlagent",
-                                                         "agentServiceState":  "Running",
-                                                         "connectedStatus":  "ok",
-                                                         "connectedReason":  null,
-                                                         "permissions":  {
-                                                                             "loginName":  "CORP\\svc-census",
-                                                                             "isSysadmin":  true,
-                                                                             "viewAnyDefinition":  true,
-                                                                             "viewServerState":  true
-                                                                         },
-                                                         "serverProperties":  {
-                                                                                  "productVersion":  "15.0.4335.1",
-                                                                                  "edition":  "Enterprise Edition (64-bit)",
-                                                                                  "serverCollation":  "SQL_Latin1_General_CP1_CI_AS"
-                                                                              },
-                                                         "databases":  [
-                                                                           {
-                                                                               "name":  "master",
-                                                                               "databaseId":  1,
-                                                                               "stateDesc":  "ONLINE",
-                                                                               "recoveryModelDesc":  "SIMPLE",
-                                                                               "compatibilityLevel":  160,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "sa",
-                                                                               "createDate":  "2022-10-08T06:31:57.5500000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "tempdb",
-                                                                               "databaseId":  2,
-                                                                               "stateDesc":  "ONLINE",
-                                                                               "recoveryModelDesc":  "SIMPLE",
-                                                                               "compatibilityLevel":  160,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "sa",
-                                                                               "createDate":  "2026-07-31T02:10:44.0000000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "model",
-                                                                               "databaseId":  3,
-                                                                               "stateDesc":  "ONLINE",
-                                                                               "recoveryModelDesc":  "FULL",
-                                                                               "compatibilityLevel":  160,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "sa",
-                                                                               "createDate":  "2022-10-08T06:31:57.5500000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "msdb",
-                                                                               "databaseId":  4,
-                                                                               "stateDesc":  "ONLINE",
-                                                                               "recoveryModelDesc":  "SIMPLE",
-                                                                               "compatibilityLevel":  160,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "sa",
-                                                                               "createDate":  "2022-10-08T06:31:57.5500000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "Portal",
-                                                                               "databaseId":  5,
-                                                                               "stateDesc":  "ONLINE",
-                                                                               "recoveryModelDesc":  "FULL",
-                                                                               "compatibilityLevel":  160,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "sa",
-                                                                               "createDate":  "2024-03-11T09:14:02.1130000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "Reporting",
-                                                                               "databaseId":  6,
-                                                                               "stateDesc":  "ONLINE",
-                                                                               "recoveryModelDesc":  "SIMPLE",
-                                                                               "compatibilityLevel":  150,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "CORP\\jsmith",
-                                                                               "createDate":  "2024-03-11T09:14:02.1130000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "Billing",
-                                                                               "databaseId":  7,
-                                                                               "stateDesc":  "ONLINE",
-                                                                               "recoveryModelDesc":  "FULL",
-                                                                               "compatibilityLevel":  160,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  true,
-                                                                               "owner":  "sa",
-                                                                               "createDate":  "2024-03-11T09:14:02.1130000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "PortalArch",
-                                                                               "databaseId":  8,
-                                                                               "stateDesc":  "ONLINE",
-                                                                               "recoveryModelDesc":  "SIMPLE",
-                                                                               "compatibilityLevel":  140,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  true,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "sa",
-                                                                               "createDate":  "2024-03-11T09:14:02.1130000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "LegacyCRM",
-                                                                               "databaseId":  9,
-                                                                               "stateDesc":  "OFFLINE",
-                                                                               "recoveryModelDesc":  "FULL",
-                                                                               "compatibilityLevel":  100,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "CORP\\jsmith",
-                                                                               "createDate":  "2024-03-11T09:14:02.1130000-04:00"
-                                                                           },
-                                                                           {
-                                                                               "name":  "RetiredHR",
-                                                                               "databaseId":  10,
-                                                                               "stateDesc":  "OFFLINE",
-                                                                               "recoveryModelDesc":  "SIMPLE",
-                                                                               "compatibilityLevel":  100,
-                                                                               "collationName":  "SQL_Latin1_General_CP1_CI_AS",
-                                                                               "isReadOnly":  false,
-                                                                               "isEncrypted":  false,
-                                                                               "owner":  "sa",
-                                                                               "createDate":  "2024-03-11T09:14:02.1130000-04:00"
-                                                                           }
-                                                                       ],
-                                                         "databaseFiles":  [
-                                                                               {
-                                                                                   "databaseName":  "master",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "master",
-                                                                                   "physicalName":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\master.mdf",
-                                                                                   "directory":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
-                                                                                   "sizePages":  1024,
-                                                                                   "sizeBytes":  8388608,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  10,
-                                                                                   "isPercentGrowth":  true,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "master",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "mastlog",
-                                                                                   "physicalName":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\mastlog.ldf",
-                                                                                   "directory":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
-                                                                                   "sizePages":  256,
-                                                                                   "sizeBytes":  2097152,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  10,
-                                                                                   "isPercentGrowth":  true,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "tempdb",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "tempdev",
-                                                                                   "physicalName":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\tempdb.mdf",
-                                                                                   "directory":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
-                                                                                   "sizePages":  8192,
-                                                                                   "sizeBytes":  67108864,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  65536,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "tempdb",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "templog",
-                                                                                   "physicalName":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\templog.ldf",
-                                                                                   "directory":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
-                                                                                   "sizePages":  2048,
-                                                                                   "sizeBytes":  16777216,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  65536,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "model",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "modeldev",
-                                                                                   "physicalName":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\model.mdf",
-                                                                                   "directory":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
-                                                                                   "sizePages":  512,
-                                                                                   "sizeBytes":  4194304,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  65536,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "model",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "modellog",
-                                                                                   "physicalName":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\modellog.ldf",
-                                                                                   "directory":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
-                                                                                   "sizePages":  256,
-                                                                                   "sizeBytes":  2097152,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  65536,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "msdb",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "MSDBData",
-                                                                                   "physicalName":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\MSDBData.mdf",
-                                                                                   "directory":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
-                                                                                   "sizePages":  2376,
-                                                                                   "sizeBytes":  19464192,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  10,
-                                                                                   "isPercentGrowth":  true,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "msdb",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "MSDBLog",
-                                                                                   "physicalName":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\MSDBLog.ldf",
-                                                                                   "directory":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
-                                                                                   "sizePages":  1024,
-                                                                                   "sizeBytes":  8388608,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  10,
-                                                                                   "isPercentGrowth":  true,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "Portal",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "Portal",
-                                                                                   "physicalName":  "D:\\sqldata\\Portal.mdf",
-                                                                                   "directory":  "D:\\sqldata",
-                                                                                   "sizePages":  524288,
-                                                                                   "sizeBytes":  4294967296,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  262144,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "Portal",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "Portal_log",
-                                                                                   "physicalName":  "E:\\sqllogs\\Portal_log.ldf",
-                                                                                   "directory":  "E:\\sqllogs",
-                                                                                   "sizePages":  131072,
-                                                                                   "sizeBytes":  1073741824,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  131072,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "Reporting",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "Reporting",
-                                                                                   "physicalName":  "D:\\sqldata\\Reporting.mdf",
-                                                                                   "directory":  "D:\\sqldata",
-                                                                                   "sizePages":  1310720,
-                                                                                   "sizeBytes":  10737418240,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  262144,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "Reporting",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "Reporting_log",
-                                                                                   "physicalName":  "E:\\sqllogs\\Reporting_log.ldf",
-                                                                                   "directory":  "E:\\sqllogs",
-                                                                                   "sizePages":  65536,
-                                                                                   "sizeBytes":  536870912,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  131072,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "Billing",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "Billing",
-                                                                                   "physicalName":  "D:\\sqldata\\Billing.mdf",
-                                                                                   "directory":  "D:\\sqldata",
-                                                                                   "sizePages":  262144,
-                                                                                   "sizeBytes":  2147483648,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  262144,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "Billing",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "Billing_log",
-                                                                                   "physicalName":  "E:\\sqllogs\\Billing_log.ldf",
-                                                                                   "directory":  "E:\\sqllogs",
-                                                                                   "sizePages":  65536,
-                                                                                   "sizeBytes":  536870912,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  131072,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "PortalArch",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "PortalArch",
-                                                                                   "physicalName":  "\\\\fs01\\sqlarchive\\PortalArch.mdf",
-                                                                                   "directory":  "\\\\fs01\\sqlarchive",
-                                                                                   "sizePages":  2097152,
-                                                                                   "sizeBytes":  17179869184,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  262144,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  true
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "PortalArch",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "PortalArch_log",
-                                                                                   "physicalName":  "E:\\sqllogs\\PortalArch_log.ldf",
-                                                                                   "directory":  "E:\\sqllogs",
-                                                                                   "sizePages":  32768,
-                                                                                   "sizeBytes":  268435456,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  131072,
-                                                                                   "isPercentGrowth":  false,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "LegacyCRM",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "LegacyCRM",
-                                                                                   "physicalName":  "D:\\sqldata\\LegacyCRM.mdf",
-                                                                                   "directory":  "D:\\sqldata",
-                                                                                   "sizePages":  98304,
-                                                                                   "sizeBytes":  805306368,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  10,
-                                                                                   "isPercentGrowth":  true,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "LegacyCRM",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "LegacyCRM_log",
-                                                                                   "physicalName":  "E:\\sqllogs\\LegacyCRM_log.ldf",
-                                                                                   "directory":  "E:\\sqllogs",
-                                                                                   "sizePages":  16384,
-                                                                                   "sizeBytes":  134217728,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  10,
-                                                                                   "isPercentGrowth":  true,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "RetiredHR",
-                                                                                   "fileId":  1,
-                                                                                   "typeDesc":  "ROWS",
-                                                                                   "logicalName":  "RetiredHR",
-                                                                                   "physicalName":  "D:\\sqldata\\RetiredHR.mdf",
-                                                                                   "directory":  "D:\\sqldata",
-                                                                                   "sizePages":  40960,
-                                                                                   "sizeBytes":  335544320,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  10,
-                                                                                   "isPercentGrowth":  true,
-                                                                                   "isUnc":  false
-                                                                               },
-                                                                               {
-                                                                                   "databaseName":  "RetiredHR",
-                                                                                   "fileId":  2,
-                                                                                   "typeDesc":  "LOG",
-                                                                                   "logicalName":  "RetiredHR_log",
-                                                                                   "physicalName":  "E:\\sqllogs\\RetiredHR_log.ldf",
-                                                                                   "directory":  "E:\\sqllogs",
-                                                                                   "sizePages":  8192,
-                                                                                   "sizeBytes":  67108864,
-                                                                                   "maxSizePages":  -1,
-                                                                                   "growth":  10,
-                                                                                   "isPercentGrowth":  true,
-                                                                                   "isUnc":  false
-                                                                               }
-                                                                           ]
-                                                     },
-                                                     {
-                                                         "instanceName":  "REPORTING",
-                                                         "edition":  "Standard Edition",
-                                                         "version":  "15.0.2000.5",
-                                                         "patchLevel":  "15.0.4335.1",
-                                                         "sqlBinRoot":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.REPORTING\\MSSQL\\Binn",
-                                                         "sqlDataRoot":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.REPORTING\\MSSQL",
-                                                         "collation":  "SQL_Latin1_General_CP1_CI_AS",
-                                                         "loginMode":  1,
-                                                         "backupDirectory":  "F:\\backups",
-                                                         "tcpPort":  null,
-                                                         "tcpDynamicPorts":  "49312",
-                                                         "serviceAccount":  "NT Service\\MSSQL$REPORTING",
-                                                         "serviceState":  "Running",
-                                                         "agentServiceAccount":  null,
-                                                         "agentServiceState":  "Stopped",
-                                                         "connectedStatus":  "insufficient-rights",
-                                                         "connectedReason":  "VIEW ANY DEFINITION denied for CORP\\svc-census; database and file lists would be silently partial",
-                                                         "permissions":  {
-                                                                             "loginName":  "CORP\\svc-census",
-                                                                             "isSysadmin":  false,
-                                                                             "viewAnyDefinition":  false,
-                                                                             "viewServerState":  true
-                                                                         },
-                                                         "serverProperties":  {
-                                                                                  "productVersion":  "15.0.4335.1",
-                                                                                  "edition":  "Standard Edition (64-bit)",
-                                                                                  "serverCollation":  "SQL_Latin1_General_CP1_CI_AS"
-                                                                              },
-                                                         "databases":  [
-
-                                                                       ],
-                                                         "databaseFiles":  [
-
-                                                                           ]
-                                                     },
-                                                     {
-                                                         "instanceName":  "ARCHIVE",
-                                                         "edition":  "Standard Edition",
-                                                         "version":  "13.0.1601.5",
-                                                         "patchLevel":  "13.0.5426.0",
-                                                         "sqlBinRoot":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.ARCHIVE\\MSSQL\\Binn",
-                                                         "sqlDataRoot":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.ARCHIVE\\MSSQL",
-                                                         "collation":  "SQL_Latin1_General_CP1_CI_AS",
-                                                         "loginMode":  1,
-                                                         "backupDirectory":  "F:\\backups",
-                                                         "tcpPort":  null,
-                                                         "tcpDynamicPorts":  "0",
-                                                         "serviceAccount":  "NT Service\\MSSQL$ARCHIVE",
-                                                         "serviceState":  "Stopped",
-                                                         "agentServiceAccount":  null,
-                                                         "agentServiceState":  "Stopped",
-                                                         "connectedStatus":  "skipped",
-                                                         "connectedReason":  "service MSSQL$ARCHIVE is Stopped",
-                                                         "permissions":  null,
-                                                         "serverProperties":  null,
-                                                         "databases":  [
-
-                                                                       ],
-                                                         "databaseFiles":  [
-
-                                                                           ]
-                                                     }
-                                                 ]
-                               },
-                      "durationMs":  1094
-                  },
-    "requestedName":  "sql01",
-    "roles":  [
-                  "DatabaseServer"
-              ],
-    "aliases":  {
-                    "status":  "ok",
-                    "data":  {
-                                 "aliases":  [
-                                                 {
-                                                     "kind":  "netbios",
-                                                     "value":  "SQL01",
-                                                     "source":  "identity"
-                                                 },
-                                                 {
-                                                     "kind":  "fqdn",
-                                                     "value":  "sql01.corp.local",
-                                                     "source":  "identity"
-                                                 },
-                                                 {
-                                                     "kind":  "machineGuid",
-                                                     "value":  "3a91c8e0-52d7-4f6b-b1c9-8e04f7a25d33",
-                                                     "source":  "identity"
-                                                 },
-                                                 {
-                                                     "kind":  "ipv4",
-                                                     "value":  "10.0.0.20",
-                                                     "source":  "network"
-                                                 },
-                                                 {
-                                                     "kind":  "sqlInstance",
-                                                     "value":  "SQL01\\PROD",
-                                                     "source":  "sqlserver"
-                                                 },
-                                                 {
-                                                     "kind":  "sqlInstance",
-                                                     "value":  "SQL01\\REPORTING",
-                                                     "source":  "sqlserver"
-                                                 },
-                                                 {
-                                                     "kind":  "sqlInstance",
-                                                     "value":  "SQL01\\ARCHIVE",
-                                                     "source":  "sqlserver"
-                                                 },
-                                                 {
-                                                     "kind":  "certSan",
-                                                     "value":  "sqlfarm.corp.local",
-                                                     "source":  "certificates"
-                                                 }
-                                             ],
-                                 "sources":  {
-                                                 "identity":  "ok",
-                                                 "sqlserver":  "ok",
-                                                 "iis":  "not-present",
-                                                 "certificates":  "ok",
-                                                 "network":  "ok"
-                                             }
-                             },
-                    "durationMs":  38
-                }
+            {
+              "name": "tempdb",
+              "databaseId": 2,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2026-07-31T02:10:44.0000000-04:00"
+            },
+            {
+              "name": "model",
+              "databaseId": 3,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2022-10-08T06:31:57.5500000-04:00"
+            },
+            {
+              "name": "msdb",
+              "databaseId": 4,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2022-10-08T06:31:57.5500000-04:00"
+            },
+            {
+              "name": "Portal",
+              "databaseId": 5,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            },
+            {
+              "name": "Reporting",
+              "databaseId": 6,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 150,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "CORP\\jsmith",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            },
+            {
+              "name": "Billing",
+              "databaseId": 7,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": true,
+              "owner": "sa",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            },
+            {
+              "name": "PortalArch",
+              "databaseId": 8,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 140,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": true,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            },
+            {
+              "name": "LegacyCRM",
+              "databaseId": 9,
+              "stateDesc": "OFFLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 100,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "CORP\\jsmith",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            },
+            {
+              "name": "RetiredHR",
+              "databaseId": 10,
+              "stateDesc": "OFFLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 100,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2024-03-11T09:14:02.1130000-04:00"
+            }
+          ],
+          "databaseFiles": [
+            {
+              "databaseName": "master",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "master",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\master.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
+              "sizePages": 1024,
+              "sizeBytes": 8388608,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "master",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "mastlog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\mastlog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
+              "sizePages": 256,
+              "sizeBytes": 2097152,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "tempdb",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "tempdev",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\tempdb.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
+              "sizePages": 8192,
+              "sizeBytes": 67108864,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "tempdb",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "templog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\templog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
+              "sizePages": 2048,
+              "sizeBytes": 16777216,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "model",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "modeldev",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\model.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
+              "sizePages": 512,
+              "sizeBytes": 4194304,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "model",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "modellog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\modellog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
+              "sizePages": 256,
+              "sizeBytes": 2097152,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "msdb",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "MSDBData",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\MSDBData.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
+              "sizePages": 2376,
+              "sizeBytes": 19464192,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "msdb",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "MSDBLog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA\\MSDBLog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.PROD\\MSSQL\\DATA",
+              "sizePages": 1024,
+              "sizeBytes": 8388608,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Portal",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "Portal",
+              "physicalName": "D:\\sqldata\\Portal.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 524288,
+              "sizeBytes": 4294967296,
+              "maxSizePages": -1,
+              "growth": 262144,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Portal",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "Portal_log",
+              "physicalName": "E:\\sqllogs\\Portal_log.ldf",
+              "directory": "E:\\sqllogs",
+              "sizePages": 131072,
+              "sizeBytes": 1073741824,
+              "maxSizePages": -1,
+              "growth": 131072,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Reporting",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "Reporting",
+              "physicalName": "D:\\sqldata\\Reporting.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 1310720,
+              "sizeBytes": 10737418240,
+              "maxSizePages": -1,
+              "growth": 262144,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Reporting",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "Reporting_log",
+              "physicalName": "E:\\sqllogs\\Reporting_log.ldf",
+              "directory": "E:\\sqllogs",
+              "sizePages": 65536,
+              "sizeBytes": 536870912,
+              "maxSizePages": -1,
+              "growth": 131072,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Billing",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "Billing",
+              "physicalName": "D:\\sqldata\\Billing.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 262144,
+              "sizeBytes": 2147483648,
+              "maxSizePages": -1,
+              "growth": 262144,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "Billing",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "Billing_log",
+              "physicalName": "E:\\sqllogs\\Billing_log.ldf",
+              "directory": "E:\\sqllogs",
+              "sizePages": 65536,
+              "sizeBytes": 536870912,
+              "maxSizePages": -1,
+              "growth": 131072,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "PortalArch",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "PortalArch",
+              "physicalName": "\\\\fs01\\sqlarchive\\PortalArch.mdf",
+              "directory": "\\\\fs01\\sqlarchive",
+              "sizePages": 2097152,
+              "sizeBytes": 17179869184,
+              "maxSizePages": -1,
+              "growth": 262144,
+              "isPercentGrowth": false,
+              "isUnc": true
+            },
+            {
+              "databaseName": "PortalArch",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "PortalArch_log",
+              "physicalName": "E:\\sqllogs\\PortalArch_log.ldf",
+              "directory": "E:\\sqllogs",
+              "sizePages": 32768,
+              "sizeBytes": 268435456,
+              "maxSizePages": -1,
+              "growth": 131072,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "LegacyCRM",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "LegacyCRM",
+              "physicalName": "D:\\sqldata\\LegacyCRM.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 98304,
+              "sizeBytes": 805306368,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "LegacyCRM",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "LegacyCRM_log",
+              "physicalName": "E:\\sqllogs\\LegacyCRM_log.ldf",
+              "directory": "E:\\sqllogs",
+              "sizePages": 16384,
+              "sizeBytes": 134217728,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "RetiredHR",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "RetiredHR",
+              "physicalName": "D:\\sqldata\\RetiredHR.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 40960,
+              "sizeBytes": 335544320,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            },
+            {
+              "databaseName": "RetiredHR",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "RetiredHR_log",
+              "physicalName": "E:\\sqllogs\\RetiredHR_log.ldf",
+              "directory": "E:\\sqllogs",
+              "sizePages": 8192,
+              "sizeBytes": 67108864,
+              "maxSizePages": -1,
+              "growth": 10,
+              "isPercentGrowth": true,
+              "isUnc": false
+            }
+          ]
+        },
+        {
+          "instanceName": "REPORTING",
+          "edition": "Standard Edition",
+          "version": "15.0.2000.5",
+          "patchLevel": "15.0.4335.1",
+          "sqlBinRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.REPORTING\\MSSQL\\Binn",
+          "sqlDataRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL15.REPORTING\\MSSQL",
+          "collation": "SQL_Latin1_General_CP1_CI_AS",
+          "loginMode": 1,
+          "backupDirectory": "F:\\backups",
+          "tcpPort": null,
+          "tcpDynamicPorts": "49312",
+          "serviceAccount": "NT Service\\MSSQL$REPORTING",
+          "serviceState": "Running",
+          "agentServiceAccount": null,
+          "agentServiceState": "Stopped",
+          "connectedStatus": "insufficient-rights",
+          "connectedReason": "VIEW ANY DEFINITION denied for CORP\\svc-census; database and file lists would be silently partial",
+          "permissions": {
+            "loginName": "CORP\\svc-census",
+            "isSysadmin": false,
+            "viewAnyDefinition": false,
+            "viewServerState": true
+          },
+          "serverProperties": {
+            "productVersion": "15.0.4335.1",
+            "edition": "Standard Edition (64-bit)",
+            "serverCollation": "SQL_Latin1_General_CP1_CI_AS"
+          },
+          "databases": [],
+          "databaseFiles": []
+        },
+        {
+          "instanceName": "ARCHIVE",
+          "edition": "Standard Edition",
+          "version": "13.0.1601.5",
+          "patchLevel": "13.0.5426.0",
+          "sqlBinRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.ARCHIVE\\MSSQL\\Binn",
+          "sqlDataRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL13.ARCHIVE\\MSSQL",
+          "collation": "SQL_Latin1_General_CP1_CI_AS",
+          "loginMode": 1,
+          "backupDirectory": "F:\\backups",
+          "tcpPort": null,
+          "tcpDynamicPorts": "0",
+          "serviceAccount": "NT Service\\MSSQL$ARCHIVE",
+          "serviceState": "Stopped",
+          "agentServiceAccount": null,
+          "agentServiceState": "Stopped",
+          "connectedStatus": "skipped",
+          "connectedReason": "service MSSQL$ARCHIVE is Stopped",
+          "permissions": null,
+          "serverProperties": null,
+          "databases": [],
+          "databaseFiles": []
+        }
+      ]
+    },
+    "durationMs": 1094
+  },
+  "requestedName": "sql01",
+  "roles": [
+    "DatabaseServer"
+  ],
+  "aliases": {
+    "status": "ok",
+    "data": {
+      "aliases": [
+        {
+          "kind": "netbios",
+          "value": "SQL01",
+          "source": "identity"
+        },
+        {
+          "kind": "fqdn",
+          "value": "sql01.corp.local",
+          "source": "identity"
+        },
+        {
+          "kind": "machineGuid",
+          "value": "3a91c8e0-52d7-4f6b-b1c9-8e04f7a25d33",
+          "source": "identity"
+        },
+        {
+          "kind": "ipv4",
+          "value": "10.0.0.20",
+          "source": "network"
+        },
+        {
+          "kind": "sqlInstance",
+          "value": "SQL01\\PROD",
+          "source": "sqlserver"
+        },
+        {
+          "kind": "sqlInstance",
+          "value": "SQL01\\REPORTING",
+          "source": "sqlserver"
+        },
+        {
+          "kind": "sqlInstance",
+          "value": "SQL01\\ARCHIVE",
+          "source": "sqlserver"
+        },
+        {
+          "kind": "certSan",
+          "value": "sqlfarm.corp.local",
+          "source": "certificates"
+        }
+      ],
+      "sources": {
+        "identity": "ok",
+        "sqlserver": "ok",
+        "iis": "not-present",
+        "certificates": "ok",
+        "network": "ok"
+      }
+    },
+    "durationMs": 38
+  }
 }

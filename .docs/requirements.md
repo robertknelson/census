@@ -163,6 +163,14 @@ run happen, which machines were reached, when, and what went wrong for the ones 
   does not abort the whole.
 - Each entry carries `collectorVersion` (`census-collector.md` §6.5). Entries written before
   2026-08-07 have none, which is how a legacy entry is identified.
+- **`Repair-CensusRunLog.ps1` is the one-time cleanup**, for when the reader's warning about
+  skipped entries is not worth living with. It partitions the file on the *reader's* rule —
+  non-empty `machine` and `outcome`, the two required members of `RunLogEntry` — archives what
+  it drops to `_runs\run-log.archive-<stamp>.json`, and rewrites the run log with the rest.
+  Dry run by default; `-Execute` to write. It deliberately does **not** invent a stricter rule
+  than the reader's, because a migration that drops rows the application would have accepted
+  is worse than the warning it set out to silence. It also repairs the bare-object shape a
+  one-machine run wrote before the `-InputObject` fix.
 - Each entry: machine name, outcome (`ok` / `unreachable` / `failed` + reason), when that
   machine's collection started and finished, and the duration — so "was it successful," "when
   did it run," and "how long did it take" are each a plain field, not something you compute

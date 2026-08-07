@@ -47,6 +47,15 @@ $CollectScriptBlock = {
         # these explicitly as ISO 8601 with the local UTC offset before they reach JSON.
         param($DateTime)
         if ($null -eq $DateTime) { return $null }
+
+        # SQL Server hands back DateTimes with Kind=Unspecified, and 'o' then emits no offset
+        # at all. System.Text.Json accepts that string but silently stamps it with the
+        # *reader's* local offset - so the same census file read in another timezone would
+        # describe a different instant. These values are server local time and the collector
+        # runs on that server, so Local is the accurate qualification.
+        if ($DateTime -is [datetime] -and $DateTime.Kind -eq [System.DateTimeKind]::Unspecified) {
+            $DateTime = [datetime]::SpecifyKind($DateTime, [System.DateTimeKind]::Local)
+        }
         return $DateTime.ToString('o')
     }
 
@@ -1036,6 +1045,157 @@ $CollectScriptBlock = {
         @{ certificates = $certificates; rdpQueryError = $rdpQueryError; httpSysQueryError = $httpSysQueryError }
     }
 
+    # --- SQL Server helpers ----------------------------------------------------------------
+    # This is the only place the collector opens an outbound connection; everything else reads
+    # the local registry or local files. See census-collector.md 8.8.1.
+
+    function Invoke-CensusSqlQuery {
+        # Raw System.Data.SqlClient, no SqlServer module. Returns rows as an array of
+        # hashtables. Every caller wraps this - a query that throws degrades its own section,
+        # never the instance.
+        param(
+            [string]$ServerInstance,
+            [string]$Query,
+            [int]$ConnectTimeoutSeconds = 5,
+            [int]$CommandTimeoutSeconds = 30
+        )
+
+        $connectionString = "Server=$ServerInstance;Integrated Security=SSPI;Application Name=census;Connect Timeout=$ConnectTimeoutSeconds"
+        $connection = New-Object System.Data.SqlClient.SqlConnection $connectionString
+        $rows = New-Object System.Collections.Generic.List[object]
+        try {
+            $connection.Open()
+            $command = $connection.CreateCommand()
+            $command.CommandText = $Query
+            $command.CommandTimeout = $CommandTimeoutSeconds
+            $reader = $command.ExecuteReader()
+            try {
+                while ($reader.Read()) {
+                    $row = @{}
+                    for ($i = 0; $i -lt $reader.FieldCount; $i++) {
+                        $value = $reader.GetValue($i)
+                        if ($value -is [System.DBNull]) { $value = $null }
+                        $row[$reader.GetName($i)] = $value
+                    }
+                    $rows.Add($row)
+                }
+            }
+            finally { $reader.Close() }
+        }
+        finally { $connection.Dispose() }
+        return $rows.ToArray()
+    }
+
+    function Get-CensusSqlInstanceDetail {
+        # Databases and their files for one instance. Returns a hashtable carrying its own
+        # status, so a single unreachable instance never fails the category.
+        param([string]$ServerInstance)
+
+        # The permission stamp. Without VIEW ANY DEFINITION, sys.databases silently returns
+        # only what the login can see and sys.master_files returns almost nothing - a short
+        # list that looks complete, which is the worst failure this collector could have.
+        $contextQuery = @'
+SELECT
+    SUSER_NAME()                                         AS loginName,
+    IS_SRVROLEMEMBER('sysadmin')                         AS isSysadmin,
+    HAS_PERMS_BY_NAME(NULL, NULL, 'VIEW ANY DEFINITION') AS viewAnyDefinition,
+    HAS_PERMS_BY_NAME(NULL, NULL, 'VIEW SERVER STATE')   AS viewServerState,
+    SERVERPROPERTY('ProductVersion')                     AS productVersion,
+    SERVERPROPERTY('Edition')                            AS edition,
+    SERVERPROPERTY('Collation')                          AS serverCollation
+'@
+
+        try {
+            $context = @(Invoke-CensusSqlQuery -ServerInstance $ServerInstance -Query $contextQuery)[0]
+        }
+        catch {
+            return @{ status = 'failed'; reason = $_.Exception.Message }
+        }
+
+        $permissions = @{
+            loginName         = $context.loginName
+            isSysadmin        = [bool]$context.isSysadmin
+            viewAnyDefinition = [bool]$context.viewAnyDefinition
+            viewServerState   = [bool]$context.viewServerState
+        }
+        $serverProperties = @{
+            productVersion  = $context.productVersion
+            edition         = $context.edition
+            serverCollation = $context.serverCollation
+        }
+
+        # A filtered list is never presented as a whole one.
+        if (-not $permissions.viewAnyDefinition) {
+            return @{
+                status           = 'insufficient-rights'
+                reason           = "VIEW ANY DEFINITION denied for $($context.loginName); database and file lists would be silently partial"
+                permissions      = $permissions
+                serverProperties = $serverProperties
+            }
+        }
+
+        $databaseQuery = @'
+SELECT name, database_id, state_desc, recovery_model_desc, compatibility_level,
+       collation_name, is_read_only, is_encrypted, SUSER_SNAME(owner_sid) AS owner_name,
+       create_date
+FROM sys.databases
+ORDER BY name
+'@
+        # Instance-wide, so no per-database context switch and no per-database try/catch: one
+        # inaccessible or offline database cannot kill the collector. sys.master_files lists
+        # the files of offline and restoring databases too.
+        $fileQuery = @'
+SELECT DB_NAME(database_id) AS database_name, database_id, file_id, type_desc, name,
+       physical_name, size, max_size, growth, is_percent_growth
+FROM sys.master_files
+ORDER BY database_id, file_id
+'@
+
+        $databases = @()
+        foreach ($row in @(Invoke-CensusSqlQuery -ServerInstance $ServerInstance -Query $databaseQuery)) {
+            $databases += @{
+                name                = $row.name
+                databaseId          = $row.database_id
+                stateDesc           = $row.state_desc
+                recoveryModelDesc   = $row.recovery_model_desc
+                compatibilityLevel  = $row.compatibility_level
+                collationName       = $row.collation_name
+                isReadOnly          = [bool]$row.is_read_only
+                isEncrypted         = [bool]$row.is_encrypted
+                owner               = $row.owner_name
+                createDate          = Format-CensusDate $row.create_date
+            }
+        }
+
+        $files = @()
+        foreach ($row in @(Invoke-CensusSqlQuery -ServerInstance $ServerInstance -Query $fileQuery)) {
+            $physicalName = $row.physical_name
+            $files += @{
+                databaseName    = $row.database_name
+                fileId          = $row.file_id
+                typeDesc        = $row.type_desc
+                logicalName     = $row.name
+                physicalName    = $physicalName
+                directory       = if ($physicalName) { Split-Path -Parent $physicalName } else { $null }
+                # sizes are in 8 KB pages
+                sizePages       = $row.size
+                sizeBytes       = if ($null -ne $row.size) { [int64]$row.size * 8192 } else { $null }
+                maxSizePages    = $row.max_size
+                growth          = $row.growth
+                isPercentGrowth = [bool]$row.is_percent_growth
+                isUnc           = [bool]($physicalName -and $physicalName.StartsWith('\\'))
+            }
+        }
+
+        @{
+            status           = 'ok'
+            permissions      = $permissions
+            serverProperties = $serverProperties
+            databases        = $databases
+            databaseFiles    = $files
+        }
+    }
+
     function Get-CensusSqlServer {
         $instanceKey = 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL'
         if (-not (Test-Path $instanceKey)) {
@@ -1062,6 +1222,17 @@ $CollectScriptBlock = {
             $service      = Get-CimInstance Win32_Service -Filter "Name='$serviceName'"      -ErrorAction SilentlyContinue
             $agentService = Get-CimInstance Win32_Service -Filter "Name='$agentServiceName'" -ErrorAction SilentlyContinue
 
+            # Only a running instance is connected to. A stopped one is skipped outright, so
+            # it can never contribute a connect timeout to the run.
+            $serverInstance = if ($instanceName -eq 'MSSQLSERVER') { '.' } else { ".\$instanceName" }
+            if ($service.State -eq 'Running') {
+                try   { $detail = Get-CensusSqlInstanceDetail -ServerInstance $serverInstance }
+                catch { $detail = @{ status = 'failed'; reason = $_.Exception.Message } }
+            }
+            else {
+                $detail = @{ status = 'skipped'; reason = "service $serviceName is $($service.State)" }
+            }
+
             $instances += @{
                 instanceName        = $instanceName
                 edition             = $setup.Edition
@@ -1078,6 +1249,12 @@ $CollectScriptBlock = {
                 serviceState        = $service.State
                 agentServiceAccount = $agentService.StartName
                 agentServiceState   = $agentService.State
+                connectedStatus     = $detail.status
+                connectedReason     = $detail.reason
+                permissions         = $detail.permissions
+                serverProperties    = $detail.serverProperties
+                databases           = $detail.databases
+                databaseFiles       = $detail.databaseFiles
             }
         }
 

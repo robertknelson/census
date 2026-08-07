@@ -53,6 +53,22 @@ it's nearly free now and expensive to retrofit later.
 These settle two mechanism choices: IIS is read from `applicationHost.config` as XML, and SQL
 Server through raw `System.Data.SqlClient`.
 
+#### Correction (2026-08-07): the dev box now runs SQL Server
+
+The "no SQL Server locally" line above is **stale**. The box now has SQL Server 2022 Developer
+Edition, default instance `MSSQL16.MSSQLSERVER`, service running — 20 databases, 47 files, two
+of them OFFLINE, with data and log files split across `C:\Program Files\...\MSSQL\DATA`,
+`c:\local\sqldata` and `c:\local\sqllogs`.
+
+This is load-bearing, not trivia: **the `sqlserver` collector can be verified against a real
+instance, and the `iis` collector still cannot.** It is also a good fixture precisely because
+it is untidy — offline databases and scattered file paths are the cases that break naive code.
+
+What it still cannot exercise: a **named** instance (this is the default instance), a
+**stopped** instance, a **UNC** file path, and any **permission-denied** path — the
+interactive account is `sysadmin` here. Those four branches ship structurally correct and
+unexercised.
+
 ---
 
 ## 3. Repository layout
@@ -911,6 +927,87 @@ SSMS-installed-but-no-engine.
 `Application Name=census`, short timeouts, catalog views only. `Execute-NativeSql` shape from
 `Invoke-SqlMigrationController.ps1`. No `SqlServer` module.
 
+#### 8.8.1 Connected scope, pared and ratified 2026-08-07
+
+The table below is the full design. **What is built is the first two connected rows —
+databases and database files — and nothing else.** Everything else stays registry-only
+discovery until separately scoped.
+
+This is the collector's **first outbound connection**; every other collector reads the local
+registry or local files. That is the real change, not the field list, and it brings three
+rules that did not exist before.
+
+##### The connection
+
+- Connect **only to instances whose service is `Running`**. A stopped instance is `skipped`
+  with that reason — never attempted, so it can never contribute a timeout to the run.
+- `Server=.` for the default instance, `Server=.\NAME` for a named one. Local, over shared
+  memory — not a second hop (§5.1).
+- **`Connect Timeout=5`, and a command timeout on every query.** A SQL connection that hangs
+  would hang the machine's whole census; §7.2 already makes this non-negotiable.
+- `Application Name=census`, so the connection is identifiable in a DBA's session list. This
+  collector will appear in connection logs nightly on every instance it finds — a fact worth
+  socialising before it starts happening, not after.
+
+##### The permission stamp — the rule that matters
+
+Without `VIEW ANY DEFINITION`, `sys.databases` silently returns **only the databases the login
+can see**, and `sys.master_files` returns almost nothing. The result is a short list that looks
+complete, which is the single worst failure this collector could have.
+
+Every payload therefore carries
+`HAS_PERMS_BY_NAME(NULL, NULL, 'VIEW ANY DEFINITION')` and the same for `VIEW SERVER STATE`,
+plus `IS_SRVROLEMEMBER('sysadmin')` and `SUSER_NAME()`. One column each on a query already
+being run.
+
+> **Ratified 2026-08-07: the census identity is assumed to hold maximum rights.** The stamp is
+> emitted anyway. Rights granted today are not rights granted in a year — an account gets
+> reprovisioned, a role gets tightened, and the payload quietly shrinks from twenty databases
+> to three with nothing marking the difference. The stamp is what makes that visible. No
+> elaborate degradation path is built beyond it; when `viewAnyDefinition` is false the category
+> reports `insufficient-rights` rather than presenting a filtered list as whole.
+
+##### No per-database loop
+
+Both queries are **instance-wide**. `sys.master_files` lists the files of offline and
+restoring databases too, so nothing needs a per-database context switch. That is the property
+that makes this scope safe: **one inaccessible database cannot kill the collector.** Everything
+in the table below marked `Deep` — `FILEPROPERTY` space-used, per-database principals — needs
+that loop, which is exactly why it is not in this slice.
+
+##### Fields
+
+From `sys.databases`: `name`, `database_id`, `state_desc`, `recovery_model_desc`,
+`compatibility_level`, `collation_name`, `is_read_only`, `is_encrypted`,
+`SUSER_SNAME(owner_sid)`, `create_date`. One row, one query — the extra columns ride along
+free, and **`state_desc` is what stops an OFFLINE database reading as a healthy one.**
+
+From `sys.master_files`: `database_id` resolved to name, `file_id`, `type_desc`, logical
+`name`, `physical_name`, `size`, `max_size`, `growth`, `is_percent_growth`.
+
+- **`size` is volatile** (§6.3) — data files grow. Excluded from the hashed projection, exactly
+  like the IIS log statistics. `max_size` and `growth` are configuration and stay in.
+- A `physical_name` beginning `\\` is a **UNC dependency** and contributes to §8.9's
+  `uncDependencies`.
+- Diff keys are already fixed in §6.4: `(InstanceName, DatabaseName)` — **not** `database_id`,
+  which is reused after a drop — and `(InstanceName, DatabaseName, LogicalFileName)` — **not**
+  `physical_name`, which changes when a file is moved.
+
+##### Why this is worth more than it looks
+
+An IIS dependency edge saying `SQL01\PROD / Portal` is a **claim** — a string parsed out of a
+config file on a web server (§8.6.7 records that the target is a name claim, never a resolved
+entity). Once `SQL01`'s own census lists its databases, that claim can be **confirmed**.
+
+This is the first time two census observations corroborate each other, and it is precisely the
+class-1 contradiction detection `graph-interop.md` §7 is built on.
+
+##### Explicitly not in this slice
+
+Backups, logins and sysadmins, linked servers, agent jobs, `sys.configurations`, tempdb
+analysis, HA/DR, host facts from `sys.dm_os_*`, and both `Deep` per-database rows. All remain
+valid; none are scheduled.
+
 | Group | Source | Pri |
 |---|---|---|
 | **Instance** | `SERVERPROPERTY`: ProductVersion, ProductLevel, ProductUpdateLevel (CU), Edition, EngineEdition, IsClustered, IsHadrEnabled, Collation, IsIntegratedSecurityOnly | MUST |
@@ -1153,9 +1250,36 @@ previous day's files are untouched.
   code paths (§7.1), and the fallbacks must not read as change in the diff (§6.6).
 - **Script signing** — if the estate enforces `AllSigned`, `-FilePath` transfer and the
   portable collector need a code-signing certificate.
-- **SQL permissions** — will the instances grant `VIEW SERVER STATE` + `VIEW ANY DEFINITION`
-  + msdb read to the census account? Determines how often `sqlserver` degrades to
-  `insufficient-rights`. **Do not ask for `sysadmin`.**
+- ~~**SQL permissions**~~ — **resolved 2026-08-07.** The census identity is assumed to hold
+  maximum rights on every instance. The permission stamp (§8.8.1) is still emitted, because
+  rights granted today are not rights granted in a year. **Do not ask for `sysadmin`** remains
+  the standing position for any future least-privilege pass.
+- **PARKED — per-target credentials** (raised 2026-08-07, deliberately deferred). Today the
+  orchestrator runs everything as the invoking shell's user: `machines.json` is a flat array
+  of names and `Invoke-Command` is called with no `-Credential` at all. The wanted shape is
+  already specced in §5.2 and ratified as CD-9 — `kind: "task-identity"` *is* "defaults to the
+  shell execution context user", and `kind: "clixml"` is the per-target override — so this is
+  implementing a decision, not making one. Carries with it:
+  - **Granularity.** Position: keep credential *buckets*, not per-machine entries; a bucket of
+    one gives genuine per-machine without turning twenty DPAPI files into a rotation chore.
+    Not yet ratified.
+  - **DPAPI is user- *and* machine-bound.** The census service account must create its own
+    `.cred.xml` files on the control box. Credentials created interactively by a different
+    account will fail to decrypt — unattended, at 3am. This is the most likely day-one failure.
+  - **`Test-WSMan` must take the same credential** (currently called bare), or pre-flight
+    passes and collection then fails — the worst possible ordering.
+  - **`TrustedHosts` lives on the control box.** Pre-flight *reports* a missing entry; the
+    script never edits it. Silently changing a security setting to make its own job work is
+    not behaviour this collector should have.
+  - **A stale credential must not read as "unreachable"** — §5.3's probe separates them, but
+    the diagnosis wording has to as well.
+  - **The envelope has no `context` block yet** — no `bucket`, `runAs` or `transport` (§6).
+    That is what makes a snapshot auditable, and it should land with this work.
+  - `config/creds/` must be in `.gitignore` **before** the first credential file exists.
+  - **Unverifiable in the current environment** — one machine, one account. It will ship
+    structurally correct and unexercised, like the double-hop assumption.
+
+  **Sequence ratified 2026-08-07: SQL → UX → credentials.**
 - **Per-user hive depth** — persistent mapped drives and per-user installs for *logged-off*
   users need `reg load` of `NTUSER.DAT`. Position: **loaded hives only**, gap declared in the
   envelope. `Forensic` only if ever enabled, with a guaranteed `finally` unload.
@@ -1196,4 +1320,5 @@ previous day's files are untouched.
 | **CD-8** | Windows PowerShell 5.1 floor; fallback paths recorded in the payload. |
 | **CD-9** | Credential buckets from day one; `task-identity` as the default kind. |
 | **CD-10** | The IIS payload is application-shaped, not site-shaped; pool facts are denormalized onto each application row. Scope pared to the daily-use facets (§8.6), with the cut recorded rather than dropped. |
+| **CD-12** | The `sqlserver` collector may open a connection, but only to instances whose service is running, with hard connect and command timeouts, catalog views only. Every payload carries a permission stamp, so a filtered result can never be mistaken for a complete one. |
 | **CD-11** | Dependency edges — databases and downstream URLs — are a flat, keyed collection, parse-and-drop, with hosts normalized so local aliases (`.`, `localhost`, `(localdb)`) never collapse the estate onto one fake node. Collected because mapping dependencies is the goal; the graph join itself is a reader concern. |

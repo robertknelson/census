@@ -26,6 +26,9 @@ public static class DiffEngine
                 DiffDrives(from, to),
                 DiffSqlInstances(from, to),
                 DiffIisSites(from, to),
+                DiffIisAppPools(from, to),
+                DiffIisApplications(from, to),
+                DiffIisDependencies(from, to),
                 DiffRoles(from, to),
             ],
         };
@@ -112,6 +115,9 @@ public static class DiffEngine
             });
     }
 
+    // Log *statistics* are deliberately not compared here. TotalBytes, FileCount, NewestUtc and
+    // Last24hBytes change every day by design; diffing them would bury every real finding under
+    // daily noise. Only log configuration is compared. See census-web.md 9.3.
     private static DiffSection DiffIisSites(CensusEnvelope from, CensusEnvelope to)
     {
         var fromEntries = (from.Iis?.Data?.Sites ?? []).Where(s => s.Name is not null).ToDictionary(s => s.Name!);
@@ -121,11 +127,84 @@ public static class DiffEngine
             compare: (a, b) =>
             {
                 var changes = new List<DiffFieldChange>();
-                if (a.State != b.State) changes.Add(new DiffFieldChange("state", a.State, b.State));
+                if (a.ServerAutoStart != b.ServerAutoStart) changes.Add(new DiffFieldChange("serverAutoStart", a.ServerAutoStart, b.ServerAutoStart));
+                if (a.PhysicalPath?.Expanded != b.PhysicalPath?.Expanded) changes.Add(new DiffFieldChange("physicalPath", a.PhysicalPath?.Expanded, b.PhysicalPath?.Expanded));
                 if (a.Bindings.Count != b.Bindings.Count) changes.Add(new DiffFieldChange("bindingCount", a.Bindings.Count.ToString(), b.Bindings.Count.ToString()));
+                if (a.LogFile?.Enabled != b.LogFile?.Enabled) changes.Add(new DiffFieldChange("logEnabled", a.LogFile?.Enabled, b.LogFile?.Enabled));
+                if (a.LogFile?.Directory?.Expanded != b.LogFile?.Directory?.Expanded) changes.Add(new DiffFieldChange("logDirectory", a.LogFile?.Directory?.Expanded, b.LogFile?.Directory?.Expanded));
                 return changes;
             });
     }
+
+    private static DiffSection DiffIisAppPools(CensusEnvelope from, CensusEnvelope to)
+    {
+        var fromEntries = (from.Iis?.Data?.AppPools ?? []).Where(p => p.Name is not null).ToDictionary(p => p.Name!);
+        var toEntries = (to.Iis?.Data?.AppPools ?? []).Where(p => p.Name is not null).ToDictionary(p => p.Name!);
+        return DiffKeyed("iisAppPools", fromEntries, toEntries,
+            label: p => p.Name!,
+            compare: (a, b) =>
+            {
+                var changes = new List<DiffFieldChange>();
+                if (a.ManagedRuntimeVersion != b.ManagedRuntimeVersion) changes.Add(new DiffFieldChange("managedRuntimeVersion", a.ManagedRuntimeVersion, b.ManagedRuntimeVersion));
+                if (a.ManagedPipelineMode != b.ManagedPipelineMode) changes.Add(new DiffFieldChange("managedPipelineMode", a.ManagedPipelineMode, b.ManagedPipelineMode));
+                if (a.IdentityType != b.IdentityType) changes.Add(new DiffFieldChange("identityType", a.IdentityType, b.IdentityType));
+                if (a.UserName != b.UserName) changes.Add(new DiffFieldChange("userName", a.UserName, b.UserName));
+                return changes;
+            });
+    }
+
+    private static DiffSection DiffIisApplications(CensusEnvelope from, CensusEnvelope to)
+    {
+        var fromEntries = (from.Iis?.Data?.Applications ?? []).ToDictionary(IisApplicationKey);
+        var toEntries = (to.Iis?.Data?.Applications ?? []).ToDictionary(IisApplicationKey);
+        return DiffKeyed("iisApplications", fromEntries, toEntries,
+            label: a => $"{a.SiteName}{a.Path}",
+            compare: (a, b) =>
+            {
+                var changes = new List<DiffFieldChange>();
+                if (a.ApplicationPool != b.ApplicationPool) changes.Add(new DiffFieldChange("applicationPool", a.ApplicationPool, b.ApplicationPool));
+                if (a.PhysicalPath?.Expanded != b.PhysicalPath?.Expanded) changes.Add(new DiffFieldChange("physicalPath", a.PhysicalPath?.Expanded, b.PhysicalPath?.Expanded));
+                if (a.PoolManagedRuntimeVersion != b.PoolManagedRuntimeVersion) changes.Add(new DiffFieldChange("runtimeVersion", a.PoolManagedRuntimeVersion, b.PoolManagedRuntimeVersion));
+                if (a.PoolIdentityType != b.PoolIdentityType) changes.Add(new DiffFieldChange("poolIdentityType", a.PoolIdentityType, b.PoolIdentityType));
+                if (a.PoolUserName != b.PoolUserName) changes.Add(new DiffFieldChange("poolUserName", a.PoolUserName, b.PoolUserName));
+                if (a.Runtime?.AspNetCore?.HostingModel != b.Runtime?.AspNetCore?.HostingModel) changes.Add(new DiffFieldChange("hostingModel", a.Runtime?.AspNetCore?.HostingModel, b.Runtime?.AspNetCore?.HostingModel));
+                if (a.Status != b.Status) changes.Add(new DiffFieldChange("status", a.Status, b.Status));
+                AddAuthChange(changes, "anonymousAuthentication", a.Auth?.AnonymousAuthentication, b.Auth?.AnonymousAuthentication);
+                AddAuthChange(changes, "windowsAuthentication", a.Auth?.WindowsAuthentication, b.Auth?.WindowsAuthentication);
+                return changes;
+            });
+    }
+
+    private static void AddAuthChange(List<DiffFieldChange> changes, string field, IisAuthSetting? a, IisAuthSetting? b)
+    {
+        var fromValue = a is null ? null : a.Enabled.ToString().ToLowerInvariant();
+        var toValue = b is null ? null : b.Enabled.ToString().ToLowerInvariant();
+        if (fromValue != toValue) changes.Add(new DiffFieldChange(field, fromValue, toValue));
+    }
+
+    private static DiffSection DiffIisDependencies(CensusEnvelope from, CensusEnvelope to)
+    {
+        var fromEntries = (from.Iis?.Data?.Dependencies ?? []).ToDictionary(IisDependencyKey);
+        var toEntries = (to.Iis?.Data?.Dependencies ?? []).ToDictionary(IisDependencyKey);
+        return DiffKeyed("iisDependencies", fromEntries, toEntries,
+            label: d => $"{d.SiteName}{d.AppPath} → {IisDependencyTarget(d)}",
+            compare: (a, b) => IisDependencyTarget(a) != IisDependencyTarget(b)
+                ? [new DiffFieldChange("target", IisDependencyTarget(a), IisDependencyTarget(b))]
+                : []);
+    }
+
+    private static string IisApplicationKey(IisApplication a) => $"{a.SiteName}|{a.Path}";
+
+    // Keyed on where the edge was declared, never on where it points - the target changing is
+    // precisely the change worth surfacing.
+    private static string IisDependencyKey(IisDependency d) => $"{d.SiteName}|{d.AppPath}|{d.SourceFile}|{d.Kind}|{d.Name}";
+
+    private static string IisDependencyTarget(IisDependency d) => d.Kind switch
+    {
+        "http" => $"{d.Scheme}://{d.Host}:{d.Port}{d.Path}",
+        "file" => d.FilePath ?? "",
+        _ => $"{d.Host}{(d.Instance is null ? "" : "\\" + d.Instance)}{(d.Port is null ? "" : "," + d.Port)}/{d.Database}",
+    };
 
     private static DiffSection DiffRoles(CensusEnvelope from, CensusEnvelope to)
     {

@@ -115,26 +115,191 @@ public record AppsData
     public List<AppEntry> Entries { get; init; } = [];
 }
 
+// applicationHost.config stores paths with %SystemDrive% and friends unexpanded. The pair is
+// kept so a variable that could not be expanded stays visible rather than rendering as a path
+// that does not resolve.
+public record ExpandedPath
+{
+    public string? Raw { get; init; }
+    public string? Expanded { get; init; }
+    public bool Expandable { get; init; } = true;
+}
+
 public record IisBinding
 {
     public string? Protocol { get; init; }
     public string? BindingInformation { get; init; }
+    public string? Ip { get; init; }
+    public int? Port { get; init; }
+    public string? HostHeader { get; init; }
+    public bool Parsed { get; init; }
     public string? SslFlags { get; init; }
     public string? CertificateHash { get; init; }
     public string? CertificateStoreName { get; init; }
 }
 
+public record IisLogStats
+{
+    public string? EnumerationStatus { get; init; }
+    public string? Reason { get; init; }
+    public string? ResolvedDirectory { get; init; }
+    public bool Exists { get; init; }
+    public int FileCount { get; init; }
+    public long TotalBytes { get; init; }
+    public DateTimeOffset? OldestUtc { get; init; }
+    public DateTimeOffset? NewestUtc { get; init; }
+    public long Last24hBytes { get; init; }
+    public bool Truncated { get; init; }
+    public int EnumerationCap { get; init; }
+}
+
+public record IisLogFile
+{
+    public string? Enabled { get; init; }
+    public ExpandedPath? Directory { get; init; }
+    public string? DirectorySource { get; init; }
+    public string? LogFormat { get; init; }
+    public string? Period { get; init; }
+    public string? TruncateSize { get; init; }
+    public string? LogTargetW3C { get; init; }
+    public string? CentralLogFileMode { get; init; }
+    public IisLogStats? Stats { get; init; }
+}
+
+// No State: applicationHost.config has no state attribute on <site>. Runtime state lives in
+// WAS and needs `appcmd list site`, deferred in census-collector.md 8.6.10. ServerAutoStart is
+// the config truth; the old State field was null in every payload the collector could produce.
 public record IisSite
 {
     public string? Name { get; init; }
     public string? Id { get; init; }
-    public string? State { get; init; }
+    public string? ServerAutoStart { get; init; }
+    public ExpandedPath? PhysicalPath { get; init; }
     public List<IisBinding> Bindings { get; init; } = [];
+    public IisLogFile? LogFile { get; init; }
+}
+
+public record IisAppPool
+{
+    public string? Name { get; init; }
+    public string? ManagedRuntimeVersion { get; init; }
+    public string? ManagedRuntimeVersionSource { get; init; }
+    public string? ManagedPipelineMode { get; init; }
+    public string? IdentityType { get; init; }
+    public string? IdentityTypeSource { get; init; }
+    public string? UserName { get; init; }
+}
+
+public record IisVirtualDirectory
+{
+    public string? Path { get; init; }
+    public ExpandedPath? PhysicalPath { get; init; }
+    public string? UserName { get; init; }
+    public string? LogonMethod { get; init; }
+}
+
+public record IisAspNetCore
+{
+    public string? ProcessPath { get; init; }
+    public string? Arguments { get; init; }
+    public string? HostingModel { get; init; }
+    public Dictionary<string, string?> EnvironmentVariables { get; init; } = [];
+}
+
+public record IisRuntime
+{
+    public string? PoolManagedRuntimeVersion { get; init; }
+    public IisAspNetCore? AspNetCore { get; init; }
+    public bool HasAppSettingsJson { get; init; }
+    public bool HasRuntimeConfigJson { get; init; }
+}
+
+public record IisAuthSetting
+{
+    public bool Enabled { get; init; }
+    public string? UserName { get; init; }
+    public string? Source { get; init; }
+}
+
+// Anonymous and Windows are independently enableable and commonly both on - they are never
+// collapsed into a single "auth mode".
+public record IisAuth
+{
+    public IisAuthSetting? AnonymousAuthentication { get; init; }
+    public IisAuthSetting? WindowsAuthentication { get; init; }
+    public IisAuthSetting? BasicAuthentication { get; init; }
+    public IisAuthSetting? DigestAuthentication { get; init; }
+}
+
+public record IisApplication
+{
+    public string? SiteName { get; init; }
+    public string? Path { get; init; }
+    public ExpandedPath? PhysicalPath { get; init; }
+    public string? ApplicationPool { get; init; }
+    public string? PoolManagedRuntimeVersion { get; init; }
+    public string? PoolManagedPipelineMode { get; init; }
+    public string? PoolIdentityType { get; init; }
+    public string? PoolUserName { get; init; }
+    public string? EnabledProtocols { get; init; }
+    public IisRuntime? Runtime { get; init; }
+    public IisAuth? Auth { get; init; }
+    public List<IisVirtualDirectory> VirtualDirectories { get; init; } = [];
+    public string? Status { get; init; }
+    public string? Reason { get; init; }
+}
+
+// One flat collection with a Kind discriminator rather than separate typed lists: it matches
+// the payload, keeps a single diff key, and keeps a dependency pivot a single pass.
+public record IisDependency
+{
+    public string? SiteName { get; init; }
+    public string? AppPath { get; init; }
+    public string? SourceFile { get; init; }
+    public string? Kind { get; init; }
+    public string? Name { get; init; }
+    public string? Host { get; init; }
+    public string? RawHost { get; init; }
+    public bool IsLocal { get; init; }
+    public string? Sha256 { get; init; }
+
+    // database / file edges
+    public string? Provider { get; init; }
+    public string? Instance { get; init; }
+    public int? Port { get; init; }
+    public string? Protocol { get; init; }
+    public string? FilePath { get; init; }
+    public string? Database { get; init; }
+    public string? AuthMode { get; init; }
+    public string? Encrypt { get; init; }
+    public string? TrustServerCertificate { get; init; }
+    public bool SecretsPresent { get; init; }
+    public string? ParseStatus { get; init; }
+
+    // http edges
+    public string? Scheme { get; init; }
+    public string? Path { get; init; }
+    public bool HadCredentials { get; init; }
+    public bool HadQuery { get; init; }
+}
+
+public record IisServer
+{
+    public string? VersionString { get; init; }
+    public int? MajorVersion { get; init; }
+    public string? PathWwwRoot { get; init; }
+    public string? ConfigPath { get; init; }
+    public DateTimeOffset? ConfigLastWriteUtc { get; init; }
+    public string? ConfigSha256 { get; init; }
 }
 
 public record IisData
 {
+    public IisServer? Server { get; init; }
     public List<IisSite> Sites { get; init; } = [];
+    public List<IisAppPool> AppPools { get; init; } = [];
+    public List<IisApplication> Applications { get; init; } = [];
+    public List<IisDependency> Dependencies { get; init; } = [];
 }
 
 public record CertificateEntry

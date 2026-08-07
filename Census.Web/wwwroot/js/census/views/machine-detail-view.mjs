@@ -87,6 +87,7 @@ export class MachineDetailView {
         const certs = envelope.certificates?.data?.certificates ?? [];
         const sqlInstances = envelope.sqlServer?.data?.instances ?? [];
         const iisSites = envelope.iis?.data?.sites ?? [];
+        const iisApplications = envelope.iis?.data?.applications ?? [];
 
         return `
             <h3>Snapshot — ${escapeHtml(this.toDate)}</h3>
@@ -142,8 +143,8 @@ export class MachineDetailView {
             ${iisSites.length > 0 ? `
                 <h4>IIS sites</h4>
                 <table class="census-table census-table-compact">
-                    <thead><tr><th>Site</th><th>State</th><th>Bindings</th></tr></thead>
-                    <tbody>${iisSites.map((s) => `<tr><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.state)}</td><td>${s.bindings?.length ?? 0}</td></tr>`).join('')}</tbody>
+                    <thead><tr><th>Site</th><th>Applications</th><th>Bindings</th></tr></thead>
+                    <tbody>${iisSites.map((s) => `<tr><td>${escapeHtml(s.name)}</td><td>${iisApplications.filter((a) => a.siteName === s.name).length}</td><td>${s.bindings?.length ?? 0}</td></tr>`).join('')}</tbody>
                 </table>` : ''}
 
             <details>

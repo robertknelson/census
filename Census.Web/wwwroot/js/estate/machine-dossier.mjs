@@ -50,6 +50,106 @@ function stripSdk(raw) {
     return match ? match[1] : raw;
 }
 
+function bytes(value) {
+    if (value === null || value === undefined) return '—';
+    if (value >= 1_073_741_824) return `${(value / 1_073_741_824).toFixed(1)} GB`;
+    if (value >= 1_048_576) return `${(value / 1_048_576).toFixed(0)} MB`;
+    return `${(value / 1024).toFixed(0)} KB`;
+}
+
+/// The collector emits three raw runtime signals and deliberately picks no winner
+/// (census-collector.md 8.6.5). The verdict is derived here, in one place, so it stays
+/// revisable when the rule improves.
+function runtimeBadge(app) {
+    const core = app.runtime?.aspNetCore;
+    if (core) {
+        const model = core.hostingModel ? ` ${core.hostingModel}` : '';
+        return { text: `ASP.NET Core${model}`, cls: 'est-badge-sdk' };
+    }
+    const version = app.poolManagedRuntimeVersion;
+    if (version === '') return { text: 'No Managed Code', cls: '' };
+    if (version === 'v2.0') return { text: '.NET Framework 2.0/3.5', cls: 'est-badge-warn' };
+    if (version === 'v4.0') return { text: '.NET Framework 4.x', cls: '' };
+    return { text: version || 'unknown', cls: '' };
+}
+
+function poolIdentity(app) {
+    if (app.poolIdentityType === 'SpecificUser') return escapeHtml(app.poolUserName || 'SpecificUser');
+    return escapeHtml(app.poolIdentityType || '—');
+}
+
+/// Anonymous and Windows are independently enableable and commonly both on - never collapsed
+/// into a single "auth mode". The merge source rides along as a tooltip.
+function authChips(auth) {
+    if (!auth) return '<span class="est-muted">—</span>';
+    const chips = [
+        ['anon', auth.anonymousAuthentication],
+        ['windows', auth.windowsAuthentication],
+        ['basic', auth.basicAuthentication],
+        ['digest', auth.digestAuthentication],
+    ]
+        .filter(([, setting]) => setting)
+        .map(([label, setting]) => `<span class="est-badge${setting.enabled ? '' : ' est-badge-off'}" title="from ${escapeHtml(setting.source)}">${label}${setting.enabled ? '' : ' off'}</span>`)
+        .join('');
+    return chips || '<span class="est-muted">—</span>';
+}
+
+/// An unexpandable %VAR% means the path does not resolve - show it rather than hiding it.
+function pathCell(path) {
+    if (!path) return '<span class="est-muted">—</span>';
+    if (path.expandable === false) {
+        return `<span class="est-mono est-badge-warn" title="unexpanded variable">${escapeHtml(path.raw)}</span>`;
+    }
+    return `<span class="est-mono">${escapeHtml(path.expanded || path.raw)}</span>`;
+}
+
+function bindingLine(b) {
+    const parsed = b.parsed ? `${b.ip}:${b.port}${b.hostHeader ? ' ' + b.hostHeader : ''}` : b.bindingInformation;
+    return `
+        <div class="est-binding">
+            <span class="est-mono">${escapeHtml(b.protocol)}</span>
+            <span class="est-mono">${escapeHtml(parsed)}</span>
+            ${b.certificateHash ? `<span class="est-muted">cert ${escapeHtml(b.certificateHash.slice(0, 8))}…</span>` : ''}
+        </div>`;
+}
+
+function logLine(logFile) {
+    if (!logFile) return '';
+    if (logFile.enabled === 'false') return '<div class="est-muted">Logging disabled</div>';
+    const stats = logFile.stats ?? {};
+    if (stats.enumerationStatus && stats.enumerationStatus !== 'ok') {
+        return `<div class="est-muted">Logs: ${escapeHtml(stats.enumerationStatus)}${stats.reason ? ' — ' + escapeHtml(stats.reason) : ''}</div>`;
+    }
+    if (stats.exists === false) return '<div class="est-muted">Log directory absent</div>';
+    return `<div class="est-muted">Logs: ${bytes(stats.totalBytes)} in ${stats.fileCount} files · newest ${date(stats.newestUtc)}${stats.truncated ? ' · truncated' : ''}</div>`;
+}
+
+function dependencyTarget(d) {
+    if (d.kind === 'http') return `${d.scheme}://${d.host}${d.port ? ':' + d.port : ''}${d.path ?? ''}`;
+    if (d.kind === 'file') return d.filePath ?? '—';
+    return `${d.host ?? '?'}${d.instance ? '\\' + d.instance : ''}${d.port ? ',' + d.port : ''}${d.database ? ' / ' + d.database : ''}`;
+}
+
+/// Remote edges first and local ones muted: an app calling its own box is a dependency, but
+/// it is not the one that matters for blast radius.
+function dependencyRows(dependencies) {
+    const sorted = [...dependencies].sort((a, b) => (a.isLocal === b.isLocal ? 0 : a.isLocal ? 1 : -1));
+    return sorted.map((d) => `
+        <tr class="${d.isLocal ? 'est-muted' : ''}">
+            <td>${escapeHtml(d.siteName)}${escapeHtml(d.appPath)}</td>
+            <td>${escapeHtml(d.name)}</td>
+            <td class="est-mono">${escapeHtml(dependencyTarget(d))}</td>
+            <td>
+                <span class="est-badge">${escapeHtml(d.kind)}</span>
+                ${d.isLocal ? '<span class="est-badge">local</span>' : ''}
+                ${d.secretsPresent ? '<span class="est-badge est-badge-warn" title="password present in the source config">secret</span>' : ''}
+                ${d.hadCredentials ? '<span class="est-badge est-badge-warn" title="credentials present in the URL">creds</span>' : ''}
+                ${d.hadQuery ? '<span class="est-badge est-badge-warn" title="query string dropped at collection">query</span>' : ''}
+                ${d.parseStatus === 'unrecognized' ? '<span class="est-badge est-badge-warn">unparsed</span>' : ''}
+            </td>
+        </tr>`).join('');
+}
+
 export function dossierHtml(m, envelope) {
     const identity = envelope.identity;
     const os = envelope.os;
@@ -141,19 +241,70 @@ export function dossierHtml(m, envelope) {
 
         <section>
             <h3>IIS</h3>
-            ${category(envelope.iis, (d) => (d.sites ?? []).map((site) => `
-                <div class="est-subcard">
-                    <div class="est-subcard-head">
-                        <span>${escapeHtml(site.name)}</span>
-                        <span class="est-muted">${escapeHtml(site.state)}</span>
-                    </div>
-                    ${(site.bindings ?? []).map((b) => `
-                        <div class="est-binding">
-                            <span class="est-mono">${escapeHtml(b.protocol)}</span>
-                            <span class="est-mono">${escapeHtml(b.bindingInformation)}</span>
-                            ${b.certificateHash ? `<span class="est-muted">cert ${escapeHtml(b.certificateHash.slice(0, 8))}…</span>` : ''}
-                        </div>`).join('')}
-                </div>`).join('') || '<p class="est-status">No sites.</p>')}
+            ${category(envelope.iis, (d) => {
+                const sites = d.sites ?? [];
+                const applications = d.applications ?? [];
+                const appPools = d.appPools ?? [];
+                const dependencies = d.dependencies ?? [];
+                if (sites.length === 0) return '<p class="est-status">No sites.</p>';
+
+                return `
+                ${d.server ? `<div class="est-muted est-iis-server">IIS ${escapeHtml(d.server.versionString)} · config ${dateTime(d.server.configLastWriteUtc)} · ${escapeHtml((d.server.configSha256 ?? '').slice(0, 8))}…</div>` : ''}
+
+                <h4 class="est-subhead">Applications</h4>
+                <table class="est-table">
+                    <thead><tr><th>Application</th><th>Runtime</th><th>App pool</th><th>Identity</th><th>Auth</th></tr></thead>
+                    <tbody>${applications.map((app) => {
+                        const badge = runtimeBadge(app);
+                        const env = app.runtime?.aspNetCore?.environmentVariables?.ASPNETCORE_ENVIRONMENT;
+                        return `
+                        <tr>
+                            <td>
+                                ${escapeHtml(app.siteName)}<span class="est-mono">${escapeHtml(app.path)}</span>
+                                <div class="est-app-path">${pathCell(app.physicalPath)}</div>
+                            </td>
+                            <td>
+                                <span class="est-badge ${badge.cls}">${escapeHtml(badge.text)}</span>
+                                ${env ? `<span class="est-badge est-badge-warn" title="ASPNETCORE_ENVIRONMENT">${escapeHtml(env)}</span>` : ''}
+                            </td>
+                            <td>${escapeHtml(app.applicationPool)}</td>
+                            <td class="est-mono">${poolIdentity(app)}</td>
+                            <td>${authChips(app.auth)}</td>
+                        </tr>
+                        ${app.status && app.status !== 'ok' ? `<tr><td colspan="5" class="est-catfail">${escapeHtml(app.status)}<span class="est-muted"> — ${escapeHtml(app.reason)}</span></td></tr>` : ''}`;
+                    }).join('')}</tbody>
+                </table>
+
+                <h4 class="est-subhead">Sites</h4>
+                ${sites.map((site) => `
+                    <div class="est-subcard">
+                        <div class="est-subcard-head">
+                            <span>${escapeHtml(site.name)}</span>
+                            <span class="est-muted">${site.serverAutoStart === 'false' ? 'autostart off' : ''}</span>
+                        </div>
+                        ${(site.bindings ?? []).map(bindingLine).join('')}
+                        ${logLine(site.logFile)}
+                    </div>`).join('')}
+
+                <h4 class="est-subhead">Application pools</h4>
+                <table class="est-table">
+                    <thead><tr><th>Pool</th><th>Runtime</th><th>Pipeline</th><th>Identity</th></tr></thead>
+                    <tbody>${appPools.map((p) => `
+                        <tr>
+                            <td>${escapeHtml(p.name)}</td>
+                            <td class="est-mono">${p.managedRuntimeVersion === '' ? '<span class="est-muted">No Managed Code</span>' : escapeHtml(p.managedRuntimeVersion)}</td>
+                            <td class="est-muted">${escapeHtml(p.managedPipelineMode)}</td>
+                            <td class="est-mono">${p.identityType === 'SpecificUser' ? escapeHtml(p.userName) : escapeHtml(p.identityType)}</td>
+                        </tr>`).join('')}</tbody>
+                </table>
+
+                <h4 class="est-subhead">Dependencies</h4>
+                ${dependencies.length === 0 ? '<p class="est-status">None observed.</p>' : `
+                <table class="est-table">
+                    <thead><tr><th>From</th><th>Name</th><th>Target</th><th></th></tr></thead>
+                    <tbody>${dependencyRows(dependencies)}</tbody>
+                </table>`}`;
+            })}
         </section>
 
         <section>

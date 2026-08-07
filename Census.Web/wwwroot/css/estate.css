@@ -407,6 +407,9 @@ html, body {
     border-radius: 999px;
     padding: 0.05rem 0.5rem;
     background: var(--est-paper);
+    /* A pill that wraps mid-label reads as several broken pills. */
+    white-space: nowrap;
+    display: inline-block;
 }
 
 .est-tile-sub { font-size: 0.7rem; color: var(--est-amber); font-weight: 600; }
@@ -640,6 +643,23 @@ html, body {
 .est-catfail { color: var(--est-red); font-weight: 600; }
 .est-catwarn { color: var(--est-amber); font-weight: 600; }
 
+/* The physical path rides under the application name rather than taking a sixth column -
+   the dossier panel is too narrow to carry both without scrolling sideways. */
+.est-app-path {
+    font-size: 0.72rem;
+    margin-top: 0.15rem;
+    color: var(--est-muted);
+}
+
+.est-subhead {
+    font-size: 0.72rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--est-muted);
+    margin: 1rem 0 0.4rem;
+}
+
 .est-table {
     width: 100%;
     border-collapse: collapse;
@@ -692,6 +712,22 @@ html, body {
     border-color: var(--est-blue);
     color: var(--est-blue);
     background: var(--est-blue-soft);
+}
+
+.est-badge-warn {
+    border-color: var(--est-red);
+    color: var(--est-red);
+}
+
+/* A disabled authentication method is a fact worth showing, not worth shouting. */
+.est-badge-off {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.est-iis-server {
+    font-size: 0.8rem;
+    margin-bottom: 0.6rem;
 }
 
 .est-filter {

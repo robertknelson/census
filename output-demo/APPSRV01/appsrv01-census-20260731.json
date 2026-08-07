@@ -124,38 +124,364 @@
     "iis":  {
                 "status":  "ok",
                 "data":  {
+                             "server":  {
+                                            "versionString":  "10.0.17763.1",
+                                            "majorVersion":  10,
+                                            "pathWwwRoot":  "C:\\inetpub\\wwwroot",
+                                            "configPath":  "C:\\Windows\\System32\\inetsrv\\config\\applicationHost.config",
+                                            "configLastWriteUtc":  "2026-02-03T14:55:10Z",
+                                            "configSha256":  "9c2f508361b7d1e4a9c2f508361b7d1e4a9c2f508361b7d1e4a9c2f508361b7d1"
+                                        },
                              "sites":  [
                                            {
                                                "name":  "Default Web Site",
                                                "id":  "1",
-                                               "state":  "Started",
+                                               "serverAutoStart":  "false",
+                                               "physicalPath":  {
+                                                                    "raw":  "%SystemDrive%\\inetpub\\wwwroot",
+                                                                    "expanded":  "C:\\inetpub\\wwwroot",
+                                                                    "expandable":  true
+                                                                },
                                                "bindings":  [
                                                                 {
                                                                     "protocol":  "http",
                                                                     "bindingInformation":  "*:80:",
+                                                                    "ip":  "*",
+                                                                    "port":  80,
+                                                                    "hostHeader":  "",
+                                                                    "parsed":  true,
                                                                     "sslFlags":  null,
                                                                     "certificateHash":  null,
                                                                     "certificateStoreName":  null
                                                                 }
-                                                            ]
+                                                            ],
+                                               "logFile":  {
+                                                               "enabled":  "false",
+                                                               "directory":  {
+                                                                                 "raw":  "%SystemDrive%\\inetpub\\logs\\LogFiles",
+                                                                                 "expanded":  "C:\\inetpub\\logs\\LogFiles\\W3SVC1",
+                                                                                 "expandable":  true
+                                                                             },
+                                                               "directorySource":  "siteDefaults",
+                                                               "logFormat":  "W3C",
+                                                               "period":  "Daily",
+                                                               "truncateSize":  null,
+                                                               "logTargetW3C":  "File",
+                                                               "centralLogFileMode":  "Site",
+                                                               "stats":  {
+                                                                             "enumerationStatus":  "ok",
+                                                                             "resolvedDirectory":  "C:\\inetpub\\logs\\LogFiles\\W3SVC1",
+                                                                             "exists":  false,
+                                                                             "fileCount":  0,
+                                                                             "totalBytes":  0,
+                                                                             "oldestUtc":  null,
+                                                                             "newestUtc":  null,
+                                                                             "last24hBytes":  0,
+                                                                             "truncated":  false,
+                                                                             "enumerationCap":  5000
+                                                                         }
+                                                           }
                                            },
                                            {
                                                "name":  "intranet-app",
                                                "id":  "2",
-                                               "state":  "Started",
+                                               "serverAutoStart":  "true",
+                                               "physicalPath":  {
+                                                                    "raw":  "E:\\apps\\intranet",
+                                                                    "expanded":  "E:\\apps\\intranet",
+                                                                    "expandable":  true
+                                                                },
                                                "bindings":  [
                                                                 {
-                                                                    "protocol":  "https",
-                                                                    "bindingInformation":  "*:443:intranet.corp.example.com",
-                                                                    "sslFlags":  "0",
-                                                                    "certificateHash":  "CAFEBABE00112233445566778899AABBCCDDEE",
-                                                                    "certificateStoreName":  "My"
+                                                                    "protocol":  "http",
+                                                                    "bindingInformation":  "*:8080:intranet.corp.local",
+                                                                    "ip":  "*",
+                                                                    "port":  8080,
+                                                                    "hostHeader":  "intranet.corp.local",
+                                                                    "parsed":  true,
+                                                                    "sslFlags":  null,
+                                                                    "certificateHash":  null,
+                                                                    "certificateStoreName":  null
                                                                 }
-                                                            ]
+                                                            ],
+                                               "logFile":  {
+                                                               "enabled":  "true",
+                                                               "directory":  {
+                                                                                 "raw":  "%SystemDrive%\\inetpub\\logs\\LogFiles",
+                                                                                 "expanded":  "E:\\logs\\W3SVC2",
+                                                                                 "expandable":  true
+                                                                             },
+                                                               "directorySource":  "siteDefaults",
+                                                               "logFormat":  "W3C",
+                                                               "period":  "Daily",
+                                                               "truncateSize":  null,
+                                                               "logTargetW3C":  "File",
+                                                               "centralLogFileMode":  "Site",
+                                                               "stats":  {
+                                                                             "enumerationStatus":  "ok",
+                                                                             "resolvedDirectory":  "E:\\logs\\W3SVC2",
+                                                                             "exists":  true,
+                                                                             "fileCount":  12,
+                                                                             "totalBytes":  3145728,
+                                                                             "oldestUtc":  "2026-07-20T00:02:19Z",
+                                                                             "newestUtc":  "2026-07-31T22:41:07Z",
+                                                                             "last24hBytes":  262144,
+                                                                             "truncated":  false,
+                                                                             "enumerationCap":  5000
+                                                                         }
+                                                           }
                                            }
-                                       ]
+                                       ],
+                             "appPools":  [
+                                              {
+                                                  "name":  "DefaultAppPool",
+                                                  "managedRuntimeVersion":  "v4.0",
+                                                  "managedRuntimeVersionSource":  "applicationPoolDefaults",
+                                                  "managedPipelineMode":  "Integrated",
+                                                  "identityType":  "ApplicationPoolIdentity",
+                                                  "identityTypeSource":  "pool",
+                                                  "userName":  null
+                                              },
+                                              {
+                                                  "name":  "IntranetPool",
+                                                  "managedRuntimeVersion":  "v4.0",
+                                                  "managedRuntimeVersionSource":  "pool",
+                                                  "managedPipelineMode":  "Integrated",
+                                                  "identityType":  "SpecificUser",
+                                                  "identityTypeSource":  "pool",
+                                                  "userName":  "CORP\\svc-intranet"
+                                              }
+                                          ],
+                             "applications":  [
+                                                  {
+                                                      "siteName":  "Default Web Site",
+                                                      "path":  "/",
+                                                      "physicalPath":  {
+                                                                           "raw":  "%SystemDrive%\\inetpub\\wwwroot",
+                                                                           "expanded":  "C:\\inetpub\\wwwroot",
+                                                                           "expandable":  true
+                                                                       },
+                                                      "applicationPool":  "DefaultAppPool",
+                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                      "poolManagedPipelineMode":  "Integrated",
+                                                      "poolIdentityType":  "ApplicationPoolIdentity",
+                                                      "poolUserName":  null,
+                                                      "enabledProtocols":  "http",
+                                                      "runtime":  {
+                                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                                      "aspNetCore":  null,
+                                                                      "hasAppSettingsJson":  false,
+                                                                      "hasRuntimeConfigJson":  false
+                                                                  },
+                                                      "auth":  {
+                                                                   "anonymousAuthentication":  {
+                                                                                                   "enabled":  true,
+                                                                                                   "userName":  "IUSR",
+                                                                                                   "source":  "serverDefault"
+                                                                                               },
+                                                                   "windowsAuthentication":  {
+                                                                                                 "enabled":  false,
+                                                                                                 "userName":  null,
+                                                                                                 "source":  "serverDefault"
+                                                                                             }
+                                                               },
+                                                      "virtualDirectories":  [
+                                                                                 {
+                                                                                     "path":  "/",
+                                                                                     "physicalPath":  {
+                                                                                                          "raw":  "%SystemDrive%\\inetpub\\wwwroot",
+                                                                                                          "expanded":  "C:\\inetpub\\wwwroot",
+                                                                                                          "expandable":  true
+                                                                                                      },
+                                                                                     "userName":  null,
+                                                                                     "logonMethod":  null
+                                                                                 }
+                                                                             ],
+                                                      "configFiles":  {
+                                                                          "webConfig":  {
+                                                                                            "status":  "not-present"
+                                                                                        },
+                                                                          "appSettingsJson":  {
+                                                                                                  "status":  "not-present"
+                                                                                              }
+                                                                      },
+                                                      "status":  "ok"
+                                                  },
+                                                  {
+                                                      "siteName":  "intranet-app",
+                                                      "path":  "/",
+                                                      "physicalPath":  {
+                                                                           "raw":  "E:\\apps\\intranet",
+                                                                           "expanded":  "E:\\apps\\intranet",
+                                                                           "expandable":  true
+                                                                       },
+                                                      "applicationPool":  "IntranetPool",
+                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                      "poolManagedPipelineMode":  "Integrated",
+                                                      "poolIdentityType":  "SpecificUser",
+                                                      "poolUserName":  "CORP\\svc-intranet",
+                                                      "enabledProtocols":  "http",
+                                                      "runtime":  {
+                                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                                      "aspNetCore":  null,
+                                                                      "hasAppSettingsJson":  false,
+                                                                      "hasRuntimeConfigJson":  false
+                                                                  },
+                                                      "auth":  {
+                                                                   "anonymousAuthentication":  {
+                                                                                                   "enabled":  false,
+                                                                                                   "userName":  "IUSR",
+                                                                                                   "source":  "webConfig"
+                                                                                               },
+                                                                   "windowsAuthentication":  {
+                                                                                                 "enabled":  true,
+                                                                                                 "userName":  null,
+                                                                                                 "source":  "webConfig"
+                                                                                             }
+                                                               },
+                                                      "virtualDirectories":  [
+                                                                                 {
+                                                                                     "path":  "/",
+                                                                                     "physicalPath":  {
+                                                                                                          "raw":  "E:\\apps\\intranet",
+                                                                                                          "expanded":  "E:\\apps\\intranet",
+                                                                                                          "expandable":  true
+                                                                                                      },
+                                                                                     "userName":  null,
+                                                                                     "logonMethod":  null
+                                                                                 }
+                                                                             ],
+                                                      "configFiles":  {
+                                                                          "webConfig":  {
+                                                                                            "status":  "ok",
+                                                                                            "path":  "E:\\apps\\intranet\\web.config"
+                                                                                        },
+                                                                          "appSettingsJson":  {
+                                                                                                  "status":  "not-present"
+                                                                                              }
+                                                                      },
+                                                      "status":  "ok"
+                                                  },
+                                                  {
+                                                      "siteName":  "intranet-app",
+                                                      "path":  "/uploads",
+                                                      "physicalPath":  {
+                                                                           "raw":  "%UPLOADSHARE%\\intranet",
+                                                                           "expanded":  "%UPLOADSHARE%\\intranet",
+                                                                           "expandable":  false
+                                                                       },
+                                                      "applicationPool":  "IntranetPool",
+                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                      "poolManagedPipelineMode":  "Integrated",
+                                                      "poolIdentityType":  "SpecificUser",
+                                                      "poolUserName":  "CORP\\svc-intranet",
+                                                      "enabledProtocols":  "http",
+                                                      "runtime":  {
+                                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                                      "aspNetCore":  null,
+                                                                      "hasAppSettingsJson":  false,
+                                                                      "hasRuntimeConfigJson":  false
+                                                                  },
+                                                      "auth":  {
+                                                                   "anonymousAuthentication":  {
+                                                                                                   "enabled":  false,
+                                                                                                   "userName":  "IUSR",
+                                                                                                   "source":  "webConfig"
+                                                                                               },
+                                                                   "windowsAuthentication":  {
+                                                                                                 "enabled":  true,
+                                                                                                 "userName":  null,
+                                                                                                 "source":  "webConfig"
+                                                                                             }
+                                                               },
+                                                      "virtualDirectories":  [
+                                                                                 {
+                                                                                     "path":  "/",
+                                                                                     "physicalPath":  {
+                                                                                                          "raw":  "%UPLOADSHARE%\\intranet",
+                                                                                                          "expanded":  "%UPLOADSHARE%\\intranet",
+                                                                                                          "expandable":  false
+                                                                                                      },
+                                                                                     "userName":  null,
+                                                                                     "logonMethod":  null
+                                                                                 }
+                                                                             ],
+                                                      "configFiles":  {
+                                                                          "webConfig":  {
+                                                                                            "status":  "not-present"
+                                                                                        },
+                                                                          "appSettingsJson":  {
+                                                                                                  "status":  "not-present"
+                                                                                              }
+                                                                      },
+                                                      "status":  "failed",
+                                                      "reason":  "physical path does not resolve: %UPLOADSHARE% is not defined on this machine"
+                                                  }
+                                              ],
+                             "dependencies":  [
+                                                  {
+                                                      "siteName":  "intranet-app",
+                                                      "appPath":  "/",
+                                                      "sourceFile":  "web.config",
+                                                      "kind":  "database",
+                                                      "name":  "IntranetDb",
+                                                      "host":  "SQL01",
+                                                      "rawHost":  "SQL01",
+                                                      "isLocal":  false,
+                                                      "instance":  "",
+                                                      "port":  null,
+                                                      "protocol":  null,
+                                                      "filePath":  null,
+                                                      "database":  "Intranet",
+                                                      "authMode":  "integrated",
+                                                      "provider":  "System.Data.SqlClient",
+                                                      "encrypt":  null,
+                                                      "trustServerCertificate":  null,
+                                                      "secretsPresent":  false,
+                                                      "parseStatus":  "ok",
+                                                      "sha256":  "bc1575174004cb7a76cd018b47a97b375ff133955470abff67b4d7ce7018d909"
+                                                  },
+                                                  {
+                                                      "siteName":  "intranet-app",
+                                                      "appPath":  "/",
+                                                      "sourceFile":  "web.config",
+                                                      "kind":  "file",
+                                                      "name":  "ScratchDb",
+                                                      "host":  null,
+                                                      "rawHost":  "E:\\apps\\intranet\\App_Data\\scratch.mdf",
+                                                      "isLocal":  false,
+                                                      "instance":  null,
+                                                      "port":  null,
+                                                      "protocol":  null,
+                                                      "filePath":  "E:\\apps\\intranet\\App_Data\\scratch.mdf",
+                                                      "database":  null,
+                                                      "authMode":  "integrated",
+                                                      "provider":  "System.Data.SqlClient",
+                                                      "encrypt":  null,
+                                                      "trustServerCertificate":  null,
+                                                      "secretsPresent":  false,
+                                                      "parseStatus":  "ok",
+                                                      "sha256":  "c5ad5dd6e253e5268a661aef8e2bca588d6063c7cd750c3b0ee67507c2db911b"
+                                                  },
+                                                  {
+                                                      "siteName":  "intranet-app",
+                                                      "appPath":  "/",
+                                                      "sourceFile":  "web.config",
+                                                      "kind":  "http",
+                                                      "name":  "DirectorySvc",
+                                                      "scheme":  "http",
+                                                      "host":  "appsrv01",
+                                                      "rawHost":  "appsrv01",
+                                                      "isLocal":  true,
+                                                      "port":  9001,
+                                                      "path":  "/directory",
+                                                      "hadCredentials":  false,
+                                                      "hadQuery":  false,
+                                                      "sha256":  "7f4bc4cb4e58cceebd5a1c31c7b062d643148f6351239d2161ad093d708bfff6"
+                                                  }
+                                              ]
                          },
-                "durationMs":  64
+                "durationMs":  63
             },
     "certificates":  {
                          "status":  "ok",

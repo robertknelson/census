@@ -18,6 +18,9 @@ const SECTION_TITLES = {
     drives: 'Drives',
     sqlInstances: 'SQL Server',
     iisSites: 'IIS sites',
+    iisAppPools: 'IIS app pools',
+    iisApplications: 'IIS applications',
+    iisDependencies: 'IIS dependencies',
     roles: 'Observed roles',
 };
 

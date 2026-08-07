@@ -11,6 +11,12 @@
 > `config/lifecycle.json` are reader-side inputs for the same reason and are not consulted by
 > anything below. If the reader is built later, go back to `.docs/plan.md` for that design —
 > it is not lost, just out of scope here.
+>
+> **Downstream consumer:** `.docs/features/graph-interop.md` records what census owes the
+> dependency-graph effort and what it must never do to it. Two things in this spec exist
+> because of it — the alias set (§8.1.1) and the resolution asymmetry on dependency edges
+> (§8.6.7). Neither makes census aware of that system; read GI-1 and GI-9 before changing
+> either.
 
 ---
 
@@ -302,6 +308,8 @@ Every array element carries a key that survives reordering and renaming.
 | IIS sites | `Name` | ~~SiteId~~ — renumbers |
 | IIS applications | (SiteName, Path) | |
 | IIS app pools | `Name` | |
+| IIS dependency edges | (SiteName, AppPath, SourceFile, Kind, Name) | ~~the target~~ — the target changing *is* the change you want to see |
+| Machine aliases | (Kind, Value) | ~~Value~~ alone — the same string legitimately arrives as two kinds |
 | Certificates | (Thumbprint, StoreName) | ~~Subject~~ — renewal keeps the subject |
 | SQL databases | (InstanceName, DatabaseName) | ~~database_id~~ — reused after a drop |
 | SQL database files | (InstanceName, DatabaseName, LogicalFileName) | ~~physical_name~~ |
@@ -335,6 +343,11 @@ Identity capture is `identityType` + `userName` only.
 `{ name, server, database, authMode, encrypt, trustServerCertificate }` plus a
 `secretsPresent` boolean and a SHA-256 of the normalized full string. The raw string is
 discarded at the point of collection and never reaches disk.
+
+**Downstream URLs are parse-and-drop on the same terms** (§8.6.7). Userinfo and query string
+are stripped where they are read and never written; their presence survives as
+`hadCredentials` / `hadQuery` booleans. `https://user:pass@host/` and `?api_key=…` are both
+secrets in a field nobody thinks of as a secret field.
 
 **Encrypted config sections** are recorded as "encrypted, not decrypted". Never attempt
 decryption.
@@ -415,6 +428,44 @@ SMBIOSBIOSVersion, ReleaseDate), `Win32_Processor`, `Win32_SystemEnclosure`, `Wi
   dedupe silently.** Record it; do not resolve it.
 - **RAM** *(MUST)* — see §8.10.
 - *(NICE)* TPM, Secure Boot, firmware mode.
+
+#### 8.1.1 `aliases` — every name this machine answers to *(MUST)*
+
+Added 2026-08-07. The purpose is the join described in `.docs/features/graph-interop.md` §4: a
+downstream consumer has to match this machine against a model whose node names were typed by
+people, from memory and tickets, over years. Census emits the **whole name surface** and
+**never performs the match itself** — the moment it picks the right name, it is governing a
+model it cannot see (GI-4).
+
+Each entry is `{ kind, value, source }`. The kinds are not equally trustworthy and the
+consumer needs to weight them, so the kind is part of the payload rather than flattened away:
+
+| Kind | Assembled from | Strength |
+|---|---|---|
+| `netbios` | `$env:COMPUTERNAME` | Strong — what the machine calls itself |
+| `fqdn` | `Win32_ComputerSystem` Name + Domain | Strong |
+| `machineGuid` | `HKLM\SOFTWARE\Microsoft\Cryptography` | Strong, survives rename — the consumer's mapping key |
+| `smbiosUuid`, `biosSerial` | `Win32_ComputerSystemProduct`, `Win32_BIOS` | Strong, survives rename **and** reinstall |
+| `sqlInstance` | §8.8 instance names | Strong — `HOST\INSTANCE` is very often the string in the model |
+| `bindingHostHeader` | §8.6.2 IIS bindings | Medium — frequently the name people actually use |
+| `certSan` | §8.7 certificate SANs | **Weak** — wildcard and shared certs name machines that are not this one |
+| `ipv4` | §8.13 listening addresses | Weak and volatile |
+
+Rules:
+
+- **Derived, therefore last.** It aggregates from `iis`, `certs`, `sqlserver` and `network`,
+  so it cannot be ordered among them — it is a post-pass (§9).
+- **It must record which source collectors contributed** (§6.6). An alias set assembled while
+  the IIS collector was failing is *smaller*, and that must not read as aliases having been
+  removed.
+- Diff key is **(Kind, Value)** (§6.4).
+- **`ipv4` entries are volatile** and excluded from the hashed projection (§6.3) — DHCP churns.
+  Every other kind is stable and belongs in the hash.
+- Census asserts only that these are names the machine answers to. It asserts nothing about
+  which one is correct.
+- **The duplicate-`machineGuid` rule above is now an integrity constraint, not a nicety** —
+  a consumer keys its mapping table on `machineGuid`, so a cloned-without-sysprep pair
+  collapses two machines onto one row. Keep reporting it; keep not resolving it.
 
 ### 8.2 `os` — OS and lifecycle facts *(MUST + HIGH)*
 
@@ -517,7 +568,12 @@ DNS/DHCP/ADDS, File Services, WSUS, RDS role, Failover Clustering, MSMQ, .NET 3.
 
 *(NICE)* `Get-WindowsCapability -Online` — RSAT, OpenSSH server.
 
-### 8.6 `iis` — the deep dive *(MUST, and the biggest payload)*
+### 8.6 `iis` *(MUST)*
+
+> **Scope pared and ratified 2026-08-07.** The original spec for this section was a full IIS
+> inventory. It has been cut to the facets actually consulted in daily use, plus the two edge
+> kinds needed to map dependencies later. What was cut — and why each piece can come back
+> cheaply — is recorded in §8.6.10. This is a deliberate narrowing, not a gap.
 
 **Parse `%windir%\System32\inetsrv\config\applicationHost.config` as XML directly.**
 `WebAdministration` / `IISAdministration` are **not installed on the dev box** and their
@@ -526,39 +582,301 @@ about inherited config. Fallback `appcmd list <obj> /config /xml`. Precondition:
 `HKLM\SOFTWARE\Microsoft\InetStp` exists (also yields `VersionString`, `MajorVersion`,
 `PathWWWRoot`).
 
-**Also capture `applicationHost.config`'s `LastWriteTime` + SHA-256.**
+#### 8.6.1 The payload is application-shaped, not site-shaped
 
-| Group | Fields | Pri |
+Every facet consulted in daily use — physical path, runtime, pool identity, authentication,
+what it talks to — is a property of an **application**, not a site. The v1 payload had no
+application concept at all, which made "where is X installed and what does it run as" a
+three-way join in the reader.
+
+So `applications` is the primary collection, and the pool facts are **denormalized onto each
+application row** as well as kept in `appPools`. The duplication is deliberate: one row
+answers the question. Sites keep only what is genuinely site-level — state, bindings, log
+configuration. Pools stay a separate collection because one pool serves many applications.
+
+```json
+{
+  "server":       { "versionString": "10.0", "majorVersion": 10, "pathWwwRoot": "…",
+                    "configPath": "…", "configLastWriteUtc": "…", "configSha256": "…" },
+  "sites":        [ { "name": "…", "id": 1, "state": "Started", "physicalPath": "…",
+                      "bindings": [ … ], "logFile": { … } } ],
+  "appPools":     [ { "name": "…", "managedRuntimeVersion": "v4.0",
+                      "managedPipelineMode": "Integrated",
+                      "identityType": "ApplicationPoolIdentity", "userName": null } ],
+  "applications": [ { "siteName": "…", "path": "/api", "physicalPath": "…",
+                      "applicationPool": "…", "poolManagedRuntimeVersion": "",
+                      "poolIdentityType": "SpecificUser", "poolUserName": "CORP\\svc-api",
+                      "enabledProtocols": "http",
+                      "runtime": { … }, "auth": { … },
+                      "virtualDirectories": [ … ], "status": "ok" } ],
+  "dependencies": [ { "siteName": "…", "appPath": "/api", "kind": "database", … } ]
+}
+```
+
+#### 8.6.2 Server, sites, bindings
+
+**Server** — `VersionString`, `MajorVersion`, `PathWWWRoot` from `InetStp`, plus
+`applicationHost.config`'s path, `LastWriteTime` **and SHA-256**. Both, not just the mtime: a
+file copy or a config-history restore rewrites mtime without changing content, and the hash is
+what makes "did anything change on this web server" a single field compare (§6.3).
+
+**Sites** — Name, Id, State, root physical path.
+
+> **Trap: a site's physical path is not an attribute of `<site>`.** It lives on the root
+> application's root `<virtualDirectory path="/">`. Reading `<site>` for it yields nothing.
+
+**Bindings** — keep the raw `bindingInformation` **and** parsed `ip` / `port` / `hostHeader`,
+alongside `sslFlags`, `certificateHash`, `certificateStoreName` (the last feeds the §8.7 join,
+as it already does today). The raw string stays because it is the diff-stable form; the parsed
+fields are what make "what is on port 8080 across the estate" and "where does
+`foo.corp.local` live" real queries instead of string matching in the reader.
+
+> **Trap: `bindingInformation` is not one shape.** For http/https it is `ip:port:hostHeader`
+> where `ip` is `*` for all-unassigned and `hostHeader` is frequently empty. For `net.tcp`,
+> `net.msmq` and `net.pipe` it is a completely different grammar (`808:*`). **Parse only when
+> the protocol is http or https**; leave the parsed fields null otherwise rather than
+> producing garbage.
+
+#### 8.6.3 App pools
+
+`Name`, `managedRuntimeVersion`, `managedPipelineMode`, and from `processModel`:
+`identityType` and `userName`. **Never the password** (§6.7).
+
+`managedRuntimeVersion` vocabulary — this is the field that answers "what runtime":
+
+| Value | Meaning |
+|---|---|
+| `v2.0` | .NET Framework 2.0/3.5 CLR. Out of support; a finding on sight. |
+| `v4.0` | .NET Framework 4.x CLR. |
+| `""` | **No Managed Code** — ASP.NET Core, static content, or a non-.NET handler. Not "unmanaged" in the C++ sense. |
+
+`identityType` vocabulary: `ApplicationPoolIdentity` (the default, a virtual
+`IIS AppPool\<name>` account), `NetworkService`, `LocalSystem`, `LocalService`, or
+`SpecificUser` — in which case `userName` is populated. **`SpecificUser` with a domain account
+is the row that matters**: that is a credential living in the estate with a rotation
+obligation attached.
+
+`managedPipelineMode` (Integrated / Classic) is a second attribute on an element already being
+read — included as a freebie, because Classic is the reason managed modules stop seeing static
+requests.
+
+#### 8.6.4 Applications and virtual directories
+
+Per application: `siteName`, `path`, `applicationPool`, `enabledProtocols`, `physicalPath`.
+Per virtual directory: `path`, `physicalPath`, `userName` (never the password), `logonMethod`.
+
+> **Trap: the application's physical path is not on `<application>` either.** It is on the
+> child `<virtualDirectory path="/">`. An application with extra vdirs has several children;
+> only the `/` one is the application root.
+
+> **Trap: every site has an implicit root application at path `/`.** It must be emitted as an
+> application row, or the most common case in any estate — a site with no sub-applications —
+> produces zero rows and the site looks empty.
+
+Physical paths routinely contain `%SystemDrive%` and other environment variables. **Expand
+them, and keep the raw form alongside**, so a variable that could not be expanded is visible
+rather than silently wrong.
+
+A `physicalPath` starting `\\` is a **UNC dependency** — it contributes to §8.9's
+`uncDependencies`, and under remoting its free space is a double-hop and unavailable.
+
+#### 8.6.5 Runtime marker — .NET Framework vs .NET Core
+
+> **`web.config` vs `appsettings.json` is not an either/or.** An ASP.NET Core application
+> hosted in IIS has **both** — the ASP.NET Core Module writes a `web.config` carrying the
+> `<aspNetCore>` element. Testing for file presence alone classifies every Core app as
+> Framework.
+
+Three independent signals, all recorded raw. The collector does not pick a winner (CD-5).
+
+| Signal | Source | Cost |
 |---|---|---|
-| **Server** | IIS version, config path/hash/mtime, ASP.NET registered versions, shared config enabled, Central Certificate Store config | MUST |
-| **Sites** | Name, Id, State, `serverAutoStart`, root physical path, connection limits | MUST |
-| **Bindings** | protocol, IP, port, hostHeader, sslFlags (1 = SNI, 2 = Central Cert Store), certificateHash, certificateStoreName | MUST |
-| **App pools** | Name, State, `managedRuntimeVersion` (`""` = No Managed Code ⇒ .NET Core or static), `managedPipelineMode`, `enable32BitAppOnWin64`, autoStart, startMode, queueLength | MUST |
-| **App pool `processModel`** | `identityType`, `userName` (never the password), `loadUserProfile`, `idleTimeout` + action, `maxProcesses` (> 1 = web garden), pingingEnabled, shutdownTimeLimit | MUST |
-| **App pool `recycling` / `failure`** | periodicRestart time/requests/memory/privateMemory, scheduled times, `disallowOverlappingRotation`, `logEventOnRecycle`; rapidFailProtection interval + maxCrashes | MUST |
-| **Applications & vdirs** | per app: site, path, applicationPool, `enabledProtocols` (`net.tcp`/`net.msmq` ⇒ WAS-hosted WCF), preloadEnabled, serviceAutoStart. Per vdir: path, physicalPath, userName (never the password), logonMethod | MUST |
-| **Authentication, per application** | anonymous (enabled + userName); windows (enabled + provider list/order, `useKernelMode`, `useAppPoolCredentials`, extendedProtection); basic (+ defaultLogonDomain, realm); digest; client-cert mapping (map names and cert subjects only); forms auth from web.config; per-app SSL flags; authorization rules | MUST |
-| **Modules / handlers / ISAPI** | globalModules, per-app managed modules, handler mappings, ISAPI filters, `isapiCgiRestriction`. `<aspNetCore processPath= arguments= hostingModel=>` is the definitive .NET Core marker; its `<environmentVariables>` (`ASPNETCORE_ENVIRONMENT`) is a stage signal | HIGH |
-| **URL Rewrite / ARR** | rewrite rules (name, match, conditions, action, target); `webFarms` (farm name, member servers, health-check URL, affinity), proxy enabled | HIGH |
-| **Logging** | per site: enabled, directory, format, period, custom fields. Plus derived: log directory total size, oldest file date, newest file date, last-24h byte volume | HIGH |
-| **Site content signals** | depth-limited: `.pdb` count, `*.sln`/`*.csproj` presence, `bin\Debug` paths, `App_Offline.htm`, total size, newest binary write time | HIGH |
+| `poolManagedRuntimeVersion == ""` | applicationHost.config | free |
+| `<aspNetCore processPath= arguments= hostingModel=>` present | the app's `web.config` | already open |
+| `appsettings.json` and/or `*.runtimeconfig.json` in the app root | directory probe | one stat |
 
-**`useAppPoolCredentials` + Kerberos + a domain pool identity is the classic
-double-hop/SPN configuration** — worth capturing verbatim.
+Also captured from `<aspNetCore>` when present:
 
-**`web.config` inventory** *(MUST, with care)* — presence, `LastWriteTime`, SHA-256, plus:
+- `hostingModel` — `inprocess` vs `outofprocess`.
+- `processPath` — `dotnet` means framework-dependent; a bare `.exe` means self-contained.
+- `<environmentVariables>` — **`ASPNETCORE_ENVIRONMENT` is a stage signal**, and a production
+  site running as `Development` is a finding in its own right (it turns on the developer
+  exception page).
 
-- **connectionStrings** — parsed per §6.7.
-- **`machineKey`** — presence and a hash only, never the values.
-- **`sessionState`** mode (InProc / StateServer / SQLServer + its connection string).
-- **`compilation debug="true"`** and **`customErrors mode="Off"`**.
-- `targetFramework`, `httpRuntime` limits, trust level.
-- `system.serviceModel` services, endpoints, client endpoints; any `http(s)://` URL in
-  appSettings.
-- `appSettings` **keys only** by default; values are `Deep` and sensitive.
+The verdict is rendered by the reader. Frozen into the payload it would be un-revisable when
+the classification rule improves.
 
-Also `netsh http show sslcert` and `netsh http show urlacl` *(HIGH)* and `appcmd list wp`
-*(HIGH)* — running w3wp PIDs per pool.
+#### 8.6.6 Authentication — two sources, merged, with the winner recorded
+
+`anonymousAuthentication` (enabled, `userName`) and `windowsAuthentication` (enabled) per
+application. Basic and digest are recorded when present, since they are the same element read.
+
+> **Trap: `windowsAuthentication` is a locked section by default.** When it is set through IIS
+> Manager, IIS writes it into `applicationHost.config` under `<location path="Site/App">` —
+> **not** into the application's `web.config`. Estates that have unlocked the section put it in
+> `web.config` instead. Reading only one source silently reports the wrong answer for half the
+> applications.
+
+Merge in IIS's own order: server defaults under
+`<system.webServer><security><authentication>` → `<location path="…">` overrides in
+`applicationHost.config`, longest matching path wins → the application's own `web.config`
+where the section is unlocked. Each authentication field carries a `source`
+(`serverDefault` / `location` / `webConfig`) per §6.6, so configuration merely **moving
+between files** does not read as a state change in the diff.
+
+Anonymous enabled **and** Windows enabled simultaneously is legal and common — anonymous wins
+unless authorization rules deny. Record both; **never collapse them into a single "auth
+mode"**, which is exactly the kind of lossy classification CD-5 forbids.
+
+#### 8.6.7 Dependency edges — databases and downstream URLs
+
+The purpose of collecting these is to build a dependency map later, so they are emitted as a
+**flat `dependencies` collection keyed to (site, application)** rather than nested inside each
+config file's payload. A graph builder then consumes one array, and a diff has one stable key.
+
+| Source | Yields |
+|---|---|
+| `connectionStrings` in `web.config` (with `providerName`) | `database` edges |
+| `ConnectionStrings` section in `appsettings.json` | `database` edges |
+| `appSettings` **values that parse as an absolute http(s) URL** | `http` edges |
+| any string value in `appsettings.json` parsing as an absolute http(s) URL, at any depth | `http` edges |
+| `system.serviceModel/client/endpoint@address` | `http` edges (WCF clients) |
+
+**A deliberate carve-out from the "appSettings keys only" rule.** URL-shaped values are
+captured because they *are* the dependency map; every other appSettings value stays keys-only
+and `Deep`. A value is captured only if it parses as an absolute `http`/`https` URI.
+
+**Both edge kinds are parse-and-drop (§6.7). The raw string is discarded at the point of
+collection and never reaches disk.**
+
+##### Database edges
+
+`{ name, provider, host, instance, port, database, authMode, encrypt,
+trustServerCertificate, isLocal, secretsPresent, sha256 }`.
+
+- **Every name is captured, including `DefaultConnection`.** Filtering at collection time is
+  irreversible, and a real `DefaultConnection` pointing at a production database is precisely
+  the finding worth having. Suppress it in the reader if it is noise there.
+- **Server-value normalization is what makes the graph work.** `.`, `(local)`, `localhost`,
+  `127.0.0.1` and `(localdb)\…` all mean *this machine* — resolve them to the collecting
+  machine's name and set `isLocal`, **or every local reference across the estate collapses
+  onto one fake shared node.** `SQLPROD01\INST` splits into host + instance.
+  `tcp:sql.corp.local,1433` splits into protocol + host + port.
+- `AttachDbFilename` or a bare `.mdf` path is a **file** edge, not a server edge. A LocalDB
+  attachment is not a dependency on a database server.
+- Non-SQL providers (Oracle, MySQL, PostgreSQL, an ODBC DSN) get `provider` recorded and
+  best-effort host extraction. Where the shape is not understood, emit `host: null` with
+  `parseStatus: "unrecognized"` rather than guessing — unknown is never absent (§6.2).
+
+##### HTTP edges
+
+`{ scheme, host, port, path, source, key, isLocal, hadCredentials, hadQuery, sha256 }`.
+
+- **Strip userinfo and the query string.** Both `https://user:pass@host/` and `?api_key=…`
+  carry secrets. Record `hadCredentials` / `hadQuery` as booleans so the *fact* survives
+  without the value.
+- **Trap: XML namespace and schema URIs will flood the graph.**
+  `http://schemas.xmlsoap.org/…`, `http://www.w3.org/…`, `http://schemas.microsoft.com/…` and
+  `http://tempuri.org/` appear throughout every `web.config`. Scan **only** the element sets
+  named in the table above — never attribute values generally, and never `xmlns` — and apply a
+  well-known-schema host denylist on top of that.
+- `localhost` / `127.0.0.1` URLs are self-edges. Normalize them the same way as database hosts
+  and flag them; **do not discard them.** A site calling a service on its own box is still a
+  dependency, just a local one.
+- Joining an edge's host back to IIS bindings elsewhere in the estate is what turns these rows
+  into a graph — and that join is a reader concern, not the collector's.
+
+##### Resolution asymmetry — the source is resolved, the target is a claim
+
+Census is standing on the source machine, so it resolves the source strongly: this machine,
+this site, this application. **The target is a string read out of a config file and
+normalized. Nothing more.** State it in the payload; do not let a consumer infer symmetry that
+is not there. See `.docs/features/graph-interop.md` §6.
+
+- **Unresolved targets are first class and are never dropped.** A connection string pointing at
+  `SQLPROD07` is a valid and valuable edge even when census has no access to `SQLPROD07` and
+  never will. A downstream model very likely holds that node from manual entry — supplying
+  that edge is the contribution census is making.
+- **No DNS resolution and no reachability probe on an edge target, ever.** It is network I/O
+  per edge, it can hang, and split-horizon DNS means the answer depends on *where* you resolve
+  from — which is the consumer's context, not the collector's. Recorded as a decision so it is
+  not added later as an improvement.
+- **The normalization algorithm is part of the collector's `version` contract** (§6.5).
+  Changing how a host string is normalized changes every edge key derived from it, which
+  churns matching in a consumer census does not control. That is a version bump, not a patch.
+
+#### 8.6.8 Log directories
+
+Configuration from `<site><logFile>`, falling back to `<siteDefaults><logFile>`: `enabled`,
+`directory`, `logFormat`, `period`, `truncateSize`, `logTargetW3C`.
+
+> **Trap: `directory` is stored with `%SystemDrive%` unexpanded.** Expand it; keep the raw.
+
+> **Trap: central logging overrides all of it.** `<log centralLogFileMode="CentralW3C">` (or
+> `CentralBinary`) at server level means the per-site directories are inert and every site
+> writes to one shared file. Capture `centralLogFileMode` and the central file's directory,
+> and when the mode is not `Site`, mark the per-site log stats `not-applicable` rather than
+> reporting paths nothing is writing to.
+
+The resolved directory is `<expanded directory>\W3SVC<siteId>`. Derived per site:
+
+| Field | Why it earns its place |
+|---|---|
+| `exists` | Logging enabled but the directory missing is a misconfiguration |
+| `fileCount`, `totalBytes` | The disk-filling site. Joins against §8.9 drives: "logs are on C: and C: is at 4% free" |
+| `oldestUtc`, `newestUtc` | A `newestUtc` weeks old on a "production" site means nobody is using it |
+| `last24hBytes` | A free traffic proxy |
+| `enumerationStatus`, `truncated` | See below |
+
+Rules:
+
+- **Metadata only.** `Length` and `LastWriteTime` off the directory enumeration. **No log file
+  is ever opened or read.**
+- **Bounded.** Cap the enumeration and set `truncated: true` when the cap is hit, rather than
+  walking 26,000 files on an hourly-rotation site. **A silent cap would read as a shrinking log
+  directory in the diff** — the flag is what prevents that (§6.6).
+- **All of the derived fields are volatile** (§6.3) — `totalBytes`, `newestUtc`,
+  `last24hBytes` and `fileCount` change every day by design, and must be excluded from the
+  hashed projection. The *configuration* fields are not volatile and stay in the hash.
+- A log directory on a UNC path is a double-hop under remoting:
+  `enumerationStatus: "unavailable", reason: "double-hop"`, and the path contributes a UNC
+  dependency edge (§8.9).
+
+**This is the only new I/O in the pared scope beyond config-file reads** — one directory
+enumeration per site.
+
+#### 8.6.9 Error isolation is now mandatory, not optional
+
+v1 read a single file, so one category-level `try/catch` was sufficient. The pared scope reads
+**one `web.config` and one `appsettings.json` per application**, any of which can be missing,
+malformed, or ACL'd. As written today a single throw takes the whole IIS category to `failed`
+and loses every site that parsed fine.
+
+- Per-application `try/catch`. Each application row carries its own `status` + `reason` from
+  the §6.2 vocabulary.
+- Category-level `failed` is reserved for **"could not read `applicationHost.config`"** — the
+  one genuinely all-or-nothing failure.
+- **A missing `web.config` is `not-present`, not `failed`.** A static site legitimately has
+  none; that is a positive finding.
+
+#### 8.6.10 Deliberately deferred
+
+Cut from the original scope. All still valid, none scheduled — recorded here so the cut reads
+as a decision rather than an oversight.
+
+| Deferred | Note |
+|---|---|
+| `compilation debug="true"`, `customErrors mode="Off"` | **Cheapest remaining add** — the `web.config` is already open and parsed. Two XPath reads. |
+| App pool `recycling` / `failure`, `idleTimeout`, `maxProcesses`, `queueLength`, `enable32BitAppOnWin64` | Free from the XML pass whenever wanted |
+| Modules, handlers, ISAPI filters, `isapiCgiRestriction` | |
+| URL Rewrite rules and ARR `webFarms` | **Also a dependency-edge source** — a rewrite or proxy target is a downstream edge exactly like an appSettings URL. The natural next increment for §8.6.7. |
+| Site content signals — `.pdb` count, `*.sln`, `bin\Debug`, `App_Offline.htm` | A disk walk; needs a time budget |
+| `machineKey`, `sessionState`, `targetFramework`, `httpRuntime` limits, trust level | |
+| `appcmd list wp` (running w3wp per pool), `netsh http show urlacl` | Configured ≠ running |
+| Shared configuration, Central Certificate Store | |
+| `useAppPoolCredentials`, `extendedProtection`, Windows provider order | The classic Kerberos double-hop / SPN tell; capture verbatim if authentication work goes deeper |
+
+`netsh http show sslcert` is **not** deferred — §8.7 already collects it.
 
 ### 8.7 `certs` — the whole machine store *(HIGH)*
 
@@ -803,6 +1121,11 @@ cleanly.
 *Verify:* every collector tested on both a box that has the subject and a box that lacks it.
 The dev box has neither IIS nor SQL Server, so it is the natural fixture for both.
 
+**Then `aliases` (§8.1.1) as a post-pass**, after all of them — it aggregates from `iis`,
+`certs`, `sqlserver` and `network`, so it cannot be ordered among them. *Verify:* with `iis`
+deliberately failed, the alias set is smaller **and** records which sources contributed,
+rather than silently shrinking.
+
 **Slice 4 — scheduled job.** Register the daily task; let it run unattended overnight.
 *Verify:* next morning there is one new file per reachable machine, a run manifest, and the
 previous day's files are untouched.
@@ -836,8 +1159,26 @@ previous day's files are untouched.
 - **Per-user hive depth** — persistent mapped drives and per-user installs for *logged-off*
   users need `reg load` of `NTUSER.DAT`. Position: **loaded hives only**, gap declared in the
   envelope. `Forensic` only if ever enabled, with a guaranteed `finally` unload.
-- **Connection strings** — the position above is parse-and-drop. If any capture at all is
-  unacceptable, say so and the `iis` collector drops `web.config` parsing entirely.
+- ~~**Connection strings**~~ — **resolved 2026-08-07.** Parse-and-drop ratified (§6.7), and
+  extended to downstream http(s) URLs on the same terms. Both are collected as dependency
+  edges (§8.6.7) because mapping application dependencies is the reason they are wanted at
+  all. `DefaultConnection` is **not** filtered at collection — suppression is a reader
+  concern, because filtering here is irreversible.
+- **Log enumeration cap** — §8.6.8 bounds the per-site log directory walk and flags
+  `truncated`, but the cap itself is unset. Needs one real site with a large log directory to
+  pick a number against. Position: high enough that it never fires on daily rotation.
+- **Binding host → estate join** — §8.6.7 http edges are matched to IIS bindings by host name
+  by the reader. Whether that join should also resolve DNS (CNAMEs, load-balancer VIPs, and
+  split-horizon all break naive name matching) is a reader decision, not a collector one, but
+  it determines whether the collector should also capture a resolved address per binding.
+- **ARR / URL Rewrite as an edge source** — deferred in §8.6.10, but a proxy target is a
+  downstream dependency exactly like an appSettings URL. Revisit once the first dependency map
+  is rendered and the gaps in it are visible.
+- **Export endpoint** — `.docs/features/graph-interop.md` §5 commits `Census.Web` to a
+  versioned read-only export so no consumer binds to the output file tree. That is a web-side
+  work item, not a collector one, and is not yet reflected in
+  `.docs/features/census-web.md`. Its open items (transport, authentication, cadence, whether
+  the consumer wants raw envelopes or a projection) live in graph-interop §10.
 
 ---
 
@@ -854,3 +1195,5 @@ previous day's files are untouched.
 | **CD-7** | `Win32_Product` banned outright; no writes on target machines. |
 | **CD-8** | Windows PowerShell 5.1 floor; fallback paths recorded in the payload. |
 | **CD-9** | Credential buckets from day one; `task-identity` as the default kind. |
+| **CD-10** | The IIS payload is application-shaped, not site-shaped; pool facts are denormalized onto each application row. Scope pared to the daily-use facets (§8.6), with the cut recorded rather than dropped. |
+| **CD-11** | Dependency edges — databases and downstream URLs — are a flat, keyed collection, parse-and-drop, with hosts normalized so local aliases (`.`, `localhost`, `(localdb)`) never collapse the estate onto one fake node. Collected because mapping dependencies is the goal; the graph join itself is a reader concern. |

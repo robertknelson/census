@@ -181,7 +181,7 @@ reordering must never register as a change:
 | `certificates.certificates` | `thumbprint` | added / removed. **Renewal shows as remove+add**, not a single "renewed" event, unless a same-`subject` heuristic is added later (§8) |
 | `drives.drives` | `driveLetter` | `percentFree` delta, `healthStatus` changed |
 | `sqlserver.instances` | `instanceName` | any field changed |
-| `iis.sites` | `name` | `state` changed, binding list changed |
+| `iis.sites` | `name` | binding list changed, `serverAutoStart` changed, root physical path changed. **Superseded 2026-08-07 — see §9.3**, which drops `state` and adds three IIS collections |
 | `os` | n/a (scalar) | `currentBuild`/`ubr` changed (patched), `pendingReboot` toggled |
 | `roles` | set | added / removed |
 
@@ -214,6 +214,159 @@ write endpoint is as open as the rest of the app.
   ratified.
 - **Certificate renewal detection** — same-`subject`-new-`thumbprint` heuristic, or accept
   remove+add as the diff representation.
+
+---
+
+## 9. IIS payload v2 — reader sync (W0 + W1)
+
+> **Ratified 2026-08-07.** The collector's IIS payload was rewritten
+> (`.docs/features/census-collector.md` §8.6): application-shaped, with app pools, runtime
+> markers, authentication, dependency edges and log directories. This section is what the
+> **reader** does with it. Scope is deliberately W0 + W1; W2 and W3 are named in §9.7 and are
+> not in this slice.
+
+### 9.1 Why this is not optional
+
+`System.Text.Json` silently ignores unmapped properties, so an unchanged reader does not
+break — it goes quiet. The collector gets five times richer and the UI renders identically.
+That failure mode is worse than a crash, because nothing announces it.
+
+Four consumers assume the old three-field shape: `CensusEnvelope.cs` (`IisData`/`IisSite`/
+`IisBinding`), `DiffEngine.DiffIisSites`, `machine-dossier.mjs`, `machine-detail-view.mjs`.
+
+### 9.2 Model — `Models/Census/CensusEnvelope.cs`
+
+| Record | Carries |
+|---|---|
+| `IisData` | `Server`, `Sites`, `AppPools`, `Applications`, `Dependencies` |
+| `IisServer` | version, config path, `ConfigLastWriteUtc`, `ConfigSha256` |
+| `IisSite` | `Name`, `Id`, `ServerAutoStart`, `PhysicalPath`, `Bindings`, `LogFile` |
+| `IisBinding` | existing five fields **plus** parsed `Ip`, `Port`, `HostHeader`, `Parsed` |
+| `IisAppPool` | runtime version + source, pipeline mode, identity type + source, user name |
+| `IisApplication` | site, path, physical path, pool + denormalized pool facts, `Runtime`, `Auth`, `VirtualDirectories`, `Status`, `Reason` |
+| `IisVirtualDirectory` | path, physical path, user name, logon method |
+| `IisRuntime` | pool runtime version, `AspNetCore`, `HasAppSettingsJson`, `HasRuntimeConfigJson` |
+| `IisAspNetCore` | process path, arguments, hosting model, environment variables |
+| `IisAuthSetting` | `Enabled`, `UserName`, `Source` — one per auth type |
+| `IisLogFile` | config fields + `Stats` |
+| `IisDependency` | flat edge: keys, `Kind`, plus both database and http fields |
+| `ExpandedPath` | `Raw`, `Expanded`, `Expandable` |
+
+Decisions:
+
+- **`State` is dropped, not sourced.** `applicationHost.config` has no `state` attribute on
+  `<site>` — runtime state lives in WAS and needs `appcmd list site`, deferred in collector
+  §8.6.10. The field has been null in every real payload the collector could ever have
+  produced; only the hand-written demo files ever carried a value. **Never fabricate it.**
+- **`ExpandedPath` is one record used four ways** (site root, application root, virtual
+  directory, log directory). The `Raw`/`Expanded` pair exists so an unexpandable variable
+  stays visible; flattening it to a string would throw that away.
+- **`Dependencies` is one flat list with a `Kind` discriminator**, not separate typed
+  collections. It matches the payload, keeps one diff key, and keeps the W2 pivot a single
+  pass.
+- Everything nullable, every collection defaulted. A category can be `not-present` or
+  `failed`, and §6.1 of the collector spec is binding on this reader: **read
+  `collectors.X.status` before touching `data`.**
+
+### 9.3 Diff — `Services/DiffEngine.cs`
+
+Supersedes the `iis.sites` row in §5.
+
+| Section | Key | Compared |
+|---|---|---|
+| `iisSites` | `Name` | binding count, `ServerAutoStart`, root physical path. **`State` comparison removed** — it can never fire |
+| `iisAppPools` | `Name` | `ManagedRuntimeVersion`, `ManagedPipelineMode`, `IdentityType`, `UserName` |
+| `iisApplications` | (`SiteName`, `Path`) | pool, physical path, runtime marker, auth enabled-state per type |
+| `iisDependencies` | (`SiteName`, `AppPath`, `SourceFile`, `Kind`, `Name`) | the resolved target — host / instance / port / database, or scheme / host / port / path |
+
+> **Log statistics must not be diffed.** `TotalBytes`, `FileCount`, `NewestUtc` and
+> `Last24hBytes` change every single day by design. Diffing them turns the changes feed into
+> noise and buries the real findings. Only log *configuration* — enabled, directory, format,
+> period — is compared. This is the volatile-field rule (collector §6.3) applied at the reader.
+
+Section labels are duplicated in `changes-feed.mjs` and `machine-history.mjs`; both get the
+four new keys.
+
+### 9.4 Dossier — `wwwroot/js/estate/machine-dossier.mjs`
+
+The IIS section becomes five blocks, in this order — most-asked first:
+
+1. **Server** — IIS version, config last-write, short config hash.
+2. **Applications** — the primary table: site, virtual path, runtime badge, pool + identity,
+   auth, physical path. This is the block that answers the daily question.
+3. **Sites** — bindings (protocol, ip:port, host header, cert chip) and the log line.
+4. **App pools** — name, runtime, pipeline mode, identity.
+5. **Dependencies** — grouped by kind, remote before local.
+
+Rendering rules, stated here because the collector deliberately does not decide them:
+
+- **The runtime badge is a reader derivation** (collector §8.6.5 emits three raw signals and
+  picks no winner). The rule lives in one function so it stays revisable:
+  `aspNetCore` present → `Core` + hosting model; else `managedRuntimeVersion == ""` →
+  `No Managed Code`; `v2.0` → `.NET Framework 2.0/3.5`, flagged; `v4.0` →
+  `.NET Framework 4.x`.
+- **Authentication is never collapsed to a single mode.** Anonymous and Windows are
+  independently enableable and commonly both on. Render a chip per type; the merge `source`
+  (`serverDefault` / `location` / `webConfig`) belongs in a tooltip, not the main line.
+- **Remote dependency edges outrank local ones.** `isLocal` edges are rendered muted — an app
+  talking to its own box is a dependency, but it is not the one that matters for blast radius.
+- **`secretsPresent` renders as a warning chip and never a value.** Same for `hadCredentials`
+  / `hadQuery` on http edges.
+- **An application whose `status` is not `ok` renders its `reason` inline**, never as a blank
+  row. Unknown is never absent.
+- **`Expandable == false` is shown**, not silently hidden — an unexpanded `%VAR%` in a
+  physical path means the reader is looking at a path that does not resolve.
+
+### 9.5 v1 view — `wwwroot/js/census/views/machine-detail-view.mjs`
+
+Minimal change only: drop the dead `state` column, add an application count. v1 is not being
+re-imagined (v2-UX §1); it merely must not display a column that can never have data.
+
+### 9.6 Demo data — `output-demo/`
+
+**Fabricated, and permanently so** (ratified 2026-08-07): no real IIS run is reachable from
+this environment and none can be imported. The existing files assert `state: "Started"`, which
+the collector cannot produce — that is the specific lie being retired.
+
+Regenerated by hand on `WEB01` and `APPSRV01` (the two IIS boxes; the others keep
+`not-present`). The fabricated set must cover every branch the views have to render, or W1
+gets built blind:
+
+- a .NET Framework `v4.0` application and a `v2.0` legacy pool
+- an ASP.NET Core application, `hostingModel` in-process, with `ASPNETCORE_ENVIRONMENT`
+- a `SpecificUser` pool identity with a domain account
+- Windows auth arriving from `location` on one app and from `webConfig` on another
+- a UNC virtual directory
+- a static site with **no** `web.config` — `not-present`, status still `ok`
+- database edges both local (`.`/`(local)`) and remote, one with `secretsPresent`
+- an http edge, and one with `hadCredentials`/`hadQuery`
+- a site with logging disabled, and one whose `newestUtc` is stale
+
+> **`WEB01` has two snapshots (2026-07-30 and -31) and they must differ in at least one
+> diffable IIS field**, or the changes feed and history view have nothing to render and the
+> new diff sections ship unverified.
+
+### 9.7 Deliberately not in this slice
+
+- **W2 — the pivots.** "Where is application X hosted?" and "What depends on database Y?",
+  derived from `software-panel.mjs`'s existing shape. The second is the blast-radius question
+  in miniature and is the same projection graph-interop §5 will export — built as a view
+  first, extracted later, not speculated now.
+- **W3 — findings.** `ASPNETCORE_ENVIRONMENT=Development` in prod, `v2.0` pools,
+  `SpecificUser` domain identities as a credential inventory, `secretsPresent` connection
+  strings, log directories on the OS drive. Entangled with **stage-aware severity**, already
+  parked in v2-UX §7.
+- **The export endpoint** (graph-interop §5).
+
+### 9.8 Decisions
+
+| | Decision |
+|---|---|
+| **W-1** | `IisSite.State` dropped, never fabricated; `ServerAutoStart` is the config truth. |
+| **W-2** | The dossier's IIS section is application-first, mirroring the payload shape. |
+| **W-3** | The runtime badge is a reader derivation in one function, because the collector deliberately emits raw signals and picks no winner. |
+| **W-4** | Log statistics are excluded from diffing as volatile; log configuration is diffed. |
+| **W-5** | `output-demo/` is fabricated permanently, and must cover every render branch. |
 - **`dotnet.frameworkReleaseId` blacklist matching** — deferred; needs a release-id → version
   table if it turns out to matter.
 - **Version-string parse failures** — confirm "flag for manual review" (§4.2) is the right

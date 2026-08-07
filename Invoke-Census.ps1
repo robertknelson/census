@@ -1356,10 +1356,23 @@ ORDER BY database_id, file_id
                           -CertificatesResult $certificatesResult -SqlServerResult $sqlServerResult
     }
 
+    # Which identity observed this, over what transport - it is what makes a snapshot
+    # auditable (spec 5.2.2). runAs is an identity, never a secret; no credential material of
+    # any kind appears here. `transport` and `bucket` are added by the orchestrator, which is
+    # the only side that knows them.
+    $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $context = [ordered]@{
+        psVersion = $PSVersionTable.PSVersion.ToString()
+        runAs     = $identity.Name
+        elevated  = (New-Object System.Security.Principal.WindowsPrincipal($identity)).IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
+        is64Bit   = [System.Environment]::Is64BitProcess
+    }
+
     $census = [ordered]@{
         schemaVersion = 1
         computerName  = $env:COMPUTERNAME
         collectedUtc  = (Get-Date).ToUniversalTime().ToString('o')
+        context       = $context
         identity      = $identityResult
         memory        = Invoke-CensusCategory { Get-CensusMemory }
         os            = Invoke-CensusCategory { Get-CensusOs }
@@ -1381,7 +1394,116 @@ ORDER BY database_id, file_id
 if (-not (Test-Path $MachinesPath)) {
     throw "Machine list not found: $MachinesPath"
 }
-$machines = @((Get-Content $MachinesPath -Raw | ConvertFrom-Json).machines)
+$machinesConfig = Get-Content $MachinesPath -Raw | ConvertFrom-Json
+$machines = @($machinesConfig.machines)
+
+$bucketsById = @{}
+foreach ($bucket in @($machinesConfig.buckets)) { $bucketsById[$bucket.id] = $bucket }
+
+# Resolved once per bucket, not once per machine: a DPAPI file is read a single time.
+$credentialCache = @{}
+
+function Resolve-CensusCredential {
+    <#
+        Returns @{ status = 'ok'|'config-error'|'credential-error'; credential = <PSCredential|$null>; reason = <string> }.
+        'task-identity' resolves to NO credential rather than an empty one, so the call runs as
+        the invoking shell exactly as it did before buckets existed.
+    #>
+    param([string]$BucketId)
+
+    if ($credentialCache.ContainsKey($BucketId)) { return $credentialCache[$BucketId] }
+
+    $result = $null
+    if (-not $BucketId) {
+        $result = @{ status = 'config-error'; credential = $null; reason = 'machine names no bucket; a bucket is required, there is no default' }
+    }
+    elseif (-not $bucketsById.ContainsKey($BucketId)) {
+        $result = @{ status = 'config-error'; credential = $null; reason = "bucket '$BucketId' is not defined in $MachinesPath" }
+    }
+    else {
+        $kind = $bucketsById[$BucketId].credential.kind
+        switch ($kind) {
+            'task-identity' {
+                $result = @{ status = 'ok'; credential = $null; reason = $null }
+            }
+            'clixml' {
+                $path = $bucketsById[$BucketId].credential.path
+                if (-not [System.IO.Path]::IsPathRooted($path)) { $path = Join-Path $scriptRoot $path }
+                if (-not (Test-Path $path)) {
+                    $result = @{ status = 'credential-error'; credential = $null; reason = "credential file not found: $path" }
+                }
+                else {
+                    try {
+                        $result = @{ status = 'ok'; credential = (Import-CliXml -Path $path); reason = $null }
+                    }
+                    catch {
+                        # DPAPI is user- AND machine-bound. This is the expected failure when the
+                        # file was created by a different account than the one running the task.
+                        $result = @{
+                            status = 'credential-error'; credential = $null
+                            reason = "could not decrypt $path as $([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) - DPAPI credentials are user- and machine-bound, so the account running this script must be the account that created the file. ($($_.Exception.Message))"
+                        }
+                    }
+                }
+            }
+            default {
+                $result = @{ status = 'config-error'; credential = $null; reason = "unknown credential kind '$kind' for bucket '$BucketId'" }
+            }
+        }
+    }
+
+    $credentialCache[$BucketId] = $result
+    return $result
+}
+
+function Get-CensusTrustedHostsReport {
+    <#
+        Reports which declared trustedHosts entries are missing on the control box. It never
+        writes the setting - silently changing a security setting to make this script's own
+        job succeed is not behaviour it may have.
+    #>
+    $declared = @()
+    foreach ($bucket in @($machinesConfig.buckets)) {
+        foreach ($entry in @($bucket.trustedHosts)) {
+            if ($entry) { $declared += [PSCustomObject]@{ Bucket = $bucket.id; Host = $entry } }
+        }
+    }
+    if ($declared.Count -eq 0) { return @{} }
+
+    try {
+        $current = (Get-Item WSMan:\localhost\Client\TrustedHosts -ErrorAction Stop).Value
+    }
+    catch {
+        Write-Warning "TrustedHosts could not be read ($($_.Exception.Message)); NTLM fallback cannot be verified."
+        $report = @{}
+        foreach ($item in $declared) { $report[$item.Host] = 'unknown' }
+        return $report
+    }
+
+    $currentList = @($current -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    $report = @{}
+    foreach ($item in $declared) {
+        if ($currentList -contains '*' -or $currentList -contains $item.Host) { $report[$item.Host] = 'present' }
+        else {
+            $report[$item.Host] = 'missing'
+            Write-Warning "TrustedHosts is missing '$($item.Host)' (bucket '$($item.Bucket)'); NTLM fallback to that machine will fail. Add it on this control box - this script will not."
+        }
+    }
+    return $report
+}
+
+function Get-CensusFailureOutcome {
+    # 'unreachable' and 'wrong credential' have completely different remediations and must
+    # never share a label: a rotated service-account password otherwise reads as a network
+    # problem. See census-collector.md 5.2.1.
+    param([string]$Message)
+    if ($Message -match 'Access is denied|AccessDenied|user name or password is incorrect|logon failure|5 \(0x80070005\)') {
+        return 'access-denied'
+    }
+    return 'unreachable'
+}
+
+$trustedHostsReport = Get-CensusTrustedHostsReport
 
 if (-not (Test-Path $CensusRoot)) {
     New-Item -ItemType Directory -Path $CensusRoot -Force | Out-Null
@@ -1400,8 +1522,10 @@ if (Test-Path $runLogPath) {
 
 $dateStamp = (Get-Date).ToUniversalTime().ToString('yyyyMMdd')
 
-foreach ($machineName in $machines) {
-    Write-Verbose "Collecting $machineName"
+foreach ($machine in $machines) {
+    $machineName = $machine.name
+    $bucketId    = $machine.bucket
+    Write-Verbose "Collecting $machineName (bucket $bucketId)"
 
     $startedUtc = (Get-Date).ToUniversalTime()
     $stopwatch  = [System.Diagnostics.Stopwatch]::StartNew()
@@ -1409,17 +1533,34 @@ foreach ($machineName in $machines) {
     $reason     = $null
 
     try {
-        try {
-            Test-WSMan -ComputerName $machineName -ErrorAction Stop | Out-Null
-        }
-        catch {
-            throw "unreachable: $($_.Exception.Message)"
+        $resolved = Resolve-CensusCredential -BucketId $bucketId
+        if ($resolved.status -ne 'ok') {
+            throw "$($resolved.status): $($resolved.reason)"
         }
 
-        $jsonText = Invoke-Command -ComputerName $machineName -ScriptBlock $CollectScriptBlock -ErrorAction Stop
+        # One parameter set for both calls: probing bare while collecting with a credential
+        # makes the manifest say "reached" and the collection then fail - the worst ordering.
+        $remoteParams = @{ ComputerName = $machineName }
+        if ($resolved.credential) { $remoteParams.Credential = $resolved.credential }
+
+        try {
+            Test-WSMan @remoteParams -ErrorAction Stop | Out-Null
+        }
+        catch {
+            throw "$(Get-CensusFailureOutcome $_.Exception.Message): $($_.Exception.Message)"
+        }
+
+        $jsonText = Invoke-Command @remoteParams -ScriptBlock $CollectScriptBlock -ErrorAction Stop
 
         $censusObject = $jsonText | ConvertFrom-Json
         $censusObject | Add-Member -NotePropertyName requestedName -NotePropertyValue $machineName -Force
+
+        # transport and bucket are control-box knowledge; the collector must not know its own
+        # bucket, which is configuration rather than a fact about the machine (5.2.2).
+        if ($censusObject.context) {
+            $censusObject.context | Add-Member -NotePropertyName transport -NotePropertyValue 'winrm' -Force
+            $censusObject.context | Add-Member -NotePropertyName bucket    -NotePropertyValue $bucketId -Force
+        }
 
         $roles = New-Object System.Collections.Generic.List[string]
         if ($censusObject.iis.status -eq 'ok' -and $censusObject.iis.data.sites.Count -gt 0) {
@@ -1447,25 +1588,33 @@ foreach ($machineName in $machines) {
         $censusObject | ConvertTo-Json -Depth 10 | Set-Content -Path $outFile -Encoding utf8
     }
     catch {
-        if ($_.Exception.Message -like 'unreachable:*') {
-            $outcome = 'unreachable'
-            $reason  = $_.Exception.Message -replace '^unreachable:\s*', ''
+        $message = $_.Exception.Message
+        if ($message -match '^(unreachable|access-denied|credential-error|config-error):\s*(.*)$') {
+            $outcome = $matches[1]
+            $reason  = $matches[2]
         }
         else {
             $outcome = 'failed'
-            $reason  = $_.Exception.Message
+            $reason  = $message
         }
     }
     finally {
         $stopwatch.Stop()
-        $runLog.Add([PSCustomObject]@{
+        $entry = [ordered]@{
             machine     = $machineName
+            bucket      = $bucketId
             outcome     = $outcome
             reason      = $reason
             startedUtc  = $startedUtc.ToString('o')
             finishedUtc = (Get-Date).ToUniversalTime().ToString('o')
             durationMs  = $stopwatch.ElapsedMilliseconds
-        })
+        }
+        # Surfaced against the machines it actually affects, rather than as a run-level note
+        # nobody reads.
+        if ($trustedHostsReport.ContainsKey($machineName) -and $trustedHostsReport[$machineName] -ne 'present') {
+            $entry.trustedHosts = $trustedHostsReport[$machineName]
+        }
+        $runLog.Add([PSCustomObject]$entry)
     }
 }
 

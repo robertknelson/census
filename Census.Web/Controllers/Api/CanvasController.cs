@@ -33,7 +33,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
         // never-collected machines (ghost tiles), and dangling assertions (also ghosts) —
         // absence is signal, so nothing silently drops off the map.
         var universe = censusStore.GetMachineDirs()
-            .Concat(censusStore.GetMachinesConfig().Machines)
+            .Concat(censusStore.GetMachinesConfig().Names)
             .Concat(assets.Assets.Keys)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(m => m, StringComparer.OrdinalIgnoreCase)

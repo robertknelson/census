@@ -1,12 +1,26 @@
 {
+  "version": 1,
+  "buckets": [
+    {
+      "id": "corp",
+      "description": "Domain-joined production - the scheduled task's own identity",
+      "credential": { "kind": "task-identity" }
+    },
+    {
+      "id": "dmz",
+      "description": "DMZ web tier, separate forest - NTLM, so TrustedHosts is required",
+      "credential": { "kind": "clixml", "path": "config\\creds\\dmz.cred.xml" },
+      "trustedHosts": ["OLDVM01"]
+    }
+  ],
   "machines": [
-    "WEB01",
-    "SQL01",
-    "APPSRV01",
-    "DEVBOX-JSMITH",
-    "BUILDSRV01",
-    "LEGACY-DC01",
-    "OLDVM01",
-    "DCBACKUP01"
+    { "name": "WEB01",         "bucket": "corp", "expected": true,  "notes": "" },
+    { "name": "SQL01",         "bucket": "corp", "expected": true,  "notes": "" },
+    { "name": "APPSRV01",      "bucket": "corp", "expected": true,  "notes": "" },
+    { "name": "DEVBOX-JSMITH", "bucket": "corp", "expected": true,  "notes": "laptop; often off" },
+    { "name": "BUILDSRV01",    "bucket": "corp", "expected": true,  "notes": "" },
+    { "name": "LEGACY-DC01",   "bucket": "corp", "expected": true,  "notes": "" },
+    { "name": "OLDVM01",       "bucket": "dmz",  "expected": true,  "notes": "workgroup; NTLM fallback" },
+    { "name": "DCBACKUP01",    "bucket": "corp", "expected": false, "notes": "decommissioned, kept to prove absence is signal" }
   ]
 }

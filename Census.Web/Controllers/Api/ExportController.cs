@@ -30,7 +30,7 @@ public class ExportController(CensusStore censusStore, AssetsStore assetsStore, 
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 
         var universe = censusStore.GetMachineDirs()
-            .Concat(censusStore.GetMachinesConfig().Machines)
+            .Concat(censusStore.GetMachinesConfig().Names)
             .Concat(assets.Assets.Keys)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(m => m, StringComparer.OrdinalIgnoreCase)

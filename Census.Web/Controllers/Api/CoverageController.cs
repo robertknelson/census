@@ -14,7 +14,7 @@ public class CoverageController(CensusStore censusStore) : ControllerBase
         var config = censusStore.GetMachinesConfig();
         var now = DateTimeOffset.UtcNow;
 
-        var coverage = config.Machines.Select(machine =>
+        var coverage = config.Names.Select(machine =>
         {
             var snapshotRefs = censusStore.GetSnapshotRefs(machine);
             var snapshotDates = snapshotRefs.Select(r => r.Date).ToHashSet();

@@ -1,5 +1,13 @@
 {
+  "version": 1,
+  "buckets": [
+    {
+      "id": "local",
+      "description": "The control box itself - runs as whoever invokes the script",
+      "credential": { "kind": "task-identity" }
+    }
+  ],
   "machines": [
-    "extensoft-6"
+    { "name": "extensoft-6", "bucket": "local", "expected": true, "notes": "" }
   ]
 }

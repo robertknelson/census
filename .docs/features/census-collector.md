@@ -207,6 +207,70 @@ Administrators** on the targets. Domain Admin is not required and should be acti
 The task runs with *Run whether user is logged on or not* + *Run with highest privileges*, so
 its own credential lives in the Windows credential store.
 
+### 5.2.1 Credential resolution — implementation, ratified 2026-08-07
+
+Buckets ratified over per-machine entries: a bucket **is** a credential scope, machines that
+share a credential share it in reality, and a bucket of one gives genuine per-machine without
+turning twenty DPAPI files into a rotation chore.
+
+**Resolution is per bucket and cached for the run.** A DPAPI file is read once, not once per
+machine. `kind: "task-identity"` resolves to *no* `-Credential` argument at all — not to an
+empty credential — so the call runs as the invoking shell exactly as it does today.
+
+**Both `Test-WSMan` and `Invoke-Command` take the same credential.** Probing bare while
+collecting with a credential produces the worst possible ordering: pre-flight passes, the
+manifest says the machine was reached, and collection then fails.
+
+#### Outcome vocabulary
+
+`unreachable` and "wrong credential" have completely different remediations and must never
+share a label. A rotated service-account password otherwise reads as a network problem.
+
+| Outcome | Meaning |
+|---|---|
+| `ok` | Collected |
+| `unreachable` | WinRM did not answer — no DNS, no route, service not listening |
+| `access-denied` | WinRM answered and refused the credential. **The credential may simply be stale.** |
+| `credential-error` | The bucket's credential could not be loaded at all — missing file, or DPAPI refused to decrypt it |
+| `config-error` | The machine names a bucket that does not exist |
+| `failed` | Anything else, carrying the exception message |
+
+#### The DPAPI trap, stated where it will be read
+
+`Export-CliXml` credentials are encrypted with DPAPI and are **user- and machine-bound**. They
+can only be decrypted by the same account, on the same box, that wrote them.
+
+> **The census service account must create its own credential files.** Files created
+> interactively by an administrator will fail to decrypt when the scheduled task runs as
+> `svc-census` — unattended, at 3am, on every machine in that bucket at once. This is the most
+> likely day-one failure of the whole feature, which is why `credential-error` is its own
+> outcome rather than being folded into `failed`.
+
+#### `TrustedHosts` is reported, never edited
+
+Workgroup and cross-forest targets fall back from Kerberos to NTLM, which requires the target
+listed in `TrustedHosts` **on the control box**. The run reports a missing entry against the
+machines it affects. **The script never writes it.** Silently modifying a security setting to
+make its own job succeed is not behaviour this collector may have — and the value may not even
+be readable unelevated (§2), in which case the check reports `unknown` rather than guessing.
+
+#### `config/creds/` is git-ignored before the first file exists
+
+Not after. A DPAPI blob is not a plaintext secret, but it is a credential artefact and the
+census tree is already tier-0 (§10).
+
+### 5.2.2 The `context` block
+
+§6's envelope specifies `context`; it was never emitted. It lands with this work, because it
+is what makes a snapshot auditable — *which identity observed this, over what transport*.
+
+| Field | Known by | Notes |
+|---|---|---|
+| `psVersion`, `runAs`, `elevated`, `is64Bit` | the collector, inside the session | `runAs` is an identity, not a secret |
+| `transport`, `bucket` | the orchestrator | The collector must not know its bucket — that is control-box configuration, not a fact about the machine |
+
+**No password, hash, or credential material of any kind appears in `context`, ever** (§6.7).
+
 ### 5.3 Reachability is a reported number, not an error
 
 Laptops are off — that's normal, not a failure. Every run does a pre-flight probe per

@@ -18,7 +18,7 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
     {
         var assets = assetsStore.Load();
         var machineDirs = censusStore.GetMachineDirs();
-        var configMachines = censusStore.GetMachinesConfig().Machines;
+        var configMachines = censusStore.GetMachinesConfig().Names;
         var findings = new List<FindingDto>();
 
         // "Now" for the as-of view is the end of that day — cert expiry and staleness are

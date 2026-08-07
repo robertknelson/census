@@ -205,8 +205,28 @@ a diagram), noted as an option for future topology sketches (e.g. app → machin
   finding covers the sharpest case meanwhile.
 - **As-of calendar polish** — collected-day dots and prev/next-day arrows on the date
   input, once months of real data make them worth having.
-- **First real end-to-end run** — the collector has never completed an authenticated WinRM
-  run against a real reachable target; `output/` awaits its first genuine snapshot.
+- **First real end-to-end run** — **partly closed 2026-08-07.** Robert ran the collector
+  against real IIS and reported it executed cleanly: `applications` came back populated with
+  physical paths, every application `status` was `ok`, and `auth` populated with sources
+  `location` and `serverDefault` — **no `webConfig`**, which is the §8.6.6 trap behaving
+  exactly as predicted (`windowsAuthentication` is a locked section, so IIS Manager writes it
+  into `applicationHost.config`). Reading only `web.config` would have returned empty auth for
+  every application on that server.
+
+  Still open: whether that was a remote WinRM run or a local one, and `output/` **in this
+  repo** still holds only the stale 2026-07-31 `unreachable` entry. The payload is not
+  reachable from the development environment (see below), so the reader remains validated
+  against fabricated data only.
+
+- **Verification constraint** (recorded 2026-08-07) — real census payloads cannot be brought
+  into the development environment, and no second machine or second account is available
+  here. Consequences, so they are not rediscovered: the reader is verified against
+  `output-demo/` fabrications; the IIS collector is verified against a synthetic
+  `applicationHost.config`; the SQL and aliases collectors *are* verified against the real
+  local instance; and the credential work (collector §10) will ship structurally correct and
+  entirely unexercised. Fixtures must therefore cover every render branch deliberately —
+  three coverage gaps have already been caught this way (the OFFLINE badge, the runtime-spread
+  badge, and the alias-join proofs), each invisible until a fixture forced it.
 - **Host-app import** — execute `.docs/host-import-manifest.md` when the host is ready.
 - Inherited from v1 spec §8: severity tiers, cert-renewal heuristic.
 

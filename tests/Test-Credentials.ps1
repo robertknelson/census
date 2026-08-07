@@ -160,6 +160,18 @@ foreach ($name in @('machines.json', 'machines.demo.json')) {
     Assert-That "$name has no machine naming an undefined bucket" ($orphans.Count -eq 0) (@($orphans | ForEach-Object { "$($_.name)->$($_.bucket)" }) -join ',')
 }
 
+Write-Host "`nRun log serialises as an array at every length" -ForegroundColor Cyan
+# A one-machine run is the smallest case and the only one that broke: piping a collection into
+# ConvertTo-Json unrolls it, so a single entry became a bare object and the reader threw. Two
+# or more entries always looked right, which is why it survived until someone ran a list of one.
+foreach ($count in 1, 2) {
+    $entries = New-Object System.Collections.Generic.List[object]
+    1..$count | ForEach-Object { $entries.Add([PSCustomObject]@{ machine = "m$_"; outcome = 'ok' }) }
+    $json = ConvertTo-Json -InputObject $entries.ToArray() -Depth 5
+    Assert-That "$count entry/entries serialise as a JSON array" ($json.TrimStart().StartsWith('[')) $json.TrimStart().Substring(0, 1)
+    Assert-That "$count entry/entries round-trip to $count element(s)" (@($json | ConvertFrom-Json).Count -eq $count) @($json | ConvertFrom-Json).Count
+}
+
 Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "`n$('-' * 60)"

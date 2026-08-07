@@ -1636,4 +1636,10 @@ foreach ($machine in $machines) {
     }
 }
 
-$runLog | ConvertTo-Json -Depth 5 | Set-Content -Path $runLogPath -Encoding utf8
+# -InputObject with an explicit array, NOT the pipeline. Piping a collection into
+# ConvertTo-Json unrolls it, and a collection of exactly ONE element then serialises as a bare
+# object instead of a single-element array - so a run against a one-machine list writes
+# {...} where every reader expects [{...}]. Two or more entries serialise correctly, which is
+# why this survives every multi-machine run and only breaks the smallest possible case.
+# Verified on both Windows PowerShell 5.1 and pwsh 7.
+ConvertTo-Json -InputObject $runLog.ToArray() -Depth 5 | Set-Content -Path $runLogPath -Encoding utf8

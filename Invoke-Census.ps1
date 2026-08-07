@@ -2,14 +2,16 @@
 .SYNOPSIS
     Runs the daily census collection across every machine in the machine list.
 .DESCRIPTION
-    Reads a flat list of machine names, reaches each one over PowerShell Remoting (WinRM),
-    and collects OS/patch/.NET/installed-software/IIS/SQL Server facts. Writes one JSON
-    census file per machine per day, plus a single accumulating run log recording which
-    machines were reached, when, and for how long.
+    Reads a machine list grouped into credential buckets, reaches each machine over
+    PowerShell Remoting (WinRM), and collects OS/patch/.NET/installed-software/IIS/SQL Server
+    facts. Writes one JSON census file per machine per day, plus a single accumulating run
+    log recording which machines were reached, when, for how long, and under which bucket.
 
-    Nothing is installed or left behind on any target machine. The account this script runs
-    as must have local administrator rights on every target; there is no per-machine or
-    per-bucket credential handling.
+    Nothing is installed or left behind on any target machine. Each machine names one bucket;
+    a bucket resolves either to the invoking account (kind: task-identity) or to a
+    DPAPI-protected credential file (kind: clixml), resolved once per run. The account used
+    must have local administrator rights on the machines in its bucket. See
+    .docs\credentials-howto.md.
 .PARAMETER MachinesPath
     Path to the JSON file listing machine names to census. Defaults to config\machines.json
     next to this script.
@@ -23,6 +25,20 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Stamped onto every envelope and every run-log entry so a consumer reading a year of files
+# can tell which payload shape it is holding. Minor bump for an additive change, major for a
+# shape an older reader cannot parse. See census-collector.md 6.5.
+#
+# Stamped by the orchestrator rather than inside $CollectScriptBlock: the scriptblock crosses
+# the remoting boundary as a literal and cannot see this variable, and duplicating the string
+# in both places is how the two drift. A future portable collector has no orchestrator and
+# must carry its own stamp.
+#
+# Files written before 2026-08-07 carry no collectorVersion at all. That absence is the
+# identifying mark of a pre-versioning file - treat the shape as unknown rather than assuming
+# it matches 1.0.0.
+$CensusCollectorVersion = '1.0.0'
 
 # $PSScriptRoot is blank if this file is run via "Run Selection" (F8) or pasted into a
 # console instead of executed as a saved script (F5) - fall back to the invoked path, then
@@ -1553,6 +1569,7 @@ foreach ($machine in $machines) {
         $jsonText = Invoke-Command @remoteParams -ScriptBlock $CollectScriptBlock -ErrorAction Stop
 
         $censusObject = $jsonText | ConvertFrom-Json
+        $censusObject | Add-Member -NotePropertyName collectorVersion -NotePropertyValue $CensusCollectorVersion -Force
         $censusObject | Add-Member -NotePropertyName requestedName -NotePropertyValue $machineName -Force
 
         # transport and bucket are control-box knowledge; the collector must not know its own
@@ -1601,13 +1618,14 @@ foreach ($machine in $machines) {
     finally {
         $stopwatch.Stop()
         $entry = [ordered]@{
-            machine     = $machineName
-            bucket      = $bucketId
-            outcome     = $outcome
-            reason      = $reason
-            startedUtc  = $startedUtc.ToString('o')
-            finishedUtc = (Get-Date).ToUniversalTime().ToString('o')
-            durationMs  = $stopwatch.ElapsedMilliseconds
+            machine          = $machineName
+            collectorVersion = $CensusCollectorVersion
+            bucket           = $bucketId
+            outcome          = $outcome
+            reason           = $reason
+            startedUtc       = $startedUtc.ToString('o')
+            finishedUtc      = (Get-Date).ToUniversalTime().ToString('o')
+            durationMs       = $stopwatch.ElapsedMilliseconds
         }
         # Surfaced against the machines it actually affects, rather than as a run-level note
         # nobody reads.

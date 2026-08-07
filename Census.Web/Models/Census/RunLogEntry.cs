@@ -12,6 +12,10 @@ public record RunLogEntry
     public required string Outcome { get; init; }
 
     public string? Reason { get; init; }
+
+    /// <summary>Null on entries written before 2026-08-07. See census-collector.md 6.5.</summary>
+    public string? CollectorVersion { get; init; }
+
     public string? Bucket { get; init; }
     /// <summary>present | missing | unknown — set only when it is not 'present'.</summary>
     public string? TrustedHosts { get; init; }

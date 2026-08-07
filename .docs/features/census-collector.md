@@ -79,7 +79,7 @@ census/
   Get-MachineCensus.ps1          # runs ON the target, returns one JSON string
   Build-Collector.ps1            # concatenates into a standalone portable collector
   collectors/                    # identity os updates apps features services tasks network
-                                 # iis certs sqlserver drives memory security usage hosted
+                                 # iis certificates sqlserver drives memory security usage hosted
   config/
     machines.json                # the enumerated list + credential buckets (operator-owned)
     census.config.json           # root path, throttle, timeouts, profile, retention
@@ -316,28 +316,28 @@ the chosen profile.
 
 ---
 
-## 6. The envelope — the actual contract
+## 6. The envelope
+
+> **Corrected 2026-08-07.** This section previously described a nested envelope — `run`,
+> `target` and `collectors` sub-objects — that the collector has never emitted. It was written
+> before the script and never reconciled with it, while carrying the title "the actual
+> contract", which is exactly why it read as authoritative to two people who checked it. The
+> shape below is what `Invoke-Census.ps1` writes and what `Census.Web` reads. Where the old
+> design was better, that is called out and either kept as an open item or built; where it was
+> speculative, it is recorded as such rather than left standing as an unmet obligation.
+>
+> **The enforceable contract is `Census.Web/Models/Census/CensusEnvelope.cs`.** It is compiled,
+> so it cannot drift silently the way this section did. What follows explains it; the record
+> defines it. When they disagree, the record is right and this section is a bug.
 
 ```json
 {
   "schemaVersion": 1,
-  "run": {
-    "runId": "run-20260731T0300Z",
-    "startedUtc": "2026-07-31T03:00:11Z",
-    "finishedUtc": "2026-07-31T03:00:52Z",
-    "durationMs": 41220,
-    "collectorVersion": "1.0.0",
-    "profile": "Standard"
-  },
-  "target": {
-    "requestedName": "WEB01",
-    "computerName": "WEB01",
-    "fqdn": "web01.corp.local",
-    "machineGuid": "…",
-    "smbiosUuid": "…",
-    "domain": "corp.local",
-    "domainRole": 3
-  },
+  "collectorVersion": "1.0.0",
+  "computerName": "WEB01",
+  "requestedName": "web01",
+  "collectedUtc": "2026-07-31T03:01:15.0000000Z",
+  "roles": ["WebServer"],
   "context": {
     "transport": "winrm",
     "bucket": "corp",
@@ -346,23 +346,41 @@ the chosen profile.
     "elevated": true,
     "is64Bit": true
   },
-  "collectors": {
-    "os":        { "version": "1.0", "status": "ok",                  "durationMs": 120,   "hash": "a1b2…", "data": { } },
-    "iis":       { "version": "1.0", "status": "not-present",         "durationMs": 40,    "reason": "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent" },
-    "sqlserver": { "version": "1.0", "status": "insufficient-rights", "durationMs": 900,   "reason": "VIEW ANY DEFINITION denied on MSSQLSERVER" },
-    "updates":   { "version": "1.0", "status": "timed-out",           "durationMs": 30000, "reason": "WUA QueryHistory exceeded 30s budget" }
-  },
-  "diagnostics": [
-    { "level": "warn", "collector": "drives", "message": "…" }
-  ]
+  "identity":     { "status": "ok",                  "durationMs": 120,   "data": { } },
+  "os":           { "status": "ok",                  "durationMs": 90,    "data": { } },
+  "memory":       { "status": "ok",                  "durationMs": 10,    "data": { } },
+  "updates":      { "status": "timed-out",           "durationMs": 30000, "reason": "WUA QueryHistory exceeded 30s budget" },
+  "dotnet":       { "status": "ok",                  "durationMs": 400,   "data": { } },
+  "drives":       { "status": "ok",                  "durationMs": 60,    "data": { } },
+  "apps":         { "status": "ok",                  "durationMs": 1800,  "data": { } },
+  "iis":          { "status": "not-present",         "durationMs": 40,    "reason": "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent" },
+  "certificates": { "status": "ok",                  "durationMs": 300,   "data": { } },
+  "sqlserver":    { "status": "insufficient-rights", "durationMs": 900,   "reason": "VIEW ANY DEFINITION denied on MSSQLSERVER" },
+  "aliases":      { "status": "ok",                  "durationMs": 5,     "data": { } }
 }
 ```
 
-### 6.1 No top-level `data` blob
+### 6.1 Collectors are top-level keys, and every payload nests under its collector
 
-Payload always nests under its collector, so a partial run is *structurally identical* to a
-complete one. Hard rule for every consumer: **read `collectors.X.status` before touching
-`collectors.X.data`.**
+**The invariant is per-collector nesting, not a `collectors` wrapper.** Each collector is
+`{ status, durationMs, data | reason }`, so a partial run is *structurally identical* to a
+complete one. Hard rule for every consumer: **read `X.status` before touching `X.data`.**
+
+The old design wrapped them in a `collectors` object. The one thing that wrapper buys is
+generic enumeration — walking collectors without naming them. Nothing does: `DiffEngine` names
+each collector explicitly, and `CensusEnvelope` is strongly typed per collector
+(`CensusCategory<IisData>`), which is what gives the reader compile-time safety over a payload
+nobody can validate at runtime. The wrapper would cost a rewrite of every fixture and invalidate
+every payload already collected, in exchange for a capability the reader's design rules out.
+
+**`requestedName` and `roles` are added by the orchestrator, not the collector**
+(`Invoke-Census.ps1`, after the session returns). The collector cannot know the name it was
+asked for — only the name it has — and §5.2.2 keeps control-box knowledge out of it. `roles` is
+observed-role derivation, which is why it sits beside the collectors rather than inside one.
+
+The old `target` block is not lost, just placed: `computerName` and `requestedName` are
+top-level, and `machineGuid` / `smbiosUuid` / `domain` live in `identity.data` where they are
+collected. The old `diagnostics` array is covered by each collector's own `reason`.
 
 ### 6.2 Status vocabulary — unknown is never absent
 
@@ -379,16 +397,22 @@ complete one. Hard rule for every consumer: **read `collectors.X.status` before 
 `not-present` ≠ `failed` ≠ `insufficient-rights`. A consumer must never render an unknown as
 an absence.
 
-### 6.3 Per-collector `hash` — and the volatile-field rule
+### 6.3 Per-collector `hash` — deferred, not dropped
 
-A SHA-256 over the payload, so "did anything change" is a filename scan and a field compare
-later, without deep-diffing a year of files.
+The original design put a SHA-256 over each payload so "did anything change" would be a field
+compare rather than a deep diff of a year of files, with volatile fields (free space, PIDs,
+uptime, timestamps, durations) excluded from the hashed projection or every hash differs on
+day two and the mechanism dies.
 
-**This only works if volatile fields are excluded from the hashed projection.** Free-space
-bytes, PIDs, uptime, timestamps, durations, working-set sizes — all change every single day.
-Include them and every hash differs on day two and the whole mechanism dies. Volatile fields
-stay in `data`; they are simply not part of the hash input. Collections are sorted by their
-diff key before hashing so ordering never registers as change.
+**It is not built, and that is the right call for now.** `DiffEngine` deep-diffs two snapshots
+directly and is comfortable at this scale — a couple dozen machines, one file each per day.
+The hash is an optimisation for a cost that has not appeared, and its expensive part is the
+volatile-field exclusion list, which is precisely the part that is silently wrong when rushed.
+
+**Trigger to build it:** a diff that is slow enough to notice, or a consumer that needs
+change detection across the whole tree without reading it. Not before. The volatile-field rule
+above is the design to build *from* when that day comes — it is recorded here so it does not
+have to be rediscovered.
 
 ### 6.4 Diff keys — named per collection, and several obvious choices are wrong
 
@@ -412,10 +436,35 @@ Every array element carries a key that survives reordering and renaming.
 | Network adapters | MacAddress | ~~index~~ |
 | Hotfixes | HotFixID | |
 
-### 6.5 Per-collector `version`
+### 6.5 `collectorVersion` — one stamp for the whole collector
 
-Bumped when a payload shape changes, so a consumer spanning a year of files can handle an old
-shape rather than crash on it.
+Bumped when any payload shape changes, so a consumer spanning a year of files can handle an
+old shape rather than crash on it. It sits on the envelope and in each run-log entry.
+
+**One version, not one per collector** *(amended 2026-08-07)*. The original design versioned
+each collector independently. That describes a modularity the script does not have — every
+collector lives in `Invoke-Census.ps1` and ships as one unit, so per-collector stamps would be
+eleven numbers that always move together, and the reader would have to trust that they did.
+
+**This section was unbuilt until 2026-08-07, and it had already been needed twice.** The IIS
+payload changed shape in `173fd71` and the SQL payload in `0ac1e75`, and no file written before
+or after those commits says which shape it holds. That is the exact failure this rule exists to
+prevent, so it is worth stating what a bump costs: nothing at write time, and everything to a
+consumer who does not have it.
+
+Bump the **minor** for an additive change (a new field, a new collector) and the **major** for
+a shape change that an old reader cannot parse — a renamed or removed field, a value type
+change, or a normalisation change on a dependency edge (§8.6.7).
+
+**Files written before 2026-08-07 carry no `collectorVersion` at all.** That absence is the
+identifying mark of a pre-versioning file, and it means *unknown shape* — not `1.0.0`. Both
+`CensusEnvelope.CollectorVersion` and `RunLogEntry.CollectorVersion` are nullable for exactly
+this reason; a consumer must not read a missing stamp as the earliest known version.
+
+**The orchestrator stamps it, not the collector.** `$CollectScriptBlock` crosses the remoting
+boundary as a literal and cannot see the script's variables, so stamping inside it would mean
+the same string written twice — which is how the two drift apart. The portable collector
+(§5.1) has no orchestrator and must therefore carry its own stamp when it is built.
 
 ### 6.6 Fallback paths must be recorded
 
@@ -547,7 +596,7 @@ consumer needs to weight them, so the kind is part of the payload rather than fl
 
 Rules:
 
-- **Derived, therefore last.** It aggregates from `iis`, `certs`, `sqlserver` and `network`,
+- **Derived, therefore last.** It aggregates from `iis`, `certificates`, `sqlserver` and `network`,
   so it cannot be ordered among them — it is a post-pass (§9).
 - **It is its own top-level category, not a field inside `identity`** *(amended 2026-08-07;
   the original wording said "on the `identity` collector")*. A post-pass has its own status,
@@ -624,13 +673,26 @@ Also:
   `TargetGroup`, `UseWUServer`, `NoAutoUpdate`, `AUOptions`.
 - **Management agents** *(HIGH)* — SCCM (`root\ccm` `SMS_Client`: version, site, MP),
   Intune/MDM (`dsregcmd /status`), third-party patchers.
-- **.NET versions** *(HIGH)* — Framework `Release` DWORD from
-  `HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full`; .NET Core/5+ runtimes **and
-  SDKs** from `dotnet --list-runtimes` / `--list-sdks` or `C:\Program Files\dotnet\shared`.
 - **Pending/missing updates** *(HIGH, `Deep` only)* —
   `IUpdateSearcher.Search("IsInstalled=0 and Type='Software'")`. Online scan: minutes of CPU
   and network per machine, and on some AU configurations it can initiate downloads. Not for a
   nightly fleet run.
+
+#### 8.3.1 `dotnet` — its own collector, not an `updates` field *(HIGH)*
+
+*(Corrected 2026-08-07 — this was specced as a bullet inside `updates` and built as a separate
+top-level collector. The build is right and the spec now says so.)*
+
+Framework `Release` DWORD from `HKLM\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full`;
+.NET Core/5+ runtimes **and SDKs** from `dotnet --list-runtimes` / `--list-sdks` or
+`C:\Program Files\dotnet\shared`.
+
+It is separate because **an installed runtime is not a patch fact.** `updates` answers "is this
+machine current"; `dotnet` answers "what can run here" — which is what the IIS runtime marker
+(§8.6.5) is joined against, and what makes an app pool on `v4.0` with no .NET 4.8 installed
+visible. Folding it into `updates` would also have tied it to that collector's status: a WUA
+call that times out (routine) would have taken the .NET inventory down with it, which is the
+§6.1 partial-run failure in miniature.
 
 ### 8.4 `apps` — installed software *(MUST)*
 
@@ -992,7 +1054,7 @@ as a decision rather than an oversight.
 
 `netsh http show sslcert` is **not** deferred — §8.7 already collects it.
 
-### 8.7 `certs` — the whole machine store *(HIGH)*
+### 8.7 `certificates` — the whole machine store *(HIGH)*
 
 `Get-ChildItem Cert:\LocalMachine\{My, WebHosting, Root, CA, Remote Desktop}`: Subject,
 SAN/DnsNameList, Issuer, Thumbprint, SerialNumber, NotBefore, NotAfter, HasPrivateKey,
@@ -1311,13 +1373,13 @@ shows 2 ok / 1 unreachable, the run does not hang, and re-running the same day o
 cleanly.
 
 **Slice 3 — remaining collectors.** In this order — cheapest and least likely to hang first:
-`features` → `services` → `apps` → `network` → `tasks` → `security` → `iis` (+ `certs`) →
+`features` → `services` → `apps` → `network` → `tasks` → `security` → `iis` (+ `certificates`) →
 `sqlserver` → `hosted` → `usage` → **`updates` last** (it is the one that hangs).
 *Verify:* every collector tested on both a box that has the subject and a box that lacks it.
 The dev box has neither IIS nor SQL Server, so it is the natural fixture for both.
 
 **Then `aliases` (§8.1.1) as a post-pass**, after all of them — it aggregates from `iis`,
-`certs`, `sqlserver` and `network`, so it cannot be ordered among them. *Verify:* with `iis`
+`certificates`, `sqlserver` and `network`, so it cannot be ordered among them. *Verify:* with `iis`
 deliberately failed, the alias set is smaller **and** records which sources contributed,
 rather than silently shrinking.
 

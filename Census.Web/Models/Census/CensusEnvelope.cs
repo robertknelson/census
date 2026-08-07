@@ -11,6 +11,14 @@ public record CensusCategory<T>
 public record CensusEnvelope
 {
     public int SchemaVersion { get; init; }
+
+    /// <summary>
+    /// Which collector payload shape this file holds. Null on files written before
+    /// 2026-08-07, when the stamp did not exist — that absence means "unknown shape", not
+    /// "the original shape". See census-collector.md 6.5.
+    /// </summary>
+    public string? CollectorVersion { get; init; }
+
     public required string ComputerName { get; init; }
     public DateTimeOffset CollectedUtc { get; init; }
     public CensusCategory<IdentityData>? Identity { get; init; }

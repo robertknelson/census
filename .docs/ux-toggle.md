@@ -19,7 +19,19 @@ existing bookmarks, the `demo` launch profile's `launchUrl`, and every doc that 
 
 ## Day-to-day toggling
 
-Browse to the other URL. That's it. Both are always live; neither disables the other.
+**There is a switch in the bottom-right corner of every page.** It reads `v2 → Classic` on
+the Estate and `v1 → Estate` on the classic UI, and it is the whole mechanism — click it to
+land on the same view in the other UI. Browsing to the other URL directly works exactly as
+well. Both are always live; neither disables the other.
+
+It lives in `Views/Shared/_Layout.cshtml`, which both views use, with its CSS inline in the
+same file. Inline deliberately: the switch belongs to neither UI — it is scaffolding for
+comparing them — so it should vanish in the same edit that retires v1 rather than leave a
+dangling rule in a stylesheet.
+
+It carries no state across the jump. The two UIs navigate differently enough (a CRUD list
+versus an estate canvas) that mapping "where you are" between them would be guesswork; the
+switch answers "show me the other one", which is what a comparison needs.
 
 ## Which view owns `/`
 

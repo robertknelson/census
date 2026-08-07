@@ -6,9 +6,38 @@
     <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
+    @*
+        The v1/v2 switch. Inline rather than in site.css or estate.css because it belongs to
+        neither UI - it is scaffolding for comparing them, and it should disappear in the same
+        edit that retires v1 (ux-toggle.md) rather than leave a dangling rule behind.
+    *@
+    <style>
+        .ux-switch {
+            position: fixed; right: 1rem; bottom: 1rem; z-index: 2147483000;
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .4rem .7rem; border-radius: 999px;
+            font: 500 12px/1 system-ui, sans-serif; text-decoration: none;
+            color: #fff; background: rgba(20, 22, 26, .82);
+            border: 1px solid rgba(255, 255, 255, .18);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .28);
+            opacity: .55; transition: opacity .12s ease, transform .12s ease;
+        }
+        .ux-switch:hover, .ux-switch:focus-visible { opacity: 1; transform: translateY(-1px); }
+        .ux-switch .ux-switch-here { opacity: .6; font-weight: 400; }
+    </style>
 </head>
 <body>
     @RenderBody()
+    @{
+        var uxPath = Context.Request.Path.Value ?? "/";
+        var onClassic = uxPath.StartsWith("/classic", StringComparison.OrdinalIgnoreCase);
+    }
+    <a class="ux-switch"
+       href="@(onClassic ? "/" : "/classic")"
+       title="@(onClassic ? "Switch to the Estate (v2)" : "Switch to the classic UI (v1)")">
+        <span class="ux-switch-here">@(onClassic ? "v1" : "v2")</span>
+        <span>→ @(onClassic ? "Estate" : "Classic")</span>
+    </a>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

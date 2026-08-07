@@ -133,7 +133,8 @@ app, since this script is the whole deliverable:
 
 ### 4.1 Per-machine census data
 
-- One JSON file per machine per day: `<CensusRoot>\<MACHINE>\census-YYYYMMDD.json`.
+- One JSON file per machine per day: `<CensusRoot>\<MACHINE>\<machine>-census-YYYYMMDD.json`,
+  the machine prefix lowercased — so a file copied out of the tree still names its subject.
 - Each file is a complete, self-contained snapshot.
 - A fact that couldn't be determined (e.g. access denied) is recorded as **unknown**, never
   silently omitted and never reported as a confirmed absence.

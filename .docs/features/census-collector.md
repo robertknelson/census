@@ -98,20 +98,27 @@ Deliberately isomorphic to an IIS log tree.
 ```
 <CensusRoot>\
   WEB01\
-    census-20260729.json.gz      # aged files gzipped, as IIS rotation does
-    census-20260730.json
-    census-20260731.json
+    web01-census-20260729.json.gz    # aged files gzipped, as IIS rotation does
+    web01-census-20260730.json
+    web01-census-20260731.json
   SQL01\
-    census-20260731.json
+    sql01-census-20260731.json
   DEV-VM-04\
-    census-20260730.json         # absent 07-31 = machine was unreachable that day
+    dev-vm-04-census-20260730.json   # absent 07-31 = machine was unreachable that day
   _runs\
-    run-20260731T0300Z.json      # run manifest: expected vs collected, per-machine outcome
+    run-log.json                     # appended: expected vs collected, per-machine outcome
 ```
 
 Rules:
 
-- **One file per machine per day**, `census-YYYYMMDD.json`, UTC date of the run.
+- **One file per machine per day**, `<machine>-census-YYYYMMDD.json`, UTC date of the run.
+  The machine prefix is lowercased. It is redundant with the folder name and deliberately so:
+  these files get copied out of the tree one at a time, and a bare `census-20260731.json` in
+  a downloads folder does not say which machine it describes. The reader matches
+  `^.+-census-(\d{8})\.json$`, so the prefix is required, not optional.
+- **The run log is one appended file**, `_runs\run-log.json` — not a file per run. A run reads
+  it, appends its own entries, and writes it back, so the whole history is one read for a
+  consumer asking "when was this machine last reached".
 - **Full snapshot every day, not deltas.** Any single file is complete and self-describing —
   readable with no replay. Drift diffing is a reader concern, not the writer's.
 - **Absence is signal.** A missing file means the machine was not collected that day. The run
@@ -1298,8 +1305,8 @@ via `powershell.exe -File`. **Also prove the localhost-SQL no-double-hop assumpt
 one real remote box** — everything in §8.8 depends on it.
 
 **Slice 2 — fan-out and file layout.** `Invoke-Command -FilePath` over the passing set,
-per-machine wall-clock timeout, files at `<root>\<MACHINE>\census-YYYYMMDD.json`, run
-manifest in `_runs\`. *Verify:* three machines with one deliberately powered off — manifest
+per-machine wall-clock timeout, files at `<root>\<MACHINE>\<machine>-census-YYYYMMDD.json`,
+run log appended in `_runs\run-log.json`. *Verify:* three machines with one deliberately powered off — manifest
 shows 2 ok / 1 unreachable, the run does not hang, and re-running the same day overwrites
 cleanly.
 

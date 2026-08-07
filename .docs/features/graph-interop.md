@@ -135,7 +135,7 @@ Rules:
 
 ### 5.1 A versioned endpoint, not the file tree
 
-**The graph must not read `<CensusRoot>\<MACHINE>\census-YYYYMMDD.json` directly.** That
+**The graph must not read `<CensusRoot>\<MACHINE>\<machine>-census-YYYYMMDD.json` directly.** That
 layout is census's internal storage. A consumer bound to it freezes it permanently — no gzip
 aging, no repartitioning, no schema evolution, none of which is finished.
 

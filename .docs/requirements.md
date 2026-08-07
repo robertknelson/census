@@ -149,6 +149,20 @@ run happen, which machines were reached, when, and what went wrong for the ones 
   over two dozen machines, and a single array (rather than line-delimited objects) lets each
   entry carry richer, nested detail if that's ever needed, and lets any standard JSON tool
   load the whole history in one parse.
+- **It is always a JSON array, including when it holds exactly one entry.** Piping a
+  collection into `ConvertTo-Json` unrolls it, and a single entry then serialises as a bare
+  object — the file must be written with `-InputObject` on an explicit array instead. This
+  only ever breaks a one-machine run, which is what a first real run looks like.
+- **The file accumulates shapes, and the reader must survive that** *(added 2026-08-07, after
+  a stale entry took the app down)*. Every run copies existing entries forward verbatim, so an
+  entry written by an older collector stays in the file permanently and no later run will
+  clean it. `CensusStore.GetRunLog()` therefore deserialises **entry by entry, skipping what
+  no longer fits and logging the count** — never the whole array in one call, which let one
+  legacy entry blank every coverage and findings request. This is the same rule the collector
+  already holds itself to (`census-collector.md` §7.2): a failed part records its failure, it
+  does not abort the whole.
+- Each entry carries `collectorVersion` (`census-collector.md` §6.5). Entries written before
+  2026-08-07 have none, which is how a legacy entry is identified.
 - Each entry: machine name, outcome (`ok` / `unreachable` / `failed` + reason), when that
   machine's collection started and finished, and the duration — so "was it successful," "when
   did it run," and "how long did it take" are each a plain field, not something you compute

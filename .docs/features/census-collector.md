@@ -271,6 +271,13 @@ is what makes a snapshot auditable — *which identity observed this, over what 
 
 **No password, hash, or credential material of any kind appears in `context`, ever** (§6.7).
 
+### 5.2.3 Operator procedure
+
+The design lives above; the **procedure** - how to actually create credential files, what
+DPAPI binds them to, and how to read the run outcomes - is `.docs/credentials-howto.md`,
+with diagrams. It is kept separate deliberately so a spec change and an operator change do
+not have to be the same edit.
+
 ### 5.3 Reachability is a reported number, not an error
 
 Laptops are off — that's normal, not a failure. Every run does a pre-flight probe per

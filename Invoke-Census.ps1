@@ -262,7 +262,9 @@ $CollectScriptBlock = {
     }
 
     function Get-CensusSha256Text {
-        param([string]$Text)
+        # Untyped on purpose: [string]$null coerces to '', which would defeat the guard below
+        # and hash the empty string instead of reporting "no value".
+        param($Text)
         if ($null -eq $Text) { return $null }
         $sha = [System.Security.Cryptography.SHA256]::Create()
         try {
@@ -301,8 +303,10 @@ $CollectScriptBlock = {
         # applicationHost.config stores paths with %SystemDrive% and friends unexpanded. Both
         # forms are kept so a variable that could not be expanded stays visible instead of
         # silently producing a wrong path.
-        param([string]$Path)
-        if ([string]::IsNullOrEmpty($Path)) { return @{ raw = $Path; expanded = $null; expandable = $true } }
+        # Untyped on purpose: [string]$null coerces to '', and an absent path must stay null
+        # rather than becoming an empty string a consumer cannot tell from a real value.
+        param($Path)
+        if ([string]::IsNullOrEmpty($Path)) { return @{ raw = $null; expanded = $null; expandable = $true } }
         $expanded = [System.Environment]::ExpandEnvironmentVariables($Path)
         @{ raw = $Path; expanded = $expanded; expandable = ($expanded -notmatch '%[^%]+%') }
     }
@@ -311,8 +315,10 @@ $CollectScriptBlock = {
         # '.', '(local)', 'localhost', a loopback address and '(localdb)\x' all mean "this
         # machine". Left alone, every locally-referenced database across the estate collapses
         # onto one shared node in a downstream dependency map - see graph-interop.md section 6.
-        param([string]$HostName)
-        if ([string]::IsNullOrEmpty($HostName)) { return @{ host = $null; rawHost = $HostName; isLocal = $false } }
+        # Untyped on purpose: see Expand-CensusConfigPath. A connection string with no
+        # recognisable server key must yield a null host, not an empty one.
+        param($HostName)
+        if ([string]::IsNullOrEmpty($HostName)) { return @{ host = $null; rawHost = $null; isLocal = $false } }
         $trimmed = $HostName.Trim()
         $lowered = $trimmed.ToLowerInvariant()
         if (@('.', '(local)', 'localhost', '127.0.0.1', '::1', '[::1]') -contains $lowered -or $lowered -like '(localdb)*') {

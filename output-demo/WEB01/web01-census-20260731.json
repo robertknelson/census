@@ -566,7 +566,7 @@
                                                       "host":  "WEB01",
                                                       "rawHost":  "WEB01",
                                                       "isLocal":  true,
-                                                      "instance":  "",
+                                                      "instance":  null,
                                                       "port":  null,
                                                       "protocol":  null,
                                                       "filePath":  null,

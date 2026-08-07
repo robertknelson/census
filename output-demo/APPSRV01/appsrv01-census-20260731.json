@@ -230,6 +230,55 @@
                                                                              "enumerationCap":  5000
                                                                          }
                                                            }
+                                           },
+                                           {
+                                               "name":  "portal.example.com",
+                                               "id":  "3",
+                                               "serverAutoStart":  "true",
+                                               "physicalPath":  {
+                                                                    "raw":  "E:\\sites\\portal",
+                                                                    "expanded":  "E:\\sites\\portal",
+                                                                    "expandable":  true
+                                                                },
+                                               "bindings":  [
+                                                                {
+                                                                    "protocol":  "http",
+                                                                    "bindingInformation":  "*:80:portal.example.com",
+                                                                    "ip":  "*",
+                                                                    "port":  80,
+                                                                    "hostHeader":  "portal.example.com",
+                                                                    "parsed":  true,
+                                                                    "sslFlags":  null,
+                                                                    "certificateHash":  null,
+                                                                    "certificateStoreName":  null
+                                                                }
+                                                            ],
+                                               "logFile":  {
+                                                               "enabled":  "true",
+                                                               "directory":  {
+                                                                                 "raw":  "%SystemDrive%\\inetpub\\logs\\LogFiles",
+                                                                                 "expanded":  "E:\\logs\\W3SVC3",
+                                                                                 "expandable":  true
+                                                                             },
+                                                               "directorySource":  "siteDefaults",
+                                                               "logFormat":  "W3C",
+                                                               "period":  "Daily",
+                                                               "truncateSize":  null,
+                                                               "logTargetW3C":  "File",
+                                                               "centralLogFileMode":  "Site",
+                                                               "stats":  {
+                                                                             "enumerationStatus":  "ok",
+                                                                             "resolvedDirectory":  "E:\\logs\\W3SVC3",
+                                                                             "exists":  true,
+                                                                             "fileCount":  9,
+                                                                             "totalBytes":  1048576,
+                                                                             "oldestUtc":  "2026-07-23T00:01:55Z",
+                                                                             "newestUtc":  "2026-07-31T23:12:40Z",
+                                                                             "last24hBytes":  131072,
+                                                                             "truncated":  false,
+                                                                             "enumerationCap":  5000
+                                                                         }
+                                                           }
                                            }
                                        ],
                              "appPools":  [
@@ -250,6 +299,15 @@
                                                   "identityType":  "SpecificUser",
                                                   "identityTypeSource":  "pool",
                                                   "userName":  "CORP\\svc-intranet"
+                                              },
+                                              {
+                                                  "name":  "PortalApiPool",
+                                                  "managedRuntimeVersion":  "v4.0",
+                                                  "managedRuntimeVersionSource":  "pool",
+                                                  "managedPipelineMode":  "Integrated",
+                                                  "identityType":  "ApplicationPoolIdentity",
+                                                  "identityTypeSource":  "pool",
+                                                  "userName":  null
                                               }
                                           ],
                              "applications":  [
@@ -416,6 +474,116 @@
                                                                       },
                                                       "status":  "failed",
                                                       "reason":  "physical path does not resolve: %UPLOADSHARE% is not defined on this machine"
+                                                  },
+                                                  {
+                                                      "siteName":  "portal.example.com",
+                                                      "path":  "/",
+                                                      "physicalPath":  {
+                                                                           "raw":  "E:\\sites\\portal",
+                                                                           "expanded":  "E:\\sites\\portal",
+                                                                           "expandable":  true
+                                                                       },
+                                                      "applicationPool":  "DefaultAppPool",
+                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                      "poolManagedPipelineMode":  "Integrated",
+                                                      "poolIdentityType":  "ApplicationPoolIdentity",
+                                                      "poolUserName":  null,
+                                                      "enabledProtocols":  "http",
+                                                      "runtime":  {
+                                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                                      "aspNetCore":  null,
+                                                                      "hasAppSettingsJson":  false,
+                                                                      "hasRuntimeConfigJson":  false
+                                                                  },
+                                                      "auth":  {
+                                                                   "anonymousAuthentication":  {
+                                                                                                   "enabled":  false,
+                                                                                                   "userName":  "IUSR",
+                                                                                                   "source":  "location"
+                                                                                               },
+                                                                   "windowsAuthentication":  {
+                                                                                                 "enabled":  true,
+                                                                                                 "userName":  null,
+                                                                                                 "source":  "location"
+                                                                                             }
+                                                               },
+                                                      "virtualDirectories":  [
+                                                                                 {
+                                                                                     "path":  "/",
+                                                                                     "physicalPath":  {
+                                                                                                          "raw":  "E:\\sites\\portal",
+                                                                                                          "expanded":  "E:\\sites\\portal",
+                                                                                                          "expandable":  true
+                                                                                                      },
+                                                                                     "userName":  null,
+                                                                                     "logonMethod":  null
+                                                                                 }
+                                                                             ],
+                                                      "configFiles":  {
+                                                                          "webConfig":  {
+                                                                                            "status":  "ok",
+                                                                                            "path":  "E:\\sites\\portal\\web.config"
+                                                                                        },
+                                                                          "appSettingsJson":  {
+                                                                                                  "status":  "not-present"
+                                                                                              }
+                                                                      },
+                                                      "status":  "ok"
+                                                  },
+                                                  {
+                                                      "siteName":  "portal.example.com",
+                                                      "path":  "/api",
+                                                      "physicalPath":  {
+                                                                           "raw":  "E:\\sites\\portal\\api",
+                                                                           "expanded":  "E:\\sites\\portal\\api",
+                                                                           "expandable":  true
+                                                                       },
+                                                      "applicationPool":  "PortalApiPool",
+                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                      "poolManagedPipelineMode":  "Integrated",
+                                                      "poolIdentityType":  "ApplicationPoolIdentity",
+                                                      "poolUserName":  null,
+                                                      "enabledProtocols":  "http",
+                                                      "runtime":  {
+                                                                      "poolManagedRuntimeVersion":  "v4.0",
+                                                                      "aspNetCore":  null,
+                                                                      "hasAppSettingsJson":  false,
+                                                                      "hasRuntimeConfigJson":  false
+                                                                  },
+                                                      "auth":  {
+                                                                   "anonymousAuthentication":  {
+                                                                                                   "enabled":  true,
+                                                                                                   "userName":  "IUSR",
+                                                                                                   "source":  "serverDefault"
+                                                                                               },
+                                                                   "windowsAuthentication":  {
+                                                                                                 "enabled":  false,
+                                                                                                 "userName":  null,
+                                                                                                 "source":  "serverDefault"
+                                                                                             }
+                                                               },
+                                                      "virtualDirectories":  [
+                                                                                 {
+                                                                                     "path":  "/",
+                                                                                     "physicalPath":  {
+                                                                                                          "raw":  "E:\\sites\\portal\\api",
+                                                                                                          "expanded":  "E:\\sites\\portal\\api",
+                                                                                                          "expandable":  true
+                                                                                                      },
+                                                                                     "userName":  null,
+                                                                                     "logonMethod":  null
+                                                                                 }
+                                                                             ],
+                                                      "configFiles":  {
+                                                                          "webConfig":  {
+                                                                                            "status":  "ok",
+                                                                                            "path":  "E:\\sites\\portal\\api\\web.config"
+                                                                                        },
+                                                                          "appSettingsJson":  {
+                                                                                                  "status":  "not-present"
+                                                                                              }
+                                                                      },
+                                                      "status":  "ok"
                                                   }
                                               ],
                              "dependencies":  [
@@ -428,7 +596,7 @@
                                                       "host":  "SQL01",
                                                       "rawHost":  "SQL01",
                                                       "isLocal":  false,
-                                                      "instance":  "",
+                                                      "instance":  null,
                                                       "port":  null,
                                                       "protocol":  null,
                                                       "filePath":  null,

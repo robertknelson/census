@@ -492,6 +492,117 @@ Branches the fabricated set must cover, or the views get built blind:
 | **S-3** | `ViewAnyDefinition` is a diffed field, so a rights regression surfaces as an event. |
 | **S-4** | `insufficient-rights` renders as a permission failure, never as an empty database list. |
 | **S-5** | System databases are muted, not hidden — their file locations still matter. |
+
+---
+
+## 11. Estate pivots — Hosting (W2 + S2)
+
+> **Ratified 2026-08-07.** The pivots deferred in §9.7 and §10.6. Derived from
+> `software-panel.mjs`, which already answers "where is X installed?" in 74 lines — the shape
+> is approved, so it is reused rather than reinvented.
+
+### 11.1 One panel, three questions
+
+The header carries four buttons already; three more would make seven. These are three facets of
+one question — **what runs where, and what talks to what** — so they are one panel, `Hosting`,
+with three views.
+
+| View | The question |
+|---|---|
+| **Applications** | Where is application X hosted, and is one box on an odd runtime? |
+| **Databases** | Where does database X live? |
+| **Dependencies** | What talks to Y — and if Y goes down, what breaks? |
+
+### 11.2 One endpoint, one pass
+
+`GET /api/hosting` returns all three aggregations. `CensusStore` reads and deserialises a JSON
+snapshot per machine; computing the three separately would read every machine three times for
+no benefit. Latest snapshot only, like `/api/software` — the button is disabled under an as-of
+date for the same reason Changes and Software are.
+
+### 11.3 Applications — the runtime-spread pivot
+
+Grouped by **(site name, application path)**, because that is the identity that repeats across
+a web farm; two machines serving `portal.example.com/` are the same application.
+
+Each row carries the machines hosting it and a **runtime spread badge** when they disagree —
+the direct analogue of the software panel's "N versions" badge, and the same question: *which
+box is the odd one out.* An application running `v4.0` on one node and `v2.0` on another is a
+finding that no per-machine view surfaces.
+
+Also shown: app-pool identity per machine (a farm where one node runs as a different account
+is a finding), and physical path.
+
+### 11.4 Databases — where data lives
+
+Grouped by **database name** across every instance on every machine. Shows the hosting
+instances, state, and file directories.
+
+**A spread badge when the same database name appears on more than one instance.** That is
+either a legitimate replica or a forgotten restore, and both are worth knowing. System
+databases are excluded from this pivot — `master` on twelve machines is noise, and unlike the
+dossier there is no file-location argument for keeping them.
+
+### 11.5 Dependencies — the blast-radius view
+
+Grouped by **target**, not by source. The row is the thing depended upon; the children are
+everything census has observed pointing at it. That inversion is the whole point: census
+collects downstream edges, and blast radius needs upstream (`graph-interop.md` §6.1).
+
+#### Corroboration — the first cross-machine inference
+
+Each target gets a verdict, and this is the payoff named in §10.6:
+
+| Verdict | Meaning |
+|---|---|
+| `confirmed` | A censused machine matches the target host **and** reports a database of that name. The claim parsed from a web server's config is corroborated by the database server's own census. |
+| `contradicted` | A censused machine matches the host, but reports **no** such database. A real finding — the connection string points somewhere that does not exist. |
+| `unobserved` | No censused machine matches the host. **Not an error** — census simply cannot see it (§6.2, and `graph-interop.md` invariant 3). |
+
+> **`unobserved` must never render as a problem.** Most targets in a real estate will be
+> unobserved, because census reaches a subset of the world. It is a statement about census's
+> coverage, not about the dependency.
+
+**Host matching is by machine name only, for now** — directory name, `computerName`, and
+`requestedName`, case-insensitive, plus the instance segment of `HOST\INSTANCE`. This is
+exactly what the `aliases` collector (collector §8.1.1, still unbuilt) exists to improve: once
+it lands, an edge naming `sql01.corp.local` or a certificate SAN will match too. Until then a
+target named by FQDN where the machine is censused by short name will read `unobserved` — a
+false negative, and one that only ever *understates* what census knows.
+
+HTTP edges are not corroborated in this slice. Confirming them means matching a URL host
+against IIS bindings across the estate, which is a second matching problem and belongs with
+the alias work.
+
+### 11.6 Rendering rules
+
+- **Remote before local, and local muted** — same rule as the dossier. An app talking to its
+  own box is a dependency, but not the one that matters for blast radius.
+- **Machine names are buttons that open dossiers**, exactly as in the software panel. The
+  pivot exists to get you to the machine.
+- **`contradicted` is loud, `unobserved` is quiet.** The verdict vocabulary is worthless if
+  the UI renders census's blind spots as failures.
+- **Secrets never surface** — `secretsPresent`, `hadCredentials`, `hadQuery` remain booleans.
+- Every view has the search box the software panel has; the estate will not stay small.
+
+### 11.7 Deliberately not in this slice
+
+- HTTP edge corroboration against IIS bindings (see §11.5).
+- Alias-based host matching — blocked on collector §8.1.1.
+- A graph/topology rendering. This is a list, and a list is what answers the question today; a
+  diagram is the dependency-graph system's job (`graph-interop.md` §1).
+- Findings derived from these pivots (runtime spread, contradicted dependency) — that is S3/W3,
+  entangled with stage-aware severity.
+
+### 11.8 Decisions
+
+| | Decision |
+|---|---|
+| **H-1** | One `Hosting` panel with three views, one endpoint, one pass over the snapshots. |
+| **H-2** | Applications pivot on (site, path); runtime spread is the finding, derived from the software panel's version-spread idea. |
+| **H-3** | Dependencies group by target, not source — census collects downstream, blast radius needs upstream. |
+| **H-4** | Three-state corroboration; `unobserved` is a statement about census coverage and is never rendered as a fault. |
+| **H-5** | Host matching is by machine name until the alias collector lands; it may only understate what census knows, never overstate. |
 - **`dotnet.frameworkReleaseId` blacklist matching** — deferred; needs a release-id → version
   table if it turns out to matter.
 - **Version-string parse failures** — confirm "flag for manual review" (§4.2) is the right

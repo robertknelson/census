@@ -8,6 +8,7 @@ import { BlacklistEditor } from './blacklist-editor.mjs';
 import { CertificatesPanel, certUrgencyClass } from './certificates-panel.mjs';
 import { ChangesFeed } from './changes-feed.mjs';
 import { SoftwarePanel } from './software-panel.mjs';
+import { HostingPanel } from './hosting-panel.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -98,6 +99,7 @@ class EstatePage {
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
                         <button class="est-btn" data-ref="changes-btn">Changes</button>
                         <button class="est-btn" data-ref="software-btn">Software</button>
+                        <button class="est-btn" data-ref="hosting-btn">Hosting</button>
                         <button class="est-btn" data-ref="certs-btn">Certificates</button>
                         <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
                     </div>
@@ -157,6 +159,8 @@ class EstatePage {
         this.root.querySelector('[data-ref="changes-btn"]').addEventListener('click', () => this.openChanges());
         this.root.querySelector('[data-ref="software-btn"]').addEventListener('click', () => this.openSoftware());
         this.softwareState = { query: '' };
+        this.root.querySelector('[data-ref="hosting-btn"]').addEventListener('click', () => this.openHosting());
+        this.hostingState = { view: 'applications', query: '' };
 
         this.backdropEl.addEventListener('click', () => this.closePanel());
         document.addEventListener('keydown', (e) => {
@@ -212,7 +216,7 @@ class EstatePage {
             btn.classList.toggle('is-active', this.selectedClasses.has(btn.dataset.class));
         });
         // Changes and Software read the current fleet only — honest to disable in the past.
-        for (const ref of ['changes-btn', 'software-btn']) {
+        for (const ref of ['changes-btn', 'software-btn', 'hosting-btn']) {
             const btn = this.root.querySelector(`[data-ref="${ref}"]`);
             btn.disabled = this.asOf !== null;
             btn.title = this.asOf !== null ? 'Available on the current view only' : '';
@@ -495,6 +499,18 @@ class EstatePage {
 
         new SoftwarePanel(this.softwareState, (machine) => this.openDetails(machine))
             .mount(this.panelEl.querySelector('[data-ref="software"]'));
+    }
+
+    openHosting() {
+        this.panel = { type: 'hosting' };
+        this.panelShell(
+            'Hosting',
+            'The fleet pivoted by what it hosts — where an application runs, where a database lives, and what depends on what. Machine names open dossiers.',
+            '<div data-ref="hosting"></div>');
+        this.openPanel();
+
+        new HostingPanel(this.hostingState, (machine) => this.openDetails(machine))
+            .mount(this.panelEl.querySelector('[data-ref="hosting"]'));
     }
 
     openChanges() {

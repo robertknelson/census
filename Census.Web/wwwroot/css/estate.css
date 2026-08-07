@@ -1222,6 +1222,36 @@ html, body {
 
 .est-verdict-ok { background: var(--est-line-soft); color: var(--est-muted); }
 .est-verdict-diff { background: var(--est-red-soft); color: var(--est-red); }
+/* A corroborated dependency: census confirmed the target from the other side. */
+.est-verdict-same { background: var(--est-blue-soft); color: var(--est-blue); }
+
+/* --- hosting pivots ----------------------------------------------------------------- */
+
+.est-tabs {
+    display: flex;
+    gap: 0.3rem;
+    margin-bottom: 0.6rem;
+}
+
+.est-tab {
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--est-line);
+    border-radius: 999px;
+    background: var(--est-paper);
+    color: var(--est-muted);
+    cursor: pointer;
+}
+
+.est-tab:hover { border-color: var(--est-blue); }
+
+.est-tab.is-active {
+    border-color: var(--est-blue);
+    background: var(--est-blue-soft);
+    color: var(--est-blue);
+    font-weight: 600;
+}
 
 /* --- responsiveness & motion -------------------------------------------------------- */
 

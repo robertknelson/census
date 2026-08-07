@@ -56,6 +56,10 @@ export function fetchSoftware() {
     return getJson('/api/software');
 }
 
+export function fetchHosting() {
+    return getJson('/api/hosting');
+}
+
 export async function saveBlacklist(config) {
     let response;
     try {

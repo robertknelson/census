@@ -72,10 +72,13 @@ function Auth {
 function DbEdge {
     param([string]$Site, [string]$App, [string]$Source, [string]$Name, [string]$DbHost, [string]$Instance,
           $Port, [string]$Database, [string]$AuthMode, [bool]$IsLocal = $false, [bool]$Secrets = $false)
-    $Instance = Nz $Instance
+    # A NEW variable, not $Instance: a [string] parameter keeps its type constraint for every
+    # later assignment in the scope, so `$Instance = Nz $Instance` would coerce the null
+    # straight back to an empty string.
+    $instanceValue = Nz $Instance
     [ordered]@{
         siteName = $Site; appPath = $App; sourceFile = $Source; kind = 'database'; name = $Name
-        host = $DbHost; rawHost = $DbHost; isLocal = $IsLocal; instance = $Instance; port = $Port
+        host = $DbHost; rawHost = $DbHost; isLocal = $IsLocal; instance = $instanceValue; port = $Port
         protocol = $null; filePath = $null; database = $Database; authMode = $AuthMode
         provider = 'System.Data.SqlClient'; encrypt = $null; trustServerCertificate = $null
         secretsPresent = $Secrets; parseStatus = 'ok'
@@ -262,11 +265,21 @@ $targets = @(
                     physicalPath = Path2 'E:\apps\intranet'
                     bindings = @((Binding 'http' '*:8080:intranet.corp.local' '*' 8080 'intranet.corp.local' $null $null))
                     logFile = LogFile 'E:\logs\W3SVC2' 'true' 12 3145728 '2026-07-20T00:02:19Z' '2026-07-31T22:41:07Z' 262144
+                },
+                # Second node of the portal farm. Its /api application was never migrated to
+                # Core, so the estate-level applications pivot shows a runtime spread that no
+                # single machine's dossier could reveal (census-web.md 11.3).
+                [ordered]@{
+                    name = 'portal.example.com'; id = '3'; serverAutoStart = 'true'
+                    physicalPath = Path2 'E:\sites\portal'
+                    bindings = @((Binding 'http' '*:80:portal.example.com' '*' 80 'portal.example.com' $null $null))
+                    logFile = LogFile 'E:\logs\W3SVC3' 'true' 9 1048576 '2026-07-23T00:01:55Z' '2026-07-31T23:12:40Z' 131072
                 }
             )
             appPools = @(
                 (Pool 'DefaultAppPool' 'v4.0' 'applicationPoolDefaults' 'Integrated' 'ApplicationPoolIdentity' $null),
-                (Pool 'IntranetPool'   'v4.0' 'pool'                    'Integrated' 'SpecificUser' 'CORP\svc-intranet')
+                (Pool 'IntranetPool'   'v4.0' 'pool'                    'Integrated' 'SpecificUser' 'CORP\svc-intranet'),
+                (Pool 'PortalApiPool'  'v4.0' 'pool'                    'Integrated' 'ApplicationPoolIdentity' $null)
             )
             applications = @(
                 [ordered]@{
@@ -298,6 +311,27 @@ $targets = @(
                     virtualDirectories = @([ordered]@{ path = '/'; physicalPath = Path2 '%UPLOADSHARE%\intranet' '%UPLOADSHARE%\intranet' $false; userName = $null; logonMethod = $null })
                     configFiles = [ordered]@{ webConfig = [ordered]@{ status = 'not-present' }; appSettingsJson = [ordered]@{ status = 'not-present' } }
                     status = 'failed'; reason = 'physical path does not resolve: %UPLOADSHARE% is not defined on this machine'
+                },
+                [ordered]@{
+                    siteName = 'portal.example.com'; path = '/'; physicalPath = Path2 'E:\sites\portal'
+                    applicationPool = 'DefaultAppPool'; poolManagedRuntimeVersion = 'v4.0'; poolManagedPipelineMode = 'Integrated'
+                    poolIdentityType = 'ApplicationPoolIdentity'; poolUserName = $null; enabledProtocols = 'http'
+                    runtime = [ordered]@{ poolManagedRuntimeVersion = 'v4.0'; aspNetCore = $null; hasAppSettingsJson = $false; hasRuntimeConfigJson = $false }
+                    auth = Auth $false 'location' $true 'location'
+                    virtualDirectories = @([ordered]@{ path = '/'; physicalPath = Path2 'E:\sites\portal'; userName = $null; logonMethod = $null })
+                    configFiles = [ordered]@{ webConfig = [ordered]@{ status = 'ok'; path = 'E:\sites\portal\web.config' }; appSettingsJson = [ordered]@{ status = 'not-present' } }
+                    status = 'ok'
+                },
+                # Still .NET Framework where WEB01 runs ASP.NET Core - the runtime spread.
+                [ordered]@{
+                    siteName = 'portal.example.com'; path = '/api'; physicalPath = Path2 'E:\sites\portal\api'
+                    applicationPool = 'PortalApiPool'; poolManagedRuntimeVersion = 'v4.0'; poolManagedPipelineMode = 'Integrated'
+                    poolIdentityType = 'ApplicationPoolIdentity'; poolUserName = $null; enabledProtocols = 'http'
+                    runtime = [ordered]@{ poolManagedRuntimeVersion = 'v4.0'; aspNetCore = $null; hasAppSettingsJson = $false; hasRuntimeConfigJson = $false }
+                    auth = Auth $true 'serverDefault' $false 'serverDefault'
+                    virtualDirectories = @([ordered]@{ path = '/'; physicalPath = Path2 'E:\sites\portal\api'; userName = $null; logonMethod = $null })
+                    configFiles = [ordered]@{ webConfig = [ordered]@{ status = 'ok'; path = 'E:\sites\portal\api\web.config' }; appSettingsJson = [ordered]@{ status = 'not-present' } }
+                    status = 'ok'
                 }
             )
             dependencies = @(

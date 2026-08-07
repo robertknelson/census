@@ -1345,32 +1345,21 @@ previous day's files are untouched.
   maximum rights on every instance. The permission stamp (§8.8.1) is still emitted, because
   rights granted today are not rights granted in a year. **Do not ask for `sysadmin`** remains
   the standing position for any future least-privilege pass.
-- **PARKED — per-target credentials** (raised 2026-08-07, deliberately deferred). Today the
-  orchestrator runs everything as the invoking shell's user: `machines.json` is a flat array
-  of names and `Invoke-Command` is called with no `-Credential` at all. The wanted shape is
-  already specced in §5.2 and ratified as CD-9 — `kind: "task-identity"` *is* "defaults to the
-  shell execution context user", and `kind: "clixml"` is the per-target override — so this is
-  implementing a decision, not making one. Carries with it:
-  - **Granularity.** Position: keep credential *buckets*, not per-machine entries; a bucket of
-    one gives genuine per-machine without turning twenty DPAPI files into a rotation chore.
-    Not yet ratified.
-  - **DPAPI is user- *and* machine-bound.** The census service account must create its own
-    `.cred.xml` files on the control box. Credentials created interactively by a different
-    account will fail to decrypt — unattended, at 3am. This is the most likely day-one failure.
-  - **`Test-WSMan` must take the same credential** (currently called bare), or pre-flight
-    passes and collection then fails — the worst possible ordering.
-  - **`TrustedHosts` lives on the control box.** Pre-flight *reports* a missing entry; the
-    script never edits it. Silently changing a security setting to make its own job work is
-    not behaviour this collector should have.
-  - **A stale credential must not read as "unreachable"** — §5.3's probe separates them, but
-    the diagnosis wording has to as well.
-  - **The envelope has no `context` block yet** — no `bucket`, `runAs` or `transport` (§6).
-    That is what makes a snapshot auditable, and it should land with this work.
-  - `config/creds/` must be in `.gitignore` **before** the first credential file exists.
-  - **Unverifiable in the current environment** — one machine, one account. It will ship
-    structurally correct and unexercised, like the double-hop assumption.
+- ~~**PARKED — per-target credentials**~~ — **resolved 2026-08-07.** Raised, parked, and built
+  the same day; the ratified sequence **SQL → UX → credentials** is now complete. Granularity
+  ratified as *buckets* (§5.2.1). Everything the parked item carried has landed: bucket
+  resolution cached per run, `Test-WSMan` and `Invoke-Command` taking the same credential, the
+  four-way outcome vocabulary that keeps a stale credential from reading as `unreachable`,
+  `TrustedHosts` reported and never edited, the `context` block (§5.2.2), and `config/creds/`
+  git-ignored before the first file existed. Operator procedure is `.docs/credentials-howto.md`;
+  `New-CensusCredential.ps1` enforces the DPAPI account binding by refusing to write a file the
+  census task could not read. `tests/Test-Credentials.ps1` covers it — 38 assertions.
 
-  **Sequence ratified 2026-08-07: SQL → UX → credentials.**
+  **The one thing that did not close, and cannot close here:** no remote WinRM call carrying a
+  `-Credential` has been exercised. One machine, one account (see the verification constraint in
+  `.docs/features/census-web-v2-ux.md` §7). That hop ships structurally correct and unexercised,
+  like the double-hop assumption — the first real run against a `clixml` bucket *is* the test,
+  and it should be run interactively with `-Verbose` before it is trusted to a schedule.
 - **Per-user hive depth** — persistent mapped drives and per-user installs for *logged-off*
   users need `reg load` of `NTUSER.DAT`. Position: **loaded hives only**, gap declared in the
   envelope. `Forensic` only if ever enabled, with a guaranteed `finally` unload.

@@ -1045,6 +1045,90 @@ $CollectScriptBlock = {
         @{ certificates = $certificates; rdpQueryError = $rdpQueryError; httpSysQueryError = $httpSysQueryError }
     }
 
+    function Get-CensusAliases {
+        # Every name this machine answers to, so a downstream consumer can match it against a
+        # model whose node names were typed by people over years. Census emits the whole name
+        # surface and never performs the match itself - see graph-interop.md section 4 (GI-4).
+        #
+        # Derived: it aggregates from the other collectors, so it runs as a post-pass and
+        # records which of them contributed. An alias set assembled while IIS was failing is
+        # smaller, and that must not read as aliases having been removed (section 6.6).
+        param($IdentityResult, $IisResult, $CertificatesResult, $SqlServerResult)
+
+        $aliases = New-Object System.Collections.Generic.List[object]
+        $seen = New-Object System.Collections.Generic.HashSet[string]
+
+        function Add-Alias {
+            param([string]$Kind, $Value, [string]$Source)
+            if ([string]::IsNullOrWhiteSpace($Value)) { return }
+            $trimmed = ([string]$Value).Trim()
+            if (-not $seen.Add(("$Kind|$trimmed").ToLowerInvariant())) { return }
+            $aliases.Add([ordered]@{ kind = $Kind; value = $trimmed; source = $Source })
+        }
+
+        $sources = [ordered]@{}
+
+        # --- identity -----------------------------------------------------------------
+        $sources.identity = $IdentityResult.status
+        Add-Alias 'netbios' $env:COMPUTERNAME 'identity'
+        if ($IdentityResult.status -eq 'ok') {
+            $domain = $IdentityResult.data.domain
+            if ($domain -and $domain -notmatch '^(WORKGROUP)$') {
+                Add-Alias 'fqdn' "$env:COMPUTERNAME.$domain" 'identity'
+            }
+            Add-Alias 'machineGuid' $IdentityResult.data.machineGuid 'identity'
+            Add-Alias 'smbiosUuid'  $IdentityResult.data.smbiosUuid  'identity'
+            Add-Alias 'biosSerial'  $IdentityResult.data.biosSerialNumber 'identity'
+        }
+
+        # --- sql server ---------------------------------------------------------------
+        $sources.sqlserver = $SqlServerResult.status
+        if ($SqlServerResult.status -eq 'ok') {
+            foreach ($instance in @($SqlServerResult.data.instances)) {
+                if (-not $instance.instanceName) { continue }
+                $value = if ($instance.instanceName -eq 'MSSQLSERVER') { $env:COMPUTERNAME }
+                         else { "$env:COMPUTERNAME\$($instance.instanceName)" }
+                Add-Alias 'sqlInstance' $value 'sqlserver'
+            }
+        }
+
+        # --- iis ----------------------------------------------------------------------
+        $sources.iis = $IisResult.status
+        if ($IisResult.status -eq 'ok') {
+            foreach ($site in @($IisResult.data.sites)) {
+                foreach ($binding in @($site.bindings)) {
+                    Add-Alias 'bindingHostHeader' $binding.hostHeader 'iis'
+                }
+            }
+        }
+
+        # --- certificates -------------------------------------------------------------
+        $sources.certificates = $CertificatesResult.status
+        if ($CertificatesResult.status -eq 'ok') {
+            foreach ($certificate in @($CertificatesResult.data.certificates)) {
+                foreach ($san in @($certificate.sanDnsNames)) {
+                    Add-Alias 'certSan' $san 'certificates'
+                }
+            }
+        }
+
+        # --- addresses ----------------------------------------------------------------
+        # There is no `network` collector yet; the addresses are read directly here so the
+        # kind is not simply missing. When that collector lands this moves to it.
+        try {
+            $addresses = @(Get-CimInstance Win32_NetworkAdapterConfiguration -Filter 'IPEnabled = True' -ErrorAction Stop |
+                ForEach-Object { $_.IPAddress } |
+                Where-Object { $_ -and $_ -match '^\d+\.\d+\.\d+\.\d+$' -and $_ -ne '127.0.0.1' })
+            foreach ($address in $addresses) { Add-Alias 'ipv4' $address 'network' }
+            $sources.network = 'ok'
+        }
+        catch {
+            $sources.network = 'failed'
+        }
+
+        @{ aliases = $aliases.ToArray(); sources = $sources }
+    }
+
     # --- SQL Server helpers ----------------------------------------------------------------
     # This is the only place the collector opens an outbound connection; everything else reads
     # the local registry or local files. See census-collector.md 8.8.1.
@@ -1261,13 +1345,22 @@ ORDER BY database_id, file_id
         @{ instances = $instances }
     }
 
-    $iisResult = Invoke-CensusCategory { Get-CensusIis }
+    # Ordered deliberately: `aliases` is derived from the four below it and must run last
+    # (spec section 8.1.1). Everything else is independent.
+    $identityResult     = Invoke-CensusCategory { Get-CensusIdentity }
+    $iisResult          = Invoke-CensusCategory { Get-CensusIis }
+    $certificatesResult = Invoke-CensusCategory { Get-CensusCertificates -IisResult $iisResult }
+    $sqlServerResult    = Invoke-CensusCategory { Get-CensusSqlServer }
+    $aliasesResult      = Invoke-CensusCategory {
+        Get-CensusAliases -IdentityResult $identityResult -IisResult $iisResult `
+                          -CertificatesResult $certificatesResult -SqlServerResult $sqlServerResult
+    }
 
     $census = [ordered]@{
         schemaVersion = 1
         computerName  = $env:COMPUTERNAME
         collectedUtc  = (Get-Date).ToUniversalTime().ToString('o')
-        identity      = Invoke-CensusCategory { Get-CensusIdentity }
+        identity      = $identityResult
         memory        = Invoke-CensusCategory { Get-CensusMemory }
         os            = Invoke-CensusCategory { Get-CensusOs }
         updates       = Invoke-CensusCategory { Get-CensusUpdates }
@@ -1275,8 +1368,9 @@ ORDER BY database_id, file_id
         drives        = Invoke-CensusCategory { Get-CensusDrives }
         apps          = Invoke-CensusCategory { Get-CensusApps }
         iis           = $iisResult
-        certificates  = Invoke-CensusCategory { Get-CensusCertificates -IisResult $iisResult }
-        sqlserver     = Invoke-CensusCategory { Get-CensusSqlServer }
+        certificates  = $certificatesResult
+        sqlserver     = $sqlServerResult
+        aliases       = $aliasesResult
     }
 
     $census | ConvertTo-Json -Depth 10 -Compress

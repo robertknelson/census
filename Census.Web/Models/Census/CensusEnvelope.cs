@@ -23,6 +23,7 @@ public record CensusEnvelope
     public CensusCategory<IisData>? Iis { get; init; }
     public CensusCategory<CertificatesData>? Certificates { get; init; }
     public CensusCategory<SqlServerData>? SqlServer { get; init; }
+    public CensusCategory<AliasesData>? Aliases { get; init; }
     public required string RequestedName { get; init; }
     public List<string> Roles { get; init; } = [];
 }
@@ -404,4 +405,20 @@ public record SqlDatabaseFile
 public record SqlServerData
 {
     public List<SqlInstance> Instances { get; init; } = [];
+}
+
+public record AliasEntry
+{
+    public string? Kind { get; init; }
+    public string? Value { get; init; }
+    public string? Source { get; init; }
+}
+
+// A derived post-pass: it records which collectors contributed, because an alias set
+// assembled while IIS was failing is smaller and that must not read as aliases having been
+// removed. See census-collector.md 8.1.1.
+public record AliasesData
+{
+    public List<AliasEntry> Aliases { get; init; } = [];
+    public Dictionary<string, string> Sources { get; init; } = [];
 }

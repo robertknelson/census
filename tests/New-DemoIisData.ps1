@@ -97,6 +97,20 @@ function HttpEdge {
     }
 }
 
+function Alias {
+    param([string]$Kind, [string]$Value, [string]$Source)
+    [ordered]@{ kind = $Kind; value = $Value; source = $Source }
+}
+
+function AliasCategory {
+    param($Aliases, $Sources)
+    [PSCustomObject]([ordered]@{
+        status     = 'ok'
+        data       = [ordered]@{ aliases = $Aliases; sources = $Sources }
+        durationMs = 41
+    })
+}
+
 function Pool {
     param([string]$Name, [string]$Runtime, [string]$RuntimeSource, [string]$Pipeline, [string]$Identity, $User)
     [ordered]@{
@@ -214,12 +228,46 @@ $apiApp = [ordered]@{
     status = 'ok'
 }
 
+# Each of these three exists to prove one alias-join decision, and would be indistinguishable
+# from a plain 'unobserved' without the corresponding fixture:
+#   - BillingDb names SQL01 by FQDN, so it can only resolve through the fqdn alias.
+#   - SharedCertDb names a host that appears only as a certSan, which is deliberately NOT
+#     join-eligible - a shared certificate must not let one machine claim another's identity.
+#   - VipDb names an address both WEB01 and APPSRV01 claim, so it must stay unresolved rather
+#     than silently picking one.
+$web01AliasProofDeps = @(
+    (DbEdge 'portal.example.com' '/' 'web.config' 'BillingDb'    'sql01.corp.local' 'PROD' $null 'Billing'  'integrated'),
+    (DbEdge 'portal.example.com' '/' 'web.config' 'SharedCertDb' 'sqlfarm.corp.local' $null $null 'Portal'  'integrated'),
+    (DbEdge 'portal.example.com' '/' 'web.config' 'VipDb'        '10.0.0.50' $null $null 'Portal'           'integrated')
+)
+
 $web01BaseDeps = @(
     (DbEdge 'portal.example.com' '/' 'web.config' 'PortalDb' 'SQL01' 'PROD' $null 'Portal' 'integrated'),
     (DbEdge 'portal.example.com' '/' 'web.config' 'DefaultConnection' 'WEB01' $null $null 'PortalLocal' 'integrated' $true),
     (HttpEdge 'portal.example.com' '/' 'web.config' 'PaymentGatewayUrl' 'https' 'payments.vendor.example.com' 443 '/v2/charge' $false $true),
     (HttpEdge 'portal.example.com' '/reports' 'web.config' 'LegacyFeedUrl' 'http' 'legacy-reports.example.com' 80 '/feed' $true $false)
+) + $web01AliasProofDeps
+
+$web01Aliases = @(
+    (Alias 'netbios' 'WEB01' 'identity'),
+    (Alias 'fqdn' 'web01.corp.local' 'identity'),
+    (Alias 'machineGuid' 'f2c1a7d4-90bb-4e11-8a33-6d2e5c0f9a71' 'identity'),
+    (Alias 'ipv4' '10.0.0.10' 'network'),
+    # A load-balancer VIP that APPSRV01 also answers on: the pair makes this alias ambiguous.
+    (Alias 'ipv4' '10.0.0.50' 'network'),
+    (Alias 'bindingHostHeader' 'portal.example.com' 'iis'),
+    (Alias 'certSan' 'portal.example.com' 'certificates')
 )
+$appsrv01Aliases = @(
+    (Alias 'netbios' 'APPSRV01' 'identity'),
+    (Alias 'fqdn' 'appsrv01.corp.local' 'identity'),
+    (Alias 'machineGuid' '77b0e5c2-1a4f-4c88-9f10-3b8d61e2a004' 'identity'),
+    (Alias 'ipv4' '10.0.0.11' 'network'),
+    (Alias 'ipv4' '10.0.0.50' 'network'),
+    (Alias 'bindingHostHeader' 'intranet.corp.local' 'iis'),
+    (Alias 'bindingHostHeader' 'portal.example.com' 'iis')
+)
+$aliasSources = [ordered]@{ identity = 'ok'; sqlserver = 'not-present'; iis = 'ok'; certificates = 'ok'; network = 'ok' }
 
 $web01ApiDeps = @(
     (DbEdge 'portal.example.com' '/api' 'appsettings.json' 'Reporting' 'SQL01' 'PROD' 1433 'Reporting' 'sql' $false $true),
@@ -228,6 +276,7 @@ $web01ApiDeps = @(
 
 $targets = @(
     @{
+        Aliases = AliasCategory $web01Aliases $aliasSources
         File = 'WEB01\web01-census-20260730.json'
         Iis  = [ordered]@{
             server       = Server '10.0.20348.1' '2026-06-14T09:12:33Z' 'b7d1e4a9c2f508361b7d1e4a9c2f508361b7d1e4a9c2f508361b7d1e4a9c2f508'
@@ -239,6 +288,7 @@ $targets = @(
         Duration = 71
     },
     @{
+        Aliases = AliasCategory $web01Aliases $aliasSources
         File = 'WEB01\web01-census-20260731.json'
         Iis  = [ordered]@{
             server       = Server '10.0.20348.1' '2026-07-31T06:41:02Z' 'e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7d3c5081f4b9e2a7'
@@ -250,6 +300,7 @@ $targets = @(
         Duration = 88
     },
     @{
+        Aliases = AliasCategory $appsrv01Aliases $aliasSources
         File = 'APPSRV01\appsrv01-census-20260731.json'
         Iis  = [ordered]@{
             server = Server '10.0.17763.1' '2026-02-03T14:55:10Z' '9c2f508361b7d1e4a9c2f508361b7d1e4a9c2f508361b7d1e4a9c2f508361b7d1'
@@ -360,6 +411,9 @@ foreach ($target in $targets) {
         data       = $target.Iis
         durationMs = $target.Duration
     })
+    # `aliases` is a post-pass category the demo envelopes predate, so it is added rather than
+    # assigned.
+    $envelope | Add-Member -NotePropertyName aliases -NotePropertyValue $target.Aliases -Force
     $envelope | ConvertTo-Json -Depth 15 | Set-Content -LiteralPath $path -Encoding utf8
     Write-Host "rewrote $($target.File)"
 }

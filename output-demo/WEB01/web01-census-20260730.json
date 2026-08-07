@@ -536,6 +536,72 @@
                                                       "hadCredentials":  true,
                                                       "hadQuery":  false,
                                                       "sha256":  "9dc89881f099843aa79fa9d9d50a25e947679633f0a6b96d2528633dec2ca88b"
+                                                  },
+                                                  {
+                                                      "siteName":  "portal.example.com",
+                                                      "appPath":  "/",
+                                                      "sourceFile":  "web.config",
+                                                      "kind":  "database",
+                                                      "name":  "BillingDb",
+                                                      "host":  "sql01.corp.local",
+                                                      "rawHost":  "sql01.corp.local",
+                                                      "isLocal":  false,
+                                                      "instance":  "PROD",
+                                                      "port":  null,
+                                                      "protocol":  null,
+                                                      "filePath":  null,
+                                                      "database":  "Billing",
+                                                      "authMode":  "integrated",
+                                                      "provider":  "System.Data.SqlClient",
+                                                      "encrypt":  null,
+                                                      "trustServerCertificate":  null,
+                                                      "secretsPresent":  false,
+                                                      "parseStatus":  "ok",
+                                                      "sha256":  "e07bbba577cc9e63d3a2e0d522fae3a78b78e2f43c8ffdf054e8d5e3ff7587d2"
+                                                  },
+                                                  {
+                                                      "siteName":  "portal.example.com",
+                                                      "appPath":  "/",
+                                                      "sourceFile":  "web.config",
+                                                      "kind":  "database",
+                                                      "name":  "SharedCertDb",
+                                                      "host":  "sqlfarm.corp.local",
+                                                      "rawHost":  "sqlfarm.corp.local",
+                                                      "isLocal":  false,
+                                                      "instance":  null,
+                                                      "port":  null,
+                                                      "protocol":  null,
+                                                      "filePath":  null,
+                                                      "database":  "Portal",
+                                                      "authMode":  "integrated",
+                                                      "provider":  "System.Data.SqlClient",
+                                                      "encrypt":  null,
+                                                      "trustServerCertificate":  null,
+                                                      "secretsPresent":  false,
+                                                      "parseStatus":  "ok",
+                                                      "sha256":  "e0257686c69a02ebd318d0ff4495c0b43832a08c60d093930acf8f963b23f2ff"
+                                                  },
+                                                  {
+                                                      "siteName":  "portal.example.com",
+                                                      "appPath":  "/",
+                                                      "sourceFile":  "web.config",
+                                                      "kind":  "database",
+                                                      "name":  "VipDb",
+                                                      "host":  "10.0.0.50",
+                                                      "rawHost":  "10.0.0.50",
+                                                      "isLocal":  false,
+                                                      "instance":  null,
+                                                      "port":  null,
+                                                      "protocol":  null,
+                                                      "filePath":  null,
+                                                      "database":  "Portal",
+                                                      "authMode":  "integrated",
+                                                      "provider":  "System.Data.SqlClient",
+                                                      "encrypt":  null,
+                                                      "trustServerCertificate":  null,
+                                                      "secretsPresent":  false,
+                                                      "parseStatus":  "ok",
+                                                      "sha256":  "4c98d499d7de28339ec0caa339aabb9c1b567f971518f8c3ca7db88bc0c5a03e"
                                                   }
                                               ]
                          },
@@ -574,5 +640,55 @@
     "requestedName":  "web01",
     "roles":  [
                   "WebServer"
-              ]
+              ],
+    "aliases":  {
+                    "status":  "ok",
+                    "data":  {
+                                 "aliases":  [
+                                                 {
+                                                     "kind":  "netbios",
+                                                     "value":  "WEB01",
+                                                     "source":  "identity"
+                                                 },
+                                                 {
+                                                     "kind":  "fqdn",
+                                                     "value":  "web01.corp.local",
+                                                     "source":  "identity"
+                                                 },
+                                                 {
+                                                     "kind":  "machineGuid",
+                                                     "value":  "f2c1a7d4-90bb-4e11-8a33-6d2e5c0f9a71",
+                                                     "source":  "identity"
+                                                 },
+                                                 {
+                                                     "kind":  "ipv4",
+                                                     "value":  "10.0.0.10",
+                                                     "source":  "network"
+                                                 },
+                                                 {
+                                                     "kind":  "ipv4",
+                                                     "value":  "10.0.0.50",
+                                                     "source":  "network"
+                                                 },
+                                                 {
+                                                     "kind":  "bindingHostHeader",
+                                                     "value":  "portal.example.com",
+                                                     "source":  "iis"
+                                                 },
+                                                 {
+                                                     "kind":  "certSan",
+                                                     "value":  "portal.example.com",
+                                                     "source":  "certificates"
+                                                 }
+                                             ],
+                                 "sources":  {
+                                                 "identity":  "ok",
+                                                 "sqlserver":  "not-present",
+                                                 "iis":  "ok",
+                                                 "certificates":  "ok",
+                                                 "network":  "ok"
+                                             }
+                             },
+                    "durationMs":  41
+                }
 }

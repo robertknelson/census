@@ -196,17 +196,27 @@ public class HostingController(CensusStore censusStore) : ControllerBase
             .ToList();
     }
 
-    private record MachineSql(string SqlStatus, List<(string Instance, HashSet<string> Databases)> Instances);
+    private record MachineSql(string Machine, string SqlStatus, List<(string Instance, HashSet<string> Databases)> Instances);
+
+    private record HostIndex(Dictionary<string, MachineSql> ByName, HashSet<string> Ambiguous);
 
     /// <summary>
-    /// machine-identifying name -> what census knows about SQL Server on that machine.
-    /// Name matching only, until the alias collector lands (collector §8.1.1) - so this may
-    /// understate what census knows, never overstate it (decision H-5).
+    /// Kinds that name exactly this machine. certSan is excluded because a wildcard or shared
+    /// certificate names machines that are not this one, and bindingHostHeader because a
+    /// load-balanced name legitimately resolves to several. Joining on either would let one
+    /// machine claim another's identity — see census-collector.md §8.1.1.
     /// </summary>
-    private static Dictionary<string, MachineSql> BuildDatabaseIndex(
-        List<(string Machine, CensusEnvelope Envelope)> snapshots)
+    private static readonly string[] JoinableAliasKinds = ["netbios", "fqdn", "ipv4"];
+
+    /// <summary>
+    /// host-identifying name -> what census knows about SQL Server on that machine, drawn from
+    /// the alias set so an edge naming an FQDN or an address still matches. A name claimed by
+    /// two machines is dropped rather than resolved: picking one would overstate what census
+    /// knows, and dropping only understates (decision H-5).
+    /// </summary>
+    private static HostIndex BuildDatabaseIndex(List<(string Machine, CensusEnvelope Envelope)> snapshots)
     {
-        var index = new Dictionary<string, MachineSql>(StringComparer.OrdinalIgnoreCase);
+        var claims = new Dictionary<string, List<MachineSql>>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var (machine, envelope) in snapshots)
         {
@@ -226,30 +236,55 @@ public class HostingController(CensusStore censusStore) : ControllerBase
                 }
             }
 
-            var entry = new MachineSql(status, instances);
-            foreach (var name in new[] { machine, envelope.ComputerName, envelope.RequestedName })
+            var entry = new MachineSql(machine, status, instances);
+
+            var names = new List<string?> { machine, envelope.ComputerName, envelope.RequestedName };
+            if (envelope.Aliases?.Status == "ok")
+            {
+                names.AddRange((envelope.Aliases.Data?.Aliases ?? [])
+                    .Where(a => a.Kind is not null && JoinableAliasKinds.Contains(a.Kind, StringComparer.OrdinalIgnoreCase))
+                    .Select(a => a.Value));
+            }
+
+            foreach (var name in names)
             {
                 if (string.IsNullOrWhiteSpace(name)) continue;
-                index[name] = entry;
+                Claim(claims, name, entry);
                 // A short name also answers to its own FQDN prefix.
                 var dot = name.IndexOf('.');
-                if (dot > 0) index[name[..dot]] = entry;
+                if (dot > 0) Claim(claims, name[..dot], entry);
             }
         }
 
-        return index;
+        var byName = new Dictionary<string, MachineSql>(StringComparer.OrdinalIgnoreCase);
+        var ambiguous = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, entries) in claims)
+        {
+            if (entries.Count == 1) byName[name] = entries[0];
+            else ambiguous.Add(name);
+        }
+        return new HostIndex(byName, ambiguous);
     }
 
-    private static (string Verdict, string? Detail) Corroborate(
-        IisDependency edge,
-        Dictionary<string, MachineSql> index)
+    private static void Claim(Dictionary<string, List<MachineSql>> claims, string name, MachineSql entry)
+    {
+        if (!claims.TryGetValue(name, out var list)) claims[name] = list = [];
+        if (!list.Any(e => string.Equals(e.Machine, entry.Machine, StringComparison.OrdinalIgnoreCase)))
+            list.Add(entry);
+    }
+
+    private static (string Verdict, string? Detail) Corroborate(IisDependency edge, HostIndex index)
     {
         // HTTP corroboration means matching a URL host against IIS bindings estate-wide - a
         // second matching problem, deferred with the alias work (census-web.md §11.7).
         if (edge.Kind != "database" || edge.Host is null || edge.Database is null)
             return ("unobserved", null);
 
-        if (!index.TryGetValue(edge.Host, out var machine))
+        // Silently dropping an ambiguous name would look identical to never having seen it.
+        if (index.Ambiguous.Contains(edge.Host))
+            return ("unobserved", $"'{edge.Host}' is claimed by more than one censused machine, so it cannot be resolved");
+
+        if (!index.ByName.TryGetValue(edge.Host, out var machine))
             return ("unobserved", $"no censused machine matches host '{edge.Host}'");
 
         // 'not-present' is proved absence, not ignorance (collector §6.2) - census established

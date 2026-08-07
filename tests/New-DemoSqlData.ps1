@@ -201,6 +201,28 @@ function RegistryOnly {
     }
 }
 
+# 'sqlfarm.corp.local' is deliberately present only as a certSan - a shared certificate. It
+# must NOT let SQL01 answer to that name, or one machine could claim another's identity
+# (census-collector.md 8.1.1).
+$sql01Aliases = @(
+    [ordered]@{ kind = 'netbios';     value = 'SQL01';               source = 'identity' },
+    [ordered]@{ kind = 'fqdn';        value = 'sql01.corp.local';    source = 'identity' },
+    [ordered]@{ kind = 'machineGuid'; value = '3a91c8e0-52d7-4f6b-b1c9-8e04f7a25d33'; source = 'identity' },
+    [ordered]@{ kind = 'ipv4';        value = '10.0.0.20';           source = 'network' },
+    [ordered]@{ kind = 'sqlInstance'; value = 'SQL01\PROD';          source = 'sqlserver' },
+    [ordered]@{ kind = 'sqlInstance'; value = 'SQL01\REPORTING';     source = 'sqlserver' },
+    [ordered]@{ kind = 'sqlInstance'; value = 'SQL01\ARCHIVE';       source = 'sqlserver' },
+    [ordered]@{ kind = 'certSan';     value = 'sqlfarm.corp.local';  source = 'certificates' }
+)
+$sql01AliasCategory = [PSCustomObject]([ordered]@{
+    status     = 'ok'
+    data       = [ordered]@{
+        aliases = $sql01Aliases
+        sources = [ordered]@{ identity = 'ok'; sqlserver = 'ok'; iis = 'not-present'; certificates = 'ok'; network = 'ok' }
+    }
+    durationMs = 38
+})
+
 $targets = @(
     @{ File = 'SQL01\sql01-census-20260731.json'; Instances = $sql01Instances;     Duration = 1180 }
 )
@@ -214,6 +236,7 @@ foreach ($target in $targets) {
         data       = [ordered]@{ instances = $target.Instances }
         durationMs = $target.Duration
     })
+    $envelope | Add-Member -NotePropertyName aliases -NotePropertyValue $sql01AliasCategory -Force
     $envelope | ConvertTo-Json -Depth 15 | Set-Content -LiteralPath $path -Encoding utf8
     Write-Host "rewrote $($target.File)"
 }

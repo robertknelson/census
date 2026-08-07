@@ -650,5 +650,60 @@
     "requestedName":  "sql01",
     "roles":  [
                   "DatabaseServer"
-              ]
+              ],
+    "aliases":  {
+                    "status":  "ok",
+                    "data":  {
+                                 "aliases":  [
+                                                 {
+                                                     "kind":  "netbios",
+                                                     "value":  "SQL01",
+                                                     "source":  "identity"
+                                                 },
+                                                 {
+                                                     "kind":  "fqdn",
+                                                     "value":  "sql01.corp.local",
+                                                     "source":  "identity"
+                                                 },
+                                                 {
+                                                     "kind":  "machineGuid",
+                                                     "value":  "3a91c8e0-52d7-4f6b-b1c9-8e04f7a25d33",
+                                                     "source":  "identity"
+                                                 },
+                                                 {
+                                                     "kind":  "ipv4",
+                                                     "value":  "10.0.0.20",
+                                                     "source":  "network"
+                                                 },
+                                                 {
+                                                     "kind":  "sqlInstance",
+                                                     "value":  "SQL01\\PROD",
+                                                     "source":  "sqlserver"
+                                                 },
+                                                 {
+                                                     "kind":  "sqlInstance",
+                                                     "value":  "SQL01\\REPORTING",
+                                                     "source":  "sqlserver"
+                                                 },
+                                                 {
+                                                     "kind":  "sqlInstance",
+                                                     "value":  "SQL01\\ARCHIVE",
+                                                     "source":  "sqlserver"
+                                                 },
+                                                 {
+                                                     "kind":  "certSan",
+                                                     "value":  "sqlfarm.corp.local",
+                                                     "source":  "certificates"
+                                                 }
+                                             ],
+                                 "sources":  {
+                                                 "identity":  "ok",
+                                                 "sqlserver":  "ok",
+                                                 "iis":  "not-present",
+                                                 "certificates":  "ok",
+                                                 "network":  "ok"
+                                             }
+                             },
+                    "durationMs":  38
+                }
 }

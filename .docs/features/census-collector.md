@@ -471,6 +471,26 @@ Rules:
 
 - **Derived, therefore last.** It aggregates from `iis`, `certs`, `sqlserver` and `network`,
   so it cannot be ordered among them — it is a post-pass (§9).
+- **It is its own top-level category, not a field inside `identity`** *(amended 2026-08-07;
+  the original wording said "on the `identity` collector")*. A post-pass has its own status,
+  its own duration and its own record of which sources contributed. Nesting that inside
+  `identity.data` would make `identity`'s status ambiguous — `ok` would no longer mean "the
+  identity collector succeeded".
+- **Not every kind is eligible for host matching.** Collecting an alias and *joining* on it are
+  different decisions:
+
+  | Kind | Join-eligible | Why |
+  |---|---|---|
+  | `netbios`, `fqdn`, `ipv4` | **yes** | Each names exactly this machine |
+  | `machineGuid`, `smbiosUuid`, `biosSerial` | yes, for a consumer keying on identity | Not a *host* name; nothing points at a machine by GUID in a connection string |
+  | `sqlInstance` | as a whole string | `HOST\INSTANCE` is very often the string in an external model |
+  | `certSan` | **no** | A wildcard or shared certificate names machines that are not this one. Joining on it would let one machine claim another's identity. |
+  | `bindingHostHeader` | **no**, for now | A load-balanced host header legitimately resolves to several machines; that is correct for a future HTTP-edge join and wrong for a "which machine is this" join. |
+
+- **An alias claimed by two machines is dropped from the join, not resolved.** A cloned VM or
+  a reassigned DHCP address can make two machines claim one name. Silently picking one would
+  overstate what census knows; dropping it only understates (census-web.md H-5). The
+  collector still reports both — resolving the collision is not its business (§8.1).
 - **It must record which source collectors contributed** (§6.6). An alias set assembled while
   the IIS collector was failing is *smaller*, and that must not read as aliases having been
   removed.

@@ -26,7 +26,7 @@ exactly that.
 ## 2. Operating model
 
 - **Reads the collector's output tree directly** — `output/<MACHINE>/<machine>-census-
-  YYYYMMDD.json` plus `output/_runs/run-log.json` plus `config/machines.json`. Census Web
+  YYYYMMDD.json` plus `output/_runs/run-log.jsonl` plus `config/machines.json`. Census Web
   never talks to a target machine and never writes into that tree.
 - **No database for v1.** At a couple of dozen machines × one file/day, a year of history is a
   few thousand small JSON files — cheap to scan and cache in memory, the same approach
@@ -68,7 +68,7 @@ by `boundTo` (an unbound expiring cert is noise; a bound one is a scheduled outa
 
 ### 3.5 Coverage / freshness
 
-Cross-references `config/machines.json` (the intended fleet) against `run-log.json` and what
+Cross-references `config/machines.json` (the intended fleet) against `run-log.jsonl` and what
 actually landed in `output/`. Surfaces: machines never successfully collected, machines whose
 last `ok` run is more than N days old, and the "log says `ok`, no file exists" bug case called
 out in the collector spec §4.2. A stale machine is a compliance blind spot, not a clean bill —

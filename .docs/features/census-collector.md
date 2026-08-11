@@ -106,7 +106,7 @@ Deliberately isomorphic to an IIS log tree.
   DEV-VM-04\
     dev-vm-04-census-20260730.json   # absent 07-31 = machine was unreachable that day
   _runs\
-    run-log.json                     # appended: expected vs collected, per-machine outcome
+    run-log.jsonl                    # append-only, one line per machine per run
 ```
 
 Rules:
@@ -116,9 +116,12 @@ Rules:
   these files get copied out of the tree one at a time, and a bare `census-20260731.json` in
   a downloads folder does not say which machine it describes. The reader matches
   `^.+-census-(\d{8})\.json$`, so the prefix is required, not optional.
-- **The run log is one appended file**, `_runs\run-log.json` — not a file per run. A run reads
-  it, appends its own entries, and writes it back, so the whole history is one read for a
-  consumer asking "when was this machine last reached".
+- **The run log is one append-only JSON Lines file**, `_runs\run-log.jsonl` — not a file per
+  run, so the whole history is still one read for a consumer asking "when was this machine
+  last reached". One compressed line is appended per machine as its outcome is known; **the
+  collector never reads the file back** *(reversed from read-and-rewrite 2026-08-11 — the 5.1
+  read-back nested prior entries into a `value`/`Count` wrapper and lost the history in the
+  field; rationale and migration in `requirements.md` §4.2)*.
 - **Full snapshot every day, not deltas.** Any single file is complete and self-describing —
   readable with no replay. Drift diffing is a reader concern, not the writer's.
 - **Absence is signal.** A missing file means the machine was not collected that day. The run
@@ -1368,7 +1371,7 @@ one real remote box** — everything in §8.8 depends on it.
 
 **Slice 2 — fan-out and file layout.** `Invoke-Command -FilePath` over the passing set,
 per-machine wall-clock timeout, files at `<root>\<MACHINE>\<machine>-census-YYYYMMDD.json`,
-run log appended in `_runs\run-log.json`. *Verify:* three machines with one deliberately powered off — manifest
+run log appended in `_runs\run-log.jsonl`. *Verify:* three machines with one deliberately powered off — manifest
 shows 2 ok / 1 unreachable, the run does not hang, and re-running the same day overwrites
 cleanly.
 

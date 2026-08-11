@@ -1528,13 +1528,7 @@ $runsDir = Join-Path $CensusRoot '_runs'
 if (-not (Test-Path $runsDir)) {
     New-Item -ItemType Directory -Path $runsDir -Force | Out-Null
 }
-$runLogPath = Join-Path $runsDir 'run-log.json'
-
-$runLog = New-Object System.Collections.Generic.List[object]
-if (Test-Path $runLogPath) {
-    $existing = @(Get-Content $runLogPath -Raw | ConvertFrom-Json)
-    $runLog.AddRange($existing)
-}
+$runLogPath = Join-Path $runsDir 'run-log.jsonl'
 
 $dateStamp = (Get-Date).ToUniversalTime().ToString('yyyyMMdd')
 
@@ -1632,14 +1626,15 @@ foreach ($machine in $machines) {
         if ($trustedHostsReport.ContainsKey($machineName) -and $trustedHostsReport[$machineName] -ne 'present') {
             $entry.trustedHosts = $trustedHostsReport[$machineName]
         }
-        $runLog.Add([PSCustomObject]$entry)
+        # One compressed line appended per machine, the moment its outcome is known. NEVER
+        # read-modify-rewrite this file: the old accumulating-array design round-tripped every
+        # historical entry through ConvertFrom-Json each night, and Windows PowerShell 5.1
+        # emits a parsed JSON array as a SINGLE pipeline object - @(pipeline) then wrapped day
+        # 1's entries into one nested {value:[...],Count:n} element inside day 2's write, and
+        # the reader lost the history. pwsh 7 enumerates the same array, so only scheduled
+        # (5.1) runs hit it. Appending a line cannot corrupt lines already written, and a
+        # crash mid-run keeps every machine already logged. See census-collector.md 4.
+        Add-Content -Path $runLogPath -Encoding utf8 -Value (
+            ConvertTo-Json -InputObject ([PSCustomObject]$entry) -Compress -Depth 5)
     }
 }
-
-# -InputObject with an explicit array, NOT the pipeline. Piping a collection into
-# ConvertTo-Json unrolls it, and a collection of exactly ONE element then serialises as a bare
-# object instead of a single-element array - so a run against a one-machine list writes
-# {...} where every reader expects [{...}]. Two or more entries serialise correctly, which is
-# why this survives every multi-machine run and only breaks the smallest possible case.
-# Verified on both Windows PowerShell 5.1 and pwsh 7.
-ConvertTo-Json -InputObject $runLog.ToArray() -Depth 5 | Set-Content -Path $runLogPath -Encoding utf8

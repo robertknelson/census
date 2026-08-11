@@ -144,33 +144,42 @@ app, since this script is the whole deliverable:
 The "mother ship" view of the process itself, separate from what's on each machine: did the
 run happen, which machines were reached, when, and what went wrong for the ones that weren't.
 
-- Single accumulating file, one JSON array: `<CensusRoot>\_runs\run-log.json` — a plain JSON
-  listing, read and rewritten each run rather than line-appended. Trivial cost at once-a-day
-  over two dozen machines, and a single array (rather than line-delimited objects) lets each
-  entry carry richer, nested detail if that's ever needed, and lets any standard JSON tool
-  load the whole history in one parse.
-- **It is always a JSON array, including when it holds exactly one entry.** Piping a
-  collection into `ConvertTo-Json` unrolls it, and a single entry then serialises as a bare
-  object — the file must be written with `-InputObject` on an explicit array instead. This
-  only ever breaks a one-machine run, which is what a first real run looks like.
+- Single accumulating file, **append-only JSON Lines**: `<CensusRoot>\_runs\run-log.jsonl` —
+  one entry per line, appended with `Add-Content` as each machine's outcome is known, and
+  **never read back by the collector**. Still one file and one read for the whole history.
+- **Reversal, 2026-08-11.** The original design was one JSON array, read and rewritten each
+  run. It produced three serialization bugs in two weeks, and the third lost data in the
+  field: Windows PowerShell 5.1 emits a parsed JSON array as a *single* pipeline object, so
+  the read-back's `@(pipeline)` wrapped day 1's entries into one nested
+  `{ "value": [...], "Count": n }` element inside day 2's write — under pwsh 7 the same code
+  enumerates and works, which is exactly why dev verification passed and the scheduled (5.1)
+  run failed. The rewrite mechanism was the fault, not the one-file decision: an append can
+  only ever cost the line being written, never the history, and there is no longer any code
+  path that deserialises history in PowerShell at all. The array-of-richer-entries argument
+  from the original decision is preserved per line (a line is arbitrary JSON); what is given
+  up is `run-log` being loadable by a plain JSON parser in one call, which only the reader
+  ever did.
 - **The file accumulates shapes, and the reader must survive that** *(added 2026-08-07, after
-  a stale entry took the app down)*. Every run copies existing entries forward verbatim, so an
-  entry written by an older collector stays in the file permanently and no later run will
-  clean it. `CensusStore.GetRunLog()` therefore deserialises **entry by entry, skipping what
-  no longer fits and logging the count** — never the whole array in one call, which let one
-  legacy entry blank every coverage and findings request. This is the same rule the collector
+  a stale entry took the app down)*. A line written by an older collector stays in the file
+  permanently and no later run will clean it. `CensusStore.GetRunLog()` therefore parses
+  **line by line, skipping what no longer fits and logging the count** — a rule that now also
+  covers a truncated final line from a crash mid-write. This is the same rule the collector
   already holds itself to (`census-collector.md` §7.2): a failed part records its failure, it
   does not abort the whole.
 - Each entry carries `collectorVersion` (`census-collector.md` §6.5). Entries written before
   2026-08-07 have none, which is how a legacy entry is identified.
-- **`Repair-CensusRunLog.ps1` is the one-time cleanup**, for when the reader's warning about
-  skipped entries is not worth living with. It partitions the file on the *reader's* rule —
-  non-empty `machine` and `outcome`, the two required members of `RunLogEntry` — archives what
-  it drops to `_runs\run-log.archive-<stamp>.json`, and rewrites the run log with the rest.
-  Dry run by default; `-Execute` to write. It deliberately does **not** invent a stricter rule
-  than the reader's, because a migration that drops rows the application would have accepted
-  is worse than the warning it set out to silence. It also repairs the bare-object shape a
-  one-machine run wrote before the `-InputObject` fix.
+- **`Repair-CensusRunLog.ps1` is the one-time migration** from a legacy `run-log.json` to
+  `run-log.jsonl`. It recovers entries from every shape the old design produced — well-formed
+  arrays, the bare-object one-machine shape, and the 5.1 `value`/`Count` nestings, unwrapped
+  recursively in file order — then partitions on the *reader's* rule (non-empty `machine` and
+  `outcome`, the two required members of `RunLogEntry`), archives what it drops to
+  `_runs\run-log.archive-<stamp>.json`, writes the rest as `run-log.jsonl`, and retires the
+  legacy file to `_runs\run-log.migrated-<stamp>.json` rather than deleting it. Dry run by
+  default; `-Execute` to write. It deliberately does **not** invent a stricter rule than the
+  reader's, because a migration that drops rows the application would have accepted is worse
+  than the warning it set out to silence. While a legacy `run-log.json` exists with no
+  `run-log.jsonl` beside it, the reader logs a warning naming this script — an un-migrated
+  tree reads as empty coverage, and that state should announce itself.
 - Each entry: machine name, outcome (`ok` / `unreachable` / `failed` + reason), when that
   machine's collection started and finished, and the duration — so "was it successful," "when
   did it run," and "how long did it take" are each a plain field, not something you compute

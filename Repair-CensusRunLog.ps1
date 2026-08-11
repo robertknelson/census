@@ -1,24 +1,29 @@
 <#
 .SYNOPSIS
-    Rewrites a run log so it holds only entries the reader can read, archiving whatever it
-    drops rather than deleting it.
+    One-time migration of a legacy run-log.json to the append-only run-log.jsonl, recovering
+    entries the old read-modify-rewrite design mangled and archiving whatever it drops.
 .DESCRIPTION
-    The run log accumulates shapes. Every census run reads the existing file and copies each
-    entry forward verbatim, so an entry written by an older collector stays in the file
-    permanently - no later run cleans it out. Census.Web survives that (it skips entries that
-    no longer fit and logs a count), but the warning then repeats on every read forever.
+    Until 2026-08-11 the run log was one JSON array that every census run read, appended to,
+    and wrote back. Windows PowerShell 5.1 emits a parsed JSON array as a SINGLE pipeline
+    object, so the read-back nested the previous day's entries into one
+    { "value": [...], "Count": n } element inside the next day's write - and each further run
+    nested it a level deeper. The fix is the format: run-log.jsonl, one entry per line,
+    appended and never read back by the collector. This script is the bridge from the old
+    file to the new one.
 
-    This script is the one-time cleanup. It partitions the file into entries the reader can
-    load and entries it cannot, writes the unreadable ones to a timestamped archive beside the
-    run log, and rewrites the run log with the rest.
+    It recovers entries from every shape the old design produced:
+      - a well-formed array of entries;
+      - the bare-object shape a one-machine run wrote before the -InputObject fix;
+      - value/Count nestings from 5.1 read-backs, unwrapped recursively, in file order.
 
-    THE RULE IS THE READER'S, NOT A SECOND ONE. An entry is kept when it has a non-empty
+    THE KEEP RULE IS THE READER'S, NOT A SECOND ONE. An entry is kept when it has a non-empty
     'machine' and a non-empty 'outcome' - the two required members of RunLogEntry, and exactly
-    what makes Census.Web skip an entry. Inventing a stricter rule here is how a migration
+    what Census.Web requires of a line. Inventing a stricter rule here is how a migration
     starts deleting rows the application would have been happy with.
 
-    NOTHING IS DELETED. Dropped entries go to the archive file, and the archive is never
-    overwritten. If you decide the migration was wrong, the entries are still on disk.
+    NOTHING IS DELETED. Dropped entries go to a timestamped archive, the legacy run-log.json
+    is renamed to run-log.migrated-<stamp>.json rather than removed, and neither is ever
+    overwritten. If the migration was wrong, everything is still on disk.
 
     DRY RUN BY DEFAULT. It reports what it would do and changes nothing until -Execute.
 .PARAMETER CensusRoot
@@ -28,11 +33,11 @@
 .EXAMPLE
     .\Repair-CensusRunLog.ps1
 
-    Reports how many entries would be kept and dropped. Writes nothing.
+    Reports how many entries would be recovered and dropped. Writes nothing.
 .EXAMPLE
     .\Repair-CensusRunLog.ps1 -Execute
 
-    Archives the unreadable entries and rewrites the run log.
+    Writes run-log.jsonl, archives unreadable entries, and retires run-log.json.
 #>
 [CmdletBinding()]
 param(
@@ -49,9 +54,13 @@ if (-not $scriptRoot) {
 }
 if (-not $CensusRoot) { $CensusRoot = Join-Path $scriptRoot 'output' }
 
-$runLogPath = Join-Path $CensusRoot '_runs\run-log.json'
+$runLogPath  = Join-Path $CensusRoot '_runs\run-log.json'
+$jsonlPath   = Join-Path $CensusRoot '_runs\run-log.jsonl'
 
 # --- read ---------------------------------------------------------------------------------
+if (Test-Path $jsonlPath) {
+    throw "run-log.jsonl already exists, refusing to overwrite it: $jsonlPath`nIf $runLogPath still holds history to recover, move run-log.jsonl aside first and re-run."
+}
 if (-not (Test-Path $runLogPath)) { throw "Run log not found: $runLogPath" }
 
 $raw = Get-Content $runLogPath -Raw
@@ -61,18 +70,36 @@ try {
     $parsed = $raw | ConvertFrom-Json
 }
 catch {
-    throw "Run log is not valid JSON and cannot be repaired automatically: $runLogPath`n$($_.Exception.Message)"
+    throw "Run log is not valid JSON and cannot be migrated automatically: $runLogPath`n$($_.Exception.Message)"
 }
 
 # A run log written by a one-machine run before the -InputObject fix is a bare object rather
-# than an array. @() normalises that, which also repairs it on the way through.
-$entries = @($parsed)
-
-# The shape has to be read off the RAW TEXT, not off $parsed. ConvertFrom-Json unwraps a
-# single-element array into a scalar, so a correct [ {...} ] file and a broken {...} file both
-# come back as one object - and testing $parsed would report every one-entry run log as
-# damaged and "repair" it on every run.
+# than an array. Read off the RAW TEXT: ConvertFrom-Json unwraps a single-element array into
+# a scalar, so a correct [ {...} ] file and a broken {...} file parse identically.
 $wasBareObject = -not $raw.TrimStart().StartsWith('[')
+
+# --- expand -------------------------------------------------------------------------------
+# A 5.1 read-back serialised the previous file's entries as one { value: [...], Count: n }
+# element, and the run after that nested the nesting - so unwrap recursively, keeping file
+# order, which is run order.
+$script:nestingsUnwrapped = 0
+
+function Expand-RunLogNode {
+    param($Node)
+    if ($Node -is [System.Collections.IEnumerable] -and $Node -isnot [string]) {
+        foreach ($item in $Node) { Expand-RunLogNode -Node $item }
+        return
+    }
+    $names = @($Node.PSObject.Properties.Name)
+    if ($names.Count -eq 2 -and ($names -contains 'value') -and ($names -contains 'Count')) {
+        $script:nestingsUnwrapped++
+        Expand-RunLogNode -Node $Node.value
+        return
+    }
+    $Node
+}
+
+$entries = @(Expand-RunLogNode -Node $parsed)
 
 # --- partition ----------------------------------------------------------------------------
 $keep = New-Object System.Collections.Generic.List[object]
@@ -92,7 +119,10 @@ Write-Host ''
 Write-Host "Run log: $runLogPath"
 if ($wasBareObject) {
     Write-Host '  Shape:   a bare object, not an array - a one-machine run written before the' -ForegroundColor Yellow
-    Write-Host '           -InputObject fix. Rewriting repairs it.' -ForegroundColor Yellow
+    Write-Host '           -InputObject fix. Migration recovers it.' -ForegroundColor Yellow
+}
+if ($script:nestingsUnwrapped -gt 0) {
+    Write-Host "  Nesting: $($script:nestingsUnwrapped) value/Count wrapper$(if ($script:nestingsUnwrapped -eq 1) { '' } else { 's' }) from 5.1 read-backs, unwrapped." -ForegroundColor Yellow
 }
 Write-Host "  Entries: $($entries.Count)"
 Write-Host "  Keep:    $($keep.Count)" -ForegroundColor Green
@@ -103,22 +133,17 @@ foreach ($entry in $drop) {
     Write-Host "           - unreadable entry, fields: $fields" -ForegroundColor Yellow
 }
 
-if ($drop.Count -eq 0 -and -not $wasBareObject) {
-    Write-Host ''
-    Write-Host 'Nothing to repair.' -ForegroundColor Green
-    return
-}
-
 if (-not $Execute) {
     Write-Host ''
-    Write-Host 'DRY RUN - nothing written. Re-run with -Execute to apply.' -ForegroundColor Cyan
+    Write-Host "DRY RUN - nothing written. Re-run with -Execute to write $jsonlPath." -ForegroundColor Cyan
     return
 }
 
 # --- write --------------------------------------------------------------------------------
-# The archive first, so a failure writing it stops the run before the run log is touched.
+$stamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
+
+# The archive first, so a failure writing it stops the run before anything else is touched.
 if ($drop.Count -gt 0) {
-    $stamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
     $archivePath = Join-Path $CensusRoot "_runs\run-log.archive-$stamp.json"
     if (Test-Path $archivePath) { throw "Archive already exists, refusing to overwrite: $archivePath" }
 
@@ -127,8 +152,16 @@ if ($drop.Count -gt 0) {
     Write-Host "Archived $($drop.Count) entr$(if ($drop.Count -eq 1) { 'y' } else { 'ies' }) to $archivePath" -ForegroundColor Green
 }
 
-# -InputObject on an explicit array, never the pipeline: piping unrolls the collection and a
-# single remaining entry would serialise as a bare object - the shape this script exists to
-# clean up. See requirements.md 4.2.
-ConvertTo-Json -InputObject $keep.ToArray() -Depth 10 | Set-Content -Path $runLogPath -Encoding utf8
-Write-Host "Rewrote run log with $($keep.Count) entr$(if ($keep.Count -eq 1) { 'y' } else { 'ies' })." -ForegroundColor Green
+# One compressed line per entry - the shape Invoke-Census.ps1 appends from now on.
+$lines = foreach ($entry in $keep) {
+    ConvertTo-Json -InputObject $entry -Compress -Depth 10
+}
+Set-Content -Path $jsonlPath -Value $lines -Encoding utf8
+Write-Host "Wrote $jsonlPath with $($keep.Count) entr$(if ($keep.Count -eq 1) { 'y' } else { 'ies' })." -ForegroundColor Green
+
+# Retired, not deleted - the reader warns while run-log.json exists with no run-log.jsonl,
+# and this rename is what ends the warning.
+$retiredPath = Join-Path $CensusRoot "_runs\run-log.migrated-$stamp.json"
+if (Test-Path $retiredPath) { throw "Retired copy already exists, refusing to overwrite: $retiredPath" }
+Move-Item -Path $runLogPath -Destination $retiredPath
+Write-Host "Retired the legacy run log to $retiredPath." -ForegroundColor Green

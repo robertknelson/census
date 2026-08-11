@@ -167,7 +167,7 @@ Set-Item WSMan:\localhost\Client\TrustedHosts -Value 'DMZ-WEB01,DMZ-WEB02' -Conc
 
 ```powershell
 .\Invoke-Census.ps1 -CensusRoot C:\temp\census-test -Verbose
-Get-Content C:\temp\census-test\_runs\run-log.json -Raw | ConvertFrom-Json |
+Get-Content C:\temp\census-test\_runs\run-log.jsonl | ForEach-Object { $_ | ConvertFrom-Json } |
     Format-Table machine, bucket, outcome, reason
 ```
 

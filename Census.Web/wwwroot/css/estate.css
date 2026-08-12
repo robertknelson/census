@@ -43,8 +43,11 @@ html, body {
 .est-mono { font-family: var(--est-mono); }
 .est-muted { color: var(--est-muted); }
 .est-crit { color: var(--est-red); font-weight: 600; }
-.est-error { color: var(--est-red); }
 .est-status { color: var(--est-muted); }
+/* After .est-status, not before: every editor writes failures as "est-status est-error",
+   and equal specificity means source order decides. Declared first, the muted rule won and
+   every error message in the app rendered as quiet gray. */
+.est-error { color: var(--est-red); }
 
 /* --- header ------------------------------------------------------------------------- */
 

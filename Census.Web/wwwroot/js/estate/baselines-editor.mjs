@@ -54,7 +54,7 @@ export class SelectorEditor {
                         <span class="est-badge est-badge-removable">${escapeHtml(v)}
                             <button class="est-chip-x" data-sel-remove="${escapeHtml(v)}" aria-label="Remove ${escapeHtml(v)}">×</button>
                         </span>`).join('')}
-                    <input class="est-edit-input" data-sel-add list="est-selvalues-${escapeHtml(key)}" placeholder="add…">
+                    <input class="est-edit-input" autocomplete="off" data-sel-add list="est-selvalues-${escapeHtml(key)}" placeholder="add…">
                     <datalist id="est-selvalues-${escapeHtml(key)}">
                         ${(this.suggestions.values[key] ?? []).map((v) => `<option value="${escapeHtml(v)}">`).join('')}
                     </datalist>
@@ -68,7 +68,7 @@ export class SelectorEditor {
             <div data-ref="selector">
                 ${rows || '<div class="est-edit-row"><span class="est-muted">No keys — this scope matches every machine.</span></div>'}
                 <div class="est-edit-row">
-                    <input class="est-edit-input" data-ref="sel-new-key" list="est-selkeys" placeholder="scope key…" style="max-width:9rem">
+                    <input class="est-edit-input" autocomplete="off" data-ref="sel-new-key" list="est-selkeys" placeholder="scope key…" style="max-width:9rem">
                     <datalist id="est-selkeys">${keyOptions.map((k) => `<option value="${escapeHtml(k)}">`).join('')}</datalist>
                     <button class="est-btn" data-ref="sel-add-key">Add key</button>
                 </div>
@@ -228,13 +228,13 @@ export class BaselinesEditor {
                     <span class="est-facet-key">id</span>
                     <span class="est-mono">${escapeHtml(baseline.id)}</span>
                     <span class="est-facet-key">label</span>
-                    <input class="est-edit-input" data-field="label" value="${escapeHtml(baseline.label)}" style="max-width:none;flex:1">
+                    <input class="est-edit-input" autocomplete="off" data-field="label" value="${escapeHtml(baseline.label)}" style="max-width:none;flex:1">
                 </div>
                 <div class="est-edit-row"><span class="est-facet-key">applies to</span></div>
                 ${this.selector.html()}
                 <div class="est-edit-row">
                     <span class="est-facet-key">note</span>
-                    <input class="est-edit-input" data-field="note" value="${escapeHtml(baseline.note ?? '')}" placeholder="why this scope, and who agreed" style="max-width:none;flex:1">
+                    <input class="est-edit-input" autocomplete="off" data-field="note" value="${escapeHtml(baseline.note ?? '')}" placeholder="why this scope, and who agreed" style="max-width:none;flex:1">
                 </div>
                 <div class="est-edit-actions">
                     <button class="est-btn est-btn-primary" data-act="save" data-id="${escapeHtml(baseline.id)}">Save baseline</button>

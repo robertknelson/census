@@ -316,9 +316,20 @@ never be blessed as complete), bless refused for an uncollected machine, approve
 without a note, and PUT refused for a typo'd class value and for an empty value list — the two
 selector shapes that would otherwise match nothing, silently.
 
-**Not verified: the rendered UI.** The browser extension is not connected in this session, so
-the panels were checked by module syntax check, a Node import of the pure render helpers, and
-the API responses behind them — not by looking at them.
+**The rendered UI was verified in the browser** against the demo tree: the baselines panel and
+its coverage line, the scope editor (a chip added to one key leaves the others intact — the
+draft survives a re-render), the dossier's judged-by row, the deviations table, the
+`not-judgeable` render on WEB02, the approve-here flow end to end (rejected without a note,
+accepted with one, after which the deviation cleared, the finding went, and the tile's count
+dropped from 3 to 2), the bless form's pre-filled scope, and the software pivot's
+`unapproved on N` badge — absent on Slack, which is per-user on two machines under different
+SIDs and approved on both.
+
+One defect surfaced and was fixed there: `.est-error` was declared *before* `.est-status` in
+`estate.css`, and every editor writes failures as `class="est-status est-error"`. At equal
+specificity source order decides, so the muted rule won and **every error message in the app
+rendered as quiet gray**. Not specific to this feature — it was simply the first time anyone
+looked at an error on purpose.
 
 ## 13. Ratified decisions log
 

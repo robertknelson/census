@@ -83,7 +83,7 @@ export class MachineBaseline {
                             <div class="est-editor">
                                 <div class="est-edit-row">
                                     <span class="est-facet-key">note</span>
-                                    <input class="est-edit-input" data-ref="approve-note" placeholder="why this machine is allowed it" style="max-width:none;flex:1">
+                                    <input class="est-edit-input" autocomplete="off" data-ref="approve-note" placeholder="why this machine is allowed it" style="max-width:none;flex:1">
                                 </div>
                                 <div class="est-edit-actions">
                                     <button class="est-btn est-btn-primary" data-act="approve-save" data-index="${i}">Approve on ${escapeHtml(this.machine.machine)} only</button>
@@ -120,15 +120,15 @@ export class MachineBaseline {
             <div class="est-editor" data-ref="bless-form">
                 <div class="est-edit-row">
                     <span class="est-facet-key">id</span>
-                    <input class="est-edit-input" data-field="id" value="${escapeHtml(defaultId)}" placeholder="web-prod">
+                    <input class="est-edit-input" autocomplete="off" data-field="id" value="${escapeHtml(defaultId)}" placeholder="web-prod">
                     <span class="est-facet-key">label</span>
-                    <input class="est-edit-input" data-field="label" value="" placeholder="Web servers, production" style="max-width:none;flex:1">
+                    <input class="est-edit-input" autocomplete="off" data-field="label" value="" placeholder="Web servers, production" style="max-width:none;flex:1">
                 </div>
                 <div class="est-edit-row"><span class="est-facet-key">applies to</span></div>
                 ${this.selector.html()}
                 <div class="est-edit-row">
                     <span class="est-facet-key">note</span>
-                    <input class="est-edit-input" data-field="note" placeholder="what this set is, and who agreed it" style="max-width:none;flex:1">
+                    <input class="est-edit-input" autocomplete="off" data-field="note" placeholder="what this set is, and who agreed it" style="max-width:none;flex:1">
                 </div>
                 <div class="est-edit-actions">
                     <button class="est-btn est-btn-primary" data-act="bless-save">Bless ${escapeHtml(this.machine.machine)}'s software set</button>

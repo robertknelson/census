@@ -1,7 +1,8 @@
 # Approved Baseline — the inverse of the blacklist
 
-> Status: ratified 2026-08-12, not yet built. Proposed 2026-08-01, parked undiscussed;
-> spec conversation held and open items decided 2026-08-12.
+> Status: ratified and built 2026-08-12. Proposed 2026-08-01, parked undiscussed; spec
+> conversation held and open items decided the same day it shipped. §12 records what the
+> fixtures cover and what could not be verified here.
 > Companion to `.docs/features/census-web.md` (v1 engine) and
 > `.docs/features/census-web-v2-ux.md` (the semantic layer). Everything here is a **reader**
 > concern — the collector is untouched, and this feature adds no field to the envelope.
@@ -249,6 +250,13 @@ already says so.
   many machines each currently matches. Activate/retire, edit, delete.
 - **Machine dossier** — a deviations section: what this machine carries that no matching
   baseline approves, and which baselines matched it.
+- **"Approve here" on a deviation row** *(added during the build)* — appends that one entry to
+  a baseline scoped to that machine alone, creating `<machine>-exemptions` if it does not
+  exist, and **requires a note**. Without it §5's exemption had no UI path at all: blessing
+  materializes a machine's whole set, which is the wrong gesture for allowing one item on one
+  box, and the only alternative was hand-editing the file. Each approval's note is appended
+  rather than replacing the last, so the second exemption cannot inherit the first one's
+  justification.
 - **Findings stream** — the rolled-up finding, with the coverage line from §7.1.
 - **Software pivot** — the existing "where is X installed?" view gains an approved/unapproved
   marker, since it is already iterating the same data.
@@ -277,7 +285,42 @@ the same everywhere. Starting from a fleet-common baseline absorbs that bulk onc
 per-class baselines that follow then describe what actually distinguishes a web server from a
 database server, which is the interesting content and is small enough to read.
 
-## 12. Ratified decisions log
+## 12. What the fixtures cover
+
+The verification constraint holds (`census-web-v2-ux.md` §7): no real payload is reachable
+here, so `output-demo/` plus `config/baselines.demo.json` are the coverage, and every branch
+needs a fixture deliberately.
+
+| Branch | Fixture |
+|---|---|
+| Empty selector matches the fleet | `fleet-common`, `appliesTo: {}` — 8 of 8 machines |
+| class × stage | `web-prod`, `db-prod` — 2 machines each |
+| Facet-only scope (no class) | `dev-stage`, `{ stage: [dev] }` — 3 machines |
+| One-machine scope (the exemption) | `devbox-jsmith-container-work` |
+| Union across three baselines | DEVBOX-JSMITH matches fleet + dev-stage + its exemption |
+| Asserted class beats observed | APPSRV01 is observed WebServer+DatabaseServer, asserted `DevServer` — `web-prod` correctly does **not** judge it |
+| `systemComponent` excluded | WEB01's ASP.NET Core Module V2 and SQL01's engine entry are approved by nothing and deviate on nothing |
+| Per-user install, different SID per machine | Slack on DEVBOX-JSMITH (`…-1417`) and APPSRV01 (`…-2209`), one baseline entry, no deviation on either — the §6.1 rule that would otherwise flood the stream |
+| In scope but not judgeable | WEB02 (`insufficient-rights`) and BUILDSRV01 (`failed`) — matched, never rendered as approved |
+| Clean in scope | WEB01, SQL01, SQL02, LEGACY-DC01 |
+| Deviation → finding | APPSRV01 and DEVBOX-JSMITH, one rolled-up finding each |
+
+**Verified live rather than fixtured permanently**, because it is mutually exclusive with the
+empty-selector fixture: retiring `fleet-common` moves coverage to 7 of 8 and LEGACY-DC01 to
+`not-in-scope`, and a retired baseline still reports the 8 machines it *would* match. A demo
+tree cannot hold both a fleet-wide baseline and a machine outside every scope.
+
+Also exercised against the running app: bless (materializes entries with provenance), bless
+refused from a machine whose software collection is `insufficient-rights` (a partial set must
+never be blessed as complete), bless refused for an uncollected machine, approve-here refused
+without a note, and PUT refused for a typo'd class value and for an empty value list — the two
+selector shapes that would otherwise match nothing, silently.
+
+**Not verified: the rendered UI.** The browser extension is not connected in this session, so
+the panels were checked by module syntax check, a Node import of the pure render helpers, and
+the API responses behind them — not by looking at them.
+
+## 13. Ratified decisions log
 
 | Date | Decision |
 |---|---|
@@ -290,3 +333,4 @@ database server, which is the interesting content and is small enough to read.
 | 2026-08-12 | One rolled-up `unapproved-software` finding per machine, not per app — protects the no-lifecycle ruling |
 | 2026-08-12 | Unbaselined machines produce no finding, but baseline coverage ("N of M in scope") is stated wherever deviation counts appear |
 | 2026-08-12 | Rollout: fleet-wide common baseline first, per-class baselines after |
+| 2026-08-12 | Approve-here on a deviation row is the exemption's UI path, note required — added during the build because §5 otherwise had no gesture and only hand-editing would do |

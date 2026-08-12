@@ -5,6 +5,8 @@ import { AssignmentEditor } from './assignment-editor.mjs';
 import { FindingsQueue, severityDotClass } from './findings-queue.mjs';
 import { MachineHistory } from './machine-history.mjs';
 import { BlacklistEditor } from './blacklist-editor.mjs';
+import { BaselinesEditor } from './baselines-editor.mjs';
+import { MachineBaseline } from './machine-baseline.mjs';
 import { CertificatesPanel, certUrgencyClass } from './certificates-panel.mjs';
 import { ChangesFeed } from './changes-feed.mjs';
 import { SoftwarePanel } from './software-panel.mjs';
@@ -101,6 +103,7 @@ class EstatePage {
                         <button class="est-btn" data-ref="software-btn">Software</button>
                         <button class="est-btn" data-ref="hosting-btn">Hosting</button>
                         <button class="est-btn" data-ref="certs-btn">Certificates</button>
+                        <button class="est-btn" data-ref="baselines-btn">Baselines</button>
                         <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
                     </div>
                 </header>
@@ -144,6 +147,7 @@ class EstatePage {
         this.findingsBtnEl.addEventListener('click', () => this.openFindings());
 
         this.root.querySelector('[data-ref="blacklist-btn"]').addEventListener('click', () => this.openBlacklist());
+        this.root.querySelector('[data-ref="baselines-btn"]').addEventListener('click', () => this.openBaselines());
 
         this.asofInputEl = this.root.querySelector('[data-ref="asof-input"]');
         this.asofBannerEl = this.root.querySelector('[data-ref="asof-banner"]');
@@ -552,6 +556,20 @@ class EstatePage {
         }).mount(this.panelEl.querySelector('[data-ref="blacklist"]'));
     }
 
+    openBaselines() {
+        this.panel = { type: 'baselines' };
+        this.panelShell(
+            'Approved baselines',
+            'The inverse of the blacklist: what is approved, for which machines. Blessing happens from a machine dossier; edits write straight back to config/baselines.json.',
+            '<div data-ref="baselines"></div>');
+        this.openPanel();
+
+        new BaselinesEditor(this.data.machines, async () => {
+            this.data = await fetchCanvas(this.asOf);
+            this.renderAll();
+        }).mount(this.panelEl.querySelector('[data-ref="baselines"]'));
+    }
+
     openFindings() {
         this.panel = { type: 'findings' };
         this.panelShell(
@@ -618,6 +636,10 @@ class EstatePage {
             </section>
             ${m.hasData ? `
             <section>
+                <h3>Baseline</h3>
+                <div data-ref="baseline"><p class="est-status">Judging against the baselines…</p></div>
+            </section>
+            <section>
                 <h3>History</h3>
                 <div data-ref="history"><p class="est-status">Loading collected days…</p></div>
             </section>` : ''}
@@ -639,6 +661,12 @@ class EstatePage {
         });
 
         if (!m.hasData) return;
+
+        new MachineBaseline(m, this.data.machines, async () => {
+            // A bless or an approval moves the findings stream and the tile posture with it.
+            this.data = await fetchCanvas(this.asOf);
+            this.renderAll();
+        }).mount(this.panelEl.querySelector('[data-ref="baseline"]'));
 
         fetchMachineDates(m.machine).then((dates) => {
             if (this.panel?.type !== 'details' || this.panel.machine !== machineName) return;

@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "baselines": [
+    {
+      "id": "fleet-common",
+      "label": "Fleet common set",
+      "appliesTo": {},
+      "active": true,
+      "note": "Hand-assembled rather than blessed from one machine: the set every machine in the estate is allowed to carry, per the fleet-wide-first rollout (approved-baseline.md §11).",
+      "entries": [
+        {
+          "displayName": "Microsoft ODBC Driver 17 for SQL Server",
+          "publisher": "Microsoft Corporation",
+          "architecture": "x64",
+          "installScope": "machine",
+          "observedVersion": "17.10.6.1"
+        },
+        {
+          "displayName": "Slack",
+          "publisher": "Slack Technologies",
+          "architecture": "x64",
+          "installScope": "per-user",
+          "observedVersion": "4.39.90"
+        },
+        {
+          "displayName": "Symantec Endpoint Protection",
+          "publisher": "Symantec Corporation",
+          "architecture": "x64",
+          "installScope": "machine",
+          "observedVersion": "12.1.7454.7000"
+        }
+      ]
+    },
+    {
+      "id": "web-prod",
+      "label": "Web servers, production",
+      "appliesTo": {
+        "class": [
+          "WebServer"
+        ],
+        "stage": [
+          "prod"
+        ]
+      },
+      "active": true,
+      "provenance": {
+        "sourceMachine": "WEB01",
+        "sourceDate": "2026-07-31",
+        "blessedUtc": "2026-08-12T18:30:00Z"
+      },
+      "entries": [
+        {
+          "displayName": "URL Rewrite 2.1",
+          "publisher": "Microsoft Corporation",
+          "architecture": "x64",
+          "installScope": "machine",
+          "observedVersion": "7.2.2100"
+        }
+      ]
+    },
+    {
+      "id": "db-prod",
+      "label": "Database servers, production",
+      "appliesTo": {
+        "class": [
+          "DatabaseServer"
+        ],
+        "stage": [
+          "prod"
+        ]
+      },
+      "active": true,
+      "provenance": {
+        "sourceMachine": "SQL01",
+        "sourceDate": "2026-07-31",
+        "blessedUtc": "2026-08-12T18:31:00Z"
+      },
+      "entries": [
+        {
+          "displayName": "SQL Server 2019 Management Studio",
+          "publisher": "Microsoft Corporation",
+          "architecture": "x64",
+          "installScope": "machine",
+          "observedVersion": "19.3.0"
+        }
+      ]
+    },
+    {
+      "id": "dev-stage",
+      "label": "Anything staged dev",
+      "appliesTo": {
+        "stage": [
+          "dev"
+        ]
+      },
+      "active": true,
+      "note": "Stage-only scope, deliberately not class-scoped: a dev laptop and a dev-staged server are allowed the same tooling.",
+      "entries": [
+        {
+          "displayName": "Git",
+          "publisher": "The Git Development Community",
+          "architecture": "x64",
+          "installScope": "machine",
+          "observedVersion": "2.46.0"
+        },
+        {
+          "displayName": "Visual Studio Code",
+          "publisher": "Microsoft Corporation",
+          "architecture": "x64",
+          "installScope": "machine",
+          "observedVersion": "1.94.2"
+        }
+      ]
+    },
+    {
+      "id": "devbox-jsmith-container-work",
+      "label": "DEVBOX-JSMITH — container work",
+      "appliesTo": {
+        "machine": [
+          "DEVBOX-JSMITH"
+        ]
+      },
+      "active": true,
+      "note": "An exemption is a one-machine baseline (approved-baseline.md §5). Approved for the container migration, 2026-08.",
+      "entries": [
+        {
+          "displayName": "Docker Desktop",
+          "publisher": "Docker Inc.",
+          "architecture": "x64",
+          "installScope": "machine",
+          "observedVersion": "4.34.2"
+        }
+      ]
+    }
+  ]
+}

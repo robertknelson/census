@@ -10,11 +10,19 @@ namespace Census.Web.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/software")]
-public class SoftwareController(CensusStore censusStore) : ControllerBase
+public class SoftwareController(CensusStore censusStore, BaselineEvaluator baselineEvaluator) : ControllerBase
 {
     [HttpGet]
     public ActionResult<SoftwareInventoryDto> GetSoftware()
     {
+        // (machine, displayName) pairs no matching baseline approves — the same evaluation the
+        // findings stream runs, projected onto the software pivot.
+        var unapproved = baselineEvaluator.EvaluateFleet().ByMachine
+            .ToDictionary(
+                m => m.Key,
+                m => m.Value.Deviations.Select(d => d.DisplayName).ToHashSet(StringComparer.OrdinalIgnoreCase),
+                StringComparer.OrdinalIgnoreCase);
+
         var occurrences = new List<(string Name, string? Publisher, string Version, string Machine)>();
 
         foreach (var machine in censusStore.GetMachineDirs())
@@ -34,6 +42,9 @@ public class SoftwareController(CensusStore censusStore) : ControllerBase
                 Name = g.First().Name,
                 Publisher = g.Select(o => o.Publisher).FirstOrDefault(p => !string.IsNullOrWhiteSpace(p)),
                 MachineCount = g.Select(o => o.Machine).Distinct(StringComparer.OrdinalIgnoreCase).Count(),
+                UnapprovedOn = g.Select(o => o.Machine).Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Where(m => unapproved.GetValueOrDefault(m)?.Contains(g.Key) == true)
+                    .OrderBy(m => m, StringComparer.OrdinalIgnoreCase).ToList(),
                 Versions = g
                     .GroupBy(o => o.Version, StringComparer.OrdinalIgnoreCase)
                     .Select(v => new SoftwareVersionDto

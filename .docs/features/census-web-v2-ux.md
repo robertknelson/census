@@ -162,7 +162,7 @@ DatabaseServer > WebServer > DevServer > DevLaptop.
 
 Compare engine (drives the multi-select comparison), machine detail/diff (dossier
 content), blacklist editor, assignments editor (assets.json; same file-is-the-artifact
-pattern). Absorbed from v1: Dashboard → owner-selector rollups; Certificates and Coverage
+pattern), baselines editor (baselines.json; `.docs/features/approved-baseline.md`). Absorbed from v1: Dashboard → owner-selector rollups; Certificates and Coverage
 → findings categories with detail reachable from dossiers.
 
 ### 5.5 Delivery constraint
@@ -193,10 +193,10 @@ a diagram), noted as an option for future topology sketches (e.g. app → machin
 
 ## 7. Open items
 
-- ~~**Approved-baseline blessing**~~ — **spec ratified 2026-08-12**, proposed 2026-08-01 and
-  parked undiscussed until then. Storage, matching rules and exemptions are all settled in
+- ~~**Approved-baseline blessing**~~ — **ratified and built 2026-08-12**, proposed 2026-08-01
+  and parked undiscussed until then. Storage, matching rules and exemptions are all settled in
   `.docs/features/approved-baseline.md`; what it left open (missing-direction findings,
-  severity tier) lives in that document's §10. Not yet built.
+  severity tier) lives in that document's §10, and §12 records fixture coverage.
 - **Stage-aware severity** — a prod blacklist hit ≠ a dev one; an expiring bound cert in
   prod is an outage, in dev a shrug. Deferred; key=value facets keep the door open (e.g. a
   future rule field `appliesTo: { "stage": ["prod"] }`). The `developer-edition-in-prod`

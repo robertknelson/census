@@ -60,11 +60,17 @@ export class SoftwarePanel {
             const spread = item.versions.length > 1
                 ? `<span class="est-verdict est-verdict-diff">${item.versions.length} versions</span>`
                 : '';
+            // Unapproved is per-machine, never per-application: the same software can be
+            // approved on one box and a finding on the next.
+            const unapproved = item.unapprovedOn.length > 0
+                ? `<span class="est-badge est-badge-warn" title="Approved by no baseline matching ${escapeHtml(item.unapprovedOn.join(', '))}">unapproved on ${item.unapprovedOn.length}</span>`
+                : '';
             return `
                 <div class="est-sw">
                     <div class="est-sw-head">
                         <span class="est-sw-name">${escapeHtml(item.name)}</span>
                         ${spread}
+                        ${unapproved}
                         <span class="est-muted">${escapeHtml(item.publisher ?? '')}</span>
                         <span class="est-sw-count est-mono">${item.machineCount} machine${item.machineCount === 1 ? '' : 's'}</span>
                     </div>

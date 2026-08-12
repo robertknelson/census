@@ -9,6 +9,8 @@ builder.Services.Configure<CensusOptions>(builder.Configuration.GetSection(Censu
 builder.Services.AddSingleton<CensusStore>();
 builder.Services.AddSingleton<BlacklistEvaluator>();
 builder.Services.AddSingleton<AssetsStore>();
+builder.Services.AddSingleton<BaselinesStore>();
+builder.Services.AddSingleton<BaselineEvaluator>();
 builder.Services.AddSingleton<FindingsEngine>();
 
 var app = builder.Build();

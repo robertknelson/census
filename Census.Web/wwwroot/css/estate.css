@@ -1051,6 +1051,27 @@ html, body {
     color: var(--est-muted);
 }
 
+/* --- baselines ---------------------------------------------------------------------- */
+
+/* Coverage is stated wherever deviation counts appear: "no deviations" must never be
+   mistaken for "everything approved" when nothing has been blessed. */
+.est-coverage {
+    font-size: 0.84rem;
+    margin: 0 0 0.8rem;
+    padding: 0.5rem 0.65rem;
+    border-left: 3px solid var(--est-line);
+    background: var(--est-paper);
+}
+
+.est-coverage .est-muted { display: block; font-size: 0.78rem; margin-top: 0.2rem; }
+
+.est-selector-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-right: 0.7rem;
+}
+
 /* --- history ------------------------------------------------------------------------ */
 
 .est-history-controls {

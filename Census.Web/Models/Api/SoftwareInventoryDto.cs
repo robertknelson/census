@@ -11,6 +11,10 @@ public record SoftwareItemDto
     public required string Name { get; init; }
     public string? Publisher { get; init; }
     public int MachineCount { get; init; }
+
+    /// <summary>Machines carrying this software that no matching baseline approves it on.</summary>
+    public List<string> UnapprovedOn { get; init; } = [];
+
     public List<SoftwareVersionDto> Versions { get; init; } = [];
 }
 

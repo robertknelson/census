@@ -8,7 +8,7 @@ namespace Census.Web.Services;
 /// no lifecycle, no persistence. Every finding carries its machine's facets so both
 /// personas project the same stream: dev-ops filters it, Estate aggregates it.
 /// </summary>
-public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklistEvaluator, AssetsStore assetsStore)
+public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklistEvaluator, AssetsStore assetsStore, BaselineEvaluator baselineEvaluator)
 {
     // Provisional per-kind severities — same caveat as SeverityRanking (tiers unratified).
     private const int CertExpiryWarningDays = 30;
@@ -32,6 +32,8 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
             .Where(x => x.Envelope is not null)
             .Select(x => (x.Machine, Envelope: x.Envelope!))
             .ToList();
+
+        var baselines = baselineEvaluator.EvaluateFleet(asOf);
 
         foreach (var (machine, envelope) in collected)
         {
@@ -65,6 +67,18 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 findings.Add(Build(assets, machine, "pending-reboot", "low",
                     "Pending reboot",
                     string.Join(", ", envelope.Os.Data.PendingRebootReasons)));
+            }
+
+            // One finding per machine, never one per deviating item: a baseline deviation is
+            // open-ended where a blacklist hit is deliberately narrow, and fanning out would
+            // be the thing that drowns a stream with no lifecycle (approved-baseline.md §7).
+            var deviations = baselines.ByMachine.GetValueOrDefault(machine)?.Deviations ?? [];
+            if (deviations.Count > 0)
+            {
+                var matched = baselines.ByMachine[machine].MatchedBaselines;
+                findings.Add(Build(assets, machine, "unapproved-software", "medium",
+                    $"{deviations.Count} unapproved item{(deviations.Count == 1 ? "" : "s")}",
+                    $"{string.Join(", ", deviations.Select(d => $"{d.DisplayName} {d.DisplayVersion}".Trim()))} — approved by no baseline matching this machine ({string.Join(", ", matched)})."));
             }
 
             if (!assets.Assets.ContainsKey(machine))

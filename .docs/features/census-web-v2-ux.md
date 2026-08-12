@@ -193,12 +193,10 @@ a diagram), noted as an option for future topology sketches (e.g. app → machin
 
 ## 7. Open items
 
-- **Approved-baseline blessing** (proposed 2026-08-01, parked undiscussed) — the inverse
-  of the blacklist: bless a trusted machine's software set as the approved baseline for a
-  class×stage; anything extra on matching machines becomes a finding. Turns the census
-  from "catches known-bad" into "notices anything unexpected" — the original
-  unapproved-software purpose. Needs a spec conversation before building (baseline
-  storage, matching rules, exemptions).
+- ~~**Approved-baseline blessing**~~ — **spec ratified 2026-08-12**, proposed 2026-08-01 and
+  parked undiscussed until then. Storage, matching rules and exemptions are all settled in
+  `.docs/features/approved-baseline.md`; what it left open (missing-direction findings,
+  severity tier) lives in that document's §10. Not yet built.
 - **Stage-aware severity** — a prod blacklist hit ≠ a dev one; an expiring bound cert in
   prod is an outage, in dev a shrug. Deferred; key=value facets keep the door open (e.g. a
   future rule field `appliesTo: { "stage": ["prod"] }`). The `developer-edition-in-prod`

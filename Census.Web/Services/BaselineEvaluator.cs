@@ -67,6 +67,8 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
         var assets = assetsStore.Load();
         var byMachine = new Dictionary<string, MachineBaselineDto>(StringComparer.OrdinalIgnoreCase);
         var matchCounts = config.Baselines.ToDictionary(b => b.Id, _ => 0, StringComparer.OrdinalIgnoreCase);
+        var judgeableCounts = config.Baselines.ToDictionary(b => b.Id, _ => 0, StringComparer.OrdinalIgnoreCase);
+        var presentCounts = new Dictionary<(string BaselineId, string EntryKey), int>();
 
         foreach (var machine in censusStore.GetMachineDirs())
         {
@@ -76,12 +78,25 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
             var facets = assetsStore.FacetsFor(assets, machine);
             var (resolvedClass, _) = MachineClassifier.Resolve(assets.Assets.GetValueOrDefault(machine)?.Class, envelope.Roles);
             byMachine[machine] = Evaluate(config, machine, resolvedClass, facets, envelope);
+            var installed = InstalledKeysOf(envelope);
+            var judgeable = byMachine[machine].Status == StatusOk;
 
             // Counted for every baseline, retired ones included, so switching one off shows
             // what it would cover rather than dropping the number to nothing.
             foreach (var baseline in config.Baselines.Where(b => Matches(b, machine, resolvedClass, facets)))
             {
                 matchCounts[baseline.Id]++;
+                if (!judgeable) continue;
+                judgeableCounts[baseline.Id]++;
+
+                // Per-entry presence, so a requirement that matches nothing anywhere reads as
+                // "found on 0 of N" in the panel rather than quietly indicting every machine.
+                foreach (var entry in baseline.Entries)
+                {
+                    var entryKey = EntryKey(entry.DisplayName, entry.Architecture, entry.InstallScope);
+                    var key = (baseline.Id, entryKey);
+                    presentCounts[key] = presentCounts.GetValueOrDefault(key) + (installed.Contains(entryKey) ? 1 : 0);
+                }
             }
         }
 
@@ -90,6 +105,8 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
             Config = config,
             ByMachine = byMachine,
             MatchCountsById = matchCounts,
+            JudgeableCountsById = judgeableCounts,
+            PresentCountsByEntry = presentCounts,
             Coverage = new BaselineCoverageDto
             {
                 Machines = byMachine.Count,
@@ -136,6 +153,25 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
             .Select(e => EntryKey(e.DisplayName, e.Architecture, e.InstallScope))
             .ToHashSet();
 
+        var installed = InstalledKeysOf(envelope);
+
+        // Required wins across the union: a requirement asserted by any matching baseline
+        // holds, even where a narrower one merely permits the same thing (§6.4).
+        var missing = matched
+            .SelectMany(b => b.Entries.Where(e => e.Required))
+            .GroupBy(e => EntryKey(e.DisplayName, e.Architecture, e.InstallScope))
+            .Where(g => !installed.Contains(g.Key))
+            .Select(g => g.First())
+            .Select(e => new BaselineMissingDto
+            {
+                DisplayName = e.DisplayName,
+                Publisher = e.Publisher,
+                Architecture = e.Architecture,
+                InstallScope = e.InstallScope,
+            })
+            .OrderBy(m => m.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
         var deviations = (apps.Data?.Entries ?? [])
             .Where(IsComparable)
             .Where(e => !approved.Contains(EntryKey(e.DisplayName, e.Architecture, InstallScopeOf(e))))
@@ -158,7 +194,19 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
             Status = StatusOk,
             MatchedBaselines = matchedIds,
             Deviations = deviations,
+            Missing = missing,
         };
+    }
+
+    /// <summary>Comparable installed identities — the set both directions are judged against.</summary>
+    public static HashSet<string> InstalledKeysOf(CensusEnvelope? envelope)
+    {
+        var apps = envelope?.Apps;
+        if (apps is null || apps.Status != "ok") return [];
+        return (apps.Data?.Entries ?? [])
+            .Where(IsComparable)
+            .Select(e => EntryKey(e.DisplayName, e.Architecture, InstallScopeOf(e)))
+            .ToHashSet();
     }
 
     /// <summary>The approved set as it would be blessed from this machine's latest snapshot.</summary>
@@ -184,5 +232,15 @@ public record FleetBaselineResult
     public required BaselinesConfig Config { get; init; }
     public required Dictionary<string, MachineBaselineDto> ByMachine { get; init; }
     public required Dictionary<string, int> MatchCountsById { get; init; }
+
+    /// <summary>Matched machines whose software could actually be judged — the honest denominator.</summary>
+    public required Dictionary<string, int> JudgeableCountsById { get; init; }
+
+    /// <summary>
+    /// How many judgeable matched machines carry each (baseline, entry). A tuple key rather
+    /// than a composed string: the two sides of the lookup cannot drift apart on a separator.
+    /// </summary>
+    public required Dictionary<(string BaselineId, string EntryKey), int> PresentCountsByEntry { get; init; }
+
     public required BaselineCoverageDto Coverage { get; init; }
 }

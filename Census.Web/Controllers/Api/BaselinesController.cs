@@ -44,6 +44,18 @@ public class BaselinesController(BaselinesStore baselinesStore, BaselineEvaluato
             BlessedUtc = b.Provenance?.BlessedUtc,
             EntryCount = b.Entries.Count,
             MatchedMachineCount = fleet.MatchCountsById.GetValueOrDefault(b.Id),
+            JudgeableMachineCount = fleet.JudgeableCountsById.GetValueOrDefault(b.Id),
+            Entries = b.Entries.Select(e => new BaselineEntryDto
+            {
+                DisplayName = e.DisplayName,
+                Publisher = e.Publisher,
+                Architecture = e.Architecture,
+                InstallScope = e.InstallScope,
+                ObservedVersion = e.ObservedVersion,
+                Required = e.Required,
+                PresentOn = fleet.PresentCountsByEntry.GetValueOrDefault(
+                    (b.Id, BaselineEvaluator.EntryKey(e.DisplayName, e.Architecture, e.InstallScope))),
+            }).ToList(),
         }).ToList();
 
         return Ok(new BaselinesViewDto { Baselines = summaries, Coverage = fleet.Coverage });

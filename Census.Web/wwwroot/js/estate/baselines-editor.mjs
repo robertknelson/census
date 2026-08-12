@@ -113,6 +113,7 @@ export class BaselinesEditor {
         this.onChanged = onChanged;
         this.editingId = null;
         this.confirmingDeleteId = null;
+        this.expandedId = null;
     }
 
     suggestions() {
@@ -188,6 +189,8 @@ export class BaselinesEditor {
                 ? `blessed from <span class="est-mono">${escapeHtml(b.sourceMachine)}</span> as collected ${escapeHtml(b.sourceDate)}${b.blessedUtc ? ` · ${escapeHtml(String(b.blessedUtc).slice(0, 10))}` : ''}`
                 : 'hand-assembled — no source machine';
 
+            const requiredCount = b.entries.filter((e) => e.required).length;
+
             return `
                 <div class="est-subcard ${b.active ? '' : 'est-rule-inactive'}">
                     <div class="est-subcard-head">
@@ -204,10 +207,12 @@ export class BaselinesEditor {
                     <div class="est-rule-line">${selectorChips(b.appliesTo)}</div>
                     <div class="est-rule-line">
                         <span class="est-badge">${b.entryCount} approved item${b.entryCount === 1 ? '' : 's'}</span>
+                        ${requiredCount > 0 ? `<span class="est-badge est-badge-sdk">${requiredCount} required</span>` : ''}
                         <span class="est-badge">${b.matchedMachineCount} machine${b.matchedMachineCount === 1 ? '' : 's'}${b.active ? '' : ' would match'}</span>
                         <span class="est-muted">${provenance}</span>
                     </div>
                     ${b.note ? `<div class="est-rule-reason">${escapeHtml(b.note)}</div>` : ''}
+                    ${this.renderEntries(b)}
                 </div>`;
         }).join('');
 
@@ -217,6 +222,36 @@ export class BaselinesEditor {
             ${cards || '<p class="est-status">Nothing blessed yet — open a machine and bless its software set to start.</p>'}`;
 
         this.bind();
+    }
+
+    /// Approved is the default and required is the assertion on top of it — so the toggle
+    /// lives on the entry, and "found on X of N" sits beside it: a requirement nothing in
+    /// scope carries is a typo, not an estate-wide failure, and it should read that way.
+    renderEntries(b) {
+        if (b.entries.length === 0) return '';
+        const open = this.expandedId === b.id;
+        if (!open) {
+            return `<div class="est-rule-line"><button class="est-btn est-btn-sm" data-act="expand" data-id="${escapeHtml(b.id)}">Show items</button></div>`;
+        }
+        const rows = b.entries.map((e, i) => {
+            const coverage = e.required
+                ? `<span class="${e.presentOn === 0 ? 'est-catwarn' : 'est-muted'}">found on ${e.presentOn} of ${b.judgeableMachineCount}</span>`
+                : '';
+            return `
+                <div class="est-binding">
+                    <label class="est-check">
+                        <input type="checkbox" data-act="require" data-id="${escapeHtml(b.id)}" data-index="${i}" ${e.required ? 'checked' : ''}> required
+                    </label>
+                    <span>${escapeHtml(e.displayName)}</span>
+                    <span class="est-muted">${escapeHtml(e.installScope)}${e.architecture ? ` · ${escapeHtml(e.architecture)}` : ''}</span>
+                    ${coverage}
+                </div>`;
+        }).join('');
+        return `
+            <div class="est-rule-line">
+                <button class="est-btn est-btn-sm" data-act="collapse">Hide items</button>
+            </div>
+            ${rows}`;
     }
 
     renderForm(baseline) {
@@ -260,6 +295,14 @@ export class BaselinesEditor {
         on('cancel', 'click', () => { this.editingId = null; this.render(); });
         on('delete', 'click', (e) => { this.confirmingDeleteId = e.target.dataset.id; this.render(); });
         on('delete-cancel', 'click', () => { this.confirmingDeleteId = null; this.render(); });
+
+        on('expand', 'click', (e) => { this.expandedId = e.target.dataset.id; this.render(); });
+        on('collapse', 'click', () => { this.expandedId = null; this.render(); });
+
+        on('require', 'change', (e) => this.tryPersist((config) => {
+            const baseline = config.baselines.find((b) => b.id === e.target.dataset.id);
+            baseline.entries[Number(e.target.dataset.index)].required = e.target.checked;
+        }));
 
         on('delete-confirm', 'click', (e) => this.tryPersist((config) => {
             config.baselines = config.baselines.filter((b) => b.id !== e.target.dataset.id);

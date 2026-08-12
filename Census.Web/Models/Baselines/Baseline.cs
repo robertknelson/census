@@ -52,4 +52,11 @@ public record BaselineEntry
 
     /// <summary>What the source machine had at blessing time. Provenance only, never compared (§6.3).</summary>
     public string? ObservedVersion { get; init; }
+
+    /// <summary>
+    /// Asserted, never inferred: blessing sets this on nothing (§6.4). Approved means "allowed
+    /// here"; required means "must be here", and treating every blessed entry as required would
+    /// make each optional tool on the source machine mandatory across the whole scope.
+    /// </summary>
+    public bool Required { get; init; }
 }

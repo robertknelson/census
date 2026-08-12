@@ -64,10 +64,12 @@ export class MachineBaseline {
         } else if (r.status === 'not-judgeable') {
             body = `${matched}<p class="est-catfail">Cannot be judged<span class="est-muted"> — ${escapeHtml(r.reason)}</span></p>
                     <p class="est-muted">Unknown is never rendered as approved.</p>`;
-        } else if (r.deviations.length === 0) {
-            body = `${matched}<p class="est-status">Everything installed is approved by a matching baseline.</p>`;
+        } else if (r.deviations.length === 0 && r.missing.length === 0) {
+            body = `${matched}<p class="est-status">Everything installed is approved, and nothing required is absent.</p>`;
         } else {
             body = `${matched}
+                ${this.missingHtml(r.missing)}
+                ${r.deviations.length === 0 ? '' : `
                 <table class="est-table">
                     <thead><tr><th>Unapproved</th><th>Version</th><th>Publisher</th><th>Scope</th><th></th></tr></thead>
                     <tbody>${r.deviations.map((d, i) => `
@@ -92,7 +94,7 @@ export class MachineBaseline {
                                 </div>
                             </div>
                         </td></tr>` : ''}`).join('')}</tbody>
-                </table>`;
+                </table>`}`;
         }
 
         const blessForm = this.mode === 'bless' ? this.blessFormHtml() : '';
@@ -107,6 +109,22 @@ export class MachineBaseline {
             ${blessForm}`;
 
         this.bind();
+    }
+
+    /// The other direction, and a different remediation: install it, rather than remove or
+    /// approve it. Listed first because absence is the harder thing to notice.
+    missingHtml(missing) {
+        if (missing.length === 0) return '';
+        return `
+            <table class="est-table">
+                <thead><tr><th>Required, not installed</th><th>Publisher</th><th>Scope</th></tr></thead>
+                <tbody>${missing.map((m) => `
+                    <tr>
+                        <td class="est-catfail">${escapeHtml(m.displayName)}</td>
+                        <td class="est-muted">${escapeHtml(m.publisher) || '—'}</td>
+                        <td class="est-muted">${escapeHtml(m.installScope)}</td>
+                    </tr>`).join('')}</tbody>
+            </table>`;
     }
 
     blessFormHtml() {

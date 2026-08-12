@@ -51,6 +51,14 @@ hand-editable, pretty-printed, relaxed escaping, edited in the UX rather than on
           "architecture": "x64",
           "installScope": "machine",
           "observedVersion": "128.0.2739.42"
+        },
+        {
+          "displayName": "Symantec Endpoint Protection",
+          "publisher": "Symantec Corporation",
+          "architecture": "x64",
+          "installScope": "machine",
+          "observedVersion": "12.1.7454.7000",
+          "required": true
         }
       ]
     },
@@ -188,25 +196,48 @@ hash (`census-collector.md` §6.3). Version constraints already have an owner: a
 with a `<` operator (`BlacklistVersionConstraint`), which is a targeted assertion about a
 specific known-bad version rather than a blanket freeze.
 
-### 6.4 Only the extra direction produces findings
+### 6.4 Both directions, with required as an explicit assertion on top of approved
 
-Blessing a golden machine also implicitly describes what *should* be present, and "the
-monitoring agent is missing from WEB03" is a real finding. It is **not built here**
-(decided 2026-08-12): *approved* and *required* are different assertions, and conflating them
-would make every optional tool that happened to be on the source machine mandatory across the
-whole scope. The entries carry everything a later missing-direction pass would need, so this
-costs nothing to defer. Open item §10.
+*Approved* means "allowed here"; *required* means "must be here". They are different
+assertions, and the reason the missing direction was parked at first is that conflating them
+would make every optional tool on the source machine mandatory across the whole scope.
 
-## 7. The finding
+**Ratified 2026-08-12** (the parked item, resolved): required is a **`required: true` flag on
+the entry**, defaulting false, absent meaning false. Not a separate artifact — the entry
+already carries the identity, and the identity is the subtle part (§6.1); a second file would
+duplicate that key model and then need its own selector and its own union semantics, which
+`appliesTo` already solves. One bool, no migration, every existing file still valid.
 
-One finding per machine, **not one per deviating app**:
+- **Blessing never sets it.** Required is purely asserted; inferring a requirement from an
+  observation would breach the observed-below/asserted-above line the semantic layer rests on.
+  A bless therefore produces zero requirements, which is what keeps the two assertions apart.
+- **Required wins across the union.** If any matching baseline marks an entry required, it is
+  required on that machine, even where a narrower baseline merely permits the same thing. A
+  requirement asserted anywhere holds — the safe direction, and the one the union already
+  takes for approval.
+- **Identity only, never versions**, exactly as §6.3: "the agent is present", not "≥ 7.2".
+- **`not-judgeable` binds harder here.** Software that could not be collected makes *missing*
+  unknowable, and nothing is emitted. The failure this prevents is worse than in the extra
+  direction: "the AV agent is missing" because a permission lapsed is precisely the false
+  alarm that destroys trust in the report.
 
-| | |
-|---|---|
-| `kind` | `unapproved-software` |
-| `severity` | `medium` — provisional, inherits the unratified tier question (census-web.md §8) |
-| `title` | `N unapproved items` |
-| `detail` | The deviating entries, enumerated |
+## 7. The findings
+
+One finding per machine per direction, **not one per item**:
+
+| `kind` | `severity` | `title` | `detail` |
+|---|---|---|---|
+| `unapproved-software` | `medium` | `N unapproved items` | The deviating entries, enumerated |
+| `missing-required-software` | `high` | `N required items missing` | The absent required entries, enumerated |
+
+Both severities are provisional and inherit the unratified tier question (census-web.md §8).
+**The asymmetry is deliberate** (ratified 2026-08-12): a required item is one a human
+deliberately marked, so its absence violates something explicit, where an unapproved item is
+merely unblessed.
+
+**Two kinds, not one merged baseline finding** (ratified 2026-08-12). The remediations are
+opposites — install something, versus remove or approve something — and `kind` is how the
+dev-ops queue is routed. A machine can carry both.
 
 **Why rolled up.** `blacklist-hit` fans out one finding per hit and should — a blacklist rule is
 deliberately narrow, so each hit is a distinct thing somebody named. A baseline deviation is
@@ -215,8 +246,15 @@ ratification (v2-UX §4 — no acknowledge, no snooze, recomputed every read). A
 is the single most likely thing to make raw truth drown the signal and force that ruling to be
 reopened. Rolling up protects it.
 
-The full deviation list lives in the machine dossier, where a working list belongs; the
-findings stream carries the count and the pivot into it.
+The full lists live in the machine dossier, where a working list belongs; the findings stream
+carries the counts and the pivot into them.
+
+### 7.0 A requirement that matches nothing is a config error, not an estate failure
+
+Mark `required` with a typo'd `displayName` and every machine in scope reports it missing,
+forever. That is surfaced in the baselines panel as **"found on 0 of N"** beside the entry —
+**not** as its own finding (ratified 2026-08-12). It is a config smell rather than a fact about
+the estate, and it belongs where the mistake was made, next to the checkbox that made it.
 
 ### 7.1 Coverage, not a per-machine finding
 
@@ -248,8 +286,12 @@ already says so.
   does.
 - **Baselines list** — the existing baselines, their scope, entry count, provenance, and how
   many machines each currently matches. Activate/retire, edit, delete.
-- **Machine dossier** — a deviations section: what this machine carries that no matching
-  baseline approves, and which baselines matched it.
+- **Machine dossier** — which baselines matched it, what it carries that none of them approve,
+  and what they require that it does not have. The required-but-absent table is listed first:
+  absence is the harder thing to notice.
+- **Entries list in the baselines panel** — expandable per baseline, one `required` checkbox
+  per entry, with "found on X of N" beside every required one (§7.0). The toggle is the only
+  way required is ever set — nothing infers it.
 - **"Approve here" on a deviation row** *(added during the build)* — appends that one entry to
   a baseline scoped to that machine alone, creating `<machine>-exemptions` if it does not
   exist, and **requires a note**. Without it §5's exemption had no UI path at all: blessing
@@ -263,13 +305,13 @@ already says so.
 
 ## 10. Open items
 
-- **Missing-direction findings** — "the baseline has it, this machine does not." Parked
-  deliberately (§6.4), not forgotten. Needs one real baseline in place before it can be judged
-  whether *required* is a separate assertion worth its own artifact or a flag on an existing
-  entry.
-- **Severity tier** — `medium` is provisional. Entangled with the unratified severity tiers
-  (census-web.md §8) and with stage-aware severity (v2-UX §7): an unapproved package in prod
-  and the same one on a dev laptop are not the same finding.
+- ~~**Missing-direction findings**~~ — **resolved and built 2026-08-12** (§6.4). Ratified as a
+  flag on the entry, not a separate artifact; required wins across the union; blessing never
+  sets it.
+- **Severity tiers** — `medium` for unapproved and `high` for missing are both provisional.
+  Entangled with the unratified severity tiers (census-web.md §8) and with stage-aware severity
+  (v2-UX §7): an unapproved package in prod and the same one on a dev laptop are not the same
+  finding, and neither is a missing AV agent.
 - **Blessing from more than one source machine** — merging two machines' sets into one baseline
   at bless time. The union rule already achieves it with two baselines sharing a scope; a merge
   UI is only warranted if that proves clumsy in practice.
@@ -304,6 +346,12 @@ needs a fixture deliberately.
 | In scope but not judgeable | WEB02 (`insufficient-rights`) and BUILDSRV01 (`failed`) — matched, never rendered as approved |
 | Clean in scope | WEB01, SQL01, SQL02, LEGACY-DC01 |
 | Deviation → finding | APPSRV01 and DEVBOX-JSMITH, one rolled-up finding each |
+| Required, present | Symantec on LEGACY-DC01 — the only machine carrying it, and the only one clean |
+| Required, absent | the same entry on WEB01, SQL01, SQL02, APPSRV01, DEVBOX-JSMITH — "who is missing AV" answered by one flag |
+| Two required items missing on one machine | SQL02, which also lacks the `db-prod` required entry |
+| Required + not judgeable | WEB02 and BUILDSRV01 emit nothing — absence is unknowable when software was not collected |
+| Required coverage signal | `found on 1 of 6` beside Symantec in the panel, so a requirement nothing carries reads as a config error |
+| `required` absent from an entry | every other entry in the demo file omits the key — the default must be approved-only |
 
 **Verified live rather than fixtured permanently**, because it is mutually exclusive with the
 empty-selector fixture: retiring `fleet-common` moves coverage to 7 of 8 and LEGACY-DC01 to
@@ -316,7 +364,10 @@ never be blessed as complete), bless refused for an uncollected machine, approve
 without a note, and PUT refused for a typo'd class value and for an empty value list — the two
 selector shapes that would otherwise match nothing, silently.
 
-**The rendered UI was verified in the browser** against the demo tree: the baselines panel and
+**The rendered UI was verified in the browser** against the demo tree, in two passes — the
+approved direction first, then the required one (entries list, `required` toggle writing
+through to the file and moving the findings with it, "found on 1 of 6", and the dossier's
+required-but-absent table on SQL01). Specifically, for the approved direction: the panel and
 its coverage line, the scope editor (a chip added to one key leaves the others intact — the
 draft survives a re-render), the dossier's judged-by row, the deviations table, the
 `not-judgeable` render on WEB02, the approve-here flow end to end (rejected without a note,
@@ -325,7 +376,15 @@ dropped from 3 to 2), the bless form's pre-filled scope, and the software pivot'
 `unapproved on N` badge — absent on Slack, which is per-user on two machines under different
 SIDs and approved on both.
 
-One defect surfaced and was fixed there: `.est-error` was declared *before* `.est-status` in
+**A bug the fixtures caught, worth recording.** The per-entry presence counter keyed its
+dictionary on `$"{baselineId} {entryKey}"`, and the character between the two parts was a
+literal NUL rather than the space it looked like — invisible in the editor and in a diff. The
+write and the read composed it differently, so every `presentOn` came back 0 while every other
+number was right. Fixed by keying on a `(baselineId, entryKey)` **tuple**: two halves that
+cannot drift apart on a separator that is not there. Composed string keys are worth avoiding
+for exactly this reason.
+
+One defect surfaced in the browser and was fixed there: `.est-error` was declared *before* `.est-status` in
 `estate.css`, and every editor writes failures as `class="est-status est-error"`. At equal
 specificity source order decides, so the muted rule won and **every error message in the app
 rendered as quiet gray**. Not specific to this feature — it was simply the first time anyone
@@ -345,3 +404,6 @@ looked at an error on purpose.
 | 2026-08-12 | Unbaselined machines produce no finding, but baseline coverage ("N of M in scope") is stated wherever deviation counts appear |
 | 2026-08-12 | Rollout: fleet-wide common baseline first, per-class baselines after |
 | 2026-08-12 | Approve-here on a deviation row is the exemption's UI path, note required — added during the build because §5 otherwise had no gesture and only hand-editing would do |
+| 2026-08-12 | Missing direction ships as `required: true` on the entry, not a separate artifact; blessing never sets it; required wins across the union; identity only, never versions |
+| 2026-08-12 | `missing-required-software` is its own kind at `high`, not merged with `unapproved-software` at `medium` — opposite remediations, and a required item is one somebody deliberately marked |
+| 2026-08-12 | A requirement matching nothing in scope surfaces as "found on 0 of N" in the panel, never as a finding — a config error belongs next to the checkbox that made it |

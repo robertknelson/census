@@ -27,7 +27,8 @@
           "publisher": "Symantec Corporation",
           "architecture": "x64",
           "installScope": "machine",
-          "observedVersion": "12.1.7454.7000"
+          "observedVersion": "12.1.7454.7000",
+          "required": true
         }
       ]
     },
@@ -81,7 +82,8 @@
           "publisher": "Microsoft Corporation",
           "architecture": "x64",
           "installScope": "machine",
-          "observedVersion": "19.3.0"
+          "observedVersion": "19.3.0",
+          "required": true
         }
       ]
     },

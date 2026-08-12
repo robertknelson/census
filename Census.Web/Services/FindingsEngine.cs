@@ -81,6 +81,18 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                     $"{string.Join(", ", deviations.Select(d => $"{d.DisplayName} {d.DisplayVersion}".Trim()))} — approved by no baseline matching this machine ({string.Join(", ", matched)})."));
             }
 
+            // A separate kind from unapproved-software, not a merged one: the remediations are
+            // opposites — install something, versus remove or approve something — and `kind` is
+            // how the dev-ops queue is routed. Higher severity because a required item is one
+            // somebody deliberately marked, so its absence violates something explicit.
+            var missing = baselines.ByMachine.GetValueOrDefault(machine)?.Missing ?? [];
+            if (missing.Count > 0)
+            {
+                findings.Add(Build(assets, machine, "missing-required-software", "high",
+                    $"{missing.Count} required item{(missing.Count == 1 ? "" : "s")} missing",
+                    $"{string.Join(", ", missing.Select(m => m.DisplayName))} — required by a baseline matching this machine, not installed."));
+            }
+
             if (!assets.Assets.ContainsKey(machine))
             {
                 findings.Add(Build(assets, machine, "unassigned", "medium",

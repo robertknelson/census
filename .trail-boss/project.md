@@ -38,6 +38,10 @@ relates: []
 - First dispatch ever filed for this project. The `.trail-boss` files had sat
   as-minted since 2026-07-31 while the collector and the whole web app were
   built, so the board showed nothing.
+- `ignite: start-census.bat` declared — the estate now starts from the board.
+  Demo fleet by default (the real `output\` tree holds one stale entry, so the
+  real profile renders a near-empty estate); `start-census.bat real` for the
+  live tree. Both branches exercised through cmd.exe: demo 11 machines, real 1.
 
 ### 2026-07-31
 -

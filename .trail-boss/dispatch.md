@@ -6,8 +6,13 @@ health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
 phase_suggestion: execution
-# ignite:             # deliberately unset — ignition is consent-by-declaration and
-#                     # has not been asked for. `resume` above is the human-readable hint.
+ignite: start-census.bat
+#
+# ignite runs blind from the repo root in cmd.exe (`wt -d <dir> cmd /k <command>`),
+# so it is a .bat, not PowerShell. Defaults to the DEMO fleet: this repo's real
+# output\ tree holds one stale entry, so the real profile renders a near-empty
+# estate and a board click would look broken. `start-census.bat real` for the
+# real tree.
 #
 # what the owner wants kept visible: NOT YET ASKED (contract rule 7).
 # Standing guess until he says otherwise: build health, the one live-verification

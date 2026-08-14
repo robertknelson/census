@@ -214,6 +214,13 @@ write endpoint is as open as the rest of the app.
   ratified.
 - **Certificate renewal detection** — same-`subject`-new-`thumbprint` heuristic, or accept
   remove+add as the diff representation.
+- **`<Nullable>` flip on website absorption** — census code will eventually be absorbed into
+  a website whose csproj settings are `<Nullable>disable</Nullable>` and
+  `<ImplicitUsings>disable</ImplicitUsings>` (Robert's standard). Census stays on `enable`
+  until then (flipping now sprays CS8632 across the existing `?` annotations for no gain);
+  at absorption the annotations come out and implicit usings become explicit. Runtime null
+  guards are unaffected — NRT never protected the deserialization boundary anyway (the
+  2026-08-14 `ArgumentNullException` on `instance.Databases` proved that).
 
 ---
 

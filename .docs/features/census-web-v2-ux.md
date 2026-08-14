@@ -95,7 +95,7 @@ One unified findings stream, computed at read time from the existing engines:
 |---|---|
 | Blacklist hit | BlacklistEvaluator over latest snapshots |
 | Expiring/expired **bound** certificate | certificates data, expiry recomputed at render |
-| Stale collection / never collected | run log × machines.json (coverage logic) |
+| Stale collection / never collected | run log × machines.json (coverage logic). "Never" is cross-checked against the snapshot tree: files on disk with no ok logged downgrade to `unlogged-collection` (medium) — a provenance problem (restored tree, lost log), not a collection gap. Fixture: `FILESRV01` |
 | Pending reboot | os data |
 | Unassigned machine | output/ × assets.json |
 | Dangling assertion | assets.json × output/ |

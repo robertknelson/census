@@ -167,9 +167,28 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
             if (lastOk is null)
             {
                 var lastRun = runLog.LastOrDefault();
-                findings.Add(Build(assets, machine, "never-collected", "high",
-                    "Never successfully collected",
-                    lastRun is null ? "No run-log entries at all." : $"Last attempt {lastRun.FinishedUtc:yyyy-MM-dd}: {lastRun.Outcome}"));
+
+                // Cross-checked against the tree before claiming "never": snapshots on disk
+                // with no ok in the log is a provenance problem (restored tree, lost log,
+                // hand-placed files), not a collection gap — the log and the tree are
+                // independent sources and only the tree decides what was collected.
+                var today = DateOnly.FromDateTime(now.UtcDateTime);
+                var snapshots = censusStore.GetSnapshotRefs(machine).Where(r => r.Date <= today).ToList();
+                if (snapshots.Count > 0)
+                {
+                    findings.Add(Build(assets, machine, "unlogged-collection", "medium",
+                        "Snapshots on disk but no successful run logged",
+                        $"Latest snapshot {snapshots[^1].Date:yyyy-MM-dd}. " +
+                        (lastRun is null
+                            ? "No run-log entries at all — the tree was restored or hand-placed, or the run log was lost."
+                            : $"Last attempt {lastRun.FinishedUtc:yyyy-MM-dd}: {lastRun.Outcome}.")));
+                }
+                else
+                {
+                    findings.Add(Build(assets, machine, "never-collected", "high",
+                        "Never successfully collected",
+                        lastRun is null ? "No run-log entries at all." : $"Last attempt {lastRun.FinishedUtc:yyyy-MM-dd}: {lastRun.Outcome}"));
+                }
             }
             else
             {

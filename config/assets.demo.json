@@ -67,6 +67,16 @@
         ]
       }
     },
+    "FILESRV01": {
+      "facets": {
+        "stage": [
+          "prod"
+        ],
+        "team": [
+          "InternalApps"
+        ]
+      }
+    },
     "OLDFILESRV": {
       "facets": {
         "stage": [

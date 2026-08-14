@@ -22,6 +22,7 @@
     { "name": "DEVBOX-JSMITH", "bucket": "corp", "expected": true,  "notes": "laptop; often off" },
     { "name": "BUILDSRV01",    "bucket": "corp", "expected": true,  "notes": "" },
     { "name": "LEGACY-DC01",   "bucket": "corp", "expected": true,  "notes": "" },
+    { "name": "FILESRV01",     "bucket": "corp", "expected": true,  "notes": "tree restored from backup; run-log history lost" },
     { "name": "OLDVM01",       "bucket": "dmz",  "expected": true,  "notes": "workgroup; NTLM fallback" },
     { "name": "DCBACKUP01",    "bucket": "corp", "expected": false, "notes": "decommissioned, kept to prove absence is signal" }
   ]

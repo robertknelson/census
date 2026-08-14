@@ -25,6 +25,23 @@ relates: []
 
 ## notes
 
+### 2026-08-14
+- First contact with real payloads found a crash: registry uninstall entries
+  are not unique on `displayName|arch|hive|sid` (SQL Server registers several
+  subkeys under one name), so the apps diff's `ToDictionary` threw. Fixed with
+  ordinal pairing — an upgrade inside a duplicate group stays a version change,
+  not remove+add. Fixture: duplicated SQL Server entry on SQL01.
+- `never-collected` now cross-checks the snapshot tree before making its claim;
+  files-on-disk-with-no-ok-logged emits `unlogged-collection` (medium) instead.
+  New demo machine FILESRV01 carries that story (tree restored, log lost).
+- Scaling ratified and largely built: run-log read amplification fixed (one
+  read per request, was one per machine), snapshot aging specced then shipped —
+  gzip in place after `-AgeAfterDays` (default 90, 0 = off, filename date,
+  verified round-trip), yearly `run-log-<yyyy>.jsonl` segments, `.gz`-aware
+  reader. Thinning and DB ingestion parked with explicit triggers; dedup
+  rejected (breaks absence-is-signal). Spec: `.docs/features/snapshot-aging.md`.
+- All pushed; `main` at `48f8ca6`.
+
 ### 2026-08-12
 - Approved baselines specced, built, verified in the browser, shipped: bless a
   machine's software set as approved for a facet-selected scope, judge every

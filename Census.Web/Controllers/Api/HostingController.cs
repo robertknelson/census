@@ -99,14 +99,14 @@ public class HostingController(CensusStore censusStore) : ControllerBase
             if (envelope.SqlServer?.Status != "ok") continue;
             foreach (var instance in envelope.SqlServer.Data?.Instances ?? [])
             {
-                foreach (var db in instance.Databases)
+                foreach (var db in instance.Databases ?? [])
                 {
                     if (db.Name is null) continue;
                     // master on twelve machines is noise, and unlike the dossier there is no
                     // file-location argument for keeping them in a where-does-X-live pivot.
                     if (SystemDatabases.Contains(db.Name, StringComparer.OrdinalIgnoreCase)) continue;
 
-                    var directories = instance.DatabaseFiles
+                    var directories = (instance.DatabaseFiles ?? [])
                         .Where(f => string.Equals(f.DatabaseName, db.Name, StringComparison.OrdinalIgnoreCase))
                         .Select(f => f.Directory)
                         .Where(d => d is not null)
@@ -232,7 +232,7 @@ public class HostingController(CensusStore censusStore) : ControllerBase
                     if (instance.ConnectedStatus != "ok") continue;
                     instances.Add((
                         instance.InstanceName ?? "",
-                        new HashSet<string>(instance.Databases.Select(d => d.Name ?? ""), StringComparer.OrdinalIgnoreCase)));
+                        new HashSet<string>((instance.Databases ?? []).Select(d => d.Name ?? ""), StringComparer.OrdinalIgnoreCase)));
                 }
             }
 

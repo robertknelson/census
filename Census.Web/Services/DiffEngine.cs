@@ -139,7 +139,7 @@ public static class DiffEngine
 
     private static IEnumerable<(string Key, string Instance, SqlDatabase Db)> SqlDatabasesOf(CensusEnvelope e) =>
         (e.SqlServer?.Data?.Instances ?? [])
-            .SelectMany(i => i.Databases.Select(d => ($"{i.InstanceName}|{d.Name}", i.InstanceName ?? "", d)));
+            .SelectMany(i => (i.Databases ?? []).Select(d => ($"{i.InstanceName}|{d.Name}", i.InstanceName ?? "", d)));
 
     private static DiffSection DiffSqlDatabases(CensusEnvelope from, CensusEnvelope to)
     {
@@ -162,7 +162,7 @@ public static class DiffEngine
 
     private static IEnumerable<(string Key, string Instance, SqlDatabaseFile File)> SqlFilesOf(CensusEnvelope e) =>
         (e.SqlServer?.Data?.Instances ?? [])
-            .SelectMany(i => i.DatabaseFiles.Select(f => ($"{i.InstanceName}|{f.DatabaseName}|{f.LogicalName}", i.InstanceName ?? "", f)));
+            .SelectMany(i => (i.DatabaseFiles ?? []).Select(f => ($"{i.InstanceName}|{f.DatabaseName}|{f.LogicalName}", i.InstanceName ?? "", f)));
 
     // File sizes are NOT compared: data files grow continuously, so diffing them would mark
     // every database on every server as changed every day and bury the real findings. Only

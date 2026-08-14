@@ -1,4 +1,4 @@
-﻿{"machine":"web01","outcome":"ok","reason":null,"startedUtc":"2026-07-30T02:33:02.894Z","finishedUtc":"2026-07-30T02:33:07Z","durationMs":4106}
+{"machine":"web01","outcome":"ok","reason":null,"startedUtc":"2026-07-30T02:33:02.894Z","finishedUtc":"2026-07-30T02:33:07Z","durationMs":4106}
 {"machine":"web01","outcome":"ok","reason":null,"startedUtc":"2026-07-31T03:00:51.264Z","finishedUtc":"2026-07-31T03:01:15Z","durationMs":23736}
 {"machine":"sql01","outcome":"ok","reason":null,"startedUtc":"2026-07-31T01:30:56.392Z","finishedUtc":"2026-07-31T01:31:04Z","durationMs":7608}
 {"machine":"appsrv01","outcome":"ok","reason":null,"startedUtc":"2026-07-31T04:27:18.654Z","finishedUtc":"2026-07-31T04:27:33Z","durationMs":14346}
@@ -11,4 +11,3 @@
 {"machine":"web02","collectorVersion":"1.0.0","bucket":"corp","outcome":"ok","reason":null,"startedUtc":"2026-07-31T03:04:29.0000000Z","finishedUtc":"2026-07-31T03:04:51.0000000Z","durationMs":22140}
 {"machine":"sql02","collectorVersion":"1.0.0","bucket":"corp","outcome":"ok","reason":null,"startedUtc":"2026-07-30T02:40:41.0000000Z","finishedUtc":"2026-07-30T02:41:09.0000000Z","durationMs":28060}
 {"machine":"sql02","collectorVersion":"1.0.0","bucket":"corp","outcome":"ok","reason":null,"startedUtc":"2026-07-31T02:41:02.0000000Z","finishedUtc":"2026-07-31T02:41:33.0000000Z","durationMs":31220}
-{"machine":"buildsrv01","collectorVersion":"1.0.0","bucket":"corp","outcome":"ok","reason":null,"startedUtc":"2026-08-01T03:11:29.0000000Z","finishedUtc":"2026-08-01T03:11:52.0000000Z","durationMs":23410}

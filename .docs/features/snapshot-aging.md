@@ -1,6 +1,6 @@
 # Snapshot Aging — compression and rotation, not deletion
 
-Status: **spec — open items undecided, not yet built.**
+Status: **built 2026-08-14.** Open items in §7 remain deliberately open.
 
 ## 1. Purpose
 
@@ -95,7 +95,6 @@ as all demo data is.)
 
 | Item | What's needed to resolve |
 |---|---|
-| `-AgeAfterDays` default | How far back does day-granular raw JSON get opened in practice? Straw man: 30. Robert sets it. |
 | Retention/thinning (option (c) of the 2026-08-14 scaling discussion) | Beyond some horizon, keep only month-end snapshots (~30:1 file-count cut). Policy: what history do compliance questions actually need? Deliberately **out of scope** for this feature — aging must land and be trusted first. |
 | Compressing closed run-log year segments | Cheap, but the reader then needs `.gz`-aware jsonl reading too. Defer until a closed year exists. |
 | Database ingestion (option (e)) | Parked with an explicit trigger: findings/estate reads exceeding ~1s at real fleet size after (a)+(b) are in. Not before. |
@@ -105,3 +104,4 @@ as all demo data is.)
 | Date | Decision |
 |---|---|
 | 2026-08-14 | Scaling approach: fix read amplification now (done, `c4aaf95`), aging+rotation next, thinning parked as policy, dedup rejected (breaks absence-is-signal), DB parked behind a measured trigger |
+| 2026-08-14 | `-AgeAfterDays` defaults to **90** |

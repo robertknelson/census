@@ -17,11 +17,15 @@
     next to this script.
 .PARAMETER CensusRoot
     Root folder census output is written under. Defaults to .\output next to this script.
+.PARAMETER AgeAfterDays
+    Snapshots whose filename date is older than this many days are gzipped in place after
+    the collection loop (snapshot-aging.md). 0 disables the aging pass. Default 90.
 #>
 [CmdletBinding()]
 param(
     [string]$MachinesPath,
-    [string]$CensusRoot
+    [string]$CensusRoot,
+    [int]$AgeAfterDays = 90
 )
 
 $ErrorActionPreference = 'Stop'
@@ -1528,7 +1532,10 @@ $runsDir = Join-Path $CensusRoot '_runs'
 if (-not (Test-Path $runsDir)) {
     New-Item -ItemType Directory -Path $runsDir -Force | Out-Null
 }
-$runLogPath = Join-Path $runsDir 'run-log.jsonl'
+# Yearly segments (snapshot-aging.md 5): the year of the run's UTC date names the file, so
+# a new year starts a new segment and no open file is ever rewritten. The pre-rotation
+# run-log.jsonl stays where it is; the reader concatenates it ahead of the segments.
+$runLogPath = Join-Path $runsDir "run-log-$((Get-Date).ToUniversalTime().Year).jsonl"
 
 $dateStamp = (Get-Date).ToUniversalTime().ToString('yyyyMMdd')
 
@@ -1636,5 +1643,59 @@ foreach ($machine in $machines) {
         # crash mid-run keeps every machine already logged. See census-collector.md 4.
         Add-Content -Path $runLogPath -Encoding utf8 -Value (
             ConvertTo-Json -InputObject ([PSCustomObject]$entry) -Compress -Depth 5)
+    }
+}
+
+# --- aging pass (snapshot-aging.md 3) ----------------------------------------------------
+# Gzip in place, never delete: absence stays signal, aging only changes encoding. The date
+# is judged by the filename, never mtime - mtimes lie after restores and copies. The
+# original is removed only after the .gz round-trips byte-identical, so an interruption
+# leaves both files, the reader prefers the .json, and the next pass finishes the job.
+# Runs after the collection loop inside the same process: one identity, one schedule, one
+# log to check, and it cannot race a collection.
+if ($AgeAfterDays -gt 0) {
+    $ageCutoff = (Get-Date).ToUniversalTime().Date.AddDays(-$AgeAfterDays)
+    foreach ($machineDir in Get-ChildItem -Path $CensusRoot -Directory | Where-Object { $_.Name -ne '_runs' }) {
+        foreach ($file in Get-ChildItem -Path $machineDir.FullName -Filter '*-census-*.json') {
+            if ($file.Name -notmatch '-census-(\d{8})\.json$') { continue }
+            $fileDate = [datetime]::ParseExact($matches[1], 'yyyyMMdd', [System.Globalization.CultureInfo]::InvariantCulture)
+            if ($fileDate -ge $ageCutoff) { continue }
+
+            # One unageable file must not abort the pass for the rest of the estate - the
+            # same rule the collector holds per category (census-collector.md 7.2).
+            try {
+                $gzPath = "$($file.FullName).gz"
+                $raw = [System.IO.File]::ReadAllBytes($file.FullName)
+                $outStream = [System.IO.File]::Create($gzPath)
+                try {
+                    $gzip = New-Object System.IO.Compression.GZipStream($outStream, [System.IO.Compression.CompressionMode]::Compress)
+                    $gzip.Write($raw, 0, $raw.Length)
+                    $gzip.Dispose()
+                }
+                finally { $outStream.Dispose() }
+
+                $inStream = [System.IO.File]::OpenRead($gzPath)
+                try {
+                    $gunzip = New-Object System.IO.Compression.GZipStream($inStream, [System.IO.Compression.CompressionMode]::Decompress)
+                    $roundTripStream = New-Object System.IO.MemoryStream
+                    $gunzip.CopyTo($roundTripStream)
+                    $gunzip.Dispose()
+                    $roundTrip = $roundTripStream.ToArray()
+                }
+                finally { $inStream.Dispose() }
+
+                if ([System.Linq.Enumerable]::SequenceEqual($raw, $roundTrip)) {
+                    Remove-Item -Path $file.FullName
+                    Write-Verbose "Aged $($file.Name)"
+                }
+                else {
+                    Remove-Item -Path $gzPath
+                    Write-Warning "Aging round-trip mismatch for $($file.FullName); left unaged."
+                }
+            }
+            catch {
+                Write-Warning "Aging failed for $($file.FullName): $($_.Exception.Message)"
+            }
+        }
     }
 }

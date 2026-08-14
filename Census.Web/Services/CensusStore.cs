@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Census.Web.Models.Census;
@@ -28,7 +29,7 @@ public partial class CensusStore
         _machinesConfigPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, opts.MachinesConfigPath));
     }
 
-    [GeneratedRegex(@"^.+-census-(\d{8})\.json$", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"^.+-census-(\d{8})\.json(\.gz)?$", RegexOptions.IgnoreCase)]
     private static partial Regex CensusFileNamePattern();
 
     public MachinesConfig GetMachinesConfig()
@@ -49,10 +50,22 @@ public partial class CensusStore
     /// </summary>
     public List<RunLogEntry> GetRunLog()
     {
-        var path = Path.Combine(_rootPath, "_runs", "run-log.jsonl");
-        if (!File.Exists(path))
+        var runsDir = Path.Combine(_rootPath, "_runs");
+
+        // Pre-rotation history first, then the yearly segments in order — concatenation
+        // reproduces append order, and the pre-rotation file is never migrated into a
+        // segment: it is history, and history does not get rewritten (snapshot-aging.md §5).
+        var paths = new List<string>();
+        var preRotationPath = Path.Combine(runsDir, "run-log.jsonl");
+        if (File.Exists(preRotationPath)) paths.Add(preRotationPath);
+        if (Directory.Exists(runsDir))
         {
-            var legacyPath = Path.Combine(_rootPath, "_runs", "run-log.json");
+            paths.AddRange(Directory.GetFiles(runsDir, "run-log-*.jsonl").OrderBy(p => p, StringComparer.OrdinalIgnoreCase));
+        }
+
+        if (paths.Count == 0)
+        {
+            var legacyPath = Path.Combine(runsDir, "run-log.json");
             if (File.Exists(legacyPath))
             {
                 _logger.LogWarning(
@@ -64,27 +77,30 @@ public partial class CensusStore
         }
 
         var entries = new List<RunLogEntry>();
-        var skipped = 0;
-        foreach (var line in File.ReadLines(path))
+        foreach (var path in paths)
         {
-            if (string.IsNullOrWhiteSpace(line)) continue;
-            try
+            var skipped = 0;
+            foreach (var line in File.ReadLines(path))
             {
-                var entry = JsonSerializer.Deserialize<RunLogEntry>(line, JsonOptions);
-                if (entry is not null) entries.Add(entry); else skipped++;
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                try
+                {
+                    var entry = JsonSerializer.Deserialize<RunLogEntry>(line, JsonOptions);
+                    if (entry is not null) entries.Add(entry); else skipped++;
+                }
+                catch (JsonException)
+                {
+                    skipped++;
+                }
             }
-            catch (JsonException)
-            {
-                skipped++;
-            }
-        }
 
-        if (skipped > 0)
-        {
-            _logger.LogWarning(
-                "Run log at {Path}: skipped {Skipped} of {Total} lines that do not parse as " +
-                "a run-log entry. Lines written by an older collector carry no collectorVersion.",
-                path, skipped, skipped + entries.Count);
+            if (skipped > 0)
+            {
+                _logger.LogWarning(
+                    "Run log at {Path}: skipped {Skipped} lines that do not parse as " +
+                    "a run-log entry. Lines written by an older collector carry no collectorVersion.",
+                    path, skipped);
+            }
         }
         return entries;
     }
@@ -128,14 +144,21 @@ public partial class CensusStore
         if (!Directory.Exists(dirPath)) return [];
 
         var refs = new List<MachineSnapshotRef>();
-        foreach (var filePath in Directory.GetFiles(dirPath, "*-census-*.json"))
+        foreach (var filePath in Directory.GetFiles(dirPath, "*-census-*.json*"))
         {
             var match = CensusFileNamePattern().Match(Path.GetFileName(filePath));
             if (!match.Success) continue;
             if (!DateOnly.TryParseExact(match.Groups[1].Value, "yyyyMMdd", out var date)) continue;
             refs.Add(new MachineSnapshotRef(machineDir, date, filePath));
         }
-        return refs.OrderBy(r => r.Date).ToList();
+        // Both encodings for one date means aging was interrupted between writing the .gz
+        // and deleting the .json — the .json wins, being the file whose write was
+        // known-complete; the next aging pass finishes the job (snapshot-aging.md §4).
+        return refs
+            .GroupBy(r => r.Date)
+            .Select(g => g.OrderBy(r => r.FilePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase) ? 1 : 0).First())
+            .OrderBy(r => r.Date)
+            .ToList();
     }
 
     public CensusEnvelope? GetLatestSnapshot(string machineDir)
@@ -171,6 +194,13 @@ public partial class CensusStore
 
     private static CensusEnvelope? ReadSnapshot(string filePath)
     {
+        if (filePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+        {
+            using var file = File.OpenRead(filePath);
+            using var gzip = new GZipStream(file, CompressionMode.Decompress);
+            using var reader = new StreamReader(gzip);
+            return JsonSerializer.Deserialize<CensusEnvelope>(reader.ReadToEnd(), JsonOptions);
+        }
         var json = File.ReadAllText(filePath);
         return JsonSerializer.Deserialize<CensusEnvelope>(json, JsonOptions);
     }

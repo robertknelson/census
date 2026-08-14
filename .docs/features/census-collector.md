@@ -106,7 +106,8 @@ Deliberately isomorphic to an IIS log tree.
   DEV-VM-04\
     dev-vm-04-census-20260730.json   # absent 07-31 = machine was unreachable that day
   _runs\
-    run-log.jsonl                    # append-only, one line per machine per run
+    run-log.jsonl                    # pre-rotation history, read first, never rewritten
+    run-log-2026.jsonl               # append-only yearly segment, one line per machine per run
 ```
 
 Rules:
@@ -115,20 +116,25 @@ Rules:
   The machine prefix is lowercased. It is redundant with the folder name and deliberately so:
   these files get copied out of the tree one at a time, and a bare `census-20260731.json` in
   a downloads folder does not say which machine it describes. The reader matches
-  `^.+-census-(\d{8})\.json$`, so the prefix is required, not optional.
-- **The run log is one append-only JSON Lines file**, `_runs\run-log.jsonl` — not a file per
-  run, so the whole history is still one read for a consumer asking "when was this machine
-  last reached". One compressed line is appended per machine as its outcome is known; **the
-  collector never reads the file back** *(reversed from read-and-rewrite 2026-08-11 — the 5.1
-  read-back nested prior entries into a `value`/`Count` wrapper and lost the history in the
-  field; rationale and migration in `requirements.md` §4.2)*.
+  `^.+-census-(\d{8})\.json(\.gz)?$`, so the prefix is required, not optional.
+- **The run log is append-only JSON Lines in yearly segments**, `_runs\run-log-<yyyy>.jsonl`
+  (year of the run's UTC date) — not a file per run, so the whole history is still a short
+  concatenation for a consumer asking "when was this machine last reached". One compressed
+  line is appended per machine as its outcome is known; **the collector never reads the file
+  back** *(reversed from read-and-rewrite 2026-08-11 — the 5.1 read-back nested prior entries
+  into a `value`/`Count` wrapper and lost the history in the field; rationale and migration in
+  `requirements.md` §4.2)*. The pre-rotation `run-log.jsonl` stays in place and is read ahead
+  of the segments — it is history, and history does not get rewritten *(segmented 2026-08-14,
+  `snapshot-aging.md` §5)*.
 - **Full snapshot every day, not deltas.** Any single file is complete and self-describing —
   readable with no replay. Drift diffing is a reader concern, not the writer's.
 - **Absence is signal.** A missing file means the machine was not collected that day. The run
   manifest is what distinguishes that from "collected, found nothing".
 - **`_runs\` is underscore-prefixed** so a scanner enumerating machine folders skips it with
   one rule.
-- **Aging** gzips files older than N days in place.
+- **Aging** gzips files older than `-AgeAfterDays` (default 90, filename date) in place at
+  the end of the nightly run — encoding changes, existence never does. Full contract in
+  `snapshot-aging.md` *(built 2026-08-14)*.
 - **Machine folder name** is the `name` from `machines.json`, uppercased — the requested
   name, not the discovered one, so a machine that renames itself does not silently start a
   second folder. A mismatch between requested and discovered name is recorded in the envelope.

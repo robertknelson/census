@@ -25,6 +25,18 @@ relates: []
 
 ## notes
 
+### 2026-08-14 (second session)
+- Real data drew blood again, same artery: a payload carrying an explicit
+  `"databases": null` overwrites the model's `= []` default at deserialization,
+  and `SqlDatabasesOf` threw `ArgumentNullException`. Guarded all five
+  envelope-model consumption sites (`DiffEngine`, `HostingController`) with
+  `?? []`. NRT never protected this boundary — `<Nullable>enable</Nullable>`
+  made the call sites *look* safe, which is arguably worse.
+- Decision recorded: census stays on `enable` (flipping sprays CS8632 for no
+  gain), but flips to Robert's standard `disable`/`disable` when the code is
+  absorbed into his website — open item in `census-web.md` §8.
+- `main` at `472b2e2`.
+
 ### 2026-08-14
 - First contact with real payloads found a crash: registry uninstall entries
   are not unique on `displayName|arch|hive|sid` (SQL Server registers several

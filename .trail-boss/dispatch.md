@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Aging shipped — gzip at 90 days, yearly run-log segments; first real-data contact found and killed a diff crash"
+summary: "Real data's second punch: explicit-null SQL collections crashed the diff — five sites guarded"
 resume: "cd Census.Web; $env:ASPNETCORE_ENVIRONMENT='Demo'; dotnet run   # then http://localhost:5199"
 health: green
 links:
@@ -30,7 +30,23 @@ so absence stays signal. **Census.Web** reads that tree (`.gz`-transparent) and
 renders the estate: owner → stage → glyph canvas → dossier, with a findings
 stream recomputed on every read.
 
-## This session (2026-08-14)
+## This session (2026-08-14, second)
+
+- **Real data's second punch, same artery as the first.** An envelope carrying
+  an explicit `"databases": null` overwrites the model's `= []` default during
+  deserialization, and `DiffEngine.SqlDatabasesOf` threw
+  `ArgumentNullException` on `.Select`. Guarded all five envelope-model
+  consumption sites (`DiffEngine` ×2, `HostingController` ×3) with `?? []`.
+  Build clean; `main` at `472b2e2`.
+- **The instructive part:** `<Nullable>enable</Nullable>` is what made those
+  call sites look safe — NRT is compile-time only and System.Text.Json ignores
+  it. A guarantee that's only sometimes real trains you to skip the guard.
+- **Decision recorded as an open item** (`census-web.md` §8): census stays on
+  `enable` for now, but flips to Robert's standard `<Nullable>disable</Nullable>`
+  + `<ImplicitUsings>disable</ImplicitUsings>` when the code is absorbed into
+  his website, which carries those settings.
+
+## Earlier session (2026-08-14)
 
 - **Real data landed a punch.** Registry uninstall entries are not unique on
   `displayName|arch|hive|sid` — SQL Server registers several HKLM subkeys under

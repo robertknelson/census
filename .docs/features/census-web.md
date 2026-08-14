@@ -176,7 +176,7 @@ reordering must never register as a change:
 
 | Collection | Key | What's compared |
 |---|---|---|
-| `apps.entries` | (`displayName`, `architecture`, `hive`, `sid`) | added / removed / `displayVersion` changed |
+| `apps.entries` | (`displayName`, `architecture`, `hive`, `sid`) + duplicate ordinal | added / removed / `displayVersion` changed. The tuple is not unique on a real machine (SQL Server registers several HKLM uninstall subkeys under one identical display name, and the collector does not capture the subkey name) — duplicates are ordered by `displayVersion` and suffixed with an ordinal so snapshots pair positionally and an upgrade stays a `displayVersion` change rather than remove+add. Fixture: the duplicated SQL Server 2019 entry on `SQL01` |
 | `dotnet.coreRuntimes` / `sdks` | the string itself | added / removed |
 | `certificates.certificates` | `thumbprint` | added / removed. **Renewal shows as remove+add**, not a single "renewed" event, unless a same-`subject` heuristic is added later (§8) |
 | `drives.drives` | `driveLetter` | `percentFree` delta, `healthStatus` changed |

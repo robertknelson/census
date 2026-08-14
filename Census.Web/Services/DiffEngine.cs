@@ -53,14 +53,29 @@ public static class DiffEngine
 
     private static DiffSection DiffApps(CensusEnvelope from, CensusEnvelope to)
     {
-        var fromEntries = (from.Apps?.Data?.Entries ?? []).ToDictionary(AppKey);
-        var toEntries = (to.Apps?.Data?.Entries ?? []).ToDictionary(AppKey);
+        var fromEntries = KeyedApps(from.Apps?.Data?.Entries ?? []);
+        var toEntries = KeyedApps(to.Apps?.Data?.Entries ?? []);
         return DiffKeyed("apps", fromEntries, toEntries,
             label: e => $"{e.DisplayName} ({e.Architecture}, {e.Hive})",
             compare: (a, b) => a.DisplayVersion != b.DisplayVersion
                 ? [new DiffFieldChange("displayVersion", a.DisplayVersion, b.DisplayVersion)]
                 : []);
     }
+
+    // AppKey is not unique on a real machine — SQL Server alone registers several HKLM
+    // uninstall subkeys carrying the identical DisplayName/Architecture/Hive/Sid tuple, and
+    // the collector does not capture the subkey name that tells them apart. Duplicates are
+    // ordered by DisplayVersion and suffixed with an ordinal so the two snapshots pair up
+    // positionally, keeping an upgrade a displayVersion change rather than a remove+add. The
+    // ordinal is appended to every key, not just duplicates, so a singleton on one side still
+    // pairs with the first of a duplicate group on the other.
+    private static Dictionary<string, AppEntry> KeyedApps(List<AppEntry> entries) =>
+        entries
+            .GroupBy(AppKey)
+            .SelectMany(g => g
+                .OrderBy(e => e.DisplayVersion, StringComparer.Ordinal)
+                .Select((e, i) => (Key: $"{g.Key}|{i}", Entry: e)))
+            .ToDictionary(x => x.Key, x => x.Entry);
 
     private static string AppKey(AppEntry e) => $"{e.DisplayName}|{e.Architecture}|{e.Hive}|{e.Sid}";
 

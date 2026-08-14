@@ -98,11 +98,22 @@
   "apps": {
     "status": "ok",
     "data": {
-      "count": 2,
+      "count": 3,
       "entries": [
         {
           "displayName": "Microsoft SQL Server 2019 (64-bit)",
           "displayVersion": "15.0.4345.5",
+          "publisher": "Microsoft Corporation",
+          "installDate": "2023-01-21",
+          "installLocation": null,
+          "systemComponent": true,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": ""
+        },
+        {
+          "displayName": "Microsoft SQL Server 2019 (64-bit)",
+          "displayVersion": "15.0.2000.5",
           "publisher": "Microsoft Corporation",
           "installDate": "2023-01-21",
           "installLocation": null,

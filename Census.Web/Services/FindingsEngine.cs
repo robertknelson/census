@@ -158,9 +158,10 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
             }
         }
 
+        var runLogByMachine = censusStore.GetRunLogByMachine();
         foreach (var machine in configMachines)
         {
-            var runLog = censusStore.GetRunLogFor(machine)
+            var runLog = (runLogByMachine.GetValueOrDefault(machine) ?? [])
                 .Where(e => e.FinishedUtc <= now)
                 .ToList();
             var lastOk = runLog.LastOrDefault(e => e.Outcome == "ok");

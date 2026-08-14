@@ -89,11 +89,27 @@ public partial class CensusStore
         return entries;
     }
 
-    public List<RunLogEntry> GetRunLogFor(string machine) =>
-        GetRunLog()
-            .Where(e => string.Equals(e.Machine, machine, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(e => e.StartedUtc)
-            .ToList();
+    /// <summary>
+    /// One read and parse of the log for callers that iterate the fleet — asking per machine
+    /// re-reads the whole file once per machine, which is quadratic in fleet size.
+    /// </summary>
+    public Dictionary<string, List<RunLogEntry>> GetRunLogByMachine()
+    {
+        var byMachine = new Dictionary<string, List<RunLogEntry>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in GetRunLog())
+        {
+            if (!byMachine.TryGetValue(entry.Machine, out var list))
+            {
+                byMachine[entry.Machine] = list = [];
+            }
+            list.Add(entry);
+        }
+        foreach (var list in byMachine.Values)
+        {
+            list.Sort((a, b) => a.StartedUtc.CompareTo(b.StartedUtc));
+        }
+        return byMachine;
+    }
 
     public IReadOnlyList<string> GetMachineDirs()
     {

@@ -13,12 +13,13 @@ public class CoverageController(CensusStore censusStore) : ControllerBase
     {
         var config = censusStore.GetMachinesConfig();
         var now = DateTimeOffset.UtcNow;
+        var runLogByMachine = censusStore.GetRunLogByMachine();
 
         var coverage = config.Names.Select(machine =>
         {
             var snapshotRefs = censusStore.GetSnapshotRefs(machine);
             var snapshotDates = snapshotRefs.Select(r => r.Date).ToHashSet();
-            var runLog = censusStore.GetRunLogFor(machine);
+            var runLog = runLogByMachine.GetValueOrDefault(machine) ?? [];
 
             var lastRun = runLog.LastOrDefault();
             var lastOk = runLog.LastOrDefault(e => e.Outcome == "ok");

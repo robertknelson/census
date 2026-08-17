@@ -60,6 +60,7 @@ public class EntityTagsEvaluator
         }
 
         var contributors = rows.Where(r => r.Resolution == ResolutionObserved).ToList();
+        var unclassified = CollectUnclassified(machine, instances, applications, config);
         return new MachineEntityTagsDto
         {
             Machine = machine,
@@ -72,27 +73,60 @@ public class EntityTagsEvaluator
                 Stages = contributors.SelectMany(r => r.Stage).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
                 DerivedFrom = contributors,
             },
-            UnclassifiedCount = CountUnclassified(machine, instances, applications, config),
+            Unclassified = unclassified,
+            UnclassifiedCount = unclassified.Count,
+            Unknown = CollectUnknown(sqlStatus, iisStatus, instances, rows),
         };
     }
 
-    private static int CountUnclassified(string machine, List<SqlInstance> instances, List<IisApplication> applications, EntityTagsConfig config)
+    private static List<UnclassifiedEntityDto> CollectUnclassified(string machine, List<SqlInstance> instances, List<IisApplication> applications, EntityTagsConfig config)
     {
         var databaseTags = TreeFor(config.Databases, machine);
         var applicationTags = TreeFor(config.Applications, machine);
 
-        // System databases stay out of the count: they are structure of the instance, not
+        // System databases stay out of the pile: they are structure of the instance, not
         // deployed meaning, and counting them would make the pile look permanently dirty.
         // DatabaseId <= 4 is SQL Server's own designation, not a naming convention.
         var databases = instances
             .Where(i => i.ConnectedStatus == "ok")
             .SelectMany(i => i.Databases
                 .Where(d => d.DatabaseId is null or > 4)
-                .Where(d => !HasLeaf(databaseTags, i.InstanceName, d.Name)))
-            .Count();
+                .Where(d => !HasLeaf(databaseTags, i.InstanceName, d.Name))
+                .Select(d => new UnclassifiedEntityDto { Kind = "database", Container = i.InstanceName, Name = d.Name }));
 
-        var apps = applications.Count(a => !HasLeaf(applicationTags, a.SiteName, a.Path));
-        return databases + apps;
+        var apps = applications
+            .Where(a => !HasLeaf(applicationTags, a.SiteName, a.Path))
+            .Select(a => new UnclassifiedEntityDto { Kind = "application", Container = a.SiteName, Name = a.Path });
+
+        return databases.Concat(apps).ToList();
+    }
+
+    // "not-present" is a legitimate absence, not a failure — it only earns an unknown row
+    // when assertions actually point into it. Unreachable instances always surface: a
+    // filtered pile must never render as a smaller pile.
+    private static List<UnknownScopeDto> CollectUnknown(string sqlStatus, string iisStatus, List<SqlInstance> instances, List<EntityTagRowDto> rows)
+    {
+        var unknown = new List<UnknownScopeDto>();
+        var unknownDatabases = rows.Count(r => r.Kind == "database" && r.Resolution == ResolutionUnknown);
+        var unknownApplications = rows.Count(r => r.Kind == "application" && r.Resolution == ResolutionUnknown);
+
+        if (sqlStatus != "ok" && (sqlStatus != "not-present" || unknownDatabases > 0))
+            unknown.Add(new UnknownScopeDto { Kind = "sql", Status = sqlStatus, UnverifiableCount = unknownDatabases });
+        if (iisStatus != "ok" && (iisStatus != "not-present" || unknownApplications > 0))
+            unknown.Add(new UnknownScopeDto { Kind = "iis", Status = iisStatus, UnverifiableCount = unknownApplications });
+
+        foreach (var instance in instances.Where(i => i.ConnectedStatus != "ok"))
+        {
+            unknown.Add(new UnknownScopeDto
+            {
+                Kind = "instance",
+                Container = instance.InstanceName,
+                Status = instance.ConnectedStatus ?? "unknown",
+                UnverifiableCount = rows.Count(r => r.Kind == "database" && r.Resolution == ResolutionUnknown
+                    && string.Equals(r.Container, instance.InstanceName, StringComparison.OrdinalIgnoreCase)),
+            });
+        }
+        return unknown;
     }
 
     private static Dictionary<string, Dictionary<string, EntityTagAssertion>> TreeFor(

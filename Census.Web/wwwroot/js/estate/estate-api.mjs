@@ -44,6 +44,18 @@ export function fetchEntityTags(machine) {
     return getJson(`/api/entity-tags/machine/${encodeURIComponent(machine)}`);
 }
 
+export function fetchTriage() {
+    return getJson('/api/entity-tags/triage');
+}
+
+export function fetchEntityTagsConfig() {
+    return getJson('/api/entity-tags');
+}
+
+export async function saveEntityTags(config) {
+    await send('/api/entity-tags', 'PUT', config);
+}
+
 export function fetchBlacklist() {
     return getJson('/api/blacklist');
 }

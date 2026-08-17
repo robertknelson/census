@@ -11,6 +11,7 @@ import { CertificatesPanel, certUrgencyClass } from './certificates-panel.mjs';
 import { ChangesFeed } from './changes-feed.mjs';
 import { SoftwarePanel } from './software-panel.mjs';
 import { HostingPanel } from './hosting-panel.mjs';
+import { TriagePanel } from './triage-panel.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -99,6 +100,7 @@ class EstatePage {
                     <div class="est-header-actions">
                         <label class="est-asof"><span>as of</span><input type="date" class="est-edit-input" data-ref="asof-input"></label>
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
+                        <button class="est-btn" data-ref="triage-btn" hidden></button>
                         <button class="est-btn" data-ref="changes-btn">Changes</button>
                         <button class="est-btn" data-ref="software-btn">Software</button>
                         <button class="est-btn" data-ref="hosting-btn">Hosting</button>
@@ -145,6 +147,9 @@ class EstatePage {
 
         this.findingsBtnEl = this.root.querySelector('[data-ref="findings-btn"]');
         this.findingsBtnEl.addEventListener('click', () => this.openFindings());
+
+        this.triageBtnEl = this.root.querySelector('[data-ref="triage-btn"]');
+        this.triageBtnEl.addEventListener('click', () => this.openTriage());
 
         this.root.querySelector('[data-ref="blacklist-btn"]').addEventListener('click', () => this.openBlacklist());
         this.root.querySelector('[data-ref="baselines-btn"]').addEventListener('click', () => this.openBaselines());
@@ -215,12 +220,14 @@ class EstatePage {
         this.renderCanvas();
         this.renderActionbar();
         this.renderFindingsButton();
+        this.renderTriageButton();
         this.renderAsOfBanner();
         this.legendEl.querySelectorAll('[data-class]').forEach((btn) => {
             btn.classList.toggle('is-active', this.selectedClasses.has(btn.dataset.class));
         });
         // Changes and Software read the current fleet only — honest to disable in the past.
-        for (const ref of ['changes-btn', 'software-btn', 'hosting-btn']) {
+        // Triage edits the current config, so it is current-only too.
+        for (const ref of ['changes-btn', 'software-btn', 'hosting-btn', 'triage-btn']) {
             const btn = this.root.querySelector(`[data-ref="${ref}"]`);
             btn.disabled = this.asOf !== null;
             btn.title = this.asOf !== null ? 'Available on the current view only' : '';
@@ -258,6 +265,14 @@ class EstatePage {
         this.findingsBtnEl.innerHTML = total === 0
             ? 'Findings · clear'
             : `Findings · <strong>${total}</strong>${critical > 0 ? ` <span class="est-crit">(${critical} critical)</span>` : ''}`;
+    }
+
+    renderTriageButton() {
+        const total = this.data.machines.reduce((n, m) => n + (m.unclassifiedEntityCount ?? 0), 0);
+        this.triageBtnEl.hidden = false;
+        this.triageBtnEl.innerHTML = total === 0
+            ? 'Triage · clear'
+            : `Triage · <strong>${total}</strong>`;
     }
 
     // --- owner rail -----------------------------------------------------------------------
@@ -580,6 +595,22 @@ class EstatePage {
             this.data = await fetchCanvas(this.asOf);
             this.renderAll();
         }).mount(this.panelEl.querySelector('[data-ref="baselines"]'));
+    }
+
+    openTriage() {
+        this.panel = { type: 'triage' };
+        this.panelShell(
+            'Triage',
+            'The unclassified pile — everything observed that nobody has explained yet. Assertions write straight back to config/entity-tags.json; machine names open dossiers.',
+            '<div data-ref="triage"></div>');
+        this.openPanel();
+
+        new TriagePanel(async () => {
+            // Tags moved: rollups, chips, the pile count and findings all shift with them.
+            this.data = await fetchCanvas(this.asOf);
+            this.renderAll();
+        }, (machine) => this.openDetails(machine))
+            .mount(this.panelEl.querySelector('[data-ref="triage"]'));
     }
 
     openFindings() {

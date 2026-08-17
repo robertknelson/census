@@ -53,6 +53,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
             var findings = findingsByMachine.GetValueOrDefault(machine, []);
             var observedRoles = envelope?.Roles ?? [];
             var (resolvedClass, classSource) = MachineClassifier.Resolve(entry?.Class, observedRoles);
+            var tagsDto = envelope is null ? null : entityTagsEvaluator.Evaluate(machine, envelope, entityTags);
 
             machines.Add(new CanvasMachineDto
             {
@@ -71,7 +72,8 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
                 HasData = envelope is not null,
                 OsProductName = envelope?.Os?.Data?.ProductName,
                 LatestDate = (asOfDate is { } d2 ? censusStore.GetSnapshotRefAsOf(machine, d2) : censusStore.GetSnapshotRefs(machine).LastOrDefault())?.Date.ToString("yyyy-MM-dd"),
-                EntityRollup = envelope is null ? null : entityTagsEvaluator.Evaluate(machine, envelope, entityTags).Rollup,
+                EntityRollup = tagsDto?.Rollup,
+                UnclassifiedEntityCount = tagsDto?.UnclassifiedCount ?? 0,
             });
         }
 

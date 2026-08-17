@@ -16,8 +16,37 @@ public record MachineEntityTagsDto
     public List<EntityTagRowDto> Rows { get; init; } = [];
     public required EntityRollupDto Rollup { get; init; }
 
-    /// <summary>Observed user databases and applications with no assertion — the seed of the triage queue.</summary>
+    /// <summary>Observed user databases and applications with no assertion — the triage queue's pile.</summary>
+    public List<UnclassifiedEntityDto> Unclassified { get; init; } = [];
     public int UnclassifiedCount { get; init; }
+
+    /// <summary>Scopes where collection failed — rendered as explicit unknown rows, never as a thinner queue.</summary>
+    public List<UnknownScopeDto> Unknown { get; init; } = [];
+}
+
+public record UnclassifiedEntityDto
+{
+    public required string Kind { get; init; }       // database | application
+    public required string Container { get; init; }
+    public required string Name { get; init; }
+}
+
+public record UnknownScopeDto
+{
+    public required string Kind { get; init; }       // sql | iis | instance
+    public string Container { get; init; }           // instance name for kind=instance
+    public required string Status { get; init; }
+    public int UnverifiableCount { get; init; }
+}
+
+public record TriageDto
+{
+    public List<MachineEntityTagsDto> Machines { get; init; } = [];
+
+    /// <summary>Distinct values already in use — suggestion chips, never a restriction.</summary>
+    public List<string> Systems { get; init; } = [];
+    public List<string> Stages { get; init; } = [];
+    public int UnclassifiedTotal { get; init; }
 }
 
 public record EntityTagRowDto

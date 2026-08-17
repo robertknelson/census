@@ -747,6 +747,75 @@ html, body {
     color: var(--est-muted);
 }
 
+/* --- triage workbench ------------------------------------------------------------------ */
+
+.est-triage-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.est-triage-controls .est-filter {
+    flex: 1;
+    margin: 0;
+}
+
+.est-triage-group {
+    margin: 0.4rem 0 0.6rem;
+}
+
+.est-triage-group-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--est-muted);
+    margin-bottom: 0.15rem;
+}
+
+.est-triage-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.18rem 0 0.18rem 1.3rem;
+    font-size: 0.85rem;
+}
+
+.est-triage-row.is-editing {
+    background: var(--est-blue-soft);
+    border-radius: 4px;
+}
+
+.est-triage-row .est-btn {
+    margin-left: auto;
+}
+
+.est-triage-row .est-btn + .est-btn {
+    margin-left: 0.3rem;
+}
+
+.est-triage-prov {
+    font-size: 0.72rem;
+}
+
+.est-triage-unknown {
+    font-size: 0.78rem;
+    color: var(--est-muted);
+    padding-left: 1.3rem;
+    margin: 0.2rem 0;
+}
+
+/* Sticky within the panel scroll: the pen stays in reach however deep the pile goes. */
+.est-triage-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--est-panel);
+    border-top: 1px solid var(--est-line);
+    padding: 0.6rem 0 0.2rem;
+    margin-top: 0.8rem;
+}
+
 /* A disabled authentication method is a fact worth showing, not worth shouting. */
 .est-badge-off {
     opacity: 0.5;

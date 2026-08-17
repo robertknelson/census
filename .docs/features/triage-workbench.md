@@ -2,7 +2,10 @@
 
 > Spec, 2026-08-18. Parent docs: `system-graph-principles.md` (why),
 > `entity-tags.md` (slice 1 — the assertion record this workbench edits).
-> Status: **drafted, open items undecided. No code until they are.**
+> Status: **ratified 2026-08-18 — all four §8 items decided as proposed
+> ("Triage"; alphabetical ordering; bulk applies only filled axes, classified
+> edit clears explicitly emptied ones; unknown axes preserved). Build
+> authorized.**
 
 ## 1. What this slice is
 
@@ -119,18 +122,25 @@ wanted. Revisit only if real use shows constant panel-hopping.
    untouched — the store already round-trips them; the workbench just must not
    drop them when rewriting a leaf.
 
-## 9. Verification plan
+## 9. Verification plan — executed 2026-08-18, all green
 
-Demo profile; fixtures are the coverage:
+Demo profile; fixtures are the coverage. Results (the test mutations were then
+reverted so the committed fixture keeps its designed pile):
 
-- Queue shows the expected pile: SQL01's four untagged PROD user databases,
-  WEB01/WEB02/APPSRV01's untagged applications and databases, SQL02's
-  everything — and the chip count matches the sum.
-- SQL01's REPORTING/ARCHIVE instances surface as *unknown* rows, not absent.
-- Dangling stratum shows DEVSQLBOX `MyDB_QA` with its stranded tags; removing
-  it clears the finding on refetch.
-- Bulk: filter + select-all + apply on several rows lands the leaves in
-  `entity-tags.demo.json`, the queue shrinks, tiles/dossiers pick the tags up.
-- Classified toggle: edit one row's stage, confirm overwrite-not-merge on that
-  leaf and preservation of an unknown axis planted for the test.
-- Live screenshots: chip with count, queue before/after a bulk apply.
+- Chip read `Triage · 21`, matching the API's fleet total. The pile: SQL01's
+  four untagged PROD user databases, WEB01/WEB02/APPSRV01's applications,
+  SQL02's databases.
+- Unknown rows surfaced exactly: SQL01 REPORTING (`insufficient-rights`, "1
+  assertion unverifiable"), ARCHIVE (`skipped`), SQL02 ETL (`timed-out`),
+  APPSRV01 SQLEXPRESS — none rendered as absence.
+- Dangling stratum showed DEVSQLBOX `MyDB_QA` with its stranded chips; Remove
+  deleted the leaf, the `dangling-entity-tag` finding cleared (38 → 37), and
+  the card left the queue.
+- Bulk: group select-all on SQL01's PROD instance → assertion bar → suggestion
+  chip + typed system + `Apply to 4` landed four leaves in the file with
+  provenance, the chip dropped 21 → 17, and SQL01 read *clear*.
+- Classified toggle + Edit: overwrote `stage` to two values on one leaf while a
+  planted unknown axis (`tier`) survived untouched; the bar announced the
+  clear-on-empty rule.
+- Filter narrowed to the matching machine only (unknown-only machines follow
+  the filter too — unknown-never-hidden governs strata, not a steered search).

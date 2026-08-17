@@ -28,6 +28,9 @@ public record CanvasMachineDto
 
     /// <summary>Derived from entity tags — rendered distinctly from the asserted Stages, never merged into them.</summary>
     public EntityRollupDto EntityRollup { get; init; }
+
+    /// <summary>This machine's share of the triage pile — the Triage chip's count is the fleet sum.</summary>
+    public int UnclassifiedEntityCount { get; init; }
 }
 
 public record CanvasDto

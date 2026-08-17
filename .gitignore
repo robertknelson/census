@@ -1,5 +1,8 @@
 bin/
 obj/
+
+# Live working data - real payloads land here. Fixture stays in output-demo/.
+output/
 *.user
 .vs/
 

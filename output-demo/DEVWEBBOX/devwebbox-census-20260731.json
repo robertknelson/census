@@ -1,0 +1,558 @@
+{
+  "schemaVersion": 1,
+  "collectorVersion": "1.0.0",
+  "computerName": "DEVWEBBOX",
+  "collectedUtc": "2026-07-31T03:20:38.0000000Z",
+  "identity": {
+    "status": "ok",
+    "data": {
+      "domain": "corp.example.com",
+      "manufacturer": "Microsoft Corporation",
+      "model": "Virtual Machine",
+      "smbiosUuid": "4c4c4544-1001-3610-8052-b7c04f560001",
+      "machineGuid": "d1e2f3a4-5b60-4712-8c3d-4e5f60718a01",
+      "biosSerialNumber": "DEVWEB01",
+      "isVirtual": true,
+      "hypervisorSignals": [
+        "Hyper-V"
+      ],
+      "cpuSockets": 1,
+      "cpuCores": 4,
+      "cpuLogicalProcessors": 8
+    },
+    "durationMs": 279
+  },
+  "memory": {
+    "status": "ok",
+    "data": {
+      "totalPhysicalMemoryBytes": 17179869184,
+      "totalPhysicalMemoryGB": 16
+    },
+    "durationMs": 8
+  },
+  "os": {
+    "status": "ok",
+    "data": {
+      "productName": "Windows Server 2022 Standard",
+      "editionId": "ServerStandard",
+      "installationType": "Server",
+      "currentBuild": "20348",
+      "ubr": 3807,
+      "displayVersion": "21H2",
+      "architecture": "64-bit",
+      "installDate": "2024-09-03T13:40:00.0000000-04:00",
+      "lastBootUpTime": "2026-07-12T03:05:00.0000000-04:00",
+      "pendingReboot": false,
+      "pendingRebootReasons": []
+    },
+    "durationMs": 88
+  },
+  "updates": {
+    "status": "ok",
+    "data": {
+      "currentBuild": "20348",
+      "ubr": 3807,
+      "lastDetectSuccessTime": "2026-07-30 02:10:00",
+      "lastInstallSuccessTime": "2026-07-14 03:05:00"
+    },
+    "durationMs": 39
+  },
+  "dotnet": {
+    "status": "ok",
+    "data": {
+      "frameworkReleaseId": 533320,
+      "coreRuntimes": [
+        "Microsoft.AspNetCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+        "Microsoft.NETCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]"
+      ],
+      "sdks": []
+    },
+    "durationMs": 42
+  },
+  "drives": {
+    "status": "ok",
+    "data": {
+      "drives": [
+        {
+          "driveLetter": "C",
+          "label": "OS",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 107374182400,
+          "freeBytes": 61203283968,
+          "usedBytes": 46170898432,
+          "percentFree": 57.0
+        },
+        {
+          "driveLetter": "D",
+          "label": "Web",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 214748364800,
+          "freeBytes": 161061273600,
+          "usedBytes": 53687091200,
+          "percentFree": 75.0
+        }
+      ]
+    },
+    "durationMs": 218
+  },
+  "apps": {
+    "status": "ok",
+    "data": {
+      "count": 2,
+      "entries": [
+        {
+          "displayName": "Microsoft ODBC Driver 17 for SQL Server",
+          "displayVersion": "17.10.6.1",
+          "publisher": "Microsoft Corporation",
+          "installDate": "20250114",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": null
+        },
+        {
+          "displayName": "Symantec Endpoint Protection",
+          "displayVersion": "12.1.7454.7000",
+          "publisher": "Symantec Corporation",
+          "installDate": "20250114",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": null
+        }
+      ]
+    },
+    "durationMs": 690
+  },
+  "iis": {
+    "status": "ok",
+    "data": {
+      "server": {
+        "versionString": "10.0.20348.1",
+        "majorVersion": 10,
+        "pathWwwRoot": "C:\\inetpub\\wwwroot",
+        "configPath": "C:\\Windows\\System32\\inetsrv\\config\\applicationHost.config",
+        "configLastWriteUtc": "2026-07-02T10:14:07Z",
+        "configSha256": "f6bd7b4781dc4585f6065aba1443a9f358f507700a84e82fe230be15db69daf1"
+      },
+      "sites": [
+        {
+          "name": "myweb.dev.example.com",
+          "id": "2",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "D:\\sites\\MyWeb",
+            "expanded": "D:\\sites\\MyWeb",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:myweb.dev.example.com",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "myweb.dev.example.com",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            },
+            {
+              "protocol": "https",
+              "bindingInformation": "*:443:myweb.dev.example.com",
+              "ip": "*",
+              "port": 443,
+              "hostHeader": "myweb.dev.example.com",
+              "parsed": true,
+              "sslFlags": "1",
+              "certificateHash": "6B4769DB6920F8A9B8615F5B8B0C48FC39890069",
+              "certificateStoreName": "My"
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "D:\\logs\\W3SVC2",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "D:\\logs\\W3SVC2",
+              "exists": true,
+              "fileCount": 13,
+              "totalBytes": 20480,
+              "oldestUtc": "2026-06-01T00:02:19Z",
+              "newestUtc": "2026-07-31T23:58:00Z",
+              "last24hBytes": 4096,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        },
+        {
+          "name": "yourweb.dev.example.com",
+          "id": "3",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "D:\\sites\\YourWeb",
+            "expanded": "D:\\sites\\YourWeb",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:yourweb.dev.example.com",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "yourweb.dev.example.com",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            },
+            {
+              "protocol": "https",
+              "bindingInformation": "*:443:yourweb.dev.example.com",
+              "ip": "*",
+              "port": 443,
+              "hostHeader": "yourweb.dev.example.com",
+              "parsed": true,
+              "sslFlags": "1",
+              "certificateHash": "FEBF2883378EA7E7651DF7290ACF26BCB4E1C2E0",
+              "certificateStoreName": "My"
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "D:\\logs\\W3SVC3",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "D:\\logs\\W3SVC3",
+              "exists": true,
+              "fileCount": 13,
+              "totalBytes": 20480,
+              "oldestUtc": "2026-06-01T00:02:19Z",
+              "newestUtc": "2026-07-31T23:57:00Z",
+              "last24hBytes": 3072,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        }
+      ],
+      "appPools": [
+        {
+          "name": "MyWebPool",
+          "managedRuntimeVersion": "",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Integrated",
+          "identityType": "SpecificUser",
+          "identityTypeSource": "pool",
+          "userName": "CORP\\svc-myweb"
+        },
+        {
+          "name": "YourWebPool",
+          "managedRuntimeVersion": "",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Integrated",
+          "identityType": "ApplicationPoolIdentity",
+          "identityTypeSource": "pool",
+          "userName": null
+        }
+      ],
+      "applications": [
+        {
+          "siteName": "myweb.dev.example.com",
+          "path": "/",
+          "physicalPath": {
+            "raw": "D:\\sites\\MyWeb",
+            "expanded": "D:\\sites\\MyWeb",
+            "expandable": true
+          },
+          "applicationPool": "MyWebPool",
+          "poolManagedRuntimeVersion": "",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "SpecificUser",
+          "poolUserName": "CORP\\svc-myweb",
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "",
+            "aspNetCore": {
+              "processPath": "dotnet",
+              "arguments": ".\\MyWeb.dll",
+              "hostingModel": "inprocess",
+              "environmentVariables": {}
+            },
+            "hasAppSettingsJson": true,
+            "hasRuntimeConfigJson": true
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "location"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "location"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "D:\\sites\\MyWeb",
+                "expanded": "D:\\sites\\MyWeb",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "D:\\sites\\MyWeb\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "ok",
+              "path": "D:\\sites\\MyWeb\\appsettings.json"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "yourweb.dev.example.com",
+          "path": "/",
+          "physicalPath": {
+            "raw": "D:\\sites\\YourWeb",
+            "expanded": "D:\\sites\\YourWeb",
+            "expandable": true
+          },
+          "applicationPool": "YourWebPool",
+          "poolManagedRuntimeVersion": "",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "ApplicationPoolIdentity",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "",
+            "aspNetCore": {
+              "processPath": "dotnet",
+              "arguments": ".\\YourWeb.dll",
+              "hostingModel": "inprocess",
+              "environmentVariables": {}
+            },
+            "hasAppSettingsJson": true,
+            "hasRuntimeConfigJson": true
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "location"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "location"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "D:\\sites\\YourWeb",
+                "expanded": "D:\\sites\\YourWeb",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "D:\\sites\\YourWeb\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "ok",
+              "path": "D:\\sites\\YourWeb\\appsettings.json"
+            }
+          },
+          "status": "ok"
+        }
+      ],
+      "dependencies": [
+        {
+          "siteName": "myweb.dev.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "MyDb",
+          "host": "DEVSQLBOX",
+          "rawHost": "DEVSQLBOX",
+          "isLocal": false,
+          "instance": null,
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "MyDB_DEV",
+          "authMode": "integrated",
+          "provider": "Microsoft.Data.SqlClient",
+          "encrypt": "true",
+          "trustServerCertificate": "false",
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "7d250c99cb7c5991ad313611c140fb258e85242d6487f01ca6d5ec4a6e1c8945"
+        },
+        {
+          "siteName": "yourweb.dev.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "YourDb",
+          "host": "DEVSQLBOX",
+          "rawHost": "DEVSQLBOX",
+          "isLocal": false,
+          "instance": null,
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "YourDB_DEV",
+          "authMode": "integrated",
+          "provider": "Microsoft.Data.SqlClient",
+          "encrypt": "true",
+          "trustServerCertificate": "false",
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "9cdde0dd8f4f0e1f52a8475d3e196d187c2dcf9cb97afa8d306accd6c68861af"
+        }
+      ]
+    },
+    "durationMs": 1180
+  },
+  "certificates": {
+    "status": "ok",
+    "data": {
+      "certificates": [
+        {
+          "subject": "CN=myweb.dev.example.com",
+          "sanDnsNames": [
+            "myweb.dev.example.com"
+          ],
+          "issuer": "CN=Corp Issuing CA 1, DC=corp, DC=example, DC=com",
+          "thumbprint": "6B4769DB6920F8A9B8615F5B8B0C48FC39890069",
+          "notBefore": "2025-06-01T00:00:00.0000000-04:00",
+          "notAfter": "2027-06-01T00:00:00.0000000-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": 288,
+          "boundTo": [
+            "myweb.dev.example.com:443"
+          ]
+        },
+        {
+          "subject": "CN=yourweb.dev.example.com",
+          "sanDnsNames": [
+            "yourweb.dev.example.com"
+          ],
+          "issuer": "CN=Corp Issuing CA 1, DC=corp, DC=example, DC=com",
+          "thumbprint": "FEBF2883378EA7E7651DF7290ACF26BCB4E1C2E0",
+          "notBefore": "2025-06-01T00:00:00.0000000-04:00",
+          "notAfter": "2027-06-01T00:00:00.0000000-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": 288,
+          "boundTo": [
+            "yourweb.dev.example.com:443"
+          ]
+        }
+      ],
+      "rdpQueryError": null,
+      "httpSysQueryError": null
+    },
+    "durationMs": 58
+  },
+  "sqlServer": {
+    "status": "not-present",
+    "reason": "HKLM:\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL absent",
+    "durationMs": 4
+  },
+  "aliases": {
+    "status": "ok",
+    "data": {
+      "aliases": [
+        {
+          "kind": "netbios",
+          "value": "DEVWEBBOX",
+          "source": "identity"
+        },
+        {
+          "kind": "fqdn",
+          "value": "devwebbox.corp.example.com",
+          "source": "identity"
+        },
+        {
+          "kind": "machineGuid",
+          "value": "d1e2f3a4-5b60-4712-8c3d-4e5f60718a01",
+          "source": "identity"
+        },
+        {
+          "kind": "ipv4",
+          "value": "10.0.1.10",
+          "source": "network"
+        },
+        {
+          "kind": "bindingHostHeader",
+          "value": "myweb.dev.example.com",
+          "source": "iis"
+        },
+        {
+          "kind": "bindingHostHeader",
+          "value": "yourweb.dev.example.com",
+          "source": "iis"
+        },
+        {
+          "kind": "certSan",
+          "value": "myweb.dev.example.com",
+          "source": "certificates"
+        }
+      ],
+      "sources": {
+        "identity": "ok",
+        "sqlserver": "not-present",
+        "iis": "ok",
+        "certificates": "ok",
+        "network": "ok"
+      }
+    },
+    "durationMs": 40
+  },
+  "requestedName": "devwebbox",
+  "roles": [
+    "WebServer"
+  ]
+}

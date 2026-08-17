@@ -114,6 +114,77 @@
           "SvcGateway"
         ]
       }
+    },
+    "DEVWEBBOX": {
+      "facets": {
+        "stage": [
+          "dev"
+        ],
+        "team": [
+          "StagedApps"
+        ],
+        "app": [
+          "MyWeb",
+          "YourWeb"
+        ]
+      }
+    },
+    "VALWEBBOX": {
+      "facets": {
+        "stage": [
+          "val"
+        ],
+        "team": [
+          "StagedApps"
+        ],
+        "app": [
+          "MyWeb",
+          "YourWeb"
+        ]
+      }
+    },
+    "PRODWEBBOX": {
+      "facets": {
+        "stage": [
+          "prod"
+        ],
+        "team": [
+          "StagedApps"
+        ],
+        "app": [
+          "MyWeb",
+          "YourWeb"
+        ]
+      }
+    },
+    "DEVSQLBOX": {
+      "facets": {
+        "stage": [
+          "dev",
+          "val"
+        ],
+        "team": [
+          "StagedApps"
+        ],
+        "app": [
+          "MyWeb",
+          "YourWeb"
+        ]
+      }
+    },
+    "PRODSQLBOX": {
+      "facets": {
+        "stage": [
+          "prod"
+        ],
+        "team": [
+          "StagedApps"
+        ],
+        "app": [
+          "MyWeb",
+          "YourWeb"
+        ]
+      }
     }
   }
 }

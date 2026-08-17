@@ -24,6 +24,11 @@
     { "name": "LEGACY-DC01",   "bucket": "corp", "expected": true,  "notes": "" },
     { "name": "FILESRV01",     "bucket": "corp", "expected": true,  "notes": "tree restored from backup; run-log history lost" },
     { "name": "OLDVM01",       "bucket": "dmz",  "expected": true,  "notes": "workgroup; NTLM fallback" },
-    { "name": "DCBACKUP01",    "bucket": "corp", "expected": false, "notes": "decommissioned, kept to prove absence is signal" }
+    { "name": "DCBACKUP01",    "bucket": "corp", "expected": false, "notes": "decommissioned, kept to prove absence is signal" },
+    { "name": "DEVWEBBOX",     "bucket": "corp", "expected": true,  "notes": "stage topology: DEV web tier" },
+    { "name": "VALWEBBOX",     "bucket": "corp", "expected": true,  "notes": "stage topology: VAL web tier" },
+    { "name": "PRODWEBBOX",    "bucket": "corp", "expected": true,  "notes": "stage topology: PROD web tier" },
+    { "name": "DEVSQLBOX",     "bucket": "corp", "expected": true,  "notes": "stage topology: serves DEV and VAL both - the shared box" },
+    { "name": "PRODSQLBOX",    "bucket": "corp", "expected": true,  "notes": "stage topology: PROD database tier" }
   ]
 }

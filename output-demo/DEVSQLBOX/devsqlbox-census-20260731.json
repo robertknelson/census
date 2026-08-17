@@ -1,0 +1,556 @@
+{
+  "schemaVersion": 1,
+  "collectorVersion": "1.0.0",
+  "computerName": "DEVSQLBOX",
+  "collectedUtc": "2026-07-31T02:55:44.0000000Z",
+  "identity": {
+    "status": "ok",
+    "data": {
+      "domain": "corp.example.com",
+      "manufacturer": "Microsoft Corporation",
+      "model": "Virtual Machine",
+      "smbiosUuid": "4c4c4544-1004-3610-8052-b7c04f560004",
+      "machineGuid": "a4b5c6d7-8e93-4a45-bf60-718a9bacbd04",
+      "biosSerialNumber": "DEVSQL01",
+      "isVirtual": true,
+      "hypervisorSignals": [
+        "Hyper-V"
+      ],
+      "cpuSockets": 1,
+      "cpuCores": 8,
+      "cpuLogicalProcessors": 16
+    },
+    "durationMs": 294
+  },
+  "memory": {
+    "status": "ok",
+    "data": {
+      "totalPhysicalMemoryBytes": 68719476736,
+      "totalPhysicalMemoryGB": 64
+    },
+    "durationMs": 10
+  },
+  "os": {
+    "status": "ok",
+    "data": {
+      "productName": "Windows Server 2022 Standard",
+      "editionId": "ServerStandard",
+      "installationType": "Server",
+      "currentBuild": "20348",
+      "ubr": 3807,
+      "displayVersion": "21H2",
+      "architecture": "64-bit",
+      "installDate": "2024-08-21T08:55:00.0000000-04:00",
+      "lastBootUpTime": "2026-07-12T03:20:00.0000000-04:00",
+      "pendingReboot": false,
+      "pendingRebootReasons": []
+    },
+    "durationMs": 93
+  },
+  "updates": {
+    "status": "ok",
+    "data": {
+      "currentBuild": "20348",
+      "ubr": 3807,
+      "lastDetectSuccessTime": "2026-07-30 02:25:00",
+      "lastInstallSuccessTime": "2026-07-14 03:05:00"
+    },
+    "durationMs": 44
+  },
+  "dotnet": {
+    "status": "ok",
+    "data": {
+      "frameworkReleaseId": 533320,
+      "coreRuntimes": [],
+      "sdks": []
+    },
+    "durationMs": 37
+  },
+  "drives": {
+    "status": "ok",
+    "data": {
+      "drives": [
+        {
+          "driveLetter": "C",
+          "label": "OS",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 107374182400,
+          "freeBytes": 42949672960,
+          "usedBytes": 64424509440,
+          "percentFree": 40.0
+        },
+        {
+          "driveLetter": "D",
+          "label": "SQLData",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 1099511627776,
+          "freeBytes": 756350058496,
+          "usedBytes": 343161569280,
+          "percentFree": 69.0
+        },
+        {
+          "driveLetter": "L",
+          "label": "SQLLogs",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 274877906944,
+          "freeBytes": 219902325555,
+          "usedBytes": 54975581389,
+          "percentFree": 80.0
+        }
+      ]
+    },
+    "durationMs": 244
+  },
+  "apps": {
+    "status": "ok",
+    "data": {
+      "count": 2,
+      "entries": [
+        {
+          "displayName": "Microsoft ODBC Driver 17 for SQL Server",
+          "displayVersion": "17.10.6.1",
+          "publisher": "Microsoft Corporation",
+          "installDate": "20250114",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": null
+        },
+        {
+          "displayName": "Symantec Endpoint Protection",
+          "displayVersion": "12.1.7454.7000",
+          "publisher": "Symantec Corporation",
+          "installDate": "20250114",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": null
+        }
+      ]
+    },
+    "durationMs": 705
+  },
+  "iis": {
+    "status": "not-present",
+    "reason": "HKLM:\\SOFTWARE\\Microsoft\\InetStp absent",
+    "durationMs": 5
+  },
+  "certificates": {
+    "status": "ok",
+    "data": {
+      "certificates": [],
+      "rdpQueryError": null,
+      "httpSysQueryError": null
+    },
+    "durationMs": 39
+  },
+  "sqlServer": {
+    "status": "ok",
+    "data": {
+      "instances": [
+        {
+          "instanceName": "MSSQLSERVER",
+          "edition": "Standard Edition",
+          "version": "16.0.1000.6",
+          "patchLevel": "16.0.4165.4",
+          "sqlBinRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\Binn",
+          "sqlDataRoot": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL",
+          "collation": "SQL_Latin1_General_CP1_CI_AS",
+          "loginMode": 2,
+          "backupDirectory": "\\\\fs01\\sqlbackups\\DEVSQLBOX",
+          "tcpPort": "1433",
+          "tcpDynamicPorts": null,
+          "serviceAccount": "CORP\\svc-sql",
+          "serviceState": "Running",
+          "agentServiceAccount": "CORP\\svc-sqlagent",
+          "agentServiceState": "Running",
+          "connectedStatus": "ok",
+          "connectedReason": null,
+          "permissions": {
+            "loginName": "CORP\\svc-census",
+            "isSysadmin": false,
+            "viewAnyDefinition": true,
+            "viewServerState": true
+          },
+          "serverProperties": {
+            "productVersion": "16.0.4165.4",
+            "edition": "Standard Edition (64-bit)",
+            "serverCollation": "SQL_Latin1_General_CP1_CI_AS"
+          },
+          "databases": [
+            {
+              "name": "master",
+              "databaseId": 1,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2023-04-11T07:15:02.1000000-04:00"
+            },
+            {
+              "name": "tempdb",
+              "databaseId": 2,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2026-07-31T02:05:00.0000000-04:00"
+            },
+            {
+              "name": "model",
+              "databaseId": 3,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2023-04-11T07:15:02.1000000-04:00"
+            },
+            {
+              "name": "msdb",
+              "databaseId": 4,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2023-04-11T07:15:02.1000000-04:00"
+            },
+            {
+              "name": "MyDB_DEV",
+              "databaseId": 5,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2025-02-18T10:22:41.4470000-05:00"
+            },
+            {
+              "name": "MyDB_VAL",
+              "databaseId": 6,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2025-02-18T10:22:41.4470000-05:00"
+            },
+            {
+              "name": "YourDB_DEV",
+              "databaseId": 7,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "SIMPLE",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2025-02-18T10:22:41.4470000-05:00"
+            },
+            {
+              "name": "YourDB_VAL",
+              "databaseId": 8,
+              "stateDesc": "ONLINE",
+              "recoveryModelDesc": "FULL",
+              "compatibilityLevel": 160,
+              "collationName": "SQL_Latin1_General_CP1_CI_AS",
+              "isReadOnly": false,
+              "isEncrypted": false,
+              "owner": "sa",
+              "createDate": "2025-02-18T10:22:41.4470000-05:00"
+            }
+          ],
+          "databaseFiles": [
+            {
+              "databaseName": "master",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "master",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\master.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 1024,
+              "sizeBytes": 8388608,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "master",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "mastlog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\mastlog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 256,
+              "sizeBytes": 2097152,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "tempdb",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "tempdev",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\tempdb.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 8192,
+              "sizeBytes": 67108864,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "tempdb",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "templog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\templog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 2048,
+              "sizeBytes": 16777216,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "model",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "modeldev",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\model.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 512,
+              "sizeBytes": 4194304,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "model",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "modellog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\modellog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 256,
+              "sizeBytes": 2097152,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "msdb",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "MSDBData",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\MSDBData.mdf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 2376,
+              "sizeBytes": 19464192,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "msdb",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "MSDBLog",
+              "physicalName": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\MSDBLog.ldf",
+              "directory": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA",
+              "sizePages": 1024,
+              "sizeBytes": 8388608,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "MyDB_DEV",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "MyDB_DEV",
+              "physicalName": "D:\\sqldata\\MyDB_DEV.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 65536,
+              "sizeBytes": 536870912,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "MyDB_DEV",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "MyDB_DEV_log",
+              "physicalName": "L:\\sqllogs\\MyDB_DEV_log.ldf",
+              "directory": "L:\\sqllogs",
+              "sizePages": 16384,
+              "sizeBytes": 134217728,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "MyDB_VAL",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "MyDB_VAL",
+              "physicalName": "D:\\sqldata\\MyDB_VAL.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 131072,
+              "sizeBytes": 1073741824,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "MyDB_VAL",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "MyDB_VAL_log",
+              "physicalName": "L:\\sqllogs\\MyDB_VAL_log.ldf",
+              "directory": "L:\\sqllogs",
+              "sizePages": 32768,
+              "sizeBytes": 268435456,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "YourDB_DEV",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "YourDB_DEV",
+              "physicalName": "D:\\sqldata\\YourDB_DEV.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 49152,
+              "sizeBytes": 402653184,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "YourDB_DEV",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "YourDB_DEV_log",
+              "physicalName": "L:\\sqllogs\\YourDB_DEV_log.ldf",
+              "directory": "L:\\sqllogs",
+              "sizePages": 16384,
+              "sizeBytes": 134217728,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "YourDB_VAL",
+              "fileId": 1,
+              "typeDesc": "ROWS",
+              "logicalName": "YourDB_VAL",
+              "physicalName": "D:\\sqldata\\YourDB_VAL.mdf",
+              "directory": "D:\\sqldata",
+              "sizePages": 98304,
+              "sizeBytes": 805306368,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            },
+            {
+              "databaseName": "YourDB_VAL",
+              "fileId": 2,
+              "typeDesc": "LOG",
+              "logicalName": "YourDB_VAL_log",
+              "physicalName": "L:\\sqllogs\\YourDB_VAL_log.ldf",
+              "directory": "L:\\sqllogs",
+              "sizePages": 32768,
+              "sizeBytes": 268435456,
+              "maxSizePages": -1,
+              "growth": 65536,
+              "isPercentGrowth": false,
+              "isUnc": false
+            }
+          ]
+        }
+      ]
+    },
+    "durationMs": 2410
+  },
+  "aliases": {
+    "status": "ok",
+    "data": {
+      "aliases": [
+        {
+          "kind": "netbios",
+          "value": "DEVSQLBOX",
+          "source": "identity"
+        },
+        {
+          "kind": "fqdn",
+          "value": "devsqlbox.corp.example.com",
+          "source": "identity"
+        },
+        {
+          "kind": "machineGuid",
+          "value": "a4b5c6d7-8e93-4a45-bf60-718a9bacbd04",
+          "source": "identity"
+        },
+        {
+          "kind": "ipv4",
+          "value": "10.0.1.20",
+          "source": "network"
+        }
+      ],
+      "sources": {
+        "identity": "ok",
+        "sqlserver": "ok",
+        "iis": "not-present",
+        "certificates": "ok",
+        "network": "ok"
+      }
+    },
+    "durationMs": 38
+  },
+  "requestedName": "devsqlbox",
+  "roles": [
+    "DatabaseServer"
+  ]
+}

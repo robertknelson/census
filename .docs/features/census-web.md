@@ -214,13 +214,26 @@ write endpoint is as open as the rest of the app.
   ratified.
 - **Certificate renewal detection** — same-`subject`-new-`thumbprint` heuristic, or accept
   remove+add as the diff representation.
-- **`<Nullable>` flip on website absorption** — census code will eventually be absorbed into
-  a website whose csproj settings are `<Nullable>disable</Nullable>` and
-  `<ImplicitUsings>disable</ImplicitUsings>` (Robert's standard). Census stays on `enable`
-  until then (flipping now sprays CS8632 across the existing `?` annotations for no gain);
-  at absorption the annotations come out and implicit usings become explicit. Runtime null
-  guards are unaffected — NRT never protected the deserialization boundary anyway (the
-  2026-08-14 `ArgumentNullException` on `instance.Databases` proved that).
+- **`<Nullable>` flip on website absorption** — **Ratified 2026-08-17 (resolved, done ahead
+  of absorption).** The original plan was to hold census on `enable` until it was absorbed
+  into a website whose csproj is `<Nullable>disable</Nullable>` +
+  `<ImplicitUsings>disable</ImplicitUsings>` (Robert's standard), on the argument that
+  flipping early sprays CS8632 across the existing `?` annotations for no gain. Robert
+  overrode that: it is simply his standard manner of coding, and a repo that reads like his
+  other repos is worth more than deferring a mechanical change. Both flags are now `disable`
+  on `main`/`nullable-disable`; 292 reference-type annotations and 30 inert `!` operators
+  came out with them.
+
+  Two things the flip does **not** change, recorded so they are not re-litigated:
+  - **Runtime behaviour.** NRT is compile-time only. Verified by diffing all 20 read
+    endpoints on the Demo profile before and after — byte-identical.
+  - **The runtime null guards.** They stay exactly as they are. NRT never protected the
+    deserialization boundary (the 2026-08-14 `ArgumentNullException` on `instance.Databases`
+    proved that), so removing the annotations removes no protection that existed.
+
+  Cost accepted: the annotations carried domain meaning in a codebase whose thesis is that
+  absence is signal (`string CollectorVersion` no longer says "null means unknown shape").
+  That documentation now lives only in the XML comments and this file.
 
 ---
 

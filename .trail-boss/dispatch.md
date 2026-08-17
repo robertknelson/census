@@ -1,11 +1,11 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Started the system graph — tag what census finds, then see what breaks when a server goes down. One decision needed."
+summary: "The system graph shipped: tag what census finds, work the pile in Triage, ask any machine what breaks if it dies"
 resume: "cd Census.Web; $env:ASPNETCORE_ENVIRONMENT='Demo'; dotnet run   # then http://localhost:5199"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
-phase_suggestion: planning
+phase_suggestion: execution
 ignite: start-census.bat
 #
 # ignite runs blind from the repo root in cmd.exe (`wt -d <dir> cmd /k <command>`),
@@ -23,78 +23,58 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Nothing new in the app itself this session** — it was groundwork. The last
-things users can actually see were **approved baselines** (Aug 12: mark a
-machine's software as the approved set, then flag every machine that has extra
-software or is missing something required) and **snapshot ageing** (Aug 14:
-old snapshots get compressed automatically so the folder stops growing forever).
+**The whole system-graph idea went from concept to working software in one
+session** — three pieces, each one specced, decided, built, and verified in the
+browser before moving on:
 
-What this session added instead:
+- **Tagging.** You can now say what a database or website *means* — "this is
+  the dev copy of MyWeb" — and census remembers who said it and when. Machines
+  show what they carry as a rollup of those tags, drawn dashed so a computed
+  label never masquerades as something a person typed.
+- **Triage.** A new button in the top bar shows one number: how many things
+  census has found that nobody has explained yet. Open it and you get the
+  to-do list, grouped sensibly, with checkboxes — select a whole instance,
+  type the meaning once, apply to everything selected. The pile shrinks as
+  you work. Tags whose target vanished show up here too, with a Remove button.
+- **Blast radius.** Select any machine, press one button, and get the answer
+  the whole project was built for: *if this box dies, what stops working* —
+  named in business terms, not server names. The demo's shared dev/val
+  database box answers exactly as hoped: "MyWeb dev and val, YourWeb dev and
+  val" — two environments down from one box, visible at last. Every line
+  expands to show the evidence, and things census *couldn't* see are listed
+  as unknown rather than quietly left out.
 
-- **A fake five-server estate to build against.** Three web servers and two
-  database servers, set up as dev / validation / production. The point is one
-  detail: the dev database server also does double duty as the validation
-  database server. So if that one box dies, two environments go down at once —
-  and nothing in the app currently makes that obvious. That is the problem the
-  next chunk of work exists to solve.
-- **Deliberately messy names in that test data.** Robert tried building
-  something like this in late 2025 by guessing which database belonged to which
-  website from their names. It worked for most of the estate and then fell apart
-  on the ones that didn't follow the pattern. So the test data now includes the
-  exact mess that broke it, permanently — which means nobody can accidentally
-  write name-guessing code again and have it look like it works.
-- **A tidy-up of project settings** to match how Robert writes C# everywhere
-  else. Confirmed safe: every page and data feed in the app returns byte-for-byte
-  identical results before and after.
+Also: the earlier "should census model things it can never see?" question was
+withdrawn by Robert as based on a hypothetical — census describes what it
+observes, full stop.
 
 ## What's next
 
-**One decision from Robert, and it unblocks everything else.**
+**The field trial.** Everything above was verified against the built-in demo
+fleet. Robert asked for — and has — a written protocol
+(`.docs/field-trial-real-estate.md`) covering what to test on real
+infrastructure and exactly what to report back: the first watched remote
+collection run, whether real connection strings resolve, whether the tagging
+model fits a real estate, and whether a blast-radius answer matches what he
+already knows. He runs it; the next session turns the answers into fixes and
+decisions. Real data has found a gap on first contact twice before; this is
+that moment for the new work.
 
-The goal is to let a person tag the things census finds — "this database belongs
-to System A, and it's the dev copy" — and then get a picture showing what depends
-on what, so you can answer *if this goes down, what breaks?*
-
-The snag: census can only see websites and SQL databases on Windows machines it
-can log into. Take a realistic large system — a web API, a web front end, phone
-apps, a desktop app, fifteen back-end services (five of them run by outside
-vendors), a handful of databases. **Census can never see about a third of that.**
-Not "hasn't collected it yet" — can never.
-
-So the question is how far census should go:
-
-1. **Stay honest and narrow** — census only ever shows what it actually found,
-   and the full picture gets assembled somewhere else.
-2. **Go all in** — census also lets you type in the things it can't see, and
-   becomes the one place the whole picture lives.
-3. **Somewhere between** — you tag and organise what census found, and the
-   invisible third stays out of it.
-
-There was an earlier decision (Aug 7) that census should *not* become the
-everything-picture, for good reasons. Option 2 reverses it. That is Robert's call
-to make deliberately, not something to drift into.
-
-**The thinking is all written down** in `.docs/features/system-graph.md` — it
-opens by pointing at exactly this question. After that's answered, the build is:
-tagging, then the screen where you do the tagging, then the picture.
+Parked deliberately, with notes on when to pick each up: shorthand for "this
+system contains that one" (tag nesting), retiring the old machine-level stage
+label, following web-address links between apps, and a systems-by-stages
+overview grid.
 
 ## Anything alarming
 
 - **The remote login has still never actually been tested.** Census is built to
   reach out to other machines and collect from them, but every run so far has
-  been against the one local box. The first real attempt at logging into another
-  machine with a saved credential is genuinely untested, and it should be run by
-  hand, watching it, before anything scheduled depends on it. This has been true
-  for a while and hasn't bitten yet — but it is the one thing that could fail on
-  first contact with the real world.
-- **There's no real data here to test against.** Everything is verified against
-  invented test data. Twice now, real data has arrived and immediately crashed
-  something the test data never covered. Both were fixed the same day, but the
-  pattern is clear: real data keeps finding gaps, so treat first contact with any
-  new real payload as a live-fire event.
-- **The `output` folder isn't excluded from version control.** Robert has started
-  putting live working data in it and hand-editing the tagging file alongside.
-  Right now that means real working files are one careless commit away from being
-  checked in. Worth deciding whether that folder should be ignored.
+  been against the one local box. The first real attempt should be run by hand,
+  watching it, before anything scheduled depends on it.
+- **No real data has touched the new tagging features yet.** The pattern from
+  past features: real data arrives, something the test data never covered
+  breaks, it gets fixed same-day. Expect that here too; treat the first real
+  run as a live-fire event, not a formality.
 
-Nothing is broken. The build is clean and the app runs.
+Nothing is broken. The build is clean, everything is pushed, and the demo
+answers its questions correctly.

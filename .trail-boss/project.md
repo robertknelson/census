@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Answer the boundary question in .docs/features/system-graph.md §8 — does census hold declared nodes it can never observe, or stay observation-only? Everything in the graph work waits on it"
+next_step: "Robert runs the field trial (.docs/field-trial-real-estate.md) against real infrastructure and brings back its Report-back package; next session turns that into fixes and rulings"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,39 @@ relates: []
 ---
 
 ## notes
+
+### 2026-08-17 (second session)
+- **The whole system-graph arc shipped in one session**: three slices, each
+  spec → open items ratified → built → live-verified in the browser → committed.
+  Robert dismissed the §8 boundary question as born of a hypothetical — census
+  tags what it observes, the Aug 7 ruling stands untouched (G-6).
+- **Slice 1 — entity tags** (`entity-tags.md`): `config/entity-tags.json`,
+  address-by-nesting (machine→instance→db / machine→site→path), multi-value
+  `system`×`stage` leaves with provenance; resolution observed/dangling/unknown
+  (absence only counts when category *and* instance report ok); machine rollups
+  with `derivedFrom`; dashed derived badges on tiles; `dangling-entity-tag`
+  finding; GET/PUT round-trip byte-stable, unknown axes survive.
+- **Slice 2 — Triage workbench** (`triage-workbench.md`): top-bar chip with the
+  fleet unclassified count, queue grouped machine→container in three strata
+  (unclassified / dangling / classified toggle), unknown scopes as explicit
+  rows, bulk select-and-assert with suggestion chips, edit-overwrites vs
+  bulk-merges semantics. Verified end-to-end: pile 21→17, dangling removal
+  cleared its finding live.
+- **Slice 3 — blast radius** (`blast-radius.md`): `GET /api/blast-radius/{m}` —
+  hosted entities + dependent apps via observed edges, composed into
+  system×stage deployment lines with per-edge verdicts; unclassified and
+  unknown stated, contradicted edges their own stratum. `HostResolver`
+  extracted from HostingController, `/api/hosting` verified byte-identical.
+  DEVSQLBOX answers `MyWeb (dev,val), YourWeb (dev,val)` — the fixture's
+  raison d'être, on screen.
+- Also: principles memorialized in `system-graph-principles.md` (Robert
+  ratified the fresh re-derivation), `output/` gitignored (run-log untracked),
+  his hand-edited assets.json stage facets committed with his blessing.
+- **Field-trial protocol written at his request** (`.docs/field-trial-real-estate.md`):
+  staged walk collection→render→edges→tagging→blast radius, each section ending in
+  a Report-back list — he executes against real infrastructure and responds with
+  the package. Includes the first-ever live WinRM run, watched by hand.
+- `main` at `5161026`, all pushed.
 
 ### 2026-08-17
 - **New direction, and it is the big one: the system graph.** Classify observed

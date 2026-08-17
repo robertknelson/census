@@ -1,10 +1,12 @@
 # The system graph — classifying what census observes
 
-> **STATUS: concepts under discussion. Nothing here is built. No schema is decided.**
->
-> The former §8 blocking question was dismissed by Robert 2026-08-17 — see §8. Concept
-> work proceeds on tagging what census observes. Do not design storage until the concepts
-> are settled — §11 records an earlier attempt to do exactly that, and why it was wrong.
+> **STATUS: built, 2026-08-18, in three ratified slices** — entity tags
+> (`entity-tags.md`), the triage workbench (`triage-workbench.md`), and blast radius
+> (`blast-radius.md`), delivered in the order the principles doc fixed. This document
+> remains the concept record; the slice docs hold the decisions and verification.
+> Still parked: tag nesting (§5), machine-facet retirement (entity-tags.md §8.4),
+> http-edge corroboration (census-web.md §11.7), declared nodes/edges (G-6), and the
+> matrix landing view sketched in §6.
 
 ---
 

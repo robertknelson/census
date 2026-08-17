@@ -40,7 +40,7 @@ public class MachinesController(CensusStore censusStore, BlacklistEvaluator blac
     }
 
     [HttpGet("{machine}/diff")]
-    public ActionResult<SnapshotDiffDto> GetDiff(string machine, [FromQuery] string? from, [FromQuery] string? to)
+    public ActionResult<SnapshotDiffDto> GetDiff(string machine, [FromQuery] string from, [FromQuery] string to)
     {
         var dates = censusStore.GetSnapshotRefs(machine).Select(r => r.Date).ToList();
         if (dates.Count == 0) return NotFound();
@@ -96,7 +96,7 @@ public class MachinesController(CensusStore censusStore, BlacklistEvaluator blac
 
         var soonestExpiryDays = envelope.Certificates?.Data?.Certificates
             .Where(c => c.NotAfter.HasValue)
-            .Select(c => (int)Math.Floor((c.NotAfter!.Value - DateTimeOffset.UtcNow).TotalDays))
+            .Select(c => (int)Math.Floor((c.NotAfter.Value - DateTimeOffset.UtcNow).TotalDays))
             .OrderBy(days => days)
             .Cast<int?>()
             .FirstOrDefault();

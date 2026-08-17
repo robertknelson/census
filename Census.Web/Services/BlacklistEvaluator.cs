@@ -77,7 +77,7 @@ public partial class BlacklistEvaluator
         }
     }
 
-    private static IEnumerable<BlacklistHit> EvaluateDotnetEntries(BlacklistRule rule, List<string>? rawEntries, Regex pattern)
+    private static IEnumerable<BlacklistHit> EvaluateDotnetEntries(BlacklistRule rule, List<string> rawEntries, Regex pattern)
     {
         if (rawEntries is null) yield break;
 
@@ -105,7 +105,7 @@ public partial class BlacklistEvaluator
         _ => false,
     };
 
-    private static BlacklistHit? TryBuildHit(BlacklistRule rule, string matchedName, string? actualVersion)
+    private static BlacklistHit TryBuildHit(BlacklistRule rule, string matchedName, string actualVersion)
     {
         if (rule.Version is null)
         {

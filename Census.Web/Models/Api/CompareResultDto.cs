@@ -5,7 +5,7 @@ namespace Census.Web.Models.Api;
 public record CompareRowDto
 {
     public required string Label { get; init; }
-    public List<string?> Values { get; init; } = [];
+    public List<string> Values { get; init; } = [];
     public bool Differs { get; init; }
     public bool Volatile { get; init; }
 }

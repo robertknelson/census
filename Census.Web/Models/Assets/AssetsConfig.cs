@@ -6,7 +6,7 @@ namespace Census.Web.Models.Assets;
 public record AssetsConfig
 {
     public int Version { get; init; } = 1;
-    public OwnershipDimension? Ownership { get; init; }
+    public OwnershipDimension Ownership { get; init; }
     public Dictionary<string, AssetEntry> Assets { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
@@ -19,6 +19,6 @@ public record OwnershipDimension
 public record AssetEntry
 {
     /// <summary>Present-as class override (census-web-v2-ux.md §5.3). Null = derive from observed roles.</summary>
-    public string? Class { get; init; }
+    public string Class { get; init; }
     public Dictionary<string, List<string>> Facets { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 }

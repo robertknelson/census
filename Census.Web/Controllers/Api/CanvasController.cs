@@ -18,7 +18,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
         Ok(censusStore.GetFleetDates().Select(d => d.ToString("yyyy-MM-dd")).ToList());
 
     [HttpGet]
-    public ActionResult<CanvasDto> GetCanvas([FromQuery] string? asOf)
+    public ActionResult<CanvasDto> GetCanvas([FromQuery] string asOf)
     {
         DateOnly? asOfDate = null;
         if (asOf is not null)

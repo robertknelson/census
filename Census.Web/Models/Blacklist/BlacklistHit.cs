@@ -7,6 +7,6 @@ public record BlacklistHit
     public required string Reason { get; init; }
     public required string Target { get; init; }
     public required string MatchedName { get; init; }
-    public string? MatchedVersion { get; init; }
+    public string MatchedVersion { get; init; }
     public bool VersionUnparseable { get; init; }
 }

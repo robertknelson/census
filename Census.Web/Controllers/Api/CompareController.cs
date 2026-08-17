@@ -11,7 +11,7 @@ namespace Census.Web.Controllers.Api;
 public class CompareController(CensusStore censusStore) : ControllerBase
 {
     [HttpGet]
-    public ActionResult<CompareResultDto> GetCompare([FromQuery] string machines, [FromQuery] string? aspects, [FromQuery] string? asOf)
+    public ActionResult<CompareResultDto> GetCompare([FromQuery] string machines, [FromQuery] string aspects, [FromQuery] string asOf)
     {
         DateOnly? asOfDate = null;
         if (asOf is not null)

@@ -13,7 +13,7 @@ public record BlacklistRule
     public required string Id { get; init; }
     public required string Target { get; init; }
     public required BlacklistMatch Match { get; init; }
-    public BlacklistVersionConstraint? Version { get; init; }
+    public BlacklistVersionConstraint Version { get; init; }
     public required string Severity { get; init; }
     public required string Reason { get; init; }
     public bool Active { get; init; } = true;

@@ -8,14 +8,14 @@ public record FindingDto
     public required string Severity { get; init; }
     public required string Machine { get; init; }
     public required string Title { get; init; }
-    public string? Detail { get; init; }
+    public string Detail { get; init; }
     public Dictionary<string, List<string>> Facets { get; init; } = [];
     public List<string> Ownership { get; init; } = [];
 }
 
 public record FindingsResultDto
 {
-    public OwnershipInfoDto? Ownership { get; init; }
+    public OwnershipInfoDto Ownership { get; init; }
     public List<FindingDto> Findings { get; init; } = [];
 }
 

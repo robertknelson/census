@@ -139,7 +139,7 @@ public partial class CensusStore
         return Directory.GetDirectories(_rootPath)
             .Select(Path.GetFileName)
             .Where(name => name is not null && !name.Equals("_runs", StringComparison.OrdinalIgnoreCase))
-            .Select(name => name!)
+            .Select(name => name)
             .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
@@ -167,17 +167,17 @@ public partial class CensusStore
             .ToList();
     }
 
-    public CensusEnvelope? GetLatestSnapshot(string machineDir)
+    public CensusEnvelope GetLatestSnapshot(string machineDir)
     {
         var latest = GetSnapshotRefs(machineDir).LastOrDefault();
         return latest is null ? null : ReadSnapshot(latest.FilePath);
     }
 
     /// <summary>The machine's most recent snapshot on or before the given date.</summary>
-    public MachineSnapshotRef? GetSnapshotRefAsOf(string machineDir, DateOnly asOf) =>
+    public MachineSnapshotRef GetSnapshotRefAsOf(string machineDir, DateOnly asOf) =>
         GetSnapshotRefs(machineDir).LastOrDefault(r => r.Date <= asOf);
 
-    public CensusEnvelope? GetSnapshotAsOf(string machineDir, DateOnly asOf)
+    public CensusEnvelope GetSnapshotAsOf(string machineDir, DateOnly asOf)
     {
         var match = GetSnapshotRefAsOf(machineDir, asOf);
         return match is null ? null : ReadSnapshot(match.FilePath);
@@ -192,13 +192,13 @@ public partial class CensusStore
             .OrderByDescending(d => d)
             .ToList();
 
-    public CensusEnvelope? GetSnapshot(string machineDir, DateOnly date)
+    public CensusEnvelope GetSnapshot(string machineDir, DateOnly date)
     {
         var match = GetSnapshotRefs(machineDir).FirstOrDefault(r => r.Date == date);
         return match is null ? null : ReadSnapshot(match.FilePath);
     }
 
-    private static CensusEnvelope? ReadSnapshot(string filePath)
+    private static CensusEnvelope ReadSnapshot(string filePath)
     {
         if (filePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
         {

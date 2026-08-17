@@ -26,7 +26,7 @@ public class SoftwareController(CensusStore censusStore, BaselineEvaluator basel
                 m => m.Value.Deviations.Select(d => d.DisplayName).ToHashSet(StringComparer.OrdinalIgnoreCase),
                 StringComparer.OrdinalIgnoreCase);
 
-        var occurrences = new List<(string Name, string? Publisher, string Version, string Machine)>();
+        var occurrences = new List<(string Name, string Publisher, string Version, string Machine)>();
 
         foreach (var machine in censusStore.GetMachineDirs())
         {

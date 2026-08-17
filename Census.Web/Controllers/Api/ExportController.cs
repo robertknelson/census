@@ -17,7 +17,7 @@ namespace Census.Web.Controllers.Api;
 public class ExportController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine) : ControllerBase
 {
     [HttpGet("compliance.csv")]
-    public IActionResult GetComplianceCsv([FromQuery] string? asOf)
+    public IActionResult GetComplianceCsv([FromQuery] string asOf)
     {
         DateOnly? asOfDate = null;
         if (asOf is not null)

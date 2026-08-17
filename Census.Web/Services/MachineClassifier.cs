@@ -15,7 +15,7 @@ public static class MachineClassifier
 
     public const string Unclassified = "Unclassified";
 
-    public static (string Class, string Source) Resolve(string? overrideClass, IReadOnlyList<string> observedRoles)
+    public static (string Class, string Source) Resolve(string overrideClass, IReadOnlyList<string> observedRoles)
     {
         if (!string.IsNullOrWhiteSpace(overrideClass)) return (overrideClass, "asserted");
 

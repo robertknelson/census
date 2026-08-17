@@ -45,7 +45,7 @@ public class ComplianceController(CensusStore censusStore, BlacklistEvaluator bl
             {
                 var dayHits = g.Select(r => censusStore.GetSnapshot(r.MachineDir, r.Date))
                     .Where(e => e is not null)
-                    .Select(e => blacklistEvaluator.Evaluate(e!))
+                    .Select(e => blacklistEvaluator.Evaluate(e))
                     .ToList();
 
                 return new ComplianceTrendPoint

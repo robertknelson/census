@@ -124,7 +124,7 @@ public class HostingController(CensusStore censusStore) : ControllerBase
                         State = db.StateDesc,
                         RecoveryModel = db.RecoveryModelDesc,
                         Owner = db.Owner,
-                        Directories = directories!,
+                        Directories = directories,
                     }));
                 }
             }
@@ -228,7 +228,7 @@ public class HostingController(CensusStore censusStore) : ControllerBase
 
             if (status == "ok")
             {
-                foreach (var instance in envelope.SqlServer!.Data?.Instances ?? [])
+                foreach (var instance in envelope.SqlServer.Data?.Instances ?? [])
                 {
                     // An instance census could not read tells us nothing about which databases
                     // exist, so it must not be able to produce a 'contradicted' verdict.
@@ -241,7 +241,7 @@ public class HostingController(CensusStore censusStore) : ControllerBase
 
             var entry = new MachineSql(machine, status, instances);
 
-            var names = new List<string?> { machine, envelope.ComputerName, envelope.RequestedName };
+            var names = new List<string> { machine, envelope.ComputerName, envelope.RequestedName };
             if (envelope.Aliases?.Status == "ok")
             {
                 names.AddRange((envelope.Aliases.Data?.Aliases ?? [])
@@ -276,7 +276,7 @@ public class HostingController(CensusStore censusStore) : ControllerBase
             list.Add(entry);
     }
 
-    private static (string Verdict, string? Detail) Corroborate(IisDependency edge, HostIndex index)
+    private static (string Verdict, string Detail) Corroborate(IisDependency edge, HostIndex index)
     {
         // HTTP corroboration means matching a URL host against IIS bindings estate-wide - a
         // second matching problem, deferred with the alias work (census-web.md §11.7).

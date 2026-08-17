@@ -33,7 +33,7 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
         var collected = machineDirs
             .Select(m => (Machine: m, Envelope: asOf is { } day ? censusStore.GetSnapshotAsOf(m, day) : censusStore.GetLatestSnapshot(m)))
             .Where(x => x.Envelope is not null)
-            .Select(x => (x.Machine, Envelope: x.Envelope!))
+            .Select(x => (x.Machine, Envelope: x.Envelope))
             .ToList();
 
         var baselines = baselineEvaluator.EvaluateFleet(asOf);
@@ -125,12 +125,12 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
         // Microsoft catalog needed, the fleet itself is the reference.
         foreach (var line in collected
             .Where(x => x.Envelope.Os?.Data?.CurrentBuild is not null)
-            .GroupBy(x => x.Envelope.Os!.Data!.CurrentBuild!))
+            .GroupBy(x => x.Envelope.Os.Data.CurrentBuild))
         {
-            var newestUbr = line.Max(x => x.Envelope.Os!.Data!.Ubr);
-            foreach (var (machine, envelope) in line.Where(x => x.Envelope.Os!.Data!.Ubr < newestUbr))
+            var newestUbr = line.Max(x => x.Envelope.Os.Data.Ubr);
+            foreach (var (machine, envelope) in line.Where(x => x.Envelope.Os.Data.Ubr < newestUbr))
             {
-                var ubr = envelope.Os!.Data!.Ubr;
+                var ubr = envelope.Os.Data.Ubr;
                 findings.Add(Build(assets, machine, "behind-fleet-patch", "medium",
                     $"Behind fleet patch level ({line.Key}.{ubr})",
                     $"Newest observed for this OS line in the fleet is {line.Key}.{newestUbr}."));
@@ -139,7 +139,7 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
 
         // Two machines sharing a machine identity = a VM cloned without sysprep. Breaks
         // WSUS, MDM and licensing in ways nobody traces back — a finding, never deduped.
-        foreach (var (selector, label) in new (Func<Models.Census.CensusEnvelope, string?>, string)[]
+        foreach (var (selector, label) in new (Func<Models.Census.CensusEnvelope, string>, string)[]
         {
             (e => e.Identity?.Data?.MachineGuid, "machine GUID"),
             (e => e.Identity?.Data?.SmbiosUuid, "SMBIOS UUID"),
@@ -148,7 +148,7 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
             foreach (var dupes in collected
                 .Select(x => (x.Machine, Value: selector(x.Envelope)))
                 .Where(x => !string.IsNullOrEmpty(x.Value))
-                .GroupBy(x => x.Value!, StringComparer.OrdinalIgnoreCase)
+                .GroupBy(x => x.Value, StringComparer.OrdinalIgnoreCase)
                 .Where(g => g.Count() > 1))
             {
                 var members = dupes.Select(x => x.Machine).ToList();
@@ -226,7 +226,7 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
         };
     }
 
-    private FindingDto Build(AssetsConfig assets, string machine, string kind, string severity, string title, string? detail) => new()
+    private FindingDto Build(AssetsConfig assets, string machine, string kind, string severity, string title, string detail) => new()
     {
         Kind = kind,
         Severity = severity,

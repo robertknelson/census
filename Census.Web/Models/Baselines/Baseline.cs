@@ -27,8 +27,8 @@ public record Baseline
     public Dictionary<string, List<string>> AppliesTo { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 
     public bool Active { get; init; } = true;
-    public string? Note { get; init; }
-    public BaselineProvenance? Provenance { get; init; }
+    public string Note { get; init; }
+    public BaselineProvenance Provenance { get; init; }
     public List<BaselineEntry> Entries { get; init; } = [];
 }
 
@@ -39,22 +39,22 @@ public record Baseline
 /// </summary>
 public record BaselineProvenance
 {
-    public string? SourceMachine { get; init; }
-    public string? SourceDate { get; init; }
-    public string? BlessedUtc { get; init; }
+    public string SourceMachine { get; init; }
+    public string SourceDate { get; init; }
+    public string BlessedUtc { get; init; }
 }
 
 public record BaselineEntry
 {
     public required string DisplayName { get; init; }
-    public string? Publisher { get; init; }
-    public string? Architecture { get; init; }
+    public string Publisher { get; init; }
+    public string Architecture { get; init; }
 
     /// <summary>`machine` or `per-user` — the owning SID is deliberately not carried (§6.1).</summary>
     public required string InstallScope { get; init; }
 
     /// <summary>What the source machine had at blessing time. Provenance only, never compared (§6.3).</summary>
-    public string? ObservedVersion { get; init; }
+    public string ObservedVersion { get; init; }
 
     /// <summary>
     /// Asserted, never inferred: blessing sets this on nothing (§6.4). Approved means "allowed

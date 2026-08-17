@@ -12,7 +12,7 @@ namespace Census.Web.Controllers.Api;
 public class CertificatesController(CensusStore censusStore) : ControllerBase
 {
     [HttpGet]
-    public ActionResult<List<CertificateRadarEntryDto>> GetCertificates([FromQuery] string? asOf)
+    public ActionResult<List<CertificateRadarEntryDto>> GetCertificates([FromQuery] string asOf)
     {
         DateOnly? asOfDate = null;
         if (asOf is not null)

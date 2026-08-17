@@ -30,7 +30,7 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
     /// and the publisher stays out because vendor renames would read as a simultaneous
     /// missing-and-extra. Deliberately not `DiffEngine.AppKey`, which solves the other problem.
     /// </summary>
-    public static string EntryKey(string? displayName, string? architecture, string installScope) =>
+    public static string EntryKey(string displayName, string architecture, string installScope) =>
         $"{displayName?.Trim().ToLowerInvariant()}|{architecture?.Trim().ToLowerInvariant()}|{installScope.ToLowerInvariant()}";
 
     public static string InstallScopeOf(AppEntry entry) =>
@@ -124,7 +124,7 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
         string machine,
         string resolvedClass,
         Dictionary<string, List<string>> facets,
-        CensusEnvelope? envelope)
+        CensusEnvelope envelope)
     {
         var matched = config.Baselines
             .Where(b => b.Active && Matches(b, machine, resolvedClass, facets))
@@ -182,7 +182,7 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
             .Select(g => g.First())
             .Select(e => new BaselineDeviationDto
             {
-                DisplayName = e.DisplayName!,
+                DisplayName = e.DisplayName,
                 DisplayVersion = e.DisplayVersion,
                 Publisher = e.Publisher,
                 Architecture = e.Architecture,
@@ -202,7 +202,7 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
     }
 
     /// <summary>Comparable installed identities — the set both directions are judged against.</summary>
-    public static HashSet<string> InstalledKeysOf(CensusEnvelope? envelope)
+    public static HashSet<string> InstalledKeysOf(CensusEnvelope envelope)
     {
         var apps = envelope?.Apps;
         if (apps is null || apps.Status != "ok") return [];
@@ -220,7 +220,7 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
             .Select(g => g.First())
             .Select(e => new BaselineEntry
             {
-                DisplayName = e.DisplayName!,
+                DisplayName = e.DisplayName,
                 Publisher = e.Publisher,
                 Architecture = e.Architecture,
                 InstallScope = InstallScopeOf(e),

@@ -23,7 +23,7 @@ public static partial class CompareEngine
     [GeneratedRegex(@"^(\S+)\s+\[.*\]$")]
     private static partial Regex SdkEntryPattern();
 
-    public static CompareResultDto Compute(List<string> machines, List<CensusEnvelope?> envelopes, List<string> aspects)
+    public static CompareResultDto Compute(List<string> machines, List<CensusEnvelope> envelopes, List<string> aspects)
     {
         var groups = new List<CompareGroupDto>();
         foreach (var aspect in aspects)
@@ -47,7 +47,7 @@ public static partial class CompareEngine
         };
     }
 
-    private static CompareGroupDto BuildOs(List<CensusEnvelope?> envelopes)
+    private static CompareGroupDto BuildOs(List<CensusEnvelope> envelopes)
     {
         var rows = new List<CompareRowDto>
         {
@@ -64,7 +64,7 @@ public static partial class CompareEngine
         return Group("os", "Operating system", rows);
     }
 
-    private static CompareGroupDto BuildHardware(List<CensusEnvelope?> envelopes)
+    private static CompareGroupDto BuildHardware(List<CensusEnvelope> envelopes)
     {
         var rows = new List<CompareRowDto>
         {
@@ -78,7 +78,7 @@ public static partial class CompareEngine
         return Group("hardware", "Hardware", rows);
     }
 
-    private static CompareGroupDto BuildDrives(List<CensusEnvelope?> envelopes)
+    private static CompareGroupDto BuildDrives(List<CensusEnvelope> envelopes)
     {
         var letters = envelopes
             .SelectMany(e => e?.Drives?.Data?.Drives ?? [])
@@ -91,7 +91,7 @@ public static partial class CompareEngine
         var rows = new List<CompareRowDto>();
         foreach (var letter in letters)
         {
-            DriveEntry? Find(CensusEnvelope? e) => (e?.Drives?.Data?.Drives ?? []).FirstOrDefault(d => d.DriveLetter == letter);
+            DriveEntry Find(CensusEnvelope e) => (e?.Drives?.Data?.Drives ?? []).FirstOrDefault(d => d.DriveLetter == letter);
 
             // One row per drive: "size · % free" in a single cell, but equality judged on
             // size alone — free space is volatile and must never count against the verdict.
@@ -115,7 +115,7 @@ public static partial class CompareEngine
         return Group("drives", "Drives", rows);
     }
 
-    private static CompareGroupDto BuildDotnet(List<CensusEnvelope?> envelopes)
+    private static CompareGroupDto BuildDotnet(List<CensusEnvelope> envelopes)
     {
         var rows = new List<CompareRowDto>
         {
@@ -139,7 +139,7 @@ public static partial class CompareEngine
         return Group("dotnet", ".NET", rows);
     }
 
-    private static CompareGroupDto BuildApps(List<CensusEnvelope?> envelopes)
+    private static CompareGroupDto BuildApps(List<CensusEnvelope> envelopes)
     {
         var keys = envelopes
             .SelectMany(e => e?.Apps?.Data?.Entries ?? [])
@@ -164,7 +164,7 @@ public static partial class CompareEngine
         return Group("apps", "Installed software", rows);
     }
 
-    private static CompareGroupDto BuildSqlServer(List<CensusEnvelope?> envelopes)
+    private static CompareGroupDto BuildSqlServer(List<CensusEnvelope> envelopes)
     {
         var instanceNames = envelopes
             .SelectMany(e => e?.SqlServer?.Data?.Instances ?? [])
@@ -177,7 +177,7 @@ public static partial class CompareEngine
         var rows = new List<CompareRowDto>();
         foreach (var name in instanceNames)
         {
-            SqlInstance? Find(CensusEnvelope? e) => (e?.SqlServer?.Data?.Instances ?? []).FirstOrDefault(i => i.InstanceName == name);
+            SqlInstance Find(CensusEnvelope e) => (e?.SqlServer?.Data?.Instances ?? []).FirstOrDefault(i => i.InstanceName == name);
             rows.Add(Row($"{name}: edition", envelopes, e => Find(e)?.Edition));
             rows.Add(Row($"{name}: patch level", envelopes, e => Find(e)?.PatchLevel));
             rows.Add(Row($"{name}: TCP port", envelopes, e => Find(e) is { } i ? (string.IsNullOrEmpty(i.TcpPort) ? $"dynamic ({i.TcpDynamicPorts})" : i.TcpPort) : null));
@@ -188,8 +188,8 @@ public static partial class CompareEngine
 
     /// <summary>One present/absent row per distinct item across all machines.</summary>
     private static IEnumerable<CompareRowDto> PresenceRows(
-        List<CensusEnvelope?> envelopes,
-        Func<CensusEnvelope?, IEnumerable<string>> itemsOf,
+        List<CensusEnvelope> envelopes,
+        Func<CensusEnvelope, IEnumerable<string>> itemsOf,
         Func<string, string> labelOf)
     {
         var perMachine = envelopes.Select(e => itemsOf(e).ToHashSet()).ToList();
@@ -200,10 +200,10 @@ public static partial class CompareEngine
             .Select(item => Row(labelOf(item), envelopes, (_, i) => perMachine[i].Contains(item) ? "✓" : null));
     }
 
-    private static CompareRowDto Row(string label, List<CensusEnvelope?> envelopes, Func<CensusEnvelope?, string?> valueOf, bool isVolatile = false) =>
+    private static CompareRowDto Row(string label, List<CensusEnvelope> envelopes, Func<CensusEnvelope, string> valueOf, bool isVolatile = false) =>
         Row(label, envelopes, (e, _) => valueOf(e), isVolatile);
 
-    private static CompareRowDto Row(string label, List<CensusEnvelope?> envelopes, Func<CensusEnvelope?, int, string?> valueOf, bool isVolatile = false)
+    private static CompareRowDto Row(string label, List<CensusEnvelope> envelopes, Func<CensusEnvelope, int, string> valueOf, bool isVolatile = false)
     {
         var values = envelopes.Select(valueOf).ToList();
         return new CompareRowDto

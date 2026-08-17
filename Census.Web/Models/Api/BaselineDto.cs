@@ -5,9 +5,9 @@ namespace Census.Web.Models.Api;
 public record BaselineDeviationDto
 {
     public required string DisplayName { get; init; }
-    public string? DisplayVersion { get; init; }
-    public string? Publisher { get; init; }
-    public string? Architecture { get; init; }
+    public string DisplayVersion { get; init; }
+    public string Publisher { get; init; }
+    public string Architecture { get; init; }
     public required string InstallScope { get; init; }
 }
 
@@ -15,8 +15,8 @@ public record BaselineDeviationDto
 public record BaselineMissingDto
 {
     public required string DisplayName { get; init; }
-    public string? Publisher { get; init; }
-    public string? Architecture { get; init; }
+    public string Publisher { get; init; }
+    public string Architecture { get; init; }
     public required string InstallScope { get; init; }
 }
 
@@ -29,7 +29,7 @@ public record MachineBaselineDto
 {
     public required string Machine { get; init; }
     public required string Status { get; init; }
-    public string? Reason { get; init; }
+    public string Reason { get; init; }
     public List<string> MatchedBaselines { get; init; } = [];
     public List<BaselineDeviationDto> Deviations { get; init; } = [];
     public List<BaselineMissingDto> Missing { get; init; } = [];
@@ -52,10 +52,10 @@ public record BaselineSummaryDto
     public required string Label { get; init; }
     public Dictionary<string, List<string>> AppliesTo { get; init; } = [];
     public bool Active { get; init; }
-    public string? Note { get; init; }
-    public string? SourceMachine { get; init; }
-    public string? SourceDate { get; init; }
-    public string? BlessedUtc { get; init; }
+    public string Note { get; init; }
+    public string SourceMachine { get; init; }
+    public string SourceDate { get; init; }
+    public string BlessedUtc { get; init; }
     public int EntryCount { get; init; }
     public int MatchedMachineCount { get; init; }
 
@@ -68,10 +68,10 @@ public record BaselineSummaryDto
 public record BaselineEntryDto
 {
     public required string DisplayName { get; init; }
-    public string? Publisher { get; init; }
-    public string? Architecture { get; init; }
+    public string Publisher { get; init; }
+    public string Architecture { get; init; }
     public required string InstallScope { get; init; }
-    public string? ObservedVersion { get; init; }
+    public string ObservedVersion { get; init; }
     public bool Required { get; init; }
 
     /// <summary>

@@ -9,7 +9,7 @@ namespace Census.Web.Controllers.Api;
 
 public record AssetAssignmentDto
 {
-    public string? Class { get; init; }
+    public string Class { get; init; }
     public Dictionary<string, List<string>> Facets { get; init; } = [];
 }
 

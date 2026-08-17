@@ -82,7 +82,7 @@ public static class DiffEngine
 
     private static string AppKey(AppEntry e) => $"{e.DisplayName}|{e.Architecture}|{e.Hive}|{e.Sid}";
 
-    private static DiffSection DiffDotnetStrings(string name, List<string>? fromList, List<string>? toList)
+    private static DiffSection DiffDotnetStrings(string name, List<string> fromList, List<string> toList)
     {
         var fromSet = new HashSet<string>(fromList ?? []);
         var toSet = new HashSet<string>(toList ?? []);
@@ -105,8 +105,8 @@ public static class DiffEngine
 
     private static DiffSection DiffDrives(CensusEnvelope from, CensusEnvelope to)
     {
-        var fromEntries = (from.Drives?.Data?.Drives ?? []).Where(d => d.DriveLetter is not null).ToDictionary(d => d.DriveLetter!);
-        var toEntries = (to.Drives?.Data?.Drives ?? []).Where(d => d.DriveLetter is not null).ToDictionary(d => d.DriveLetter!);
+        var fromEntries = (from.Drives?.Data?.Drives ?? []).Where(d => d.DriveLetter is not null).ToDictionary(d => d.DriveLetter);
+        var toEntries = (to.Drives?.Data?.Drives ?? []).Where(d => d.DriveLetter is not null).ToDictionary(d => d.DriveLetter);
         return DiffKeyed("drives", fromEntries, toEntries,
             label: d => $"{d.DriveLetter}: {d.Label}",
             compare: (a, b) =>
@@ -120,10 +120,10 @@ public static class DiffEngine
 
     private static DiffSection DiffSqlInstances(CensusEnvelope from, CensusEnvelope to)
     {
-        var fromEntries = (from.SqlServer?.Data?.Instances ?? []).Where(i => i.InstanceName is not null).ToDictionary(i => i.InstanceName!);
-        var toEntries = (to.SqlServer?.Data?.Instances ?? []).Where(i => i.InstanceName is not null).ToDictionary(i => i.InstanceName!);
+        var fromEntries = (from.SqlServer?.Data?.Instances ?? []).Where(i => i.InstanceName is not null).ToDictionary(i => i.InstanceName);
+        var toEntries = (to.SqlServer?.Data?.Instances ?? []).Where(i => i.InstanceName is not null).ToDictionary(i => i.InstanceName);
         return DiffKeyed("sqlInstances", fromEntries, toEntries,
-            label: i => i.InstanceName!,
+            label: i => i.InstanceName,
             compare: (a, b) =>
             {
                 var changes = new List<DiffFieldChange>();
@@ -192,10 +192,10 @@ public static class DiffEngine
     // daily noise. Only log configuration is compared. See census-web.md 9.3.
     private static DiffSection DiffIisSites(CensusEnvelope from, CensusEnvelope to)
     {
-        var fromEntries = (from.Iis?.Data?.Sites ?? []).Where(s => s.Name is not null).ToDictionary(s => s.Name!);
-        var toEntries = (to.Iis?.Data?.Sites ?? []).Where(s => s.Name is not null).ToDictionary(s => s.Name!);
+        var fromEntries = (from.Iis?.Data?.Sites ?? []).Where(s => s.Name is not null).ToDictionary(s => s.Name);
+        var toEntries = (to.Iis?.Data?.Sites ?? []).Where(s => s.Name is not null).ToDictionary(s => s.Name);
         return DiffKeyed("iisSites", fromEntries, toEntries,
-            label: s => s.Name!,
+            label: s => s.Name,
             compare: (a, b) =>
             {
                 var changes = new List<DiffFieldChange>();
@@ -210,10 +210,10 @@ public static class DiffEngine
 
     private static DiffSection DiffIisAppPools(CensusEnvelope from, CensusEnvelope to)
     {
-        var fromEntries = (from.Iis?.Data?.AppPools ?? []).Where(p => p.Name is not null).ToDictionary(p => p.Name!);
-        var toEntries = (to.Iis?.Data?.AppPools ?? []).Where(p => p.Name is not null).ToDictionary(p => p.Name!);
+        var fromEntries = (from.Iis?.Data?.AppPools ?? []).Where(p => p.Name is not null).ToDictionary(p => p.Name);
+        var toEntries = (to.Iis?.Data?.AppPools ?? []).Where(p => p.Name is not null).ToDictionary(p => p.Name);
         return DiffKeyed("iisAppPools", fromEntries, toEntries,
-            label: p => p.Name!,
+            label: p => p.Name,
             compare: (a, b) =>
             {
                 var changes = new List<DiffFieldChange>();
@@ -247,7 +247,7 @@ public static class DiffEngine
             });
     }
 
-    private static void AddAuthChange(List<DiffFieldChange> changes, string field, IisAuthSetting? a, IisAuthSetting? b)
+    private static void AddAuthChange(List<DiffFieldChange> changes, string field, IisAuthSetting a, IisAuthSetting b)
     {
         var fromValue = a is null ? null : a.Enabled.ToString().ToLowerInvariant();
         var toValue = b is null ? null : b.Enabled.ToString().ToLowerInvariant();

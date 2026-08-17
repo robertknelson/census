@@ -14,14 +14,14 @@ public record BlessRequestDto
     public required string Label { get; init; }
     public required string SourceMachine { get; init; }
     public Dictionary<string, List<string>> AppliesTo { get; init; } = [];
-    public string? Note { get; init; }
+    public string Note { get; init; }
 }
 
 public record ApproveRequestDto
 {
     public required string Machine { get; init; }
     public required BaselineEntry Entry { get; init; }
-    public string? Note { get; init; }
+    public string Note { get; init; }
 }
 
 [ApiController]
@@ -113,7 +113,7 @@ public class BaselinesController(BaselinesStore baselinesStore, BaselineEvaluato
             Provenance = new BaselineProvenance
             {
                 SourceMachine = request.SourceMachine,
-                SourceDate = snapshot!.Date.ToString("yyyy-MM-dd"),
+                SourceDate = snapshot.Date.ToString("yyyy-MM-dd"),
                 BlessedUtc = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
             },
             Entries = BaselineEvaluator.EntriesFrom(envelope),

@@ -23,13 +23,13 @@ public record CanvasMachineDto
     public int FindingCount { get; init; }
     public List<FindingDto> Findings { get; init; } = [];
     public bool HasData { get; init; }
-    public string? OsProductName { get; init; }
-    public string? LatestDate { get; init; }
+    public string OsProductName { get; init; }
+    public string LatestDate { get; init; }
 }
 
 public record CanvasDto
 {
-    public OwnershipInfoDto? Ownership { get; init; }
+    public OwnershipInfoDto Ownership { get; init; }
     public List<CanvasOwnerDto> Owners { get; init; } = [];
     public List<CanvasMachineDto> Machines { get; init; } = [];
 }

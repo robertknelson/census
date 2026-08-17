@@ -9,7 +9,7 @@ namespace Census.Web.Controllers.Api;
 
 [ApiController]
 [Route("api/canvas")]
-public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine) : ControllerBase
+public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine, EntityTagsStore entityTagsStore, EntityTagsEvaluator entityTagsEvaluator) : ControllerBase
 {
     public const string UnassignedOwner = "Unassigned";
 
@@ -28,6 +28,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
         }
 
         var assets = assetsStore.Load();
+        var entityTags = entityTagsStore.Load();
         var findingsByMachine = findingsEngine.Compute(asOfDate).Findings
             .GroupBy(f => f.Machine, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
@@ -70,6 +71,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
                 HasData = envelope is not null,
                 OsProductName = envelope?.Os?.Data?.ProductName,
                 LatestDate = (asOfDate is { } d2 ? censusStore.GetSnapshotRefAsOf(machine, d2) : censusStore.GetSnapshotRefs(machine).LastOrDefault())?.Date.ToString("yyyy-MM-dd"),
+                EntityRollup = envelope is null ? null : entityTagsEvaluator.Evaluate(machine, envelope, entityTags).Rollup,
             });
         }
 

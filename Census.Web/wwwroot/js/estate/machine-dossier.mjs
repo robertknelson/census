@@ -214,10 +214,42 @@ function dependencyRows(dependencies) {
         </tr>`).join('');
 }
 
-export function dossierHtml(m, envelope) {
+/// Lookups keyed by nested Maps, not composed strings — the two sides of a composed key
+/// could drift on a separator, the exact call BaselineEvaluator already made in C#.
+function tagLookup(rows, kind) {
+    const byContainer = new Map();
+    for (const r of rows ?? []) {
+        if (r.kind !== kind) continue;
+        const container = String(r.container ?? '').toLowerCase();
+        if (!byContainer.has(container)) byContainer.set(container, new Map());
+        byContainer.get(container).set(String(r.name ?? '').toLowerCase(), r);
+    }
+    return byContainer;
+}
+
+/// Asserted system/stage chips for one entity row, or an explicit unclassified mark —
+/// absence is signal, so an untagged row must say so rather than render blank.
+function tagChips(lookup, container, name, { markUnclassified = true } = {}) {
+    if (!lookup) return '';
+    const row = lookup.get(String(container ?? '').toLowerCase())?.get(String(name ?? '').toLowerCase());
+    if (!row) return markUnclassified ? '<div class="est-tagline"><span class="est-tag-none">unclassified</span></div>' : '';
+    const title = `asserted by ${row.assertedBy || 'unknown'}${row.assertedAt ? `, ${row.assertedAt}` : ''}`;
+    const chips = [
+        ...(row.system ?? []).map((v) => `<span class="est-badge est-tag-system">${escapeHtml(v)}</span>`),
+        ...(row.stage ?? []).map((v) => `<span class="est-badge est-tag-stage">${escapeHtml(v)}</span>`),
+    ];
+    return `<div class="est-tagline" title="${escapeHtml(title)}">${chips.join('')}</div>`;
+}
+
+export function dossierHtml(m, envelope, entityTags = null) {
     const identity = envelope.identity;
     const os = envelope.os;
     const memory = envelope.memory;
+
+    // null when the tags endpoint failed — then no chips render at all, because an
+    // "unclassified" mark that only means "the fetch broke" would be a false statement.
+    const databaseTags = entityTags ? tagLookup(entityTags.rows, 'database') : null;
+    const applicationTags = entityTags ? tagLookup(entityTags.rows, 'application') : null;
 
     return `
         <section>
@@ -326,6 +358,7 @@ export function dossierHtml(m, envelope) {
                             <td>
                                 ${escapeHtml(app.siteName)}<span class="est-mono">${escapeHtml(app.path)}</span>
                                 <div class="est-app-path">${pathCell(app.physicalPath)}</div>
+                                ${tagChips(applicationTags, app.siteName, app.path)}
                             </td>
                             <td>
                                 <span class="est-badge ${badge.cls}">${escapeHtml(badge.text)}</span>
@@ -435,7 +468,7 @@ export function dossierHtml(m, envelope) {
                                 <thead><tr><th>Database</th><th>Recovery</th><th>Compat</th><th>Owner</th><th></th></tr></thead>
                                 <tbody>${databases.map((d) => `
                                     <tr data-filter="${escapeHtml(String(d.name ?? '').toLowerCase())}" class="${isSystemDatabase(d.name) ? 'est-muted' : ''}">
-                                        <td>${escapeHtml(d.name)}</td>
+                                        <td>${escapeHtml(d.name)}${tagChips(databaseTags, i.instanceName, d.name, { markUnclassified: !isSystemDatabase(d.name) })}</td>
                                         <td class="est-muted">${escapeHtml(d.recoveryModelDesc)}</td>
                                         <td class="est-muted">${escapeHtml(d.compatibilityLevel)}</td>
                                         <td class="est-mono">${escapeHtml(d.owner)}</td>

@@ -8,6 +8,35 @@
     "extensoft-6": {
       "class": "DevLaptop",
       "facets": {}
+    },
+    "DEVSQLBOX": {
+      "facets": {
+        "stage": [
+          "dev",
+          "val"
+        ]
+      }
+    },
+    "VALWEBBOX": {
+      "facets": {
+        "stage": [
+          "val"
+        ]
+      }
+    },
+    "DEVWEBBOX": {
+      "facets": {
+        "stage": [
+          "dev"
+        ]
+      }
+    },
+    "PRODWEBBOX": {
+      "facets": {
+        "stage": [
+          "prod"
+        ]
+      }
     }
   }
 }

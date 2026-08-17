@@ -1,0 +1,251 @@
+{
+  "version": 1,
+  "databases": {
+    "DEVSQLBOX": {
+      "MSSQLSERVER": {
+        "MyDB_DEV": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "dev"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "MyDB_VAL": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "val"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "MyDatabase_DEV": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "dev"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "MyDatabase_VAL": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "val"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "YourDB_DEV": {
+          "system": [
+            "YourWeb"
+          ],
+          "stage": [
+            "dev"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "YourDB_VAL": {
+          "system": [
+            "YourWeb"
+          ],
+          "stage": [
+            "val"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "Shared_REF": {
+          "system": [
+            "MyWeb",
+            "YourWeb"
+          ],
+          "stage": [
+            "ref"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "MyDB_QA": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "qa"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      }
+    },
+    "PRODSQLBOX": {
+      "MSSQLSERVER": {
+        "MyDB": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "prod"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "YourDB": {
+          "system": [
+            "YourWeb"
+          ],
+          "stage": [
+            "prod"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "AppData01": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "prod"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "Shared_REF": {
+          "system": [
+            "MyWeb",
+            "YourWeb"
+          ],
+          "stage": [
+            "ref"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      }
+    },
+    "SQL01": {
+      "PROD": {
+        "Portal": {
+          "system": [
+            "OrderPortal"
+          ],
+          "stage": [
+            "prod"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        },
+        "Billing": {
+          "system": [
+            "BillingSvc"
+          ],
+          "stage": [
+            "prod"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      },
+      "REPORTING": {
+        "ReportsMart": {
+          "system": [
+            "Reporting"
+          ],
+          "stage": [
+            "prod"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      }
+    }
+  },
+  "applications": {
+    "DEVWEBBOX": {
+      "myweb.dev.example.com": {
+        "/": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "dev"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      },
+      "yourweb.dev.example.com": {
+        "/": {
+          "system": [
+            "YourWeb"
+          ],
+          "stage": [
+            "dev"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      }
+    },
+    "VALWEBBOX": {
+      "myweb.val.example.com": {
+        "/": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "val"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      },
+      "yourweb.val.example.com": {
+        "/": {
+          "system": [
+            "YourWeb"
+          ],
+          "stage": [
+            "val"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      }
+    },
+    "PRODWEBBOX": {
+      "myweb.example.com": {
+        "/": {
+          "system": [
+            "MyWeb"
+          ],
+          "stage": [
+            "prod"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      },
+      "yourweb.example.com": {
+        "/": {
+          "system": [
+            "YourWeb"
+          ],
+          "stage": [
+            "prod"
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18"
+        }
+      }
+    }
+  }
+}

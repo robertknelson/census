@@ -722,6 +722,31 @@ html, body {
     color: var(--est-red);
 }
 
+/* Derived from entity tags, not asserted onto the machine — dashed so "rolled up from
+   what it hosts" never reads as "someone typed this here". */
+.est-badge-derived {
+    border-style: dashed;
+}
+
+.est-tagline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    margin-top: 0.2rem;
+}
+
+.est-tag-system {
+    border-color: var(--est-blue);
+    color: var(--est-blue);
+    background: var(--est-blue-soft);
+}
+
+.est-tag-none {
+    font-size: 0.62rem;
+    font-style: italic;
+    color: var(--est-muted);
+}
+
 /* A disabled authentication method is a fact worth showing, not worth shouting. */
 .est-badge-off {
     opacity: 0.5;

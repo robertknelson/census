@@ -11,7 +11,7 @@ namespace Census.Web.Services;
 /// no lifecycle, no persistence. Every finding carries its machine's facets so both
 /// personas project the same stream: dev-ops filters it, Estate aggregates it.
 /// </summary>
-public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklistEvaluator, AssetsStore assetsStore, BaselineEvaluator baselineEvaluator)
+public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklistEvaluator, AssetsStore assetsStore, BaselineEvaluator baselineEvaluator, EntityTagsStore entityTagsStore, EntityTagsEvaluator entityTagsEvaluator)
 {
     // Provisional per-kind severities — same caveat as SeverityRanking (tiers unratified).
     private const int CertExpiryWarningDays = 30;
@@ -216,6 +216,34 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 "assets.json names this machine but it has no snapshots and is not in machines.json — a rename or decommission nobody recorded."));
         }
 
+        // Entity tags whose address no longer resolves (entity-tags.md §5). One finding per
+        // stranded assertion, never a silent drop and never a re-attach — following a rename
+        // would be inference. Unknown resolutions stay silent here: a failed collection is
+        // not evidence of absence, and the collection failure has its own findings.
+        var entityTags = entityTagsStore.Load();
+        var tagMachines = entityTags.Databases.Keys.Concat(entityTags.Applications.Keys)
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        foreach (var machine in tagMachines)
+        {
+            if (!knownMachines.Contains(machine))
+            {
+                findings.Add(Build(assets, machine, "dangling-assertion", "low",
+                    "Entity tags for a machine not in the fleet",
+                    "entity-tags.json names this machine but it has no snapshots and is not in machines.json — a rename or decommission nobody recorded."));
+                continue;
+            }
+
+            var envelope = collected.FirstOrDefault(x => string.Equals(x.Machine, machine, StringComparison.OrdinalIgnoreCase)).Envelope;
+            if (envelope is null) continue;
+            foreach (var row in entityTagsEvaluator.Evaluate(machine, envelope, entityTags).Rows
+                .Where(r => r.Resolution == EntityTagsEvaluator.ResolutionDangling))
+            {
+                findings.Add(Build(assets, machine, "dangling-entity-tag", "low",
+                    $"Tagged {row.Kind} no longer observed ({row.Container} · {row.Name})",
+                    $"The latest snapshot positively lacks it — dropped, moved, or renamed. Its tags ({Describe(row)}) are stranded until someone re-asserts or removes them."));
+            }
+        }
+
         return new FindingsResultDto
         {
             Ownership = assets.Ownership is null ? null : new OwnershipInfoDto { Key = assets.Ownership.Key, Label = assets.Ownership.Label },
@@ -225,6 +253,9 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 .ToList(),
         };
     }
+
+    private static string Describe(EntityTagRowDto row) =>
+        string.Join(", ", row.System.Select(s => $"system:{s}").Concat(row.Stage.Select(s => $"stage:{s}")));
 
     private FindingDto Build(AssetsConfig assets, string machine, string kind, string severity, string title, string detail) => new()
     {

@@ -25,6 +25,9 @@ public record CanvasMachineDto
     public bool HasData { get; init; }
     public string OsProductName { get; init; }
     public string LatestDate { get; init; }
+
+    /// <summary>Derived from entity tags — rendered distinctly from the asserted Stages, never merged into them.</summary>
+    public EntityRollupDto EntityRollup { get; init; }
 }
 
 public record CanvasDto

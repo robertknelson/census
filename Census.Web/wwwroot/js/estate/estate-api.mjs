@@ -40,6 +40,10 @@ export function fetchMachineDiff(machine, fromDate, toDate) {
     return getJson(`/api/machines/${encodeURIComponent(machine)}/diff?${params}`);
 }
 
+export function fetchEntityTags(machine) {
+    return getJson(`/api/entity-tags/machine/${encodeURIComponent(machine)}`);
+}
+
 export function fetchBlacklist() {
     return getJson('/api/blacklist');
 }

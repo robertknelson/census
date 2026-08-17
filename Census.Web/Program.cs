@@ -14,6 +14,8 @@ builder.Services.AddSingleton<BlacklistEvaluator>();
 builder.Services.AddSingleton<AssetsStore>();
 builder.Services.AddSingleton<BaselinesStore>();
 builder.Services.AddSingleton<BaselineEvaluator>();
+builder.Services.AddSingleton<EntityTagsStore>();
+builder.Services.AddSingleton<EntityTagsEvaluator>();
 builder.Services.AddSingleton<FindingsEngine>();
 
 var app = builder.Build();

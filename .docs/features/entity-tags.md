@@ -1,8 +1,9 @@
 # Entity tags — slice 1 of the system graph
 
 > Spec, 2026-08-18. Parent docs: `system-graph-principles.md` (why),
-> `system-graph.md` (concepts, decisions G-1…G-6). Status: **drafted, open items
-> undecided. No code until they are.**
+> `system-graph.md` (concepts, decisions G-1…G-6). Status: **ratified 2026-08-18
+> as proposed — §8 items 1, 2, 3, 5 decided per their proposals; §8.4 deferred
+> with its trigger. Built and live-verified same day; §9 records the evidence.**
 
 ## 1. Scope
 
@@ -175,39 +176,49 @@ snapshot (database dropped, app removed, either renamed):
   endpoint exists so the workbench has something to land on and so nothing
   outside the store ever touches the file directly.
 
-## 8. Open items
+## 8. Open items — resolved 2026-08-18 except item 4
 
-1. **File name.** `config/entity-tags.json` proposed; ratify or rename.
-2. **Provenance depth.** Two last-writer fields (proposed) vs an audit history
-   per assertion. History fits the `PreviousValue`/`NewValue` pattern if ever
-   wanted; nothing in the leaf shape blocks adding it.
-3. **Stage vocabulary.** Free-form values (proposed, consistent with facets) vs
-   a controlled list. Free-form means `pord` silently creates a fourth stage; a
-   cheap later guard is a finding on stage values used exactly once, which is
+1. **File name.** ~~Proposed~~ **Ratified**: `config/entity-tags.json`.
+2. **Provenance depth.** **Ratified**: two last-writer fields. History fits the
+   `PreviousValue`/`NewValue` pattern if ever wanted; nothing in the leaf shape
+   blocks adding it.
+3. **Stage vocabulary.** **Ratified**: free-form values, consistent with
+   facets. Free-form means `pord` silently creates a fourth stage; a cheap
+   later guard is a finding on stage values used exactly once, which is
    detection rather than restriction (no meaning is being inferred — a typo'd
-   *tag* is human error, not a naming convention).
-4. **The machine-stage facet's retirement.** Baseline `AppliesTo` selectors can
-   match on the hand-set `stage` facet today. Does the derived rollup feed
-   `Matches` (making baselines follow entity tags), replace the facet outright,
-   or coexist? Not needed for this slice; needed before anyone deletes
-   `"DEVSQLBOX": { "stage": ["dev","val"] }`.
-5. **`assertedBy` under no auth.** Free-text self-report until the auth model
-   (census-web.md open item) lands, at which point it should become derived.
-   Accepted as-is or worth an interim convention?
+   *tag* is human error, not a naming convention). Not built in this slice.
+4. **The machine-stage facet's retirement.** **Deferred, still open.** Baseline
+   `AppliesTo` selectors can match on the hand-set `stage` facet today. Does
+   the derived rollup feed `Matches` (making baselines follow entity tags),
+   replace the facet outright, or coexist? Not needed for this slice; needed
+   before anyone deletes `"DEVSQLBOX": { "stage": ["dev","val"] }`.
+5. **`assertedBy` under no auth.** **Ratified**: free-text self-report until
+   the auth model (census-web.md open item) lands, at which point it should
+   become derived.
 
-## 9. Verification plan
+## 9. Verification plan — executed 2026-08-18, all green
 
 Fixtures are the coverage (there is no second machine and no real payload
-here), so the demo tree must exercise every branch:
+here), so the demo tree must exercise every branch. Results against the Demo
+profile:
 
-- `config/entity-tags.demo.json` tagging the five-machine topology, including
-  the traps: `MyDB_DEV` and `MyDatabase_DEV` tagged as *distinct* things
-  despite the names, `Shared_REF` on two hosts tagged with two systems,
-  the three-conventions component tagged as one system across stages.
-- DEVSQLBOX rolls up `stage: [dev, val]` — derived, with `derivedFrom` naming
-  the databases — reproducing today's hand-set facet as a traceable fact.
-- At least one deliberately dangling address in the demo tags to light the §5
-  finding, and one machine with a failed `sql` status to prove the
-  unknown-not-empty rule.
-- Live verification: Demo profile, dossier chips + Estate rollup screenshot,
-  `GET`/`PUT` round-trip byte-comparison on the demo file.
+- `config/entity-tags.demo.json` tags the five-machine topology including the
+  traps: `MyDB_DEV` and `MyDatabase_DEV` tagged as distinct despite the names;
+  `Shared_REF` tagged on both hosts with two systems (and stage `ref`, so the
+  derived badge is visibly exercised); the three-conventions component
+  (`MyDatabase_DEV`/`MyDatabase_VAL`/`AppData01`) tagged as one system.
+- DEVSQLBOX rollup came back `stages: [dev, ref, val]`, `systems: [MyWeb,
+  YourWeb]`, `derivedFrom` naming all seven databases — and the tile renders
+  `ref` as a dashed badge beside the solid asserted `dev`/`val`, tooltip
+  carrying the derivation.
+- `MyDB_QA` (deliberately dangling) resolved `dangling` and produced the
+  `dangling-entity-tag` finding, visible in the DEVSQLBOX dossier findings.
+- `SQL01\REPORTING\ReportsMart` resolved `unknown` (instance
+  `insufficient-rights`), not dangling — the absence-is-not-evidence rule.
+  SQL01's unclassified count is 4 (six PROD user databases, two tagged; the
+  unreachable instances excluded from the denominator).
+- Dossier chips verified by screenshot on DEVSQLBOX (database rows), DEVWEBBOX
+  (application rows), SQL01 (tagged + *unclassified* marks side by side;
+  system databases carry no mark).
+- `GET`/`PUT` round-trip is byte-stable on the demo file, and an unknown leaf
+  axis (`tier`) survived a PUT/GET cycle via the extension-data passthrough.

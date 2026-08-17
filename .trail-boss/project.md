@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Live-fire the credential hop — collector over WinRM against a clixml bucket, interactive with -Verbose, before any schedule trusts it"
+next_step: "Answer the boundary question in .docs/features/system-graph.md §8 — does census hold declared nodes it can never observe, or stay observation-only? Everything in the graph work waits on it"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,32 @@ relates: []
 ---
 
 ## notes
+
+### 2026-08-17
+- **New direction, and it is the big one: the system graph.** Classify observed
+  entities into composite applications ("select a tag, get a domain"), then
+  explore the graph and answer blast radius. Concepts drafted in
+  `.docs/features/system-graph.md`. **Blocked on §8** — a third of Robert's own
+  example system (mobile clients, third-party APIs) is unobservable by
+  construction, so classifying it means declaring nodes census can never see,
+  which is the far side of `graph-interop.md` §1.1. Only he can call it. That is
+  `next_step`.
+- **A scar surfaced and is now a binding rule.** Fall 2025: he built a graph from
+  naming conventions; it worked for most of a real estate and died on the rest —
+  ambiguity, not absence (`MyDB_DEV` unresolvable once `MyDatabase_DEV` existed).
+  **No meaning is ever derived from a name**, including "only when unambiguous."
+  This is *why* the human-in-the-middle layer exists.
+- **Fixture: three-stage WebApp→DB topology** (5 machines, 12 edges, all
+  `confirmed`), with 8 edges landing on DEVSQLBOX because it serves DEV and VAL
+  both. Naming traps planted permanently so no code can quietly re-acquire a
+  convention dependency. `tests/New-DemoStageTopology.ps1`.
+- **csproj flipped to Robert's standard**: `Nullable=disable` +
+  `ImplicitUsings=disable`, 292 annotations and 30 `!` operators removed,
+  verified by all 20 read endpoints being byte-identical before and after.
+  Resolves the `census-web.md` §8 open item ahead of absorption — his call.
+- Mid-session course correction, kept in the dispatch: he stopped the spec work
+  for going to schema before concepts. The doc was restructured concept-first.
+- `main` at `46d2f80` + this write-up.
 
 ### 2026-08-14 (second session)
 - Real data drew blood again, same artery: a payload carrying an explicit

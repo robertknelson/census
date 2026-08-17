@@ -1,8 +1,8 @@
 # Triage workbench — slice 2 of the system graph
 
-> Spec, 2026-08-18. Parent docs: `system-graph-principles.md` (why),
+> Spec, 2026-08-17. Parent docs: `system-graph-principles.md` (why),
 > `entity-tags.md` (slice 1 — the assertion record this workbench edits).
-> Status: **ratified 2026-08-18 — all four §8 items decided as proposed
+> Status: **ratified 2026-08-17 — all four §8 items decided as proposed
 > ("Triage"; alphabetical ordering; bulk applies only filled axes, classified
 > edit clears explicitly emptied ones; unknown axes preserved). Build
 > authorized.**
@@ -122,7 +122,7 @@ wanted. Revisit only if real use shows constant panel-hopping.
    untouched — the store already round-trips them; the workbench just must not
    drop them when rewriting a leaf.
 
-## 9. Verification plan — executed 2026-08-18, all green
+## 9. Verification plan — executed 2026-08-17, all green
 
 Demo profile; fixtures are the coverage. Results (the test mutations were then
 reverted so the committed fixture keeps its designed pile):

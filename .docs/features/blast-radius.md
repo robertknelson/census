@@ -1,8 +1,8 @@
 # Blast radius — slice 3 of the system graph
 
-> Spec, 2026-08-18. Parent docs: `system-graph-principles.md` (why),
+> Spec, 2026-08-17. Parent docs: `system-graph-principles.md` (why),
 > `entity-tags.md` (slice 1), `triage-workbench.md` (slice 2).
-> Status: **ratified 2026-08-18 — all five §7 items decided as proposed
+> Status: **ratified 2026-08-17 — all five §7 items decided as proposed
 > (machine subject; action-bar entry; http edges excluded; contradicted
 > stratum shown; HostResolver extraction). Build authorized.**
 
@@ -115,7 +115,7 @@ traversal.
    service (proposed `HostResolver`) — touches HostingController, behavior
    unchanged, verified by comparing `/api/hosting` output before and after.
 
-## 8. Verification plan — executed 2026-08-18, all green
+## 8. Verification plan — executed 2026-08-17, all green
 
 Demo profile; fixtures are the coverage. Results:
 

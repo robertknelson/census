@@ -1,6 +1,6 @@
 # The system graph — classifying what census observes
 
-> **STATUS: built, 2026-08-18, in three ratified slices** — entity tags
+> **STATUS: built, 2026-08-17, in three ratified slices** — entity tags
 > (`entity-tags.md`), the triage workbench (`triage-workbench.md`), and blast radius
 > (`blast-radius.md`), delivered in the order the principles doc fixed. This document
 > remains the concept record; the slice docs hold the decisions and verification.

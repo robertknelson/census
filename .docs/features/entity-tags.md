@@ -1,7 +1,7 @@
 # Entity tags — slice 1 of the system graph
 
-> Spec, 2026-08-18. Parent docs: `system-graph-principles.md` (why),
-> `system-graph.md` (concepts, decisions G-1…G-6). Status: **ratified 2026-08-18
+> Spec, 2026-08-17. Parent docs: `system-graph-principles.md` (why),
+> `system-graph.md` (concepts, decisions G-1…G-6). Status: **ratified 2026-08-17
 > as proposed — §8 items 1, 2, 3, 5 decided per their proposals; §8.4 deferred
 > with its trigger. Built and live-verified same day; §9 records the evidence.**
 
@@ -69,7 +69,7 @@ Shape — **address by nesting, tags at the leaf**:
           "system": ["MyWeb"],
           "stage": ["dev"],
           "assertedBy": "robert",
-          "assertedAt": "2026-08-18"
+          "assertedAt": "2026-08-17"
         }
       }
     }
@@ -81,7 +81,7 @@ Shape — **address by nesting, tags at the leaf**:
           "system": ["MyWeb"],
           "stage": ["dev"],
           "assertedBy": "robert",
-          "assertedAt": "2026-08-18"
+          "assertedAt": "2026-08-17"
         }
       }
     }
@@ -176,7 +176,7 @@ snapshot (database dropped, app removed, either renamed):
   endpoint exists so the workbench has something to land on and so nothing
   outside the store ever touches the file directly.
 
-## 8. Open items — resolved 2026-08-18 except item 4
+## 8. Open items — resolved 2026-08-17 except item 4
 
 1. **File name.** ~~Proposed~~ **Ratified**: `config/entity-tags.json`.
 2. **Provenance depth.** **Ratified**: two last-writer fields. History fits the
@@ -196,7 +196,7 @@ snapshot (database dropped, app removed, either renamed):
    the auth model (census-web.md open item) lands, at which point it should
    become derived.
 
-## 9. Verification plan — executed 2026-08-18, all green
+## 9. Verification plan — executed 2026-08-17, all green
 
 Fixtures are the coverage (there is no second machine and no real payload
 here), so the demo tree must exercise every branch. Results against the Demo

@@ -8,6 +8,10 @@
 
 ---
 
+> The ratified statement of *why* — principles and value proposition, written fresh and
+> confirmed by Robert 2026-08-17 — is `system-graph-principles.md`. It also fixes the
+> delivery order: tags with provenance → drift/triage → blast radius.
+
 ## 1. What we are actually building
 
 A UX that lets a human **map, tag and classify** what census observed, so that a graph can be

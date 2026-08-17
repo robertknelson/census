@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Pivot to the system graph — concepts drafted, blocked on one boundary call Robert owns"
+summary: "Started the system graph — tag what census finds, then see what breaks when a server goes down. One decision needed."
 resume: "cd Census.Web; $env:ASPNETCORE_ENVIRONMENT='Demo'; dotnet run   # then http://localhost:5199"
 health: green
 links:
@@ -14,104 +14,87 @@ ignite: start-census.bat
 # estate and a board click would look broken. `start-census.bat real` for the
 # real tree.
 #
-# what the owner wants kept visible: NOT YET ASKED (contract rule 7).
-# Standing guess until he says otherwise: build health, the one live-verification
-# gap, and the next unblocked move.
+# WHAT THE OWNER WANTS KEPT VISIBLE (asked and answered 2026-08-17):
+#   1. the latest feature added
+#   2. what's next, if anything
+#   3. any alarming issues outstanding
+#   ...and in plain English. Keep the three headings below; keep the jargon out.
 ---
 
-## Where it stands
+## The latest feature added
 
-Two halves built and shipping. **The collector** (`Invoke-Census.ps1` +
-`collectors/`) runs from one control box over WinRM, writes one JSON snapshot
-per machine per day, appends an audit line to yearly `_runs/run-log-<yyyy>.jsonl`
-segments, and ages its own tree (gzip past `-AgeAfterDays`, default 90).
-**Census.Web** reads that tree and renders the estate: owner → stage → glyph
-canvas → dossier, findings recomputed per read.
+**Nothing new in the app itself this session** — it was groundwork. The last
+things users can actually see were **approved baselines** (Aug 12: mark a
+machine's software as the approved set, then flag every machine that has extra
+software or is missing something required) and **snapshot ageing** (Aug 14:
+old snapshots get compressed automatically so the folder stops growing forever).
 
-**A third thing started this session, and it is where the energy is now:** the
-**system graph** — classifying observed entities into composite applications so
-blast radius can be answered. Spec: `.docs/features/system-graph.md`. It is
-**blocked on one question**, see below.
+What this session added instead:
 
-## This session (2026-08-17)
+- **A fake five-server estate to build against.** Three web servers and two
+  database servers, set up as dev / validation / production. The point is one
+  detail: the dev database server also does double duty as the validation
+  database server. So if that one box dies, two environments go down at once —
+  and nothing in the app currently makes that obvious. That is the problem the
+  next chunk of work exists to solve.
+- **Deliberately messy names in that test data.** Robert tried building
+  something like this in late 2025 by guessing which database belonged to which
+  website from their names. It worked for most of the estate and then fell apart
+  on the ones that didn't follow the pattern. So the test data now includes the
+  exact mess that broke it, permanently — which means nobody can accidentally
+  write name-guessing code again and have it look like it works.
+- **A tidy-up of project settings** to match how Robert writes C# everywhere
+  else. Confirmed safe: every page and data feed in the app returns byte-for-byte
+  identical results before and after.
 
-**Housekeeping, done and pushed.**
+## What's next
 
-- `<ImplicitUsings>disable</ImplicitUsings>` + `<Nullable>disable</Nullable>` —
-  Robert's standard csproj settings, applied ahead of website absorption rather
-  than at it (he overruled the earlier "wait" decision: it is simply how he
-  codes). 292 NRT annotations and 30 inert `!` operators removed, driven off the
-  compiler's own warning positions and audited so no ternary, `?.`, `??` or `!=`
-  was touched. **All 20 read endpoints byte-identical before and after** — NRT
-  is compile-time only. The `census-web.md` §8 open item is resolved.
+**One decision from Robert, and it unblocks everything else.**
 
-**The new work.**
+The goal is to let a person tag the things census finds — "this database belongs
+to System A, and it's the dev copy" — and then get a picture showing what depends
+on what, so you can answer *if this goes down, what breaks?*
 
-- **Fixture: a three-stage WebApp→DB topology.** DEVWEBBOX / VALWEBBOX /
-  PRODWEBBOX / DEVSQLBOX / PRODSQLBOX, two snapshots each. Twelve dependency
-  edges, all corroborating `confirmed`; **eight land on DEVSQLBOX**, which serves
-  DEV and VAL both — a single point of failure spanning two stages that no
-  per-stage view reveals. Generator: `tests/New-DemoStageTopology.ps1`.
-- **Naming traps planted permanently.** Robert surfaced a scar: in fall 2025 he
-  built a graph from naming conventions, it worked for most of a real estate, and
-  died on the minority that did not conform — the killer being **ambiguity, not
-  absence** (`MyDB_DEV` unresolvable once `MyDatabase_DEV` also existed). A
-  fixture whose names all obey the convention cannot catch code that quietly
-  parses names, so the fixture now carries the collision itself, a database whose
-  name encodes nothing (`AppData01`), and the same name on two hosts
-  (`Shared_REF`). **This is now a binding rule: no meaning is ever derived from a
-  name, including "only when unambiguous."**
-- **Concepts drafted** in `.docs/features/system-graph.md`: three layers (`.ps1`
-  observes → human maps/tags → UX composes), three node classes
-  (observed / implied / declared), two edge classes, two tag axes (`system` ×
-  `stage`), and the six verbs a classification UX must support.
+The snag: census can only see websites and SQL databases on Windows machines it
+can log into. Take a realistic large system — a web API, a web front end, phone
+apps, a desktop app, fifteen back-end services (five of them run by outside
+vendors), a handful of databases. **Census can never see about a third of that.**
+Not "hasn't collected it yet" — can never.
 
-## Blockers
+So the question is how far census should go:
 
-- **THE ONE THAT MATTERS — `system-graph.md` §8, and only Robert can call it.**
-  `graph-interop.md` §1.1 (ratified 2026-08-07) says census must *not* be the
-  dependency-graph system, because it cannot reach every node and typed names do
-  not match observed ones. But roughly **a third of Robert's own example system
-  is unobservable by construction** — mobile and desktop clients, third-party
-  APIs — so classifying it requires declaring nodes and edges census will never
-  see, plus reconciling names. That is the far side of the ratified line. Three
-  readings are written out in §8; the answer decides what the UX is. **Nothing
-  below the concept level should be designed until it is answered.**
-- **The credential hop has still never been exercised.** No remote WinRM call
-  carrying `-Credential` has run. Unchanged, and no longer `next_step` — the
-  graph work is where Robert is.
-- **No full real payload tree reachable here.** Fixtures remain the coverage, so
-  every render branch needs a deliberate one.
+1. **Stay honest and narrow** — census only ever shows what it actually found,
+   and the full picture gets assembled somewhere else.
+2. **Go all in** — census also lets you type in the things it can't see, and
+   becomes the one place the whole picture lives.
+3. **Somewhere between** — you tag and organise what census found, and the
+   invisible third stays out of it.
 
-## Course correction worth keeping
+There was an earlier decision (Aug 7) that census should *not* become the
+everything-picture, for good reasons. Option 2 reverses it. That is Robert's call
+to make deliberately, not something to drift into.
 
-Mid-session Robert stopped the spec work: *"it sounds like you are trying to
-implement deep down in the weeds. what i'm looking for is for you to understand
-where this is all going, so that we can assemble the correct CONCEPTS."* He was
-right — the first draft specified storage nesting, key types and endpoint shapes
-before the node classes existed. Schema is the tractable part, so it is the part
-that gets written first; an address cannot be chosen before you know what kinds
-of things exist. The draft was restructured concept-first and the schema material
-demoted to `system-graph.md` §11, explicitly parked.
+**The thinking is all written down** in `.docs/features/system-graph.md` — it
+opens by pointing at exactly this question. After that's answered, the build is:
+tagging, then the screen where you do the tagging, then the picture.
 
-## Parked, with reasons in the docs
+## Anything alarming
 
-- Retention thinning — Robert sets the horizon; `snapshot-aging.md` §7.
-- DB ingestion — trigger: findings/estate reads exceeding ~1s at real fleet size.
-- Stage-aware severity; severity tiers unratified — `census-web-v2-ux.md` §7.
-- Host-app import — `.docs/host-import-manifest.md`, waiting on the host.
-- A prod→dev dependency edge in the fixture (the *emergency* case beside the
-  sanctioned one). Deliberately absent — it was not part of the described estate.
+- **The remote login has still never actually been tested.** Census is built to
+  reach out to other machines and collect from them, but every run so far has
+  been against the one local box. The first real attempt at logging into another
+  machine with a saved credential is genuinely untested, and it should be run by
+  hand, watching it, before anything scheduled depends on it. This has been true
+  for a while and hasn't bitten yet — but it is the one thing that could fail on
+  first contact with the real world.
+- **There's no real data here to test against.** Everything is verified against
+  invented test data. Twice now, real data has arrived and immediately crashed
+  something the test data never covered. Both were fixed the same day, but the
+  pattern is clear: real data keeps finding gaps, so treat first contact with any
+  new real payload as a live-fire event.
+- **The `output` folder isn't excluded from version control.** Robert has started
+  putting live working data in it and hand-editing the tagging file alongside.
+  Right now that means real working files are one careless commit away from being
+  checked in. Worth deciding whether that folder should be ignored.
 
-## Housekeeping note
-
-`output/` is **not** in `.gitignore`; only `output/_runs/run-log.jsonl` is
-tracked. Robert has copied the demo tree there and is hand-assigning stages in
-`config/assets.json`. That working tree is deliberately uncommitted — worth
-deciding whether the whole tree should be ignored now that it holds real work.
-
-## Where the reasoning lives
-
-`.docs/features/` — one file per feature, each with business rules, schema
-decisions *with the why*, and an open-items section. **`system-graph.md` is the
-live one.** `.docs/requirements.md` is the collector spec.
+Nothing is broken. The build is clean and the app runs.

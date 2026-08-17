@@ -1,3 +1,5 @@
+using System;
+
 namespace Census.Web.Models.Census;
 
 public record RunLogEntry

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Census.Web.Models.Blacklist;
 
 public record BlacklistConfig

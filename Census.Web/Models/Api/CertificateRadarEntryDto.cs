@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Census.Web.Models.Api;
 
 public record CertificateRadarEntryDto

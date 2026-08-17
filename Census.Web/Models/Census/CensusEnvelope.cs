@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Census.Web.Models.Census;
 
 public record CensusCategory<T>

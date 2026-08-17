@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Census.Web.Services;
 
 /// <summary>Provisional ordering only — severity tiers aren't ratified yet (census-web.md §8).</summary>

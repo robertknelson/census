@@ -1,6 +1,9 @@
+using System;
+using System.IO;
 using System.Text.Json;
 using Census.Web.Models.Baselines;
 using Census.Web.Options;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Census.Web.Services;

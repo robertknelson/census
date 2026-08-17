@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Census.Web.Models.Blacklist;
 using Census.Web.Models.Census;
 

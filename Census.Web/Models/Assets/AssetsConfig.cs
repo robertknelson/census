@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Census.Web.Models.Assets;
 
 public record AssetsConfig

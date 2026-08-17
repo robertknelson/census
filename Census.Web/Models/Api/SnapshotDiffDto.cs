@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Census.Web.Models.Api;
 
 public record DiffFieldChange(string Field, string? From, string? To);

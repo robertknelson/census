@@ -2,9 +2,9 @@
 
 > **STATUS: concepts under discussion. Nothing here is built. No schema is decided.**
 >
-> **START HERE NEXT SESSION → §8 is a blocking question only Robert can answer.**
-> Everything else waits on it. Do not write code, and do not design storage, until it is
-> answered — §10 records an earlier attempt to do exactly that, and why it was wrong.
+> The former §8 blocking question was dismissed by Robert 2026-08-17 — see §8. Concept
+> work proceeds on tagging what census observes. Do not design storage until the concepts
+> are settled — §11 records an earlier attempt to do exactly that, and why it was wrong.
 
 ---
 
@@ -171,9 +171,16 @@ collected.
 
 ---
 
-## 8. THE BLOCKING QUESTION — the graph-interop boundary
+## 8. The graph-interop boundary — RESOLVED: dismissed as moot
 
-**This is where the next session starts.**
+**Robert's ruling, 2026-08-17: "never mind the observing question, that was born out of
+hypothetical."** The unobservable-third arithmetic in §4 came from a hypothetical large
+system, not the estate census actually serves. The 2026-08-07 ratification stands
+untouched: census tags and classifies what it observes. Declared nodes, declared edges
+and reconciliation (verbs 3–5 in §6) are parked until a real estate produces a real need
+— at which point this section's option list is the starting material, not a re-litigation.
+
+The original question, kept for the record:
 
 `graph-interop.md` §1 says, ratified 2026-08-07:
 
@@ -214,12 +221,13 @@ decides what the UX is, and everything else follows from it.
 | **G-3** | The tag key is **`system`**, not `app` or `domain`. `domain` collides with `identity.data.domain` (AD domain) in every payload | 2026-08-17 |
 | **G-4** | Two axes, not one: `system` (which thing) × `stage` (which copy) | 2026-08-17 |
 | **G-5** | Naming traps are permanent fixture residents so no code can quietly re-acquire a convention dependency | 2026-08-17 |
+| **G-6** | The §8 boundary question is dismissed as moot — it arose from a hypothetical system, not the real estate. Census tags what it observes; declared nodes/edges parked until a real need appears | 2026-08-17 |
 
 ---
 
 ## 10. Open items
 
-1. **The §8 boundary question.** Blocking. Everything else waits.
+1. ~~The §8 boundary question~~ — resolved 2026-08-17, dismissed as moot (G-6).
 2. **Tag nesting (`partOf`)** — declare containment once and expand at query time, or
    materialize by hand? §5. Can be added later without breaking stored assertions.
 3. **Which entity kinds are classifiable** — SQL databases and IIS applications are the driving

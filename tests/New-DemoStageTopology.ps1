@@ -2,19 +2,55 @@
     Creates the three-stage WebApp->DB topology: five machines whose only reason to exist is
     the SHAPE of the dependency graph between them.
 
-        DEV   DEVWEBBOX  -- MyWeb   --> MyDB_DEV    on DEVSQLBOX
-                         -- YourWeb --> YourDB_DEV  on DEVSQLBOX
-        VAL   VALWEBBOX  -- MyWeb   --> MyDB_VAL    on DEVSQLBOX
-                         -- YourWeb --> YourDB_VAL  on DEVSQLBOX
-        PROD  PRODWEBBOX -- MyWeb   --> MyDB        on PRODSQLBOX
-                         -- YourWeb --> YourDB      on PRODSQLBOX
+        DEV   DEVWEBBOX  -- MyWeb   --> MyDB_DEV        on DEVSQLBOX
+                         -- MyWeb   --> MyDatabase_DEV  on DEVSQLBOX
+                         -- YourWeb --> YourDB_DEV      on DEVSQLBOX
+                         -- YourWeb --> Shared_REF      on DEVSQLBOX
+        VAL   VALWEBBOX  -- MyWeb   --> MyDB_VAL        on DEVSQLBOX
+                         -- MyWeb   --> MyDatabase_VAL  on DEVSQLBOX
+                         -- YourWeb --> YourDB_VAL      on DEVSQLBOX
+                         -- YourWeb --> Shared_REF      on DEVSQLBOX
+        PROD  PRODWEBBOX -- MyWeb   --> MyDB            on PRODSQLBOX
+                         -- MyWeb   --> AppData01       on PRODSQLBOX
+                         -- YourWeb --> YourDB          on PRODSQLBOX
+                         -- YourWeb --> Shared_REF      on PRODSQLBOX
 
-    WHY THIS FIXTURE EXISTS. Four of the six edges land on DEVSQLBOX, which serves DEV and VAL
-    both. That box is a single point of failure spanning two stages, and nothing in a
+    WHY THIS FIXTURE EXISTS. Eight of the twelve edges land on DEVSQLBOX, which serves DEV and
+    VAL both. That box is a single point of failure spanning two stages, and nothing in a
     per-stage mental model shows it - "DEV is DEV, VAL is VAL" is what everyone believes and
     the connection strings say otherwise. Census reads downstream edges; the inversion that
     turns them into blast radius is graph-interop.md 6.1, and HostingController already
     performs it. The fixture supplies edges whose shape makes the inversion say something.
+
+    THE NAMING TRAPS - the reason the second connection string on each app exists.
+    Meaning must NEVER be derived from a name in this codebase: not stage from a _DEV suffix,
+    not application from a prefix, not app-to-database pairing by string similarity. That rule
+    is not aesthetic. An earlier attempt (fall 2025) built the graph from naming conventions,
+    worked for most of a real estate, and died on the minority that did not conform - and the
+    killer was AMBIGUITY, not absence. A rule right 90% of the time yields a graph nobody can
+    trust, because nothing tells you which 90%.
+
+    A fixture whose names all obey the convention cannot catch a violation of that rule: code
+    secretly parsing the suffix would pass every test here and then fail on the real estate the
+    same way. So the traps are permanent residents:
+
+      MyDB_DEV  vs  MyDatabase_DEV   Both on DEVSQLBOX, both belonging to MyWeb. This is the
+                                     exact collision that killed the 2025 attempt - a prefix
+                                     rule cannot say which database is "MyWeb's".
+      AppData01                      MyWeb's second store in PROD. Encodes nothing: no app
+                                     token, no stage token. Any convention rule yields nothing
+                                     at all for it, rather than yielding something wrong.
+      Shared_REF on TWO hosts        The same database name on DEVSQLBOX and on PRODSQLBOX.
+                                     Proves an address must include its host - the database
+                                     name alone is not an identity.
+      Inconsistent across stages     MyWeb's second store is MyDatabase_DEV / MyDatabase_VAL /
+                                     AppData01. The same logical component, named on three
+                                     different conventions, because in a real estate nobody
+                                     went back and renamed the prod one.
+
+    Shared_REF on DEVSQLBOX is also the fixture's only dependency target with more than one
+    source: DEV and VAL both reach it, so it is where a target-grouped view first has to show
+    a fan-in rather than a one-to-one edge.
 
     THE HARDER CASE IT SETS UP. VALWEBBOX -> DEVSQLBOX crosses an asserted stage boundary and
     is CORRECT. PRODWEBBOX -> DEVSQLBOX would be an emergency. The two are structurally
@@ -369,33 +405,51 @@ function SqlInstance {
     }
 }
 
-# DEVSQLBOX - four databases, two stages. This is the shared box the whole fixture is about.
+# DEVSQLBOX - seven user databases, two stages. This is the shared box the whole fixture is
+# about, and it is also where the naming traps live. See THE NAMING TRAPS in the header.
 $devDatabases = $systemDatabases + @(
-    (Db 'MyDB_DEV'   5 'SIMPLE'),
-    (Db 'MyDB_VAL'   6 'FULL'),
-    (Db 'YourDB_DEV' 7 'SIMPLE'),
-    (Db 'YourDB_VAL' 8 'FULL')
+    (Db 'MyDB_DEV'       5 'SIMPLE'),
+    (Db 'MyDB_VAL'       6 'FULL'),
+    (Db 'MyDatabase_DEV' 7 'SIMPLE'),
+    (Db 'MyDatabase_VAL' 8 'FULL'),
+    (Db 'YourDB_DEV'     9 'SIMPLE'),
+    (Db 'YourDB_VAL'    10 'FULL'),
+    (Db 'Shared_REF'    11 'SIMPLE')
 )
 $devFiles = $systemFiles + @(
-    (DbFile 'MyDB_DEV'   1 'ROWS' 'MyDB_DEV'       'D:\sqldata\MyDB_DEV.mdf'         65536),
-    (DbFile 'MyDB_DEV'   2 'LOG'  'MyDB_DEV_log'   'L:\sqllogs\MyDB_DEV_log.ldf'     16384),
-    (DbFile 'MyDB_VAL'   1 'ROWS' 'MyDB_VAL'       'D:\sqldata\MyDB_VAL.mdf'        131072),
-    (DbFile 'MyDB_VAL'   2 'LOG'  'MyDB_VAL_log'   'L:\sqllogs\MyDB_VAL_log.ldf'     32768),
-    (DbFile 'YourDB_DEV' 1 'ROWS' 'YourDB_DEV'     'D:\sqldata\YourDB_DEV.mdf'       49152),
-    (DbFile 'YourDB_DEV' 2 'LOG'  'YourDB_DEV_log' 'L:\sqllogs\YourDB_DEV_log.ldf'   16384),
-    (DbFile 'YourDB_VAL' 1 'ROWS' 'YourDB_VAL'     'D:\sqldata\YourDB_VAL.mdf'       98304),
-    (DbFile 'YourDB_VAL' 2 'LOG'  'YourDB_VAL_log' 'L:\sqllogs\YourDB_VAL_log.ldf'   32768)
+    (DbFile 'MyDB_DEV'       1 'ROWS' 'MyDB_DEV'           'D:\sqldata\MyDB_DEV.mdf'             65536),
+    (DbFile 'MyDB_DEV'       2 'LOG'  'MyDB_DEV_log'       'L:\sqllogs\MyDB_DEV_log.ldf'         16384),
+    (DbFile 'MyDB_VAL'       1 'ROWS' 'MyDB_VAL'           'D:\sqldata\MyDB_VAL.mdf'            131072),
+    (DbFile 'MyDB_VAL'       2 'LOG'  'MyDB_VAL_log'       'L:\sqllogs\MyDB_VAL_log.ldf'         32768),
+    (DbFile 'MyDatabase_DEV' 1 'ROWS' 'MyDatabase_DEV'     'D:\sqldata\MyDatabase_DEV.mdf'       24576),
+    (DbFile 'MyDatabase_DEV' 2 'LOG'  'MyDatabase_DEV_log' 'L:\sqllogs\MyDatabase_DEV_log.ldf'    8192),
+    (DbFile 'MyDatabase_VAL' 1 'ROWS' 'MyDatabase_VAL'     'D:\sqldata\MyDatabase_VAL.mdf'       32768),
+    (DbFile 'MyDatabase_VAL' 2 'LOG'  'MyDatabase_VAL_log' 'L:\sqllogs\MyDatabase_VAL_log.ldf'    8192),
+    (DbFile 'YourDB_DEV'     1 'ROWS' 'YourDB_DEV'         'D:\sqldata\YourDB_DEV.mdf'           49152),
+    (DbFile 'YourDB_DEV'     2 'LOG'  'YourDB_DEV_log'     'L:\sqllogs\YourDB_DEV_log.ldf'       16384),
+    (DbFile 'YourDB_VAL'     1 'ROWS' 'YourDB_VAL'         'D:\sqldata\YourDB_VAL.mdf'           98304),
+    (DbFile 'YourDB_VAL'     2 'LOG'  'YourDB_VAL_log'     'L:\sqllogs\YourDB_VAL_log.ldf'       32768),
+    (DbFile 'Shared_REF'     1 'ROWS' 'Shared_REF'         'D:\sqldata\Shared_REF.mdf'           16384),
+    (DbFile 'Shared_REF'     2 'LOG'  'Shared_REF_log'     'L:\sqllogs\Shared_REF_log.ldf'        4096)
 )
 
+# PRODSQLBOX carries a Shared_REF too - the SAME NAME on a different host, which is what
+# proves an address has to include the host rather than being the database name alone.
 $prodDatabases = $systemDatabases + @(
-    (Db 'MyDB'   5 'FULL'),
-    (Db 'YourDB' 6 'FULL')
+    (Db 'MyDB'       5 'FULL'),
+    (Db 'YourDB'     6 'FULL'),
+    (Db 'AppData01'  7 'FULL'),
+    (Db 'Shared_REF' 8 'SIMPLE')
 )
 $prodFiles = $systemFiles + @(
-    (DbFile 'MyDB'   1 'ROWS' 'MyDB'       'D:\sqldata\MyDB.mdf'          786432),
-    (DbFile 'MyDB'   2 'LOG'  'MyDB_log'   'L:\sqllogs\MyDB_log.ldf'      196608),
-    (DbFile 'YourDB' 1 'ROWS' 'YourDB'     'D:\sqldata\YourDB.mdf'        524288),
-    (DbFile 'YourDB' 2 'LOG'  'YourDB_log' 'L:\sqllogs\YourDB_log.ldf'    131072)
+    (DbFile 'MyDB'       1 'ROWS' 'MyDB'           'D:\sqldata\MyDB.mdf'              786432),
+    (DbFile 'MyDB'       2 'LOG'  'MyDB_log'       'L:\sqllogs\MyDB_log.ldf'          196608),
+    (DbFile 'YourDB'     1 'ROWS' 'YourDB'         'D:\sqldata\YourDB.mdf'            524288),
+    (DbFile 'YourDB'     2 'LOG'  'YourDB_log'     'L:\sqllogs\YourDB_log.ldf'        131072),
+    (DbFile 'AppData01'  1 'ROWS' 'AppData01'      'D:\sqldata\AppData01.mdf'         163840),
+    (DbFile 'AppData01'  2 'LOG'  'AppData01_log'  'L:\sqllogs\AppData01_log.ldf'      40960),
+    (DbFile 'Shared_REF' 1 'ROWS' 'Shared_REF'     'D:\sqldata\Shared_REF.mdf'         24576),
+    (DbFile 'Shared_REF' 2 'LOG'  'Shared_REF_log' 'L:\sqllogs\Shared_REF_log.ldf'      4096)
 )
 
 # ------------------------------------------------------------------------------------------
@@ -407,7 +461,7 @@ $aliasSourcesSql = [ordered]@{ identity = 'ok'; sqlserver = 'ok'; iis = 'not-pre
 function WebEnvelope {
     param([string]$Name, [string]$Ipv4, [string]$Guid, [string]$Smbios, [string]$Serial,
           [string]$MyHost, [string]$YourHost, [string]$SqlHost,
-          [string]$MyDb, [string]$YourDb, $ExtraApps,
+          [string]$MyDb, [string]$MyDb2, [string]$YourDb, [string]$YourDb2, $ExtraApps,
           [string]$CollectedUtc, [int]$Ubr, [long]$CFree, [int]$LogFiles, [long]$LogTotal)
 
     $lower = $Name.ToLowerInvariant()
@@ -482,9 +536,14 @@ function WebEnvelope {
                 (WebApplication $MyHost   "D:\sites\MyWeb"   'MyWebPool'   'CORP\svc-myweb'),
                 (WebApplication $YourHost "D:\sites\YourWeb" 'YourWebPool' $null)
             )
+            # Two connection strings per app. The second one is the trap: its database is
+            # named on a different convention from the first (or on none at all), so nothing
+            # can pair an app to its stores by parsing names.
             dependencies = @(
-                (DbEdge $MyHost   'MyDb'   $SqlHost $MyDb),
-                (DbEdge $YourHost 'YourDb' $SqlHost $YourDb)
+                (DbEdge $MyHost   'MyDb'      $SqlHost $MyDb),
+                (DbEdge $MyHost   'LegacyDb'  $SqlHost $MyDb2),
+                (DbEdge $YourHost 'YourDb'    $SqlHost $YourDb),
+                (DbEdge $YourHost 'SharedRef' $SqlHost $YourDb2)
             )
         }) 1180
         certificates = Category ([ordered]@{
@@ -622,34 +681,34 @@ $targets = @(
     @{ File = 'DEVWEBBOX\devwebbox-census-20260730.json'
        Envelope = WebEnvelope 'DEVWEBBOX' '10.0.1.10' 'd1e2f3a4-5b60-4712-8c3d-4e5f60718a01' `
            '4c4c4544-1001-3610-8052-b7c04f560001' 'DEVWEB01' `
-           'myweb.dev.example.com' 'yourweb.dev.example.com' 'DEVSQLBOX' 'MyDB_DEV' 'YourDB_DEV' @() `
+           'myweb.dev.example.com' 'yourweb.dev.example.com' 'DEVSQLBOX' 'MyDB_DEV' 'MyDatabase_DEV' 'YourDB_DEV' 'Shared_REF' @() `
            '2026-07-30T03:20:11.0000000Z' $ubrDay1 64424509440 12 18432 }
     @{ File = 'DEVWEBBOX\devwebbox-census-20260731.json'
        Envelope = WebEnvelope 'DEVWEBBOX' '10.0.1.10' 'd1e2f3a4-5b60-4712-8c3d-4e5f60718a01' `
            '4c4c4544-1001-3610-8052-b7c04f560001' 'DEVWEB01' `
-           'myweb.dev.example.com' 'yourweb.dev.example.com' 'DEVSQLBOX' 'MyDB_DEV' 'YourDB_DEV' @() `
+           'myweb.dev.example.com' 'yourweb.dev.example.com' 'DEVSQLBOX' 'MyDB_DEV' 'MyDatabase_DEV' 'YourDB_DEV' 'Shared_REF' @() `
            '2026-07-31T03:20:38.0000000Z' $ubrDay2 61203283968 13 20480 }
 
     @{ File = 'VALWEBBOX\valwebbox-census-20260730.json'
        Envelope = WebEnvelope 'VALWEBBOX' '10.0.1.11' 'e2f3a4b5-6c71-4823-9d4e-5f60718a9b02' `
            '4c4c4544-1002-3610-8052-b7c04f560002' 'VALWEB01' `
-           'myweb.val.example.com' 'yourweb.val.example.com' 'DEVSQLBOX' 'MyDB_VAL' 'YourDB_VAL' @() `
+           'myweb.val.example.com' 'yourweb.val.example.com' 'DEVSQLBOX' 'MyDB_VAL' 'MyDatabase_VAL' 'YourDB_VAL' 'Shared_REF' @() `
            '2026-07-30T03:22:04.0000000Z' $ubrDay1 59055800320 9 13312 }
     @{ File = 'VALWEBBOX\valwebbox-census-20260731.json'
        Envelope = WebEnvelope 'VALWEBBOX' '10.0.1.11' 'e2f3a4b5-6c71-4823-9d4e-5f60718a9b02' `
            '4c4c4544-1002-3610-8052-b7c04f560002' 'VALWEB01' `
-           'myweb.val.example.com' 'yourweb.val.example.com' 'DEVSQLBOX' 'MyDB_VAL' 'YourDB_VAL' @() `
+           'myweb.val.example.com' 'yourweb.val.example.com' 'DEVSQLBOX' 'MyDB_VAL' 'MyDatabase_VAL' 'YourDB_VAL' 'Shared_REF' @() `
            '2026-07-31T03:22:29.0000000Z' $ubrDay2 57042534400 10 15360 }
 
     @{ File = 'PRODWEBBOX\prodwebbox-census-20260730.json'
        Envelope = WebEnvelope 'PRODWEBBOX' '10.0.1.12' 'f3a4b5c6-7d82-4934-ae5f-60718a9bac03' `
            '4c4c4544-1003-3610-8052-b7c04f560003' 'PRODWEB01' `
-           'myweb.example.com' 'yourweb.example.com' 'PRODSQLBOX' 'MyDB' 'YourDB' $urlRewrite `
+           'myweb.example.com' 'yourweb.example.com' 'PRODSQLBOX' 'MyDB' 'AppData01' 'YourDB' 'Shared_REF' $urlRewrite `
            '2026-07-30T03:24:47.0000000Z' $ubrDay1 51539607552 41 96256 }
     @{ File = 'PRODWEBBOX\prodwebbox-census-20260731.json'
        Envelope = WebEnvelope 'PRODWEBBOX' '10.0.1.12' 'f3a4b5c6-7d82-4934-ae5f-60718a9bac03' `
            '4c4c4544-1003-3610-8052-b7c04f560003' 'PRODWEB01' `
-           'myweb.example.com' 'yourweb.example.com' 'PRODSQLBOX' 'MyDB' 'YourDB' $urlRewrite `
+           'myweb.example.com' 'yourweb.example.com' 'PRODSQLBOX' 'MyDB' 'AppData01' 'YourDB' 'Shared_REF' $urlRewrite `
            '2026-07-31T03:25:12.0000000Z' $ubrDay2 48318382080 43 101376 }
 
     @{ File = 'DEVSQLBOX\devsqlbox-census-20260730.json'

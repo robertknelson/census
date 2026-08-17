@@ -431,6 +431,28 @@
           "sha256": "ff714d9c24a565e7bb7486efc62822bf1259979279f55e4830a8b4995a7ea72d"
         },
         {
+          "siteName": "myweb.val.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "LegacyDb",
+          "host": "DEVSQLBOX",
+          "rawHost": "DEVSQLBOX",
+          "isLocal": false,
+          "instance": null,
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "MyDatabase_VAL",
+          "authMode": "integrated",
+          "provider": "Microsoft.Data.SqlClient",
+          "encrypt": "true",
+          "trustServerCertificate": "false",
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "e1f30366a82d119b6b57636a6520e13bc69f40899ff7aca97215b1a59f6eb35c"
+        },
+        {
           "siteName": "yourweb.val.example.com",
           "appPath": "/",
           "sourceFile": "appsettings.json",
@@ -451,6 +473,28 @@
           "secretsPresent": false,
           "parseStatus": "ok",
           "sha256": "01388bd6c3f31b69a1c97b5c3601af4e808fbf694e585da2210703730707a408"
+        },
+        {
+          "siteName": "yourweb.val.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "SharedRef",
+          "host": "DEVSQLBOX",
+          "rawHost": "DEVSQLBOX",
+          "isLocal": false,
+          "instance": null,
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "Shared_REF",
+          "authMode": "integrated",
+          "provider": "Microsoft.Data.SqlClient",
+          "encrypt": "true",
+          "trustServerCertificate": "false",
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "6bf22ed13a6bcc51b84b3877c475b33997bf8472e5dadd635a182e6496d5a5f3"
         }
       ]
     },

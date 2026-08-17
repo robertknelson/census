@@ -442,6 +442,28 @@
           "sha256": "ce0f827fc1b0622480b887f5397f0ff38455bb5377d756330c2f688ad055b84f"
         },
         {
+          "siteName": "myweb.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "LegacyDb",
+          "host": "PRODSQLBOX",
+          "rawHost": "PRODSQLBOX",
+          "isLocal": false,
+          "instance": null,
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "AppData01",
+          "authMode": "integrated",
+          "provider": "Microsoft.Data.SqlClient",
+          "encrypt": "true",
+          "trustServerCertificate": "false",
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "e9964fc253e0226dd7b60555156f9cda928ee6b132ea76edbc2b627077d1724e"
+        },
+        {
           "siteName": "yourweb.example.com",
           "appPath": "/",
           "sourceFile": "appsettings.json",
@@ -462,6 +484,28 @@
           "secretsPresent": false,
           "parseStatus": "ok",
           "sha256": "cfdb245a0559f13e72a82db03d7181aa0359cb201b949577eda523d174f66d9d"
+        },
+        {
+          "siteName": "yourweb.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "SharedRef",
+          "host": "PRODSQLBOX",
+          "rawHost": "PRODSQLBOX",
+          "isLocal": false,
+          "instance": null,
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "Shared_REF",
+          "authMode": "integrated",
+          "provider": "Microsoft.Data.SqlClient",
+          "encrypt": "true",
+          "trustServerCertificate": "false",
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "24d8f7a74a0be27b1d754b97c08b3a24c98948147ec9076e9c0b31ef5a55ab76"
         }
       ]
     },

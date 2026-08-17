@@ -12,6 +12,7 @@ import { ChangesFeed } from './changes-feed.mjs';
 import { SoftwarePanel } from './software-panel.mjs';
 import { HostingPanel } from './hosting-panel.mjs';
 import { TriagePanel } from './triage-panel.mjs';
+import { BlastRadiusPanel } from './blast-radius-panel.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -460,6 +461,7 @@ class EstatePage {
         this.actionbarEl.innerHTML = `
             <span class="est-actionbar-label">${count === 1 ? escapeHtml(names[0]) : `${count} machines`} selected</span>
             ${count === 1 ? '<button class="est-btn est-btn-primary" data-act="details">Details</button>' : ''}
+            ${count === 1 && !this.asOf ? '<button class="est-btn" data-act="blast">Blast radius</button>' : ''}
             ${count >= 2 ? '<button class="est-btn est-btn-primary" data-act="compare">Compare</button>' : ''}
             <button class="est-btn" data-act="clear">Clear</button>`;
 
@@ -469,6 +471,7 @@ class EstatePage {
             this.renderActionbar();
         });
         this.actionbarEl.querySelector('[data-act="details"]')?.addEventListener('click', () => this.openDetails(names[0]));
+        this.actionbarEl.querySelector('[data-act="blast"]')?.addEventListener('click', () => this.openBlastRadius(names[0]));
         this.actionbarEl.querySelector('[data-act="compare"]')?.addEventListener('click', () => this.openCompare(names));
     }
 
@@ -611,6 +614,18 @@ class EstatePage {
             this.renderAll();
         }, (machine) => this.openDetails(machine))
             .mount(this.panelEl.querySelector('[data-ref="triage"]'));
+    }
+
+    openBlastRadius(machineName) {
+        this.panel = { type: 'blast', machine: machineName };
+        this.panelShell(
+            `Blast radius <span class="est-mono">${escapeHtml(machineName)}</span>`,
+            'If this machine goes down: deployments hit, via what it hosts and the observed edges pointing at it. Tags label the answer; edit them in Triage.',
+            '<div data-ref="blast"></div>');
+        this.openPanel();
+
+        new BlastRadiusPanel(machineName, (machine) => this.openDetails(machine), () => this.openTriage())
+            .mount(this.panelEl.querySelector('[data-ref="blast"]'));
     }
 
     openFindings() {

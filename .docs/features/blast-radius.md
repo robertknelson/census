@@ -2,7 +2,9 @@
 
 > Spec, 2026-08-18. Parent docs: `system-graph-principles.md` (why),
 > `entity-tags.md` (slice 1), `triage-workbench.md` (slice 2).
-> Status: **drafted, open items undecided. No code until they are.**
+> Status: **ratified 2026-08-18 — all five §7 items decided as proposed
+> (machine subject; action-bar entry; http edges excluded; contradicted
+> stratum shown; HostResolver extraction). Build authorized.**
 
 ## 1. The question, and the shape of the answer
 
@@ -113,21 +115,27 @@ traversal.
    service (proposed `HostResolver`) — touches HostingController, behavior
    unchanged, verified by comparing `/api/hosting` output before and after.
 
-## 8. Verification plan
+## 8. Verification plan — executed 2026-08-18, all green
 
-Demo profile; fixtures are the coverage:
+Demo profile; fixtures are the coverage. Results:
 
-- **DEVSQLBOX** is the fixture's whole reason to exist: expect
-  `MyWeb (dev, val)`, `YourWeb (dev, val)` from hosted databases plus the
-  dependent applications on DEVWEBBOX and VALWEBBOX via their twelve confirmed
-  edges — the two-environments-one-box coupling made visible. `Shared_REF`
-  contributes its `ref` stage to both systems.
-- **PRODSQLBOX**: `MyWeb (prod)`, `YourWeb (prod)` with PRODWEBBOX's apps as
-  dependents; `AppData01` proves the name-blind path (tag says MyWeb, name
-  says nothing).
-- **A web box** (DEVWEBBOX): hosted applications only, no dependents — the
-  asymmetry is correct, not a bug.
-- **SQL01**: unreachable REPORTING/ARCHIVE render as unknown lines; untagged
-  user databases land in the unclassified bucket.
-- `/api/hosting` responds byte-identically before and after the extraction.
-- Live screenshots: the DEVSQLBOX answer, expanded contributors.
+- **DEVSQLBOX** answered exactly as the fixture was built to force:
+  `MyWeb (dev, val)`, `YourWeb (dev, val)` — hosted databases plus DEVWEBBOX's
+  and VALWEBBOX's applications as dependents with confirmed edges (`MyDb →
+  MyDB_DEV`, `LegacyDb → MyDatabase_DEV`, each naming its source file) — the
+  two-environments-one-box coupling in six lines. `Shared_REF` contributed
+  `MyWeb (ref)` and `YourWeb (ref)`.
+- **PRODSQLBOX**: `MyWeb (prod)` includes `AppData01` — the name-blind path
+  proved, since only the tag puts it there — with PRODWEBBOX apps as
+  dependents.
+- **DEVWEBBOX**: hosted applications only, no dependents — the correct
+  asymmetry.
+- **SQL01** exercised every stratum in one view: two classified deployments;
+  four unclassified databases *plus* WEB01's untagged portal apps (confirmed
+  edges) in the unclassified section with its Open Triage button; APPSRV01's
+  intranet-app under *points here, but contradicted*; REPORTING/ARCHIVE as
+  unknown lines.
+- `/api/hosting` responded **byte-identically** before and after the
+  HostResolver extraction.
+- Live screenshots: the DEVSQLBOX answer with expanded contributors; the SQL01
+  strata.

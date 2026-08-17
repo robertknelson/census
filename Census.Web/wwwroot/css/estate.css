@@ -816,6 +816,54 @@ html, body {
     margin-top: 0.8rem;
 }
 
+/* --- blast radius ---------------------------------------------------------------------- */
+
+.est-blast-deployment {
+    border: 1px solid var(--est-line);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.est-blast-deployment summary {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.est-blast-deployment summary::-webkit-details-marker {
+    display: none;
+}
+
+.est-blast-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.2rem 0;
+    font-size: 0.85rem;
+}
+
+.est-blast-edges {
+    flex-basis: 100%;
+    padding-left: 1.2rem;
+}
+
+.est-blast-edge {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    padding: 0.08rem 0;
+}
+
+.est-verdict-confirmed {
+    border-color: var(--est-ok, #3a7);
+    color: var(--est-ok, #3a7);
+}
+
 /* A disabled authentication method is a fact worth showing, not worth shouting. */
 .est-badge-off {
     opacity: 0.5;

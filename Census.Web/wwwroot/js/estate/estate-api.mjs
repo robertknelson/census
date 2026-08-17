@@ -44,6 +44,10 @@ export function fetchEntityTags(machine) {
     return getJson(`/api/entity-tags/machine/${encodeURIComponent(machine)}`);
 }
 
+export function fetchBlastRadius(machine) {
+    return getJson(`/api/blast-radius/${encodeURIComponent(machine)}`);
+}
+
 export function fetchTriage() {
     return getJson('/api/entity-tags/triage');
 }

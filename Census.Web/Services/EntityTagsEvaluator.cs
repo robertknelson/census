@@ -129,6 +129,15 @@ public class EntityTagsEvaluator
         return unknown;
     }
 
+    /// <summary>The assertion at one address, or null — never inferred, never fuzzy.</summary>
+    public static EntityTagAssertion AssertionFor(
+        Dictionary<string, Dictionary<string, Dictionary<string, EntityTagAssertion>>> tree,
+        string machine, string container, string name) =>
+        container is not null && name is not null
+        && tree.TryGetValue(machine, out var containers)
+        && containers.TryGetValue(container, out var leaves)
+        && leaves.TryGetValue(name, out var assertion) ? assertion : null;
+
     private static Dictionary<string, Dictionary<string, EntityTagAssertion>> TreeFor(
         Dictionary<string, Dictionary<string, Dictionary<string, EntityTagAssertion>>> tree, string machine) =>
         tree.TryGetValue(machine, out var containers) ? containers : [];

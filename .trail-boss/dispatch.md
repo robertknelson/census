@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Declared entities shipped: scheduled tasks and partner APIs join the map, and 'the partner API dies?' gets an answer"
-resume: "cd Census.Web; $env:ASPNETCORE_ENVIRONMENT='Demo'; dotnet run   # then http://localhost:5199"
+summary: "The Atlas is open: pick a system at /atlas, see its dependency graph — stages now belong to each system claim"
+resume: "RESTART the app first (running instance predates today's backend), then http://localhost:5199/atlas"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -23,58 +23,51 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Declared entities — the map now covers things census cannot observe.** Two
-real needs from Robert's field trial drove it: Windows scheduled tasks (which
-will never be collected — ruled) and partner APIs outside the estate (common in
-any large organization). Both are now first-class, with one hard line held
-everywhere: something a *person* declared never dresses up as something census
-*measured* — declared things draw dashed, carry who-said-so-and-when, and are
-never "verified", because there is nothing to verify them against.
+**The Atlas** — a new page at `/atlas`, deliberately separate from the Estate:
+pick a system, get its dependency graph. Views are tabs you build (system +
+stage filter + layout) and they come back exactly as you left them — the graph
+settles once and freezes, dragging pins a node, and positions survive reopening.
+Filtering to a stage *fades* everything else rather than hiding it, so an edge
+crossing stages stays visible — that's environment-bleed detection for free.
+Click anything and a small corner card shows what it is, who said what it
+serves, and each edge's evidence. Everything human-asserted draws dashed, as
+everywhere.
 
-- **Declare it.** Triage gained a "Declare entity…" form: name a scheduled task
-  on a machine, or an external API with the web/database addresses that belong
-  to it. Same tagging, same bulk gestures, same pile-counting as everything
-  observed.
-- **The pile got honest about the outside world.** Census already *sees* the
-  connection strings and URLs apps carry. Any address that is neither an estate
-  machine nor a declared entity now shows up as an "unresolved endpoint" —
-  one click attributes it to an entity (or declares a new one on the spot).
-  Matching is exact against what a human typed, never guessed: a declared
-  address that names an estate machine loses to the machine and says so in
-  red; one that matches nothing reads "matched by 0 edges" next to the typo.
-- **The new blast-radius question.** Every external entity has a button
-  answering *the outage you don't control*: "the partner payments API dies →
-  OrderPortal production, via this app on this box, from this config file."
-  The demo answers exactly that on screen.
+Two foundations went in underneath, both from the day's design conversation:
 
-A bonus find: machines that exist only as assertions (a decommissioned box a
-tag still points at) were silently missing from the map and their warnings
-never showed. They now draw as ghost tiles carrying their warning.
+- **Stages now belong to each system claim.** A database can serve MyFancy at
+  dev *and* val while serving Other at val only — the old model literally could
+  not say that and quietly implied combinations nobody asserted. Existing files
+  keep working unchanged forever; anything edited from now on is written the
+  precise way. Blast-radius answers got strictly more truthful (the demo's
+  mixed-stage task now answers two deployment lines where the old model would
+  have invented four).
+- **Systems have name cards** (`config/systems.json`): description, note, and
+  optionally the stages a system is *supposed* to have — so the Atlas's registry
+  panel can say "you expected a UAT stage and nothing serves it" and flag names
+  in use that nobody registered.
+
+Also fixed from the field report: attributing an unresolved endpoint is now one
+row at a time with the input appearing where you clicked, Enter saves, and any
+refusal shows up right at the row instead of off-screen at the top.
 
 ## What's next
 
-**Still the field trial — now with more to test.** The written protocol
-(`.docs/field-trial-real-estate.md`) stands; this session added things worth
-exercising on real infrastructure: declare a real scheduled task, declare a
-real partner API, and see what the unresolved-endpoints pile digs out of real
-connection strings — that list is expected to be the fastest source of "oh
-right, THAT system" moments. Robert runs it; the next session turns the
-report-back into fixes and rulings.
-
-The Baselines tab also got its field-trial fixes: the list is now grouped by
-what each baseline covers (whole fleet, a machine type, a stage, one machine),
-and a "Bless a new baseline…" button creates one right there — pick the source
-machine and the scope pre-fills from what that machine is. Blessing a machine
-whose software collection failed is refused with the reason shown.
+**Restart the app** — the instance running during the session predates all of
+this. Then: build a real system's view in the Atlas, and do the ratification
+pass — several detail decisions were applied under the "go" and are flagged in
+the three specs (entity-associations, systems-registry, system-view) for a
+yes/redirect each. The field trial continues with associations, the registry,
+and the Atlas in hand.
 
 ## Anything alarming
 
-- **The remote login has still never actually been tested.** All runs so far
-  are against the one local box; the first real remote collection should be
-  watched by hand.
-- **Real data has broken something on first contact every time so far.** The
-  new declared-entities work has only met the demo fleet; treat its first real
-  run as live fire.
+- **The remote login has still never actually been tested.** First real remote
+  collection should be watched by hand.
+- **Today's work is demo-verified only.** The association conversion reads old
+  files as-is by design, but real data has drawn blood on first contact every
+  time — treat the first real run as live fire, especially the first Triage
+  edit of a real leaf (it rewrites that leaf in the new shape).
 
-Nothing is broken. Build clean, everything pushed, demo fleet answers all its
-designed questions.
+Nothing is broken. Build clean, everything pushed, every fixture branch answers
+as designed.

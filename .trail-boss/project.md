@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Robert runs the field trial (.docs/field-trial-real-estate.md) — now also declaring a real scheduled task and a real external API in Triage and checking what the unresolved-endpoints pile finds in real connection strings — and brings back the Report-back package"
+next_step: "RESTART Census.Web (the running instance predates the association/registry/atlas backend), open /atlas and build a real system's view; then the ratification pass over the proposed-and-applied items (entity-associations.md §7, systems-registry.md §5+§3 deviation, system-view.md §7) and the field trial continues"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,42 @@ relates: []
 ---
 
 ## notes
+
+### 2026-08-20 (second session — the association arc + Atlas)
+- **The Triage attribute gesture was field-broken and got redesigned live**: every
+  unresolved-endpoint row carried its own input (fill one, click another's button
+  → empty refusal) and refusals rendered off-screen at the top. Now one row at a
+  time, focused input, Enter saves, refusals inline at the row (`2114599`).
+- **Robert stated the end goal** (observe daily w/ deltas → classify observed+
+  unobserved → normalize as system-entity/stage) and drove three rulings:
+  **R1** normalization = derived join + thin identity registry (never
+  membership); **R2 (G-7)** the association shape `serves: [{system, stages[]}]`
+  — stages belong to the system claim (his MyFancyDB dev+val / Other val case;
+  the flat axes' cross-product could not say it); **R3** Triage's bar is the
+  association-assignment surface. He also chose **physics-first with a
+  strategy/tab architecture** for the system view and a **separate module**
+  ("completely separate from observation/triage/estate") — named `/atlas`.
+- **Built under his loaded "go" (he left mid-session), one commit per verified
+  slice**: G-7 associations (read-both forever, upgrade-on-write, per-claim
+  provenance, chip-per-claim Triage bar, stage-only-apply guard; APPSRV01 blast
+  answers 2 lines not the cross-product's 4; DEVSQLBOX legacy leaves byte-
+  identical); systems registry (`systems.json`, overview with member counts +
+  expected-stage drift; drift surfaces in the Atlas panel NOT the machine-keyed
+  findings stream — build-discovered deviation to ratify); Atlas at `/atlas`
+  (own JS tree, `GET /api/system-graph/{system}`, tabbed built views in
+  localStorage, hand-rolled physics that settles synchronously and freezes,
+  seeded + persisted positions, ghost-never-hide stage chips, docked inspector,
+  registry editor).
+- **Awaiting his ratification pass** (all applied as proposed, flagged in each
+  spec): entity-associations §7 (per-association provenance; stage-only rule;
+  upgrade-whole-leaf), systems-registry §5 + the §3 drift-placement deviation,
+  system-view §7 (atlas name, localStorage tabs, one-system tabs, sync-settle,
+  inspector contents, edge/node styling, neighbor scope).
+- **His running instance (pid 10900) predates all three slices** — restart
+  required before any of this is visible to him. His live tree was never
+  touched; all verification ran on a second instance against the demo profile,
+  every mutation reverted.
+- `main` at `7957180`, all pushed.
 
 ### 2026-08-20
 - **G-6's trigger fired and the parked item shipped the same day.** Robert

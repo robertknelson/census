@@ -35,6 +35,7 @@ public record DeclaredEntityRowDto
 {
     public string Kind { get; init; }
     public required string Name { get; init; }
+    public List<AssociationDto> Serves { get; init; } = [];
     public List<string> System { get; init; } = [];
     public List<string> Stage { get; init; } = [];
     public string Note { get; init; }
@@ -83,6 +84,7 @@ public record ExternalEntityDto
 {
     public required string Name { get; init; }
     public string Kind { get; init; }
+    public List<AssociationDto> Serves { get; init; } = [];
     public List<string> System { get; init; } = [];
     public List<string> Stage { get; init; } = [];
     public string Note { get; init; }
@@ -116,11 +118,23 @@ public record UnresolvedEdgeDto
     public string SourceFile { get; init; }
 }
 
+public record AssociationDto
+{
+    public string System { get; init; }
+    public List<string> Stages { get; init; } = [];
+    public string AssertedBy { get; init; }
+    public string AssertedAt { get; init; }
+}
+
 public record EntityTagRowDto
 {
     public required string Kind { get; init; }       // database | application
     public required string Container { get; init; }  // instance name | site name
     public required string Name { get; init; }       // database name | app path
+
+    /// <summary>The associations (entity-associations.md). System/Stage below stay the unions for render paths that only need them.</summary>
+    public List<AssociationDto> Serves { get; init; } = [];
+
     public List<string> System { get; init; } = [];
     public List<string> Stage { get; init; } = [];
     public string AssertedBy { get; init; }

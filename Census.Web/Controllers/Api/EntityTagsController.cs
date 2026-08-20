@@ -54,22 +54,27 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
         }
 
         var attribution = ExternalAttribution.Compute(snapshots, declaredConfig, HostResolver.BuildIndex(snapshots));
-        var external = attribution.Entities.Select(e => new ExternalEntityDto
+        var external = attribution.Entities.Select(e =>
         {
-            Name = e.Name,
-            Kind = e.Entity.Kind,
-            System = e.Entity.System ?? [],
-            Stage = e.Entity.Stage ?? [],
-            Note = e.Entity.Note,
-            AssertedBy = e.Entity.AssertedBy,
-            AssertedAt = e.Entity.AssertedAt,
-            Endpoints = e.Identifiers.Select(i => new EndpointMatchDto
+            var serves = Associations.Of(e.Entity.Serves, e.Entity.System, e.Entity.Stage, e.Entity.AssertedBy, e.Entity.AssertedAt);
+            return new ExternalEntityDto
             {
-                Identifier = i.Identifier,
-                MatchedEdges = i.Edges.Count,
-                ShadowsMachine = i.ShadowsMachine,
-            }).ToList(),
-            MatchedEdgeCount = e.AllEdges.Count,
+                Name = e.Name,
+                Kind = e.Entity.Kind,
+                Serves = EntityTagsEvaluator.ToDtos(serves),
+                System = Associations.SystemsOf(serves),
+                Stage = Associations.StagesOf(serves),
+                Note = e.Entity.Note,
+                AssertedBy = e.Entity.AssertedBy,
+                AssertedAt = e.Entity.AssertedAt,
+                Endpoints = e.Identifiers.Select(i => new EndpointMatchDto
+                {
+                    Identifier = i.Identifier,
+                    MatchedEdges = i.Edges.Count,
+                    ShadowsMachine = i.ShadowsMachine,
+                }).ToList(),
+                MatchedEdgeCount = e.AllEdges.Count,
+            };
         }).ToList();
         var unresolved = attribution.Unresolved.Select(u => new UnresolvedEndpointDto
         {
@@ -85,12 +90,17 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
             }).ToList(),
         }).ToList();
 
-        var leaves = config.Databases.Values.Concat(config.Applications.Values)
+        // Suggestion vocabulary comes from the associations (entity-associations.md §4) —
+        // legacy leaves contribute through the same read-both conversion as everywhere.
+        var allServes = config.Databases.Values.Concat(config.Applications.Values)
             .SelectMany(containers => containers.Values)
             .SelectMany(l => l.Values)
-            .Select(l => (l.System, l.Stage))
-            .Concat(declaredConfig.OnMachines.Values.SelectMany(e => e.Values).Select(e => (e.System, e.Stage)))
-            .Concat(declaredConfig.External.Values.Select(e => (e.System, e.Stage)))
+            .Select(l => Associations.Of(l.Serves, l.System, l.Stage, l.AssertedBy, l.AssertedAt))
+            .Concat(declaredConfig.OnMachines.Values.SelectMany(e => e.Values)
+                .Select(e => Associations.Of(e.Serves, e.System, e.Stage, e.AssertedBy, e.AssertedAt)))
+            .Concat(declaredConfig.External.Values
+                .Select(e => Associations.Of(e.Serves, e.System, e.Stage, e.AssertedBy, e.AssertedAt)))
+            .SelectMany(s => s)
             .ToList();
 
         // Stock kinds seed the declare form's chips before any are in use; free-form typing
@@ -106,12 +116,12 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
         return Ok(new TriageDto
         {
             Machines = machines.OrderBy(m => m.Machine, StringComparer.OrdinalIgnoreCase).ToList(),
-            Systems = leaves.SelectMany(l => l.System ?? new List<string>()).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
-            Stages = leaves.SelectMany(l => l.Stage ?? new List<string>()).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
+            Systems = Associations.SystemsOf(allServes),
+            Stages = Associations.StagesOf(allServes),
             // Untagged external entities and unresolved endpoints are pile too
             // (declared-entities.md §6) — the chip must not understate the queue.
             UnclassifiedTotal = machines.Sum(m => m.UnclassifiedCount)
-                + external.Count(e => e.System.Count == 0 && e.Stage.Count == 0)
+                + external.Count(e => e.Serves.Count == 0)
                 + unresolved.Count,
             External = external,
             UnresolvedEndpoints = unresolved,
@@ -139,10 +149,16 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
                 foreach (var (name, assertion) in leaves ?? new Dictionary<string, EntityTagAssertion>())
                 {
                     if (assertion is null) continue;
+                    var serves = CleanServes(assertion.Serves);
                     var system = Clean(assertion.System);
                     var stage = Clean(assertion.Stage);
-                    if (system.Count == 0 && stage.Count == 0 && (assertion.ExtraAxes is null || assertion.ExtraAxes.Count == 0)) continue;
-                    kept[name] = assertion with { System = system, Stage = stage };
+                    if ((serves?.Count ?? 0) == 0 && system.Count == 0 && stage.Count == 0 && (assertion.ExtraAxes is null || assertion.ExtraAxes.Count == 0)) continue;
+                    kept[name] = assertion with
+                    {
+                        Serves = serves,
+                        System = system.Count > 0 ? system : null,
+                        Stage = stage.Count > 0 ? stage : null,
+                    };
                 }
                 if (kept.Count > 0) byContainer[container] = kept;
             }
@@ -157,4 +173,16 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
             .Where(v => v.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
+
+    /// <summary>An association with no system and no stages asserts nothing and is dropped; a stage-only one survives (the legacy shape's equivalent).</summary>
+    private static List<Census.Web.Models.SystemAssociation> CleanServes(List<Census.Web.Models.SystemAssociation> serves)
+    {
+        if (serves is null) return null;
+        var kept = serves
+            .Where(a => a is not null)
+            .Select(a => a with { System = a.System?.Trim() ?? "", Stages = Clean(a.Stages) })
+            .Where(a => a.System.Length > 0 || a.Stages.Count > 0)
+            .ToList();
+        return kept.Count > 0 ? kept : null;
+    }
 }

@@ -27,8 +27,13 @@ public record DeclaredEntity
     /// <summary>External entities only: identifiers observed edge targets match exactly — never fuzzily (§4).</summary>
     public List<string> Endpoints { get; init; }
 
-    public List<string> System { get; init; } = [];
-    public List<string> Stage { get; init; } = [];
+    /// <summary>Association shape (entity-associations.md) — same read-both rule as entity tags.</summary>
+    public List<SystemAssociation> Serves { get; init; }
+
+    // Null when absent — see EntityTagAssertion: upgraded records must not re-acquire the
+    // flat axes as empty-array noise.
+    public List<string> System { get; init; }
+    public List<string> Stage { get; init; }
     public string Note { get; init; }
     public string AssertedBy { get; init; }
     public string AssertedAt { get; init; }

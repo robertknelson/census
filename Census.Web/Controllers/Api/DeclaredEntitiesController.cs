@@ -54,10 +54,22 @@ public class DeclaredEntitiesController(DeclaredEntitiesStore declaredEntitiesSt
     {
         Kind = string.IsNullOrWhiteSpace(entity.Kind) ? null : entity.Kind.Trim(),
         Endpoints = entity.Endpoints is null ? null : CleanValues(entity.Endpoints),
-        System = CleanValues(entity.System),
-        Stage = CleanValues(entity.Stage),
+        Serves = CleanServes(entity.Serves),
+        System = CleanValues(entity.System) is { Count: > 0 } system ? system : null,
+        Stage = CleanValues(entity.Stage) is { Count: > 0 } stage ? stage : null,
         Note = string.IsNullOrWhiteSpace(entity.Note) ? null : entity.Note.Trim(),
     };
+
+    private static List<Census.Web.Models.SystemAssociation> CleanServes(List<Census.Web.Models.SystemAssociation> serves)
+    {
+        if (serves is null) return null;
+        var kept = serves
+            .Where(a => a is not null)
+            .Select(a => a with { System = a.System?.Trim() ?? "", Stages = CleanValues(a.Stages) })
+            .Where(a => a.System.Length > 0 || a.Stages.Count > 0)
+            .ToList();
+        return kept.Count > 0 ? kept : null;
+    }
 
     private static List<string> CleanValues(List<string> values) =>
         (values ?? [])

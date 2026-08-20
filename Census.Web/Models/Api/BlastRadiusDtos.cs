@@ -40,7 +40,8 @@ public record BlastHostedDto
     public required string Kind { get; init; }       // database | application | a declared entity's free-form kind
     public required string Container { get; init; }  // instance | site | "" for declared
     public required string Name { get; init; }
-    public List<string> System { get; init; } = [];
+    public List<AssociationDto> Serves { get; init; } = [];
+    public List<string> System { get; init; } = [];  // unions of Serves, for render paths that only need them
     public List<string> Stage { get; init; } = [];
 
     /// <summary>Asserted to exist here, never observed — rendered with the declared seam.</summary>
@@ -52,6 +53,7 @@ public record BlastDependentDto
     public required string Machine { get; init; }
     public required string SiteName { get; init; }
     public required string AppPath { get; init; }
+    public List<AssociationDto> Serves { get; init; } = [];
     public List<string> System { get; init; } = [];
     public List<string> Stage { get; init; } = [];
     public List<BlastEdgeDto> Edges { get; init; } = [];

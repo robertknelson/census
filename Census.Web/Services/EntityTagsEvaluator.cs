@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Census.Web.Models;
 using Census.Web.Models.Api;
 using Census.Web.Models.Census;
 using Census.Web.Models.DeclaredEntities;
@@ -63,28 +64,26 @@ public class EntityTagsEvaluator
             }
         }
 
+        // An observed leaf with zero associations is pile, not a classified row — the
+        // unclassified entry represents it, so the row is dropped to avoid double-listing.
+        // Dangling and unknown zero-association rows still surface: a stranded or
+        // unverifiable leaf must never disappear just because its axes are empty.
+        rows = rows.Where(r => r.Serves.Count > 0 || r.Resolution != ResolutionObserved).ToList();
+
         var declared = (declaredConfig.OnMachines.TryGetValue(machine, out var declaredEntities) ? declaredEntities : new Dictionary<string, DeclaredEntity>())
             .OrderBy(e => e.Key, StringComparer.OrdinalIgnoreCase)
-            .Select(e => new DeclaredEntityRowDto
-            {
-                Kind = e.Value.Kind,
-                Name = e.Key,
-                System = e.Value.System ?? [],
-                Stage = e.Value.Stage ?? [],
-                Note = e.Value.Note,
-                AssertedBy = e.Value.AssertedBy,
-                AssertedAt = e.Value.AssertedAt,
-            })
+            .Select(e => DeclaredRow(e.Key, e.Value))
             .ToList();
 
         // Tagged declared entities feed the rollup like observed ones — derivedFrom carries
         // them with resolution "declared" so the derivation never hides the asserted seam.
         var contributors = rows.Where(r => r.Resolution == ResolutionObserved)
-            .Concat(declared.Where(d => d.System.Count > 0 || d.Stage.Count > 0).Select(d => new EntityTagRowDto
+            .Concat(declared.Where(d => d.Serves.Count > 0).Select(d => new EntityTagRowDto
             {
                 Kind = "declared",
                 Container = d.Kind ?? "declared",
                 Name = d.Name,
+                Serves = d.Serves,
                 System = d.System,
                 Stage = d.Stage,
                 AssertedBy = d.AssertedBy,
@@ -106,11 +105,36 @@ public class EntityTagsEvaluator
                 DerivedFrom = contributors,
             },
             Unclassified = unclassified,
-            UnclassifiedCount = unclassified.Count + declared.Count(d => d.System.Count == 0 && d.Stage.Count == 0),
+            UnclassifiedCount = unclassified.Count + declared.Count(d => d.Serves.Count == 0),
             Unknown = CollectUnknown(sqlStatus, iisStatus, instances, rows),
             Declared = declared,
         };
     }
+
+    public static DeclaredEntityRowDto DeclaredRow(string name, DeclaredEntity entity)
+    {
+        var serves = Associations.Of(entity.Serves, entity.System, entity.Stage, entity.AssertedBy, entity.AssertedAt);
+        return new DeclaredEntityRowDto
+        {
+            Kind = entity.Kind,
+            Name = name,
+            Serves = ToDtos(serves),
+            System = Associations.SystemsOf(serves),
+            Stage = Associations.StagesOf(serves),
+            Note = entity.Note,
+            AssertedBy = entity.AssertedBy,
+            AssertedAt = entity.AssertedAt,
+        };
+    }
+
+    public static List<AssociationDto> ToDtos(List<SystemAssociation> serves) =>
+        serves.Select(a => new AssociationDto
+        {
+            System = a.System ?? "",
+            Stages = a.Stages ?? [],
+            AssertedBy = a.AssertedBy,
+            AssertedAt = a.AssertedAt,
+        }).ToList();
 
     private static List<UnclassifiedEntityDto> CollectUnclassified(string machine, List<SqlInstance> instances, List<IisApplication> applications, EntityTagsConfig config)
     {
@@ -124,11 +148,11 @@ public class EntityTagsEvaluator
             .Where(i => i.ConnectedStatus == "ok")
             .SelectMany(i => i.Databases
                 .Where(d => d.DatabaseId is null or > 4)
-                .Where(d => !HasLeaf(databaseTags, i.InstanceName, d.Name))
+                .Where(d => !HasAssociations(databaseTags, i.InstanceName, d.Name))
                 .Select(d => new UnclassifiedEntityDto { Kind = "database", Container = i.InstanceName, Name = d.Name }));
 
         var apps = applications
-            .Where(a => !HasLeaf(applicationTags, a.SiteName, a.Path))
+            .Where(a => !HasAssociations(applicationTags, a.SiteName, a.Path))
             .Select(a => new UnclassifiedEntityDto { Kind = "application", Container = a.SiteName, Name = a.Path });
 
         return databases.Concat(apps).ToList();
@@ -175,19 +199,26 @@ public class EntityTagsEvaluator
         Dictionary<string, Dictionary<string, Dictionary<string, EntityTagAssertion>>> tree, string machine) =>
         tree.TryGetValue(machine, out var containers) ? containers : [];
 
-    private static bool HasLeaf(Dictionary<string, Dictionary<string, EntityTagAssertion>> containers, string container, string name) =>
+    /// <summary>Unclassified means zero associations (entity-associations.md §4) — a leaf holding only unknown axes is still pile.</summary>
+    private static bool HasAssociations(Dictionary<string, Dictionary<string, EntityTagAssertion>> containers, string container, string name) =>
         container is not null && name is not null
-        && containers.TryGetValue(container, out var leaves) && leaves.ContainsKey(name);
+        && containers.TryGetValue(container, out var leaves) && leaves.TryGetValue(name, out var leaf)
+        && Associations.Of(leaf.Serves, leaf.System, leaf.Stage, leaf.AssertedBy, leaf.AssertedAt).Count > 0;
 
-    private static EntityTagRowDto Row(string kind, string container, string name, EntityTagAssertion assertion, string resolution) => new()
+    private static EntityTagRowDto Row(string kind, string container, string name, EntityTagAssertion assertion, string resolution)
     {
-        Kind = kind,
-        Container = container,
-        Name = name,
-        System = assertion.System ?? [],
-        Stage = assertion.Stage ?? [],
-        AssertedBy = assertion.AssertedBy,
-        AssertedAt = assertion.AssertedAt,
-        Resolution = resolution,
-    };
+        var serves = Associations.Of(assertion.Serves, assertion.System, assertion.Stage, assertion.AssertedBy, assertion.AssertedAt);
+        return new EntityTagRowDto
+        {
+            Kind = kind,
+            Container = container,
+            Name = name,
+            Serves = ToDtos(serves),
+            System = Associations.SystemsOf(serves),
+            Stage = Associations.StagesOf(serves),
+            AssertedBy = assertion.AssertedBy,
+            AssertedAt = assertion.AssertedAt,
+            Resolution = resolution,
+        };
+    }
 }

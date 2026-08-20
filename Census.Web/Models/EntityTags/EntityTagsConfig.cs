@@ -19,8 +19,17 @@ public record EntityTagsConfig
 
 public record EntityTagAssertion
 {
-    public List<string> System { get; init; } = [];
-    public List<string> Stage { get; init; } = [];
+    /// <summary>
+    /// The association shape (entity-associations.md, G-7): stages belong to each system
+    /// claim. Null on legacy leaves — readers interpret the flat axes below as the
+    /// cross-product forever; writers emit this.
+    /// </summary>
+    public List<SystemAssociation> Serves { get; init; }
+
+    // Null (not empty) when absent, so an upgraded leaf's file never re-acquires the flat
+    // axes as empty-array noise — the read-both conversion treats null and empty alike.
+    public List<string> System { get; init; }
+    public List<string> Stage { get; init; }
     public string AssertedBy { get; init; }
     public string AssertedAt { get; init; }
 

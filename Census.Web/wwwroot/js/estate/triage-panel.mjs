@@ -27,6 +27,33 @@ function splitValues(text) {
 
 const ASSERTED_BY_KEY = 'census-asserted-by';
 
+// The read-both rule, client side (entity-associations.md §3): rows and leaves from a
+// backend or file still speaking the flat shape are interpreted as the cross-product
+// they always meant. Writers emit associations only.
+function servesOf(x) {
+    if (x.serves) return x.serves;
+    const systems = x.system ?? [];
+    const stages = x.stage ?? [];
+    if (!systems.length && !stages.length) return [];
+    if (!systems.length) return [{ system: '', stages: [...stages], assertedBy: x.assertedBy, assertedAt: x.assertedAt }];
+    return systems.map((s) => ({ system: s, stages: [...stages], assertedBy: x.assertedBy, assertedAt: x.assertedAt }));
+}
+
+function unionStages(a, b) {
+    const seen = new Set(a.map((v) => v.toLowerCase()));
+    return [...a, ...b.filter((v) => !seen.has(v.toLowerCase()))];
+}
+
+// Upgrade-on-write (entity-associations.md §7.3): the first UI touch converts the whole
+// leaf to associations and drops the flat axes, so a leaf speaks one shape after it.
+// Leaf-level provenance stays as history; new provenance lands on the associations.
+function upgradeLeaf(leaf) {
+    if (!leaf.serves) leaf.serves = servesOf(leaf);
+    delete leaf.system;
+    delete leaf.stage;
+    return leaf.serves;
+}
+
 export class TriagePanel {
     constructor(onChanged, openDetails, openExternalBlast) {
         this.onChanged = onChanged;
@@ -35,7 +62,7 @@ export class TriagePanel {
         this.query = '';
         this.showClassified = false;
         this.selected = new Set();
-        this.editKey = null;            // classified row being edited - overwrite semantics
+        this.editAssoc = null;          // {key, system} - one association being overwritten
         this.system = '';
         this.stage = '';
         this.assertedBy = localStorage.getItem(ASSERTED_BY_KEY) ?? '';
@@ -80,7 +107,7 @@ export class TriagePanel {
             rows.push({
                 key: rowKey(r.kind, m.machine, r.container, r.name),
                 kind: r.kind, machine: m.machine, container: r.container, name: r.name,
-                system: r.system, stage: r.stage, assertedBy: r.assertedBy, assertedAt: r.assertedAt,
+                serves: servesOf(r), assertedBy: r.assertedBy, assertedAt: r.assertedAt,
                 stratum,
             });
         }
@@ -88,11 +115,12 @@ export class TriagePanel {
         // ones sit in the unclassified stratum, tagged ones in classified. They never
         // resolve, so they are never dangling or unverified.
         for (const d of m.declared ?? []) {
+            const serves = servesOf(d);
             rows.push({
                 key: rowKey('declared', m.machine, '', d.name),
                 kind: 'declared', declaredKind: d.kind, machine: m.machine, container: '', name: d.name,
-                system: d.system, stage: d.stage, assertedBy: d.assertedBy, assertedAt: d.assertedAt, note: d.note,
-                stratum: (d.system?.length || d.stage?.length) ? 'classified' : 'unclassified',
+                serves, assertedBy: d.assertedBy, assertedAt: d.assertedAt, note: d.note,
+                stratum: serves.length ? 'classified' : 'unclassified',
             });
         }
         return rows;
@@ -100,19 +128,23 @@ export class TriagePanel {
 
     // External declared entities are rows too — same strata, same bar, no machine.
     externalRows() {
-        return (this.data.external ?? []).map((e) => ({
-            key: rowKey('external', '', '', e.name),
-            kind: 'external', declaredKind: e.kind, machine: '', container: '', name: e.name,
-            system: e.system, stage: e.stage, assertedBy: e.assertedBy, assertedAt: e.assertedAt, note: e.note,
-            endpoints: e.endpoints ?? [],
-            stratum: (e.system?.length || e.stage?.length) ? 'classified' : 'unclassified',
-        }));
+        return (this.data.external ?? []).map((e) => {
+            const serves = servesOf(e);
+            return {
+                key: rowKey('external', '', '', e.name),
+                kind: 'external', declaredKind: e.kind, machine: '', container: '', name: e.name,
+                serves, assertedBy: e.assertedBy, assertedAt: e.assertedAt, note: e.note,
+                endpoints: e.endpoints ?? [],
+                stratum: serves.length ? 'classified' : 'unclassified',
+            };
+        });
     }
 
     matches(row) {
         if (!this.query) return true;
         const endpoints = (row.endpoints ?? []).map((p) => p.identifier).join(' ');
-        return `${row.machine} ${row.container} ${row.name} ${row.declaredKind ?? ''} ${endpoints}`.toLowerCase().includes(this.query);
+        const assocs = (row.serves ?? []).map((a) => `${a.system} ${(a.stages ?? []).join(' ')}`).join(' ');
+        return `${row.machine} ${row.container} ${row.name} ${row.declaredKind ?? ''} ${endpoints} ${assocs}`.toLowerCase().includes(this.query);
     }
 
     shown(row) {
@@ -184,10 +216,6 @@ export class TriagePanel {
 
     renderExternalRow(row) {
         const entity = (this.data.external ?? []).find((e) => e.name === row.name);
-        const chips = [
-            ...(row.system ?? []).map((v) => `<span class="est-badge est-tag-system">${escapeHtml(v)}</span>`),
-            ...(row.stage ?? []).map((v) => `<span class="est-badge">${escapeHtml(v)}</span>`),
-        ].join('');
         const provenance = row.assertedBy || row.assertedAt
             ? `<span class="est-muted est-triage-prov">${escapeHtml([row.assertedBy, row.assertedAt].filter(Boolean).join(' · '))}</span>` : '';
         // Per-identifier attribution state: a zero-match identifier is a config smell shown
@@ -199,16 +227,15 @@ export class TriagePanel {
             return `<div class="est-triage-unknown"><span class="est-mono">${escapeHtml(p.identifier)}</span> · ${state}</div>`;
         }).join('');
         return `
-            <div class="est-triage-row ${this.editKey === row.key ? 'is-editing' : ''}">
+            <div class="est-triage-row ${this.editAssoc?.key === row.key ? 'is-editing' : ''}">
                 <label class="est-check">
                     <input type="checkbox" data-row="${escapeHtml(row.key)}" ${this.selected.has(row.key) ? 'checked' : ''}>
                     <span class="est-triage-name"><span class="est-mono">${escapeHtml(row.name)}</span></span>
                 </label>
                 <span class="est-badge est-badge-declared" ${row.note ? `title="${escapeHtml(row.note)}"` : ''}>${escapeHtml(row.declaredKind ?? 'declared')}</span>
-                ${row.stratum === 'unclassified' ? '<span class="est-tag-none">unclassified</span>' : chips}
+                ${row.stratum === 'unclassified' ? '<span class="est-tag-none">unclassified</span>' : this.assocChips(row, true)}
                 ${provenance}
                 <button class="est-btn est-btn-sm" data-ext-blast="${escapeHtml(row.name)}">Blast radius</button>
-                <button class="est-btn est-btn-sm" data-edit="${escapeHtml(row.key)}">Edit</button>
                 <button class="est-btn est-btn-sm" data-remove="${escapeHtml(row.key)}">Remove</button>
             </div>
             ${endpoints}`;
@@ -297,11 +324,26 @@ export class TriagePanel {
             </div>`;
     }
 
+    // One chip per association: the stages travel with the system claim they belong to
+    // (entity-associations.md). Click a chip to overwrite that association's stages; its ×
+    // retires just that claim, leaving the entity's other systems untouched.
+    assocChips(row, interactive) {
+        return (row.serves ?? []).map((a) => {
+            const label = `${escapeHtml(a.system || '—')}${(a.stages ?? []).length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}`;
+            const prov = `asserted by ${a.assertedBy || 'unknown'}${a.assertedAt ? `, ${a.assertedAt}` : ''}`;
+            if (!interactive) return `<span class="est-badge est-tag-system" title="${escapeHtml(prov)}">${label}</span>`;
+            const payload = escapeHtml(JSON.stringify([row.key, a.system ?? '']));
+            const editing = this.editAssoc && this.editAssoc.key === row.key
+                && this.editAssoc.system.toLowerCase() === (a.system ?? '').toLowerCase();
+            return `
+                <span class="est-badge est-tag-system est-badge-removable ${editing ? 'is-editing' : ''}">
+                    <button class="est-assoc-btn" data-assoc-edit="${payload}" title="${escapeHtml(prov)} — click to edit stages">${label}</button>
+                    <button class="est-chip-x" data-assoc-x="${payload}" aria-label="Remove this system claim">×</button>
+                </span>`;
+        }).join('');
+    }
+
     renderRow(row) {
-        const chips = [
-            ...(row.system ?? []).map((v) => `<span class="est-badge est-tag-system">${escapeHtml(v)}</span>`),
-            ...(row.stage ?? []).map((v) => `<span class="est-badge">${escapeHtml(v)}</span>`),
-        ].join('');
         const provenance = row.assertedBy || row.assertedAt
             ? `<span class="est-muted est-triage-prov">${escapeHtml([row.assertedBy, row.assertedAt].filter(Boolean).join(' · '))}</span>` : '';
 
@@ -309,7 +351,7 @@ export class TriagePanel {
             return `
                 <div class="est-triage-row est-triage-dangling">
                     <span class="est-triage-name"><span class="est-mono">${escapeHtml(row.name)}</span> <span class="est-catfail">no longer observed</span></span>
-                    ${chips}${provenance}
+                    ${this.assocChips(row, false)}${provenance}
                     <button class="est-btn est-btn-sm est-btn-danger" data-remove="${escapeHtml(row.key)}">Remove</button>
                 </div>`;
         }
@@ -317,26 +359,25 @@ export class TriagePanel {
             return `
                 <div class="est-triage-row est-muted">
                     <span class="est-triage-name"><span class="est-mono">${escapeHtml(row.name)}</span> <span class="est-catwarn">unverified</span></span>
-                    ${chips}${provenance}
+                    ${this.assocChips(row, false)}${provenance}
                 </div>`;
         }
         // Removing a declared row un-declares the entity outright — the record is the
-        // assertion, so there is no smaller thing to remove. Edit-with-emptied-axes is the
-        // clear-tags gesture; the record then rejoins the unclassified pile.
-        const actions = row.stratum === 'classified' || row.kind === 'declared'
-            ? `${row.stratum === 'classified' ? `<button class="est-btn est-btn-sm" data-edit="${escapeHtml(row.key)}">Edit</button>` : ''}
-               <button class="est-btn est-btn-sm" data-remove="${escapeHtml(row.key)}">Remove</button>`
+        // assertion, so there is no smaller thing to remove. Chip-level × retires one
+        // system claim; losing the last claim returns the entity to the pile.
+        const actions = row.kind === 'declared'
+            ? `<button class="est-btn est-btn-sm" data-remove="${escapeHtml(row.key)}">Remove</button>`
             : '';
         const declaredBadge = row.kind === 'declared'
             ? `<span class="est-badge est-badge-declared" ${row.note ? `title="${escapeHtml(row.note)}"` : ''}>${escapeHtml(row.declaredKind ?? 'declared')}</span>` : '';
         return `
-            <div class="est-triage-row ${this.editKey === row.key ? 'is-editing' : ''}">
+            <div class="est-triage-row ${this.editAssoc?.key === row.key ? 'is-editing' : ''}">
                 <label class="est-check">
                     <input type="checkbox" data-row="${escapeHtml(row.key)}" ${this.selected.has(row.key) ? 'checked' : ''}>
                     <span class="est-triage-name"><span class="est-mono">${escapeHtml(row.name)}</span></span>
                 </label>
                 ${declaredBadge}
-                ${row.stratum === 'unclassified' ? '<span class="est-tag-none">unclassified</span>' : chips}
+                ${row.stratum === 'unclassified' ? '<span class="est-tag-none">unclassified</span>' : this.assocChips(row, true)}
                 ${provenance}${actions}
             </div>`;
     }
@@ -384,22 +425,27 @@ export class TriagePanel {
             </div>`;
     }
 
+    // The bar asserts ONE association per apply (entity-associations.md §5): a system and
+    // the stages that belong to it. Bulk merges it into every selected entity; editing a
+    // chip overwrites that association's stages, with the system fixed.
     renderBar() {
-        const editing = this.editKey !== null;
+        const editing = this.editAssoc !== null;
         if (!editing && this.selected.size === 0) return '';
         const chipRow = (values, field) => values.map((v) =>
             `<button class="est-btn est-btn-sm" data-suggest="${escapeHtml(field)}" data-value="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join('');
         const target = editing ? 'Save' : `Apply to ${this.selected.size}`;
         return `
             <div class="est-triage-bar">
-                ${editing ? '<div class="est-muted">Editing one assertion — emptied fields clear that axis.</div>' : ''}
+                ${editing
+                    ? '<div class="est-muted">Editing one system claim — the stage list overwrites; emptied means unstaged.</div>'
+                    : '<div class="est-muted">One system, with the stages it serves there — other system claims on the selected entities stay untouched.</div>'}
                 <div class="est-edit-row">
                     <span class="est-facet-key">system</span>
-                    <input class="est-edit-input" data-field="system" value="${escapeHtml(this.system)}" placeholder="comma-separated">
-                    ${chipRow(this.data.systems, 'system')}
+                    <input class="est-edit-input" data-field="system" value="${escapeHtml(this.system)}" placeholder="one system" ${editing ? 'disabled' : ''}>
+                    ${editing ? '' : chipRow(this.data.systems, 'system')}
                 </div>
                 <div class="est-edit-row">
-                    <span class="est-facet-key">stage</span>
+                    <span class="est-facet-key">stages</span>
                     <input class="est-edit-input" data-field="stage" value="${escapeHtml(this.stage)}" placeholder="comma-separated">
                     ${chipRow(this.data.stages, 'stage')}
                 </div>
@@ -432,14 +478,14 @@ export class TriagePanel {
             btn.addEventListener('click', () => this.openDetails(btn.dataset.machine)));
 
         this.container.querySelectorAll('[data-row]').forEach((box) => box.addEventListener('change', () => {
-            this.editKey = null;
+            this.editAssoc = null;
             if (box.checked) this.selected.add(box.dataset.row);
             else this.selected.delete(box.dataset.row);
             this.render();
         }));
 
         this.container.querySelectorAll('[data-group]').forEach((box) => box.addEventListener('change', () => {
-            this.editKey = null;
+            this.editAssoc = null;
             const machine = box.dataset.group;
             const rows = this.visibleRows().filter((r) => r.machine === machine && this.selectable(r));
             rows.forEach((r) => box.checked ? this.selected.add(r.key) : this.selected.delete(r.key));
@@ -447,20 +493,29 @@ export class TriagePanel {
         }));
 
         this.container.querySelectorAll('[data-group-rows]').forEach((box) => box.addEventListener('change', () => {
-            this.editKey = null;
+            this.editAssoc = null;
             const keys = JSON.parse(box.dataset.groupRows);
             keys.forEach((k) => box.checked ? this.selected.add(k) : this.selected.delete(k));
             this.render();
         }));
 
-        this.container.querySelectorAll('[data-edit]').forEach((btn) => btn.addEventListener('click', () => {
-            const key = btn.dataset.edit;
+        this.container.querySelectorAll('[data-assoc-edit]').forEach((btn) => btn.addEventListener('click', () => {
+            const [key, system] = JSON.parse(btn.dataset.assocEdit);
             const row = this.visibleRows().find((r) => r.key === key);
-            this.editKey = key;
+            const assoc = row?.serves.find((a) => (a.system ?? '').toLowerCase() === system.toLowerCase());
+            this.editAssoc = { key, system };
             this.selected.clear();
-            this.system = (row?.system ?? []).join(', ');
-            this.stage = (row?.stage ?? []).join(', ');
+            this.system = system;
+            this.stage = (assoc?.stages ?? []).join(', ');
             this.render();
+        }));
+
+        this.container.querySelectorAll('[data-assoc-x]').forEach((btn) => btn.addEventListener('click', () => {
+            const [key, system] = JSON.parse(btn.dataset.assocX);
+            const [kind, machine, container, name] = JSON.parse(key);
+            const declaredFile = kind === 'declared' || kind === 'external';
+            this.persist({ tags: !declaredFile, declared: declaredFile },
+                (config) => this.removeAssociation(config, kind, machine, container, name, system));
         }));
 
         this.container.querySelectorAll('[data-remove]').forEach((btn) => btn.addEventListener('click', () => {
@@ -514,9 +569,14 @@ export class TriagePanel {
 
         this.container.querySelectorAll('[data-suggest]').forEach((btn) => btn.addEventListener('click', () => {
             const field = btn.dataset.suggest;
-            const values = splitValues(this[field]);
-            if (!values.some((v) => v.toLowerCase() === btn.dataset.value.toLowerCase())) values.push(btn.dataset.value);
-            this[field] = values.join(', ');
+            // The bar asserts one system per apply; a system chip selects, stage chips accumulate.
+            if (field === 'system') {
+                this.system = btn.dataset.value;
+            } else {
+                const values = splitValues(this[field]);
+                if (!values.some((v) => v.toLowerCase() === btn.dataset.value.toLowerCase())) values.push(btn.dataset.value);
+                this[field] = values.join(', ');
+            }
             this.render();
         }));
 
@@ -532,7 +592,7 @@ export class TriagePanel {
         if (this.error) this.container.querySelector('[data-ref="error"]')?.scrollIntoView({ block: 'nearest' });
         this.container.querySelector('[data-act="cancel"]')?.addEventListener('click', () => {
             this.selected.clear();
-            this.editKey = null;
+            this.editAssoc = null;
             this.system = '';
             this.stage = '';
             this.render();
@@ -540,17 +600,34 @@ export class TriagePanel {
     }
 
     async apply() {
-        const systems = splitValues(this.system);
+        const system = this.system.trim();
         const stages = splitValues(this.stage);
-        const editing = this.editKey !== null;
-        if (!editing && systems.length === 0 && stages.length === 0) {
-            this.error = 'Nothing to apply — fill system, stage, or both.';
+        const editing = this.editAssoc !== null;
+
+        if (!editing && !system && stages.length === 0) {
+            this.error = 'Nothing to apply — name a system, or stages for entities that already have exactly one system claim.';
             this.render();
             return;
         }
+        const targets = editing ? [this.editAssoc.key] : [...this.selected];
+
+        // Stage-only apply is only unambiguous when every selected entity has exactly one
+        // association to merge into (entity-associations.md §7.2) — otherwise, whose stages?
+        if (!editing && !system) {
+            const rows = this.visibleRows();
+            const conflicted = targets.map((key) => rows.find((r) => r.key === key))
+                .filter((r) => (r?.serves?.length ?? 0) !== 1);
+            if (conflicted.length > 0) {
+                this.error = 'Stage-only apply needs a system: some selected entities have zero or several system claims, so census cannot know which claim these stages belong to.';
+                this.render();
+                return;
+            }
+        }
+
         localStorage.setItem(ASSERTED_BY_KEY, this.assertedBy);
         const today = new Date().toISOString().slice(0, 10);
-        const targets = editing ? [this.editKey] : [...this.selected];
+        const by = this.assertedBy.trim() || undefined;
+        const rowByKey = new Map(this.visibleRows().map((r) => [r.key, r]));
 
         const kinds = targets.map((key) => JSON.parse(key)[0]);
         const inDeclaredFile = (k) => k === 'declared' || k === 'external';
@@ -558,20 +635,37 @@ export class TriagePanel {
             for (const key of targets) {
                 const [kind, machine, container, name] = JSON.parse(key);
                 const leaf = this.ensureLeaf(config, kind, machine, container, name);
-                // Bulk fills only what was typed; an edit overwrites both axes so an
-                // emptied field clears (triage-workbench.md §8.3). Unknown axes on the
-                // leaf are untouched either way.
-                if (editing || systems.length > 0) leaf.system = systems;
-                if (editing || stages.length > 0) leaf.stage = stages;
-                leaf.assertedBy = this.assertedBy.trim() || undefined;
-                leaf.assertedAt = today;
+                const serves = upgradeLeaf(leaf);
+                const targetSystem = editing ? this.editAssoc.system
+                    : system || (rowByKey.get(key)?.serves[0]?.system ?? '');
+                const i = serves.findIndex((a) => (a.system ?? '').toLowerCase() === targetSystem.toLowerCase());
+                if (i < 0) {
+                    serves.push({ system: targetSystem, stages, assertedBy: by, assertedAt: today });
+                } else {
+                    // Editing overwrites the claim's stages (emptied = unstaged); bulk
+                    // merges — never removing a stage somebody else asserted.
+                    serves[i].stages = editing ? stages : unionStages(serves[i].stages ?? [], stages);
+                    serves[i].assertedBy = by;
+                    serves[i].assertedAt = today;
+                }
             }
         });
         this.selected.clear();
-        this.editKey = null;
+        this.editAssoc = null;
         this.system = '';
         this.stage = '';
         this.render();
+    }
+
+    removeAssociation(config, kind, machine, container, name, system) {
+        const leaf = this.ensureLeaf(config, kind, machine, container, name);
+        const serves = upgradeLeaf(leaf).filter((a) => (a.system ?? '').toLowerCase() !== system.toLowerCase());
+        leaf.serves = serves;
+        // An observed leaf with no claims left asserts nothing — remove it. A declared
+        // record survives untagged: existence is its own assertion (declared-entities.md §10.6).
+        if (serves.length === 0 && kind !== 'declared' && kind !== 'external') {
+            this.removeLeaf(config, kind, machine, container, name);
+        }
     }
 
     ensureLeaf(config, kind, machine, container, name) {
@@ -648,14 +742,23 @@ export class TriagePanel {
         }
         localStorage.setItem(ASSERTED_BY_KEY, this.assertedBy);
         const today = new Date().toISOString().slice(0, 10);
-        const record = () => ({
-            kind: d.kind.trim() || undefined,
-            system: splitValues(d.system),
-            stage: splitValues(d.stage),
-            note: d.note.trim() || undefined,
-            assertedBy: this.assertedBy.trim() || undefined,
-            assertedAt: today,
-        });
+        // Several systems in the form become one association each, all with the typed
+        // stages — the precise per-system split is a chip-edit away in the queue.
+        const by = this.assertedBy.trim() || undefined;
+        const record = () => {
+            const systems = splitValues(d.system);
+            const stages = splitValues(d.stage);
+            // Stages with no system still assert something — one system-less claim.
+            const serves = (systems.length ? systems : (stages.length ? [''] : []))
+                .map((s) => ({ system: s, stages, assertedBy: by, assertedAt: today }));
+            return {
+                kind: d.kind.trim() || undefined,
+                serves,
+                note: d.note.trim() || undefined,
+                assertedBy: by,
+                assertedAt: today,
+            };
+        };
         await this.persist({ tags: false, declared: true }, (config) => {
             if (d.machine === '__external__') {
                 const entities = (config.declared.external ??= {});

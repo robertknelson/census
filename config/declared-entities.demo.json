@@ -4,11 +4,23 @@
     "APPSRV01": {
       "Nightly ETL sweep": {
         "kind": "scheduled-task",
-        "system": [
-          "BillingSvc"
-        ],
-        "stage": [
-          "prod"
+        "serves": [
+          {
+            "system": "BillingSvc",
+            "stages": [
+              "prod"
+            ],
+            "assertedBy": "robert",
+            "assertedAt": "2026-08-20"
+          },
+          {
+            "system": "Reporting",
+            "stages": [
+              "val"
+            ],
+            "assertedBy": "robert",
+            "assertedAt": "2026-08-20"
+          }
         ],
         "note": "Task Scheduler; runs Import-Feeds.ps1 at 02:00",
         "assertedBy": "robert",
@@ -18,8 +30,6 @@
     "WEB01": {
       "Log cleanup": {
         "kind": "scheduled-task",
-        "system": [],
-        "stage": [],
         "assertedBy": "robert",
         "assertedAt": "2026-08-20"
       }
@@ -61,8 +71,6 @@
         "http://telemetry.partner.example.com:9443",
         "sql01.corp.local"
       ],
-      "system": [],
-      "stage": [],
       "assertedBy": "robert",
       "assertedAt": "2026-08-20"
     }

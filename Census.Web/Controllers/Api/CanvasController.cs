@@ -108,7 +108,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
             Owners = owners_,
             Machines = machines,
             ExternalPileCount = attribution.Unresolved.Count
-                + attribution.Entities.Count(e => (e.Entity.System ?? []).Count == 0 && (e.Entity.Stage ?? []).Count == 0),
+                + attribution.Entities.Count(e => Associations.Of(e.Entity.Serves, e.Entity.System, e.Entity.Stage, e.Entity.AssertedBy, e.Entity.AssertedAt).Count == 0),
         });
     }
 }

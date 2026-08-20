@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Census.Web.Models;
 using Census.Web.Models.Api;
 using Census.Web.Models.Census;
 using Census.Web.Models.DeclaredEntities;
@@ -48,18 +49,21 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
             return d;
         }
 
+        // Deployment lines come from the associations, never a cross-product across them
+        // (entity-associations.md §4): MyFancy at dev+val and Other at val yields exactly
+        // three lines, and the Other×dev nobody asserted does not exist.
         var unclassifiedHosted = new List<BlastHostedDto>();
         foreach (var h in hosted)
         {
-            if (h.System.Count == 0 && h.Stage.Count == 0) { unclassifiedHosted.Add(h); continue; }
-            foreach (var (system, stage) in Pairs(h.System, h.Stage)) Deployment(system, stage).Hosted.Add(h);
+            if (h.Serves.Count == 0) { unclassifiedHosted.Add(h); continue; }
+            foreach (var (system, stage) in DtoPairs(h.Serves)) Deployment(system, stage).Hosted.Add(h);
         }
 
         var unclassifiedDependents = new List<BlastDependentDto>();
         foreach (var d in dependents)
         {
-            if (d.System.Count == 0 && d.Stage.Count == 0) { unclassifiedDependents.Add(d); continue; }
-            foreach (var (system, stage) in Pairs(d.System, d.Stage)) Deployment(system, stage).Dependents.Add(d);
+            if (d.Serves.Count == 0) { unclassifiedDependents.Add(d); continue; }
+            foreach (var (system, stage) in DtoPairs(d.Serves)) Deployment(system, stage).Dependents.Add(d);
         }
 
         return Ok(new BlastRadiusDto
@@ -107,13 +111,15 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
             .Select(g =>
             {
                 var assertion = EntityTagsEvaluator.AssertionFor(config.Applications, g.Key.Machine, g.Key.Site, g.Key.Path);
+                var serves = ServesOf(assertion);
                 return new BlastDependentDto
                 {
                     Machine = g.Key.Machine,
                     SiteName = g.Key.Site,
                     AppPath = g.Key.Path,
-                    System = assertion?.System ?? [],
-                    Stage = assertion?.Stage ?? [],
+                    Serves = EntityTagsEvaluator.ToDtos(serves),
+                    System = Associations.SystemsOf(serves),
+                    Stage = Associations.StagesOf(serves),
                     Edges = g.Select(e => new BlastEdgeDto
                     {
                         Name = e.Name,
@@ -130,8 +136,8 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
         var unclassifiedDependents = new List<BlastDependentDto>();
         foreach (var d in dependents)
         {
-            if (d.System.Count == 0 && d.Stage.Count == 0) { unclassifiedDependents.Add(d); continue; }
-            foreach (var (system, stage) in Pairs(d.System, d.Stage))
+            if (d.Serves.Count == 0) { unclassifiedDependents.Add(d); continue; }
+            foreach (var (system, stage) in DtoPairs(d.Serves))
             {
                 var key = (system.ToLowerInvariant(), stage.ToLowerInvariant());
                 if (!deployments.TryGetValue(key, out var dep))
@@ -152,8 +158,8 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
             Machine = entityName,
             SubjectKind = "external",
             SubjectEntityKind = entity.Kind,
-            SubjectSystem = entity.System ?? [],
-            SubjectStage = entity.Stage ?? [],
+            SubjectSystem = Associations.SystemsOf(Associations.Of(entity.Serves, entity.System, entity.Stage, entity.AssertedBy, entity.AssertedAt)),
+            SubjectStage = Associations.StagesOf(Associations.Of(entity.Serves, entity.System, entity.Stage, entity.AssertedBy, entity.AssertedAt)),
             Deployments = deployments.Values
                 .OrderBy(d => d.System, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(d => d.Stage, StringComparer.OrdinalIgnoreCase)
@@ -163,13 +169,12 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
         });
     }
 
-    /// <summary>The cross-product of a contributor's axes — a shared reference database in two systems lands in both.</summary>
-    private static IEnumerable<(string System, string Stage)> Pairs(List<string> systems, List<string> stages)
-    {
-        List<string> left = systems.Count > 0 ? systems : [""];
-        List<string> right = stages.Count > 0 ? stages : [""];
-        return left.SelectMany(_ => right, (system, stage) => (system, stage));
-    }
+    /// <summary>Each association's own (system × stages) pairs — empty stages pair as (system, "").</summary>
+    private static IEnumerable<(string System, string Stage)> DtoPairs(List<AssociationDto> serves) =>
+        serves.SelectMany(a => (a.Stages is { Count: > 0 } ? a.Stages : new List<string> { "" }).Select(s => (a.System ?? "", s)));
+
+    private static List<SystemAssociation> ServesOf(EntityTagAssertion assertion) =>
+        assertion is null ? [] : Associations.Of(assertion.Serves, assertion.System, assertion.Stage, assertion.AssertedBy, assertion.AssertedAt);
 
     private static List<BlastHostedDto> BuildHosted(string machine, CensusEnvelope envelope, EntityTagsConfig config, DeclaredEntitiesConfig declaredConfig)
     {
@@ -182,13 +187,15 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
         {
             foreach (var (name, entity) in declaredHere.OrderBy(e => e.Key, StringComparer.OrdinalIgnoreCase))
             {
+                var serves = Associations.Of(entity.Serves, entity.System, entity.Stage, entity.AssertedBy, entity.AssertedAt);
                 hosted.Add(new BlastHostedDto
                 {
                     Kind = entity.Kind ?? "declared",
                     Container = "",
                     Name = name,
-                    System = entity.System ?? [],
-                    Stage = entity.Stage ?? [],
+                    Serves = EntityTagsEvaluator.ToDtos(serves),
+                    System = Associations.SystemsOf(serves),
+                    Stage = Associations.StagesOf(serves),
                     Declared = true,
                 });
             }
@@ -202,13 +209,15 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
                 foreach (var db in instance.Databases.Where(d => d.DatabaseId is null or > 4))
                 {
                     var assertion = EntityTagsEvaluator.AssertionFor(config.Databases, machine, instance.InstanceName, db.Name);
+                    var serves = ServesOf(assertion);
                     hosted.Add(new BlastHostedDto
                     {
                         Kind = "database",
                         Container = instance.InstanceName ?? "",
                         Name = db.Name,
-                        System = assertion?.System ?? [],
-                        Stage = assertion?.Stage ?? [],
+                        Serves = EntityTagsEvaluator.ToDtos(serves),
+                        System = Associations.SystemsOf(serves),
+                        Stage = Associations.StagesOf(serves),
                     });
                 }
             }
@@ -219,13 +228,15 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
             foreach (var app in envelope.Iis.Data?.Applications ?? [])
             {
                 var assertion = EntityTagsEvaluator.AssertionFor(config.Applications, machine, app.SiteName, app.Path);
+                var serves = ServesOf(assertion);
                 hosted.Add(new BlastHostedDto
                 {
                     Kind = "application",
                     Container = app.SiteName ?? "",
                     Name = app.Path ?? "",
-                    System = assertion?.System ?? [],
-                    Stage = assertion?.Stage ?? [],
+                    Serves = EntityTagsEvaluator.ToDtos(serves),
+                    System = Associations.SystemsOf(serves),
+                    Stage = Associations.StagesOf(serves),
                 });
             }
         }
@@ -275,13 +286,15 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
             .ThenBy(kv => kv.Key.Site, StringComparer.OrdinalIgnoreCase).ThenBy(kv => kv.Key.Path, StringComparer.OrdinalIgnoreCase))
         {
             var assertion = EntityTagsEvaluator.AssertionFor(config.Applications, machine, site, path);
+            var serves = ServesOf(assertion);
             var dto = new BlastDependentDto
             {
                 Machine = machine,
                 SiteName = site,
                 AppPath = path,
-                System = assertion?.System ?? [],
-                Stage = assertion?.Stage ?? [],
+                Serves = EntityTagsEvaluator.ToDtos(serves),
+                System = Associations.SystemsOf(serves),
+                Stage = Associations.StagesOf(serves),
                 Edges = edges,
             };
             // Only every-edge-contradicted is drift-not-impact: one live edge into the

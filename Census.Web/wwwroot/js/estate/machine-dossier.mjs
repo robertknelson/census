@@ -227,18 +227,27 @@ function tagLookup(rows, kind) {
     return byContainer;
 }
 
-/// Asserted system/stage chips for one entity row, or an explicit unclassified mark —
+/// One chip per system claim — the stages travel with the claim they belong to
+/// (entity-associations.md). Rows from an older backend still carry the flat axes and
+/// render as the cross-product they meant.
+function assocChips(source) {
+    const serves = source.serves ?? (source.system ?? []).map((s) => ({
+        system: s, stages: source.stage ?? [], assertedBy: source.assertedBy, assertedAt: source.assertedAt,
+    }));
+    return serves.map((a) => {
+        const title = `asserted by ${a.assertedBy || 'unknown'}${a.assertedAt ? `, ${a.assertedAt}` : ''}`;
+        const label = `${escapeHtml(a.system || '—')}${(a.stages ?? []).length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}`;
+        return `<span class="est-badge est-tag-system" title="${escapeHtml(title)}">${label}</span>`;
+    }).join('');
+}
+
+/// Asserted association chips for one entity row, or an explicit unclassified mark —
 /// absence is signal, so an untagged row must say so rather than render blank.
 function tagChips(lookup, container, name, { markUnclassified = true } = {}) {
     if (!lookup) return '';
     const row = lookup.get(String(container ?? '').toLowerCase())?.get(String(name ?? '').toLowerCase());
     if (!row) return markUnclassified ? '<div class="est-tagline"><span class="est-tag-none">unclassified</span></div>' : '';
-    const title = `asserted by ${row.assertedBy || 'unknown'}${row.assertedAt ? `, ${row.assertedAt}` : ''}`;
-    const chips = [
-        ...(row.system ?? []).map((v) => `<span class="est-badge est-tag-system">${escapeHtml(v)}</span>`),
-        ...(row.stage ?? []).map((v) => `<span class="est-badge est-tag-stage">${escapeHtml(v)}</span>`),
-    ];
-    return `<div class="est-tagline" title="${escapeHtml(title)}">${chips.join('')}</div>`;
+    return `<div class="est-tagline">${assocChips(row)}</div>`;
 }
 
 export function dossierHtml(m, envelope, entityTags = null) {
@@ -488,15 +497,12 @@ export function dossierHtml(m, envelope, entityTags = null) {
             <p class="est-status">Asserted to exist here, never observed — census cannot corroborate these, and says so rather than pretending.</p>
             ${entityTags.declared.map((d) => {
                 const title = `asserted by ${d.assertedBy || 'unknown'}${d.assertedAt ? `, ${d.assertedAt}` : ''}`;
-                const chips = [
-                    ...(d.system ?? []).map((v) => `<span class="est-badge est-tag-system">${escapeHtml(v)}</span>`),
-                    ...(d.stage ?? []).map((v) => `<span class="est-badge est-tag-stage">${escapeHtml(v)}</span>`),
-                ];
+                const chips = assocChips(d);
                 return `
                 <div class="est-blast-row" title="${escapeHtml(title)}">
                     <span class="est-mono">${escapeHtml(d.name)}</span>
                     <span class="est-badge est-badge-declared">${escapeHtml(d.kind ?? 'declared')}</span>
-                    ${chips.length ? chips.join('') : '<span class="est-tag-none">unclassified</span>'}
+                    ${chips || '<span class="est-tag-none">unclassified</span>'}
                     ${d.note ? `<span class="est-muted">${escapeHtml(d.note)}</span>` : ''}
                 </div>`;
             }).join('')}

@@ -442,7 +442,7 @@ export class TriagePanel {
                 <div class="est-edit-row">
                     <span class="est-facet-key">system</span>
                     <input class="est-edit-input" data-field="system" value="${escapeHtml(this.system)}" placeholder="one system" ${editing ? 'disabled' : ''}>
-                    ${editing ? '' : chipRow(this.data.systems, 'system')}
+                    ${editing ? '' : this.systemChips()}
                 </div>
                 <div class="est-edit-row">
                     <span class="est-facet-key">stages</span>
@@ -456,6 +456,18 @@ export class TriagePanel {
                     <button class="est-btn" data-act="cancel">Cancel</button>
                 </div>
             </div>`;
+    }
+
+    // Registered systems lead the picker with their descriptions (systems-registry.md §5.1);
+    // in-use-but-unregistered names follow. Free text stays open — never a restriction.
+    systemChips() {
+        const registered = this.data.registeredSystems ?? [];
+        const registeredNames = new Set(registered.map((r) => r.name.toLowerCase()));
+        const unregistered = (this.data.systems ?? []).filter((s) => !registeredNames.has(s.toLowerCase()));
+        return [
+            ...registered.map((r) => `<button class="est-btn est-btn-sm" data-suggest="system" data-value="${escapeHtml(r.name)}" ${r.description ? `title="${escapeHtml(r.description)}"` : ''}>${escapeHtml(r.name)}</button>`),
+            ...unregistered.map((s) => `<button class="est-btn est-btn-sm" data-suggest="system" data-value="${escapeHtml(s)}" title="in use, not registered">${escapeHtml(s)}</button>`),
+        ].join('');
     }
 
     bind() {

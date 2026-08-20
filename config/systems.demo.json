@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "systems": {
+    "MyWeb": {
+      "description": "The flagship web property, three-stage plus a reference copy",
+      "expectedStages": [
+        "dev",
+        "val",
+        "uat",
+        "prod"
+      ],
+      "note": "UAT is expected but nothing serves it yet - the drift fixture",
+      "assertedBy": "robert",
+      "assertedAt": "2026-08-20"
+    },
+    "YourWeb": {
+      "description": "The second web property - fully expected, no drift",
+      "expectedStages": [
+        "dev",
+        "val",
+        "ref",
+        "prod"
+      ],
+      "assertedBy": "robert",
+      "assertedAt": "2026-08-20"
+    },
+    "Payroll": {
+      "description": "Registered before anything was classified - the zero-member smell",
+      "assertedBy": "robert",
+      "assertedAt": "2026-08-20"
+    }
+  }
+}

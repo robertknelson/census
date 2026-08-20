@@ -49,10 +49,13 @@ pattern:
 - **A registry entry with zero tagged members is a panel smell** ("no entity
   serves this"), the matched-by-0-edges pattern — a config observation, not an
   estate fact.
-- **Expected-stage drift is findings-grade**: `expected-stage-missing` (an
-  expected stage no association carries; medium — someone asserted it should
-  exist) and `unexpected-stage` (a stage in use nobody expected; low —
-  detection, not restriction). Severities provisional as ever.
+- **Expected-stage drift surfaces in the Atlas registry panel** — per system:
+  missing-expected stages and unexpected-in-use stages, from
+  `GET /api/systems/overview`. *Build-discovered deviation from the original
+  findings-grade proposal (ratify):* the findings stream is machine-keyed by
+  design (facets, ownership routing, canvas tiles), and a system-scoped finding
+  has no honest machine to hang on — a pseudo-machine would mint ghost tiles.
+  Drift stays panel-surfaced until/unless the stream grows a system dimension.
 
 ## 4. Surfaces and write flow
 

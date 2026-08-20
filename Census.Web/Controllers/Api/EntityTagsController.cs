@@ -10,7 +10,7 @@ namespace Census.Web.Controllers.Api;
 
 [ApiController]
 [Route("api/entity-tags")]
-public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator evaluator, CensusStore censusStore) : ControllerBase
+public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, SystemsStore systemsStore, EntityTagsEvaluator evaluator, CensusStore censusStore) : ControllerBase
 {
     [HttpGet]
     public ActionResult<EntityTagsConfig> Get() => Ok(entityTagsStore.Load());
@@ -118,6 +118,10 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
             Machines = machines.OrderBy(m => m.Machine, StringComparer.OrdinalIgnoreCase).ToList(),
             Systems = Associations.SystemsOf(allServes),
             Stages = Associations.StagesOf(allServes),
+            RegisteredSystems = systemsStore.Load().Systems
+                .OrderBy(s => s.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(s => new RegisteredSystemDto { Name = s.Key, Description = s.Value.Description })
+                .ToList(),
             // Untagged external entities and unresolved endpoints are pile too
             // (declared-entities.md §6) — the chip must not understate the queue.
             UnclassifiedTotal = machines.Sum(m => m.UnclassifiedCount)

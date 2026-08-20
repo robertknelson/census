@@ -65,6 +65,10 @@ public record TriageDto
     /// <summary>Distinct values already in use — suggestion chips, never a restriction.</summary>
     public List<string> Systems { get; init; } = [];
     public List<string> Stages { get; init; } = [];
+
+    /// <summary>Registry-backed picker spine (systems-registry.md §5.1): registered names first, described.</summary>
+    public List<RegisteredSystemDto> RegisteredSystems { get; init; } = [];
+
     public int UnclassifiedTotal { get; init; }
 
     /// <summary>Declared-entity kinds in use plus the stock suggestions — chips for the declare form.</summary>
@@ -78,6 +82,12 @@ public record TriageDto
 
     /// <summary>Observed edges whose target is no estate machine and no declared identifier — pile.</summary>
     public List<UnresolvedEndpointDto> UnresolvedEndpoints { get; init; } = [];
+}
+
+public record RegisteredSystemDto
+{
+    public required string Name { get; init; }
+    public string Description { get; init; }
 }
 
 public record ExternalEntityDto

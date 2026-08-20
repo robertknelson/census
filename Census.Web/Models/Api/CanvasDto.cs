@@ -38,4 +38,11 @@ public record CanvasDto
     public OwnershipInfoDto Ownership { get; init; }
     public List<CanvasOwnerDto> Owners { get; init; } = [];
     public List<CanvasMachineDto> Machines { get; init; } = [];
+
+    /// <summary>
+    /// Fleet-level pile the machine counts cannot carry: untagged external declared
+    /// entities plus unresolved endpoints (declared-entities.md §6). The Triage chip adds
+    /// this so the queue is never understated.
+    /// </summary>
+    public int ExternalPileCount { get; init; }
 }

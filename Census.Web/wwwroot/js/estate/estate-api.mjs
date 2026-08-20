@@ -48,6 +48,10 @@ export function fetchBlastRadius(machine) {
     return getJson(`/api/blast-radius/${encodeURIComponent(machine)}`);
 }
 
+export function fetchBlastRadiusExternal(name) {
+    return getJson(`/api/blast-radius/external/${encodeURIComponent(name)}`);
+}
+
 export function fetchTriage() {
     return getJson('/api/entity-tags/triage');
 }

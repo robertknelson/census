@@ -50,9 +50,11 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
             .ToList();
 
         var machines = new List<CanvasMachineDto>();
+        var snapshots = new List<(string Machine, Models.Census.CensusEnvelope Envelope)>();
         foreach (var machine in universe)
         {
             var envelope = asOfDate is { } day ? censusStore.GetSnapshotAsOf(machine, day) : censusStore.GetLatestSnapshot(machine);
+            if (envelope is not null) snapshots.Add((machine, envelope));
             var entry = assets.Assets.GetValueOrDefault(machine);
             var facets = assetsStore.FacetsFor(assets, machine);
             var owners = assetsStore.OwnershipValuesFor(assets, machine);
@@ -97,12 +99,16 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
             .ThenBy(o => o.Value, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
+        var attribution = ExternalAttribution.Compute(snapshots, declaredEntities, HostResolver.BuildIndex(snapshots));
+
         var config = assets.Ownership;
         return Ok(new CanvasDto
         {
             Ownership = config is null ? null : new OwnershipInfoDto { Key = config.Key, Label = config.Label },
             Owners = owners_,
             Machines = machines,
+            ExternalPileCount = attribution.Unresolved.Count
+                + attribution.Entities.Count(e => (e.Entity.System ?? []).Count == 0 && (e.Entity.Stage ?? []).Count == 0),
         });
     }
 }

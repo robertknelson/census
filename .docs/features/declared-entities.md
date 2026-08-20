@@ -241,7 +241,23 @@ concurrency. Hand-editing remains a first-class write path.
 > only by entity-tags/declared-entities, so their dangling findings existed in
 > the stream but never rendered — OLDBATCH01 now draws as a ghost tile carrying
 > `dangling-declared-entity` (a pre-existing hole for entity-tags too).
-> Slice B branches (external, attribution) pending that build.
+> **Slice B executed 2026-08-20, all green.** Fixtures: `Partner Payments API`
+> (portless identifier matched WEB01:443 *and* the planted WEB02:8443 edge — the
+> §10.7 loose rule; `api-backup` identifier "matched by 0 edges" smell) and
+> `Partner Telemetry` (untagged → pile; `:9443` identifier matched only its port
+> while the planted `:9080` edge stayed unresolved; `sql01.corp.local` identifier
+> rendered *shadows SQL01 — the machine wins*). The unresolved stratum listed six
+> targets verbatim including `https://portal.example.com` — a WEB01 site name the
+> host index rightly does not resolve (bindings are §11.7's deferred territory),
+> demonstrating verbatim-no-matching honestly. Live: the attribute gesture created
+> `Billing Provider` from a row's input and the row left the pile; the declare
+> form's external anchor wrote a full record; the fleet chip read 29
+> (22 + 1 untagged external + 6 unresolved) fed by the canvas's new
+> `externalPileCount`; `GET /api/blast-radius/external/Partner Payments API`
+> answered `OrderPortal × prod → WEB01 portal.example.com/` (after a live classify,
+> then reverted) with WEB02's dependent stated as unclassified, every edge badged
+> *declared target*, never a verdict; DEVSQLBOX's machine answer byte-matched its
+> slice-3 lines after the change.
 
 The verification constraint holds: fixtures are the coverage. Demo tree additions
 (`config/declared-entities.demo.json`, plus planted edges in the fixture

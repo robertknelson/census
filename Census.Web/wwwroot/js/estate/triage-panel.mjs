@@ -28,9 +28,10 @@ function splitValues(text) {
 const ASSERTED_BY_KEY = 'census-asserted-by';
 
 export class TriagePanel {
-    constructor(onChanged, openDetails) {
+    constructor(onChanged, openDetails, openExternalBlast) {
         this.onChanged = onChanged;
         this.openDetails = openDetails;
+        this.openExternalBlast = openExternalBlast;
         this.query = '';
         this.showClassified = false;
         this.selected = new Set();
@@ -40,7 +41,7 @@ export class TriagePanel {
         this.assertedBy = localStorage.getItem(ASSERTED_BY_KEY) ?? '';
         this.error = null;
         this.declaring = false;
-        this.declare = { machine: '', name: '', kind: '', system: '', stage: '', note: '' };
+        this.declare = { machine: '', name: '', kind: '', system: '', stage: '', note: '', endpoints: '' };
     }
 
     async mount(container) {
@@ -94,9 +95,21 @@ export class TriagePanel {
         return rows;
     }
 
+    // External declared entities are rows too — same strata, same bar, no machine.
+    externalRows() {
+        return (this.data.external ?? []).map((e) => ({
+            key: rowKey('external', '', '', e.name),
+            kind: 'external', declaredKind: e.kind, machine: '', container: '', name: e.name,
+            system: e.system, stage: e.stage, assertedBy: e.assertedBy, assertedAt: e.assertedAt, note: e.note,
+            endpoints: e.endpoints ?? [],
+            stratum: (e.system?.length || e.stage?.length) ? 'classified' : 'unclassified',
+        }));
+    }
+
     matches(row) {
         if (!this.query) return true;
-        return `${row.machine} ${row.container} ${row.name} ${row.declaredKind ?? ''}`.toLowerCase().includes(this.query);
+        const endpoints = (row.endpoints ?? []).map((p) => p.identifier).join(' ');
+        return `${row.machine} ${row.container} ${row.name} ${row.declaredKind ?? ''} ${endpoints}`.toLowerCase().includes(this.query);
     }
 
     shown(row) {
@@ -107,6 +120,7 @@ export class TriagePanel {
     visibleRows() {
         return this.data.machines
             .flatMap((m) => this.machineRows(m))
+            .concat(this.externalRows())
             .filter((r) => this.shown(r) && this.matches(r));
     }
 
@@ -145,9 +159,85 @@ export class TriagePanel {
                 ${this.renderDeclareForm()}
                 <div data-ref="error">${this.error ? `<p class="est-status est-error">${escapeHtml(this.error)}</p>` : ''}</div>
                 ${machines || '<p class="est-status">Nothing to triage — everything observed is classified. The pile is empty.</p>'}
+                ${this.renderExternalCard()}
+                ${this.renderUnresolvedCard()}
                 ${this.renderBar()}
             </div>`;
         this.bind();
+    }
+
+    renderExternalCard() {
+        const rows = this.externalRows().filter((r) => this.shown(r) && this.matches(r));
+        if (rows.length === 0) return '';
+        return `
+            <div class="est-subcard">
+                <div class="est-subcard-head">
+                    <span class="est-mono">external</span>
+                    <span class="est-muted">declared entities census can never see</span>
+                </div>
+                ${rows.map((r) => this.renderExternalRow(r)).join('')}
+            </div>`;
+    }
+
+    renderExternalRow(row) {
+        const entity = (this.data.external ?? []).find((e) => e.name === row.name);
+        const chips = [
+            ...(row.system ?? []).map((v) => `<span class="est-badge est-tag-system">${escapeHtml(v)}</span>`),
+            ...(row.stage ?? []).map((v) => `<span class="est-badge">${escapeHtml(v)}</span>`),
+        ].join('');
+        const provenance = row.assertedBy || row.assertedAt
+            ? `<span class="est-muted est-triage-prov">${escapeHtml([row.assertedBy, row.assertedAt].filter(Boolean).join(' · '))}</span>` : '';
+        // Per-identifier attribution state: a zero-match identifier is a config smell shown
+        // next to where the mistake was made, a shadow says the estate machine won.
+        const endpoints = (entity?.endpoints ?? []).map((p) => {
+            const state = p.shadowsMachine ? `<span class="est-catfail">shadows ${escapeHtml(p.shadowsMachine)} — the machine wins</span>`
+                : p.matchedEdges === 0 ? '<span class="est-catwarn">matched by 0 edges</span>'
+                : `<span class="est-muted">${p.matchedEdges} edge${p.matchedEdges === 1 ? '' : 's'}</span>`;
+            return `<div class="est-triage-unknown"><span class="est-mono">${escapeHtml(p.identifier)}</span> · ${state}</div>`;
+        }).join('');
+        return `
+            <div class="est-triage-row ${this.editKey === row.key ? 'is-editing' : ''}">
+                <label class="est-check">
+                    <input type="checkbox" data-row="${escapeHtml(row.key)}" ${this.selected.has(row.key) ? 'checked' : ''}>
+                    <span class="est-triage-name"><span class="est-mono">${escapeHtml(row.name)}</span></span>
+                </label>
+                <span class="est-badge est-badge-declared" ${row.note ? `title="${escapeHtml(row.note)}"` : ''}>${escapeHtml(row.declaredKind ?? 'declared')}</span>
+                ${row.stratum === 'unclassified' ? '<span class="est-tag-none">unclassified</span>' : chips}
+                ${provenance}
+                <button class="est-btn est-btn-sm" data-ext-blast="${escapeHtml(row.name)}">Blast radius</button>
+                <button class="est-btn est-btn-sm" data-edit="${escapeHtml(row.key)}">Edit</button>
+                <button class="est-btn est-btn-sm" data-remove="${escapeHtml(row.key)}">Remove</button>
+            </div>
+            ${endpoints}`;
+    }
+
+    renderUnresolvedCard() {
+        const groups = (this.data.unresolvedEndpoints ?? []).filter((u) => !this.query
+            || `${u.target} ${u.edges.map((e) => `${e.machine} ${e.name ?? ''}`).join(' ')}`.toLowerCase().includes(this.query));
+        if (groups.length === 0) return '';
+        return `
+            <div class="est-subcard">
+                <div class="est-subcard-head">
+                    <span class="est-mono">unresolved endpoints</span>
+                    <span class="est-muted">observed edges pointing at no machine and no declared entity</span>
+                </div>
+                ${groups.map((u) => {
+                    const sources = u.edges.map((e) => `${e.machine} · ${e.siteName ?? ''}${e.appPath ?? ''} · ${e.name ?? ''} (${e.sourceFile ?? ''})`).join('\n');
+                    return `
+                    <div class="est-triage-row">
+                        <span class="est-triage-name" title="${escapeHtml(sources)}">
+                            <span class="est-mono">${escapeHtml(u.target)}</span>
+                            <span class="est-badge">${escapeHtml(u.kind)}</span>
+                            <span class="est-muted">${u.edges.length} edge${u.edges.length === 1 ? '' : 's'}</span>
+                        </span>
+                        <input class="est-edit-input" data-attr-input="${escapeHtml(u.target)}" list="est-external-names" placeholder="entity name…" style="max-width:14rem">
+                        <button class="est-btn est-btn-sm" data-attr-target="${escapeHtml(u.target)}">Attribute</button>
+                    </div>`;
+                }).join('')}
+                <datalist id="est-external-names">
+                    ${(this.data.external ?? []).map((e) => `<option value="${escapeHtml(e.name)}">`).join('')}
+                </datalist>
+            </div>`;
     }
 
     renderMachine(m, rows) {
@@ -240,8 +330,8 @@ export class TriagePanel {
     }
 
     // Declaring is the human explaining a gap census cannot see into (declared-entities.md
-    // §6) — a scheduled task, a service — anchored to an observed machine. Machine-anchored
-    // only in this slice; external entities arrive with attribution (slice B).
+    // §6) — a scheduled task on an observed machine, or an external entity carrying the
+    // endpoint identifiers observed edges attribute to.
     renderDeclareForm() {
         if (!this.declaring) return '';
         const d = this.declare;
@@ -249,9 +339,10 @@ export class TriagePanel {
             <div class="est-triage-bar" data-ref="declare-form">
                 <div class="est-muted">Declare an entity census does not observe. Existence is the assertion — it is never corroborated.</div>
                 <div class="est-edit-row">
-                    <span class="est-facet-key">machine</span>
+                    <span class="est-facet-key">anchor</span>
                     <select class="est-edit-input" data-dec="machine">
                         <option value="">choose…</option>
+                        <option value="__external__" ${d.machine === '__external__' ? 'selected' : ''}>external — no machine</option>
                         ${this.data.machineNames.map((m) => `<option value="${escapeHtml(m)}" ${m === d.machine ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('')}
                     </select>
                     <span class="est-facet-key">name</span>
@@ -260,6 +351,11 @@ export class TriagePanel {
                     <input class="est-edit-input" data-dec="kind" value="${escapeHtml(d.kind)}" list="est-declare-kinds" placeholder="free-form" style="max-width:10rem">
                     <datalist id="est-declare-kinds">${this.data.kinds.map((k) => `<option value="${escapeHtml(k)}">`).join('')}</datalist>
                 </div>
+                ${d.machine === '__external__' ? `
+                <div class="est-edit-row">
+                    <span class="est-facet-key">endpoints</span>
+                    <input class="est-edit-input" data-dec="endpoints" value="${escapeHtml(d.endpoints)}" placeholder="comma-separated — scheme://host[:port] for http, host[:port] for database (optional)">
+                </div>` : ''}
                 <div class="est-edit-row">
                     <span class="est-facet-key">system</span>
                     <input class="est-edit-input" data-dec="system" value="${escapeHtml(d.system)}" placeholder="comma-separated (optional)">
@@ -357,8 +453,33 @@ export class TriagePanel {
 
         this.container.querySelectorAll('[data-remove]').forEach((btn) => btn.addEventListener('click', () => {
             const [kind, machine, container, name] = JSON.parse(btn.dataset.remove);
-            this.persist({ tags: kind !== 'declared', declared: kind === 'declared' },
+            const declaredFile = kind === 'declared' || kind === 'external';
+            this.persist({ tags: !declaredFile, declared: declaredFile },
                 (config) => this.removeLeaf(config, kind, machine, container, name));
+        }));
+
+        this.container.querySelectorAll('[data-ext-blast]').forEach((btn) =>
+            btn.addEventListener('click', () => this.openExternalBlast?.(btn.dataset.extBlast)));
+
+        // The reconcile gesture (declared-entities.md §4): appending the observed target to
+        // an entity's identifiers IS the attribution — the mechanical join does the rest.
+        this.container.querySelectorAll('[data-attr-target]').forEach((btn) => btn.addEventListener('click', () => {
+            const target = btn.dataset.attrTarget;
+            const input = this.container.querySelector(`[data-attr-input="${CSS.escape(target)}"]`);
+            const entityName = input?.value.trim();
+            if (!entityName) {
+                this.error = 'Name the external entity this endpoint belongs to — an existing one, or a new name to declare it.';
+                this.render();
+                return;
+            }
+            const today = new Date().toISOString().slice(0, 10);
+            this.persist({ tags: false, declared: true }, (config) => {
+                const entities = (config.declared.external ??= {});
+                const key = findKey(entities, entityName);
+                const record = (entities[key] ??= { assertedBy: this.assertedBy.trim() || undefined, assertedAt: today });
+                const endpoints = (record.endpoints ??= []);
+                if (!endpoints.some((e) => e.toLowerCase() === target.toLowerCase())) endpoints.push(target);
+            });
         }));
 
         this.container.querySelector('[data-act="declare-toggle"]')?.addEventListener('click', () => {
@@ -369,6 +490,8 @@ export class TriagePanel {
         this.container.querySelectorAll('[data-dec]').forEach((input) => input.addEventListener('input', () => {
             if (input.dataset.dec === 'by') this.assertedBy = input.value;
             else this.declare[input.dataset.dec] = input.value;
+            // The endpoints row only exists for the external anchor — swap it in as chosen.
+            if (input.dataset.dec === 'machine') this.render();
         }));
 
         this.container.querySelector('[data-act="declare-save"]')?.addEventListener('click', () => this.saveDeclaration());
@@ -410,7 +533,8 @@ export class TriagePanel {
         const targets = editing ? [this.editKey] : [...this.selected];
 
         const kinds = targets.map((key) => JSON.parse(key)[0]);
-        await this.persist({ tags: kinds.some((k) => k !== 'declared'), declared: kinds.some((k) => k === 'declared') }, (config) => {
+        const inDeclaredFile = (k) => k === 'declared' || k === 'external';
+        await this.persist({ tags: kinds.some((k) => !inDeclaredFile(k)), declared: kinds.some(inDeclaredFile) }, (config) => {
             for (const key of targets) {
                 const [kind, machine, container, name] = JSON.parse(key);
                 const leaf = this.ensureLeaf(config, kind, machine, container, name);
@@ -432,10 +556,14 @@ export class TriagePanel {
 
     ensureLeaf(config, kind, machine, container, name) {
         // A declared entity's record is its own leaf — assert axes onto it in
-        // declared-entities.json; kind and note are untouched by a classify.
+        // declared-entities.json; kind, note and endpoints are untouched by a classify.
         if (kind === 'declared') {
             const tree = (config.declared.onMachines ??= {});
             const entities = (tree[findKey(tree, machine)] ??= {});
+            return (entities[findKey(entities, name)] ??= {});
+        }
+        if (kind === 'external') {
+            const entities = (config.declared.external ??= {});
             return (entities[findKey(entities, name)] ??= {});
         }
         const tree = kind === 'database' ? (config.tags.databases ??= {}) : (config.tags.applications ??= {});
@@ -453,6 +581,10 @@ export class TriagePanel {
             if (entities) delete entities[findKey(entities, name)];
             return;
         }
+        if (kind === 'external') {
+            if (config.declared.external) delete config.declared.external[findKey(config.declared.external, name)];
+            return;
+        }
         const tree = kind === 'database' ? config.tags.databases : config.tags.applications;
         const containers = tree?.[findKey(tree, machine)];
         const leaves = containers?.[findKey(containers, container)];
@@ -462,29 +594,37 @@ export class TriagePanel {
     async saveDeclaration() {
         const d = this.declare;
         if (!d.machine || !d.name.trim()) {
-            this.error = 'A declaration needs a machine and a name.';
+            this.error = 'A declaration needs an anchor and a name.';
             this.render();
             return;
         }
         localStorage.setItem(ASSERTED_BY_KEY, this.assertedBy);
         const today = new Date().toISOString().slice(0, 10);
+        const record = () => ({
+            kind: d.kind.trim() || undefined,
+            system: splitValues(d.system),
+            stage: splitValues(d.stage),
+            note: d.note.trim() || undefined,
+            assertedBy: this.assertedBy.trim() || undefined,
+            assertedAt: today,
+        });
         await this.persist({ tags: false, declared: true }, (config) => {
+            if (d.machine === '__external__') {
+                const entities = (config.declared.external ??= {});
+                const nameKey = findKey(entities, d.name.trim());
+                if (entities[nameKey]) throw new Error(`"${nameKey}" is already declared — edit it in the queue instead.`);
+                entities[nameKey] = { ...record(), endpoints: splitValues(d.endpoints) };
+                return;
+            }
             const tree = (config.declared.onMachines ??= {});
             const entities = (tree[findKey(tree, d.machine)] ??= {});
             const nameKey = findKey(entities, d.name.trim());
             if (entities[nameKey]) throw new Error(`${d.machine} already declares "${nameKey}" — edit it in the queue instead.`);
-            entities[nameKey] = {
-                kind: d.kind.trim() || undefined,
-                system: splitValues(d.system),
-                stage: splitValues(d.stage),
-                note: d.note.trim() || undefined,
-                assertedBy: this.assertedBy.trim() || undefined,
-                assertedAt: today,
-            };
+            entities[nameKey] = record();
         });
         if (!this.error) {
             this.declaring = false;
-            this.declare = { machine: '', name: '', kind: '', system: '', stage: '', note: '' };
+            this.declare = { machine: '', name: '', kind: '', system: '', stage: '', note: '', endpoints: '' };
             this.render();
         }
     }

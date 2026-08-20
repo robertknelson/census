@@ -9,7 +9,15 @@ namespace Census.Web.Models.Api;
 /// </summary>
 public record BlastRadiusDto
 {
+    /// <summary>The subject's name — a machine, or an external declared entity (SubjectKind says which).</summary>
     public required string Machine { get; init; }
+
+    public string SubjectKind { get; init; } = "machine";   // machine | external
+
+    /// <summary>External subject only: the declared entity's own kind and tags, for the header.</summary>
+    public string SubjectEntityKind { get; init; }
+    public List<string> SubjectSystem { get; init; } = [];
+    public List<string> SubjectStage { get; init; } = [];
     public List<BlastDeploymentDto> Deployments { get; init; } = [];
     public List<BlastHostedDto> UnclassifiedHosted { get; init; } = [];
     public List<BlastDependentDto> UnclassifiedDependents { get; init; } = [];

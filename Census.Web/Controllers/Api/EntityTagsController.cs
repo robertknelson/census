@@ -43,13 +43,47 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
         var config = entityTagsStore.Load();
         var declaredConfig = declaredEntitiesStore.Load();
         var machines = new List<MachineEntityTagsDto>();
+        var snapshots = new List<(string Machine, Models.Census.CensusEnvelope Envelope)>();
         foreach (var machine in censusStore.GetMachineDirs())
         {
             var envelope = censusStore.GetLatestSnapshot(machine);
             if (envelope is null) continue;
+            snapshots.Add((machine, envelope));
             var dto = evaluator.Evaluate(machine, envelope, config, declaredConfig);
             if (dto.Rows.Count > 0 || dto.Unclassified.Count > 0 || dto.Unknown.Count > 0 || dto.Declared.Count > 0) machines.Add(dto);
         }
+
+        var attribution = ExternalAttribution.Compute(snapshots, declaredConfig, HostResolver.BuildIndex(snapshots));
+        var external = attribution.Entities.Select(e => new ExternalEntityDto
+        {
+            Name = e.Name,
+            Kind = e.Entity.Kind,
+            System = e.Entity.System ?? [],
+            Stage = e.Entity.Stage ?? [],
+            Note = e.Entity.Note,
+            AssertedBy = e.Entity.AssertedBy,
+            AssertedAt = e.Entity.AssertedAt,
+            Endpoints = e.Identifiers.Select(i => new EndpointMatchDto
+            {
+                Identifier = i.Identifier,
+                MatchedEdges = i.Edges.Count,
+                ShadowsMachine = i.ShadowsMachine,
+            }).ToList(),
+            MatchedEdgeCount = e.AllEdges.Count,
+        }).ToList();
+        var unresolved = attribution.Unresolved.Select(u => new UnresolvedEndpointDto
+        {
+            Kind = u.Kind,
+            Target = u.Target,
+            Edges = u.Edges.Select(e => new UnresolvedEdgeDto
+            {
+                Machine = e.Machine,
+                SiteName = e.SiteName,
+                AppPath = e.AppPath,
+                Name = e.Name,
+                SourceFile = e.SourceFile,
+            }).ToList(),
+        }).ToList();
 
         var leaves = config.Databases.Values.Concat(config.Applications.Values)
             .SelectMany(containers => containers.Values)
@@ -74,7 +108,13 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
             Machines = machines.OrderBy(m => m.Machine, StringComparer.OrdinalIgnoreCase).ToList(),
             Systems = leaves.SelectMany(l => l.System ?? new List<string>()).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
             Stages = leaves.SelectMany(l => l.Stage ?? new List<string>()).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
-            UnclassifiedTotal = machines.Sum(m => m.UnclassifiedCount),
+            // Untagged external entities and unresolved endpoints are pile too
+            // (declared-entities.md §6) — the chip must not understate the queue.
+            UnclassifiedTotal = machines.Sum(m => m.UnclassifiedCount)
+                + external.Count(e => e.System.Count == 0 && e.Stage.Count == 0)
+                + unresolved.Count,
+            External = external,
+            UnresolvedEndpoints = unresolved,
             Kinds = kinds,
             MachineNames = censusStore.GetMachineDirs()
                 .Concat(censusStore.GetMachinesConfig().Names)

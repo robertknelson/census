@@ -71,6 +71,49 @@ public record TriageDto
 
     /// <summary>Every machine the estate knows — the declare gesture's anchor picker.</summary>
     public List<string> MachineNames { get; init; } = [];
+
+    /// <summary>External declared entities with their attribution state (declared-entities.md §4/§6).</summary>
+    public List<ExternalEntityDto> External { get; init; } = [];
+
+    /// <summary>Observed edges whose target is no estate machine and no declared identifier — pile.</summary>
+    public List<UnresolvedEndpointDto> UnresolvedEndpoints { get; init; } = [];
+}
+
+public record ExternalEntityDto
+{
+    public required string Name { get; init; }
+    public string Kind { get; init; }
+    public List<string> System { get; init; } = [];
+    public List<string> Stage { get; init; } = [];
+    public string Note { get; init; }
+    public string AssertedBy { get; init; }
+    public string AssertedAt { get; init; }
+    public List<EndpointMatchDto> Endpoints { get; init; } = [];
+    public int MatchedEdgeCount { get; init; }
+}
+
+/// <summary>Per-identifier attribution: 0 matches reads as a config smell, a shadow says the machine won.</summary>
+public record EndpointMatchDto
+{
+    public required string Identifier { get; init; }
+    public int MatchedEdges { get; init; }
+    public string ShadowsMachine { get; init; }
+}
+
+public record UnresolvedEndpointDto
+{
+    public required string Kind { get; init; }        // database | http
+    public required string Target { get; init; }      // normalized, verbatim from the edge — also the identifier the attribute gesture appends
+    public List<UnresolvedEdgeDto> Edges { get; init; } = [];
+}
+
+public record UnresolvedEdgeDto
+{
+    public required string Machine { get; init; }
+    public string SiteName { get; init; }
+    public string AppPath { get; init; }
+    public string Name { get; init; }
+    public string SourceFile { get; init; }
 }
 
 public record EntityTagRowDto

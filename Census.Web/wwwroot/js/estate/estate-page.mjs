@@ -269,7 +269,10 @@ class EstatePage {
     }
 
     renderTriageButton() {
-        const total = this.data.machines.reduce((n, m) => n + (m.unclassifiedEntityCount ?? 0), 0);
+        // Machine piles plus the fleet-level pile machines cannot carry: untagged external
+        // entities and unresolved endpoints (declared-entities.md §6).
+        const total = this.data.machines.reduce((n, m) => n + (m.unclassifiedEntityCount ?? 0), 0)
+            + (this.data.externalPileCount ?? 0);
         this.triageBtnEl.hidden = false;
         this.triageBtnEl.innerHTML = total === 0
             ? 'Triage · clear'
@@ -612,8 +615,20 @@ class EstatePage {
             // Tags moved: rollups, chips, the pile count and findings all shift with them.
             this.data = await fetchCanvas(this.asOf);
             this.renderAll();
-        }, (machine) => this.openDetails(machine))
+        }, (machine) => this.openDetails(machine), (name) => this.openExternalBlastRadius(name))
             .mount(this.panelEl.querySelector('[data-ref="triage"]'));
+    }
+
+    openExternalBlastRadius(name) {
+        this.panel = { type: 'blast-external', name };
+        this.panelShell(
+            `Blast radius <span class="est-mono">${escapeHtml(name)}</span>`,
+            'If this external entity goes down: applications whose observed edges attribute to its declared identifiers. The target exists on a human\'s word — nothing here is corroborated.',
+            '<div data-ref="blast"></div>');
+        this.openPanel();
+
+        new BlastRadiusPanel({ kind: 'external', name }, (machine) => this.openDetails(machine), () => this.openTriage())
+            .mount(this.panelEl.querySelector('[data-ref="blast"]'));
     }
 
     openBlastRadius(machineName) {

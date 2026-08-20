@@ -76,6 +76,93 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
         });
     }
 
+    // "The partner API dies — what breaks?" (declared-entities.md §7): dependents are
+    // applications whose observed edges attribute to the entity's declared identifiers.
+    // Nothing observed is hosted *on* an external entity, and no edge into one can be
+    // corroborated — the target exists on the human's word, so every edge says "declared".
+    [HttpGet("external/{name}")]
+    public ActionResult<BlastRadiusDto> GetExternal(string name)
+    {
+        var declaredConfig = declaredEntitiesStore.Load();
+        var entityName = declaredConfig.External.Keys.FirstOrDefault(k => string.Equals(k, name, StringComparison.OrdinalIgnoreCase));
+        if (entityName is null) return NotFound();
+        var entity = declaredConfig.External[entityName];
+
+        var snapshots = new List<(string Machine, CensusEnvelope Envelope)>();
+        foreach (var dir in censusStore.GetMachineDirs())
+        {
+            var envelope = censusStore.GetLatestSnapshot(dir);
+            if (envelope is not null) snapshots.Add((dir, envelope));
+        }
+
+        var config = entityTagsStore.Load();
+        var attribution = ExternalAttribution.Compute(snapshots, declaredConfig, HostResolver.BuildIndex(snapshots));
+        var mine = attribution.Entities.First(e => string.Equals(e.Name, entityName, StringComparison.OrdinalIgnoreCase));
+
+        var dependents = mine.AllEdges
+            .GroupBy(e => (Machine: e.Machine, Site: e.SiteName ?? "", Path: e.AppPath ?? ""))
+            .OrderBy(g => g.Key.Machine, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(g => g.Key.Site, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(g => g.Key.Path, StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                var assertion = EntityTagsEvaluator.AssertionFor(config.Applications, g.Key.Machine, g.Key.Site, g.Key.Path);
+                return new BlastDependentDto
+                {
+                    Machine = g.Key.Machine,
+                    SiteName = g.Key.Site,
+                    AppPath = g.Key.Path,
+                    System = assertion?.System ?? [],
+                    Stage = assertion?.Stage ?? [],
+                    Edges = g.Select(e => new BlastEdgeDto
+                    {
+                        Name = e.Name,
+                        Database = e.Database,
+                        SourceFile = e.SourceFile,
+                        Verdict = "declared",
+                        Detail = $"target {e.Target} — declared, never corroborated",
+                    }).ToList(),
+                };
+            })
+            .ToList();
+
+        var deployments = new Dictionary<(string System, string Stage), BlastDeploymentDto>();
+        var unclassifiedDependents = new List<BlastDependentDto>();
+        foreach (var d in dependents)
+        {
+            if (d.System.Count == 0 && d.Stage.Count == 0) { unclassifiedDependents.Add(d); continue; }
+            foreach (var (system, stage) in Pairs(d.System, d.Stage))
+            {
+                var key = (system.ToLowerInvariant(), stage.ToLowerInvariant());
+                if (!deployments.TryGetValue(key, out var dep))
+                    deployments[key] = dep = new BlastDeploymentDto { System = system, Stage = stage };
+                dep.Dependents.Add(d);
+            }
+        }
+
+        // An edge to this entity can only be seen where IIS was collected — machines it
+        // was not are unknown, not clean, and the answer says so.
+        var unknowns = snapshots
+            .Where(s => (s.Envelope.Iis?.Status ?? EntityTagsEvaluator.StatusNotCollected) is not ("ok" or "not-present"))
+            .Select(s => new UnknownScopeDto { Kind = "iis", Container = s.Machine, Status = s.Envelope.Iis?.Status ?? EntityTagsEvaluator.StatusNotCollected })
+            .ToList();
+
+        return Ok(new BlastRadiusDto
+        {
+            Machine = entityName,
+            SubjectKind = "external",
+            SubjectEntityKind = entity.Kind,
+            SubjectSystem = entity.System ?? [],
+            SubjectStage = entity.Stage ?? [],
+            Deployments = deployments.Values
+                .OrderBy(d => d.System, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(d => d.Stage, StringComparer.OrdinalIgnoreCase)
+                .ToList(),
+            UnclassifiedDependents = unclassifiedDependents,
+            Unknowns = unknowns,
+        });
+    }
+
     /// <summary>The cross-product of a contributor's axes — a shared reference database in two systems lands in both.</summary>
     private static IEnumerable<(string System, string Stage)> Pairs(List<string> systems, List<string> stages)
     {

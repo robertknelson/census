@@ -22,6 +22,24 @@ public record MachineEntityTagsDto
 
     /// <summary>Scopes where collection failed — rendered as explicit unknown rows, never as a thinner queue.</summary>
     public List<UnknownScopeDto> Unknown { get; init; } = [];
+
+    /// <summary>
+    /// Entities a human declared onto this machine (declared-entities.md §5) — never
+    /// resolved against the snapshot and never corroborated; existence is the assertion.
+    /// Untagged ones count toward UnclassifiedCount.
+    /// </summary>
+    public List<DeclaredEntityRowDto> Declared { get; init; } = [];
+}
+
+public record DeclaredEntityRowDto
+{
+    public string Kind { get; init; }
+    public required string Name { get; init; }
+    public List<string> System { get; init; } = [];
+    public List<string> Stage { get; init; } = [];
+    public string Note { get; init; }
+    public string AssertedBy { get; init; }
+    public string AssertedAt { get; init; }
 }
 
 public record UnclassifiedEntityDto
@@ -47,6 +65,12 @@ public record TriageDto
     public List<string> Systems { get; init; } = [];
     public List<string> Stages { get; init; } = [];
     public int UnclassifiedTotal { get; init; }
+
+    /// <summary>Declared-entity kinds in use plus the stock suggestions — chips for the declare form.</summary>
+    public List<string> Kinds { get; init; } = [];
+
+    /// <summary>Every machine the estate knows — the declare gesture's anchor picker.</summary>
+    public List<string> MachineNames { get; init; } = [];
 }
 
 public record EntityTagRowDto

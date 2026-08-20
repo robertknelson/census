@@ -79,15 +79,30 @@ export class BlastRadiusPanel {
                 </summary>
                 ${dep.hosted.length > 0 ? `
                     <h4 class="est-subhead">On the box</h4>
-                    ${dep.hosted.map((h) => `
-                        <div class="est-blast-row">
-                            <span class="est-mono">${escapeHtml(h.container)}</span> · <span class="est-mono">${escapeHtml(h.name)}</span>
-                            <span class="est-muted">${escapeHtml(h.kind)}</span>
-                        </div>`).join('')}` : ''}
+                    ${dep.hosted.map((h) => this.renderHosted(h)).join('')}` : ''}
                 ${dep.dependents.length > 0 ? `
                     <h4 class="est-subhead">Depending on it from elsewhere</h4>
                     ${dep.dependents.map((a) => this.renderDependent(a)).join('')}` : ''}
             </details>`;
+    }
+
+    // A declared contributor has no observed container and renders with the asserted seam
+    // (declared-entities.md §7) — it goes down with the box on the human's word, not census's.
+    renderHosted(h, extra = '') {
+        if (h.declared) {
+            return `
+                <div class="est-blast-row">
+                    <span class="est-mono">${escapeHtml(h.name)}</span>
+                    <span class="est-badge est-badge-declared" title="asserted, never observed">${escapeHtml(h.kind)}</span>
+                    ${extra}
+                </div>`;
+        }
+        return `
+            <div class="est-blast-row">
+                <span class="est-mono">${escapeHtml(h.container)}</span> · <span class="est-mono">${escapeHtml(h.name)}</span>
+                <span class="est-muted">${escapeHtml(h.kind)}</span>
+                ${extra}
+            </div>`;
     }
 
     renderDependent(app) {
@@ -111,12 +126,7 @@ export class BlastRadiusPanel {
             <section>
                 <h3>In the blast, unclassified <button class="est-btn est-btn-sm" data-act="triage">Open Triage</button></h3>
                 <p class="est-status">These go down too — nobody has said what they belong to, so no deployment line can claim them.</p>
-                ${d.unclassifiedHosted.map((h) => `
-                    <div class="est-blast-row">
-                        <span class="est-mono">${escapeHtml(h.container)}</span> · <span class="est-mono">${escapeHtml(h.name)}</span>
-                        <span class="est-muted">${escapeHtml(h.kind)}</span>
-                        <span class="est-tag-none">unclassified</span>
-                    </div>`).join('')}
+                ${d.unclassifiedHosted.map((h) => this.renderHosted(h, '<span class="est-tag-none">unclassified</span>')).join('')}
                 ${d.unclassifiedDependents.map((a) => this.renderDependent(a)).join('')}
             </section>`;
     }

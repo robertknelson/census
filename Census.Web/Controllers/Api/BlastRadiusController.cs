@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Census.Web.Models.Api;
 using Census.Web.Models.Census;
+using Census.Web.Models.DeclaredEntities;
 using Census.Web.Models.EntityTags;
 using Census.Web.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,7 @@ namespace Census.Web.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/blast-radius")]
-public class BlastRadiusController(CensusStore censusStore, EntityTagsStore entityTagsStore, EntityTagsEvaluator entityTagsEvaluator) : ControllerBase
+public class BlastRadiusController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator) : ControllerBase
 {
     [HttpGet("{machine}")]
     public ActionResult<BlastRadiusDto> Get(string machine)
@@ -32,7 +33,8 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
         if (subject.Envelope is null) return NotFound();
 
         var config = entityTagsStore.Load();
-        var hosted = BuildHosted(subject.Machine, subject.Envelope, config);
+        var declaredConfig = declaredEntitiesStore.Load();
+        var hosted = BuildHosted(subject.Machine, subject.Envelope, config, declaredConfig);
         var (dependents, contradicted) = BuildDependents(subject.Machine, snapshots, config);
 
         // Deployments keyed by (system, stage); an axis nobody asserted is "" and renders as
@@ -70,7 +72,7 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
             UnclassifiedHosted = unclassifiedHosted,
             UnclassifiedDependents = unclassifiedDependents,
             Contradicted = contradicted,
-            Unknowns = entityTagsEvaluator.Evaluate(subject.Machine, subject.Envelope, config).Unknown,
+            Unknowns = entityTagsEvaluator.Evaluate(subject.Machine, subject.Envelope, config, declaredConfig).Unknown,
         });
     }
 
@@ -82,9 +84,28 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
         return left.SelectMany(_ => right, (system, stage) => (system, stage));
     }
 
-    private static List<BlastHostedDto> BuildHosted(string machine, CensusEnvelope envelope, EntityTagsConfig config)
+    private static List<BlastHostedDto> BuildHosted(string machine, CensusEnvelope envelope, EntityTagsConfig config, DeclaredEntitiesConfig declaredConfig)
     {
         var hosted = new List<BlastHostedDto>();
+
+        // Declared entities anchored here go down with the box like anything observed on it
+        // (declared-entities.md §7) — marked declared so the asserted seam survives into the
+        // answer. Never corroborated: existence is the assertion.
+        if (declaredConfig.OnMachines.TryGetValue(machine, out var declaredHere))
+        {
+            foreach (var (name, entity) in declaredHere.OrderBy(e => e.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                hosted.Add(new BlastHostedDto
+                {
+                    Kind = entity.Kind ?? "declared",
+                    Container = "",
+                    Name = name,
+                    System = entity.System ?? [],
+                    Stage = entity.Stage ?? [],
+                    Declared = true,
+                });
+            }
+        }
 
         if (envelope.SqlServer?.Status == "ok")
         {

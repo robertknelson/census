@@ -29,11 +29,14 @@ public record BlastDeploymentDto
 
 public record BlastHostedDto
 {
-    public required string Kind { get; init; }       // database | application
-    public required string Container { get; init; }  // instance | site
+    public required string Kind { get; init; }       // database | application | a declared entity's free-form kind
+    public required string Container { get; init; }  // instance | site | "" for declared
     public required string Name { get; init; }
     public List<string> System { get; init; } = [];
     public List<string> Stage { get; init; } = [];
+
+    /// <summary>Asserted to exist here, never observed — rendered with the declared seam.</summary>
+    public bool Declared { get; init; }
 }
 
 public record BlastDependentDto

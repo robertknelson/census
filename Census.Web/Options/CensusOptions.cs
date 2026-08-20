@@ -10,4 +10,5 @@ public class CensusOptions
     public required string AssetsConfigPath { get; set; }
     public required string BaselinesConfigPath { get; set; }
     public required string EntityTagsConfigPath { get; set; }
+    public required string DeclaredEntitiesConfigPath { get; set; }
 }

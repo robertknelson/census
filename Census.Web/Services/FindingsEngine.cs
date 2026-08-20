@@ -11,7 +11,7 @@ namespace Census.Web.Services;
 /// no lifecycle, no persistence. Every finding carries its machine's facets so both
 /// personas project the same stream: dev-ops filters it, Estate aggregates it.
 /// </summary>
-public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklistEvaluator, AssetsStore assetsStore, BaselineEvaluator baselineEvaluator, EntityTagsStore entityTagsStore, EntityTagsEvaluator entityTagsEvaluator)
+public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklistEvaluator, AssetsStore assetsStore, BaselineEvaluator baselineEvaluator, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator)
 {
     // Provisional per-kind severities — same caveat as SeverityRanking (tiers unratified).
     private const int CertExpiryWarningDays = 30;
@@ -221,6 +221,7 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
         // would be inference. Unknown resolutions stay silent here: a failed collection is
         // not evidence of absence, and the collection failure has its own findings.
         var entityTags = entityTagsStore.Load();
+        var declaredEntities = declaredEntitiesStore.Load();
         var tagMachines = entityTags.Databases.Keys.Concat(entityTags.Applications.Keys)
             .Distinct(StringComparer.OrdinalIgnoreCase);
         foreach (var machine in tagMachines)
@@ -235,13 +236,22 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
 
             var envelope = collected.FirstOrDefault(x => string.Equals(x.Machine, machine, StringComparison.OrdinalIgnoreCase)).Envelope;
             if (envelope is null) continue;
-            foreach (var row in entityTagsEvaluator.Evaluate(machine, envelope, entityTags).Rows
+            foreach (var row in entityTagsEvaluator.Evaluate(machine, envelope, entityTags, declaredEntities).Rows
                 .Where(r => r.Resolution == EntityTagsEvaluator.ResolutionDangling))
             {
                 findings.Add(Build(assets, machine, "dangling-entity-tag", "low",
                     $"Tagged {row.Kind} no longer observed ({row.Container} · {row.Name})",
                     $"The latest snapshot positively lacks it — dropped, moved, or renamed. Its tags ({Describe(row)}) are stranded until someone re-asserts or removes them."));
             }
+        }
+
+        // A declared entity itself can never dangle — nothing observed backs it, by
+        // construction — but its anchor machine can leave the estate (declared-entities.md §5).
+        foreach (var machine in declaredEntities.OnMachines.Keys.Where(m => !knownMachines.Contains(m)))
+        {
+            findings.Add(Build(assets, machine, "dangling-declared-entity", "low",
+                "Declared entities on a machine not in the fleet",
+                "declared-entities.json anchors entities to this machine but it has no snapshots and is not in machines.json — a rename or decommission nobody recorded."));
         }
 
         return new FindingsResultDto

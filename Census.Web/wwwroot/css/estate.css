@@ -728,6 +728,11 @@ html, body {
     border-style: dashed;
 }
 
+/* A declared entity's kind — dashed for the same reason: asserted to exist, never observed. */
+.est-badge-declared {
+    border-style: dashed;
+}
+
 .est-tagline {
     display: flex;
     flex-wrap: wrap;

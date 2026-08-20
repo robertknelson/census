@@ -1,4 +1,4 @@
-import { fetchTriage, fetchEntityTagsConfig, saveEntityTags } from './estate-api.mjs';
+import { fetchTriage, fetchEntityTagsConfig, saveEntityTags, fetchDeclaredEntities, saveDeclaredEntities } from './estate-api.mjs';
 
 // The Tuesday screen (triage-workbench.md): the unclassified pile, worked in bulk. Every
 // apply persists the whole config immediately — config/entity-tags.json stays the artifact,
@@ -39,6 +39,8 @@ export class TriagePanel {
         this.stage = '';
         this.assertedBy = localStorage.getItem(ASSERTED_BY_KEY) ?? '';
         this.error = null;
+        this.declaring = false;
+        this.declare = { machine: '', name: '', kind: '', system: '', stage: '', note: '' };
     }
 
     async mount(container) {
@@ -78,12 +80,23 @@ export class TriagePanel {
                 stratum,
             });
         }
+        // Declared entities are pile like anything else (declared-entities.md §6): untagged
+        // ones sit in the unclassified stratum, tagged ones in classified. They never
+        // resolve, so they are never dangling or unverified.
+        for (const d of m.declared ?? []) {
+            rows.push({
+                key: rowKey('declared', m.machine, '', d.name),
+                kind: 'declared', declaredKind: d.kind, machine: m.machine, container: '', name: d.name,
+                system: d.system, stage: d.stage, assertedBy: d.assertedBy, assertedAt: d.assertedAt, note: d.note,
+                stratum: (d.system?.length || d.stage?.length) ? 'classified' : 'unclassified',
+            });
+        }
         return rows;
     }
 
     matches(row) {
         if (!this.query) return true;
-        return `${row.machine} ${row.container} ${row.name}`.toLowerCase().includes(this.query);
+        return `${row.machine} ${row.container} ${row.name} ${row.declaredKind ?? ''}`.toLowerCase().includes(this.query);
     }
 
     shown(row) {
@@ -126,8 +139,10 @@ export class TriagePanel {
                 <div class="est-triage-controls">
                     <input class="est-filter" type="search" placeholder="Filter machines, instances, sites, names…" value="${escapeHtml(this.query)}" data-ref="filter">
                     <label class="est-check"><input type="checkbox" data-ref="show-classified" ${this.showClassified ? 'checked' : ''}> show classified</label>
+                    <button class="est-btn est-btn-sm" data-act="declare-toggle">${this.declaring ? 'Cancel declare' : 'Declare entity…'}</button>
                     <span class="est-muted">${this.data.unclassifiedTotal} unclassified fleet-wide</span>
                 </div>
+                ${this.renderDeclareForm()}
                 <div data-ref="error">${this.error ? `<p class="est-status est-error">${escapeHtml(this.error)}</p>` : ''}</div>
                 ${machines || '<p class="est-status">Nothing to triage — everything observed is classified. The pile is empty.</p>'}
                 ${this.renderBar()}
@@ -144,7 +159,8 @@ export class TriagePanel {
 
         const groups = new Map();
         for (const row of rows) {
-            const label = `${row.kind === 'database' ? 'instance' : 'site'} ${row.container}`;
+            const label = row.kind === 'declared' ? 'declared'
+                : `${row.kind === 'database' ? 'instance' : 'site'} ${row.container}`;
             if (!groups.has(label)) groups.set(label, []);
             groups.get(label).push(row);
         }
@@ -202,18 +218,61 @@ export class TriagePanel {
                     ${chips}${provenance}
                 </div>`;
         }
-        const actions = row.stratum === 'classified'
-            ? `<button class="est-btn est-btn-sm" data-edit="${escapeHtml(row.key)}">Edit</button>
+        // Removing a declared row un-declares the entity outright — the record is the
+        // assertion, so there is no smaller thing to remove. Edit-with-emptied-axes is the
+        // clear-tags gesture; the record then rejoins the unclassified pile.
+        const actions = row.stratum === 'classified' || row.kind === 'declared'
+            ? `${row.stratum === 'classified' ? `<button class="est-btn est-btn-sm" data-edit="${escapeHtml(row.key)}">Edit</button>` : ''}
                <button class="est-btn est-btn-sm" data-remove="${escapeHtml(row.key)}">Remove</button>`
             : '';
+        const declaredBadge = row.kind === 'declared'
+            ? `<span class="est-badge est-badge-declared" ${row.note ? `title="${escapeHtml(row.note)}"` : ''}>${escapeHtml(row.declaredKind ?? 'declared')}</span>` : '';
         return `
             <div class="est-triage-row ${this.editKey === row.key ? 'is-editing' : ''}">
                 <label class="est-check">
                     <input type="checkbox" data-row="${escapeHtml(row.key)}" ${this.selected.has(row.key) ? 'checked' : ''}>
                     <span class="est-triage-name"><span class="est-mono">${escapeHtml(row.name)}</span></span>
                 </label>
+                ${declaredBadge}
                 ${row.stratum === 'unclassified' ? '<span class="est-tag-none">unclassified</span>' : chips}
                 ${provenance}${actions}
+            </div>`;
+    }
+
+    // Declaring is the human explaining a gap census cannot see into (declared-entities.md
+    // §6) — a scheduled task, a service — anchored to an observed machine. Machine-anchored
+    // only in this slice; external entities arrive with attribution (slice B).
+    renderDeclareForm() {
+        if (!this.declaring) return '';
+        const d = this.declare;
+        return `
+            <div class="est-triage-bar" data-ref="declare-form">
+                <div class="est-muted">Declare an entity census does not observe. Existence is the assertion — it is never corroborated.</div>
+                <div class="est-edit-row">
+                    <span class="est-facet-key">machine</span>
+                    <select class="est-edit-input" data-dec="machine">
+                        <option value="">choose…</option>
+                        ${this.data.machineNames.map((m) => `<option value="${escapeHtml(m)}" ${m === d.machine ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('')}
+                    </select>
+                    <span class="est-facet-key">name</span>
+                    <input class="est-edit-input" data-dec="name" value="${escapeHtml(d.name)}" placeholder="e.g. Nightly ETL sweep">
+                    <span class="est-facet-key">kind</span>
+                    <input class="est-edit-input" data-dec="kind" value="${escapeHtml(d.kind)}" list="est-declare-kinds" placeholder="free-form" style="max-width:10rem">
+                    <datalist id="est-declare-kinds">${this.data.kinds.map((k) => `<option value="${escapeHtml(k)}">`).join('')}</datalist>
+                </div>
+                <div class="est-edit-row">
+                    <span class="est-facet-key">system</span>
+                    <input class="est-edit-input" data-dec="system" value="${escapeHtml(d.system)}" placeholder="comma-separated (optional)">
+                    <span class="est-facet-key">stage</span>
+                    <input class="est-edit-input" data-dec="stage" value="${escapeHtml(d.stage)}" placeholder="comma-separated (optional)">
+                </div>
+                <div class="est-edit-row">
+                    <span class="est-facet-key">note</span>
+                    <input class="est-edit-input" data-dec="note" value="${escapeHtml(d.note)}" placeholder="what it is, where it lives (optional)">
+                    <span class="est-facet-key">by</span>
+                    <input class="est-edit-input" data-dec="by" value="${escapeHtml(this.assertedBy)}" placeholder="who is asserting (optional)" style="max-width:10rem">
+                    <button class="est-btn est-btn-primary" data-act="declare-save">Declare</button>
+                </div>
             </div>`;
     }
 
@@ -298,8 +357,21 @@ export class TriagePanel {
 
         this.container.querySelectorAll('[data-remove]').forEach((btn) => btn.addEventListener('click', () => {
             const [kind, machine, container, name] = JSON.parse(btn.dataset.remove);
-            this.persist((config) => this.removeLeaf(config, kind, machine, container, name));
+            this.persist({ tags: kind !== 'declared', declared: kind === 'declared' },
+                (config) => this.removeLeaf(config, kind, machine, container, name));
         }));
+
+        this.container.querySelector('[data-act="declare-toggle"]')?.addEventListener('click', () => {
+            this.declaring = !this.declaring;
+            this.render();
+        });
+
+        this.container.querySelectorAll('[data-dec]').forEach((input) => input.addEventListener('input', () => {
+            if (input.dataset.dec === 'by') this.assertedBy = input.value;
+            else this.declare[input.dataset.dec] = input.value;
+        }));
+
+        this.container.querySelector('[data-act="declare-save"]')?.addEventListener('click', () => this.saveDeclaration());
 
         this.container.querySelectorAll('[data-suggest]').forEach((btn) => btn.addEventListener('click', () => {
             const field = btn.dataset.suggest;
@@ -337,7 +409,8 @@ export class TriagePanel {
         const today = new Date().toISOString().slice(0, 10);
         const targets = editing ? [this.editKey] : [...this.selected];
 
-        await this.persist((config) => {
+        const kinds = targets.map((key) => JSON.parse(key)[0]);
+        await this.persist({ tags: kinds.some((k) => k !== 'declared'), declared: kinds.some((k) => k === 'declared') }, (config) => {
             for (const key of targets) {
                 const [kind, machine, container, name] = JSON.parse(key);
                 const leaf = this.ensureLeaf(config, kind, machine, container, name);
@@ -358,7 +431,14 @@ export class TriagePanel {
     }
 
     ensureLeaf(config, kind, machine, container, name) {
-        const tree = kind === 'database' ? (config.databases ??= {}) : (config.applications ??= {});
+        // A declared entity's record is its own leaf — assert axes onto it in
+        // declared-entities.json; kind and note are untouched by a classify.
+        if (kind === 'declared') {
+            const tree = (config.declared.onMachines ??= {});
+            const entities = (tree[findKey(tree, machine)] ??= {});
+            return (entities[findKey(entities, name)] ??= {});
+        }
+        const tree = kind === 'database' ? (config.tags.databases ??= {}) : (config.tags.applications ??= {});
         const machineKey = findKey(tree, machine);
         const containers = (tree[machineKey] ??= {});
         const containerKey = findKey(containers, container);
@@ -368,20 +448,60 @@ export class TriagePanel {
     }
 
     removeLeaf(config, kind, machine, container, name) {
-        const tree = kind === 'database' ? config.databases : config.applications;
+        if (kind === 'declared') {
+            const entities = config.declared.onMachines?.[findKey(config.declared.onMachines, machine)];
+            if (entities) delete entities[findKey(entities, name)];
+            return;
+        }
+        const tree = kind === 'database' ? config.tags.databases : config.tags.applications;
         const containers = tree?.[findKey(tree, machine)];
         const leaves = containers?.[findKey(containers, container)];
         if (leaves) delete leaves[findKey(leaves, name)];
     }
 
-    async persist(mutate) {
+    async saveDeclaration() {
+        const d = this.declare;
+        if (!d.machine || !d.name.trim()) {
+            this.error = 'A declaration needs a machine and a name.';
+            this.render();
+            return;
+        }
+        localStorage.setItem(ASSERTED_BY_KEY, this.assertedBy);
+        const today = new Date().toISOString().slice(0, 10);
+        await this.persist({ tags: false, declared: true }, (config) => {
+            const tree = (config.declared.onMachines ??= {});
+            const entities = (tree[findKey(tree, d.machine)] ??= {});
+            const nameKey = findKey(entities, d.name.trim());
+            if (entities[nameKey]) throw new Error(`${d.machine} already declares "${nameKey}" — edit it in the queue instead.`);
+            entities[nameKey] = {
+                kind: d.kind.trim() || undefined,
+                system: splitValues(d.system),
+                stage: splitValues(d.stage),
+                note: d.note.trim() || undefined,
+                assertedBy: this.assertedBy.trim() || undefined,
+                assertedAt: today,
+            };
+        });
+        if (!this.error) {
+            this.declaring = false;
+            this.declare = { machine: '', name: '', kind: '', system: '', stage: '', note: '' };
+            this.render();
+        }
+    }
+
+    async persist(touched, mutate) {
         this.error = null;
         try {
-            // Freshest file wins as the base: the panel merges into what is on disk now,
-            // not into what it fetched when it opened.
-            const config = await fetchEntityTagsConfig();
+            // Freshest files win as the base: the panel merges into what is on disk now,
+            // not into what it fetched when it opened. Only the file(s) a gesture touches
+            // are fetched and rewritten — no needless widening of the last-writer window.
+            const config = {
+                tags: touched.tags ? await fetchEntityTagsConfig() : null,
+                declared: touched.declared ? await fetchDeclaredEntities() : null,
+            };
             mutate(config);
-            await saveEntityTags(config);
+            if (touched.tags) await saveEntityTags(config.tags);
+            if (touched.declared) await saveDeclaredEntities(config.declared);
             await this.refresh();
             this.onChanged();
         } catch (err) {

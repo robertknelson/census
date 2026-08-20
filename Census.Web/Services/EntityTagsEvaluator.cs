@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Census.Web.Models.Api;
 using Census.Web.Models.Census;
+using Census.Web.Models.DeclaredEntities;
 using Census.Web.Models.EntityTags;
 
 namespace Census.Web.Services;
@@ -18,9 +19,12 @@ public class EntityTagsEvaluator
     public const string ResolutionDangling = "dangling";
     public const string ResolutionUnknown = "unknown";
 
+    /// <summary>Declared entities never resolve against a snapshot — existence is the assertion (declared-entities.md §5).</summary>
+    public const string ResolutionDeclared = "declared";
+
     public const string StatusNotCollected = "not-collected";
 
-    public MachineEntityTagsDto Evaluate(string machine, CensusEnvelope envelope, EntityTagsConfig config)
+    public MachineEntityTagsDto Evaluate(string machine, CensusEnvelope envelope, EntityTagsConfig config, DeclaredEntitiesConfig declaredConfig)
     {
         var sqlStatus = envelope?.SqlServer?.Status ?? StatusNotCollected;
         var iisStatus = envelope?.Iis?.Status ?? StatusNotCollected;
@@ -59,7 +63,35 @@ public class EntityTagsEvaluator
             }
         }
 
-        var contributors = rows.Where(r => r.Resolution == ResolutionObserved).ToList();
+        var declared = (declaredConfig.OnMachines.TryGetValue(machine, out var declaredEntities) ? declaredEntities : new Dictionary<string, DeclaredEntity>())
+            .OrderBy(e => e.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(e => new DeclaredEntityRowDto
+            {
+                Kind = e.Value.Kind,
+                Name = e.Key,
+                System = e.Value.System ?? [],
+                Stage = e.Value.Stage ?? [],
+                Note = e.Value.Note,
+                AssertedBy = e.Value.AssertedBy,
+                AssertedAt = e.Value.AssertedAt,
+            })
+            .ToList();
+
+        // Tagged declared entities feed the rollup like observed ones — derivedFrom carries
+        // them with resolution "declared" so the derivation never hides the asserted seam.
+        var contributors = rows.Where(r => r.Resolution == ResolutionObserved)
+            .Concat(declared.Where(d => d.System.Count > 0 || d.Stage.Count > 0).Select(d => new EntityTagRowDto
+            {
+                Kind = "declared",
+                Container = d.Kind ?? "declared",
+                Name = d.Name,
+                System = d.System,
+                Stage = d.Stage,
+                AssertedBy = d.AssertedBy,
+                AssertedAt = d.AssertedAt,
+                Resolution = ResolutionDeclared,
+            }))
+            .ToList();
         var unclassified = CollectUnclassified(machine, instances, applications, config);
         return new MachineEntityTagsDto
         {
@@ -74,8 +106,9 @@ public class EntityTagsEvaluator
                 DerivedFrom = contributors,
             },
             Unclassified = unclassified,
-            UnclassifiedCount = unclassified.Count,
+            UnclassifiedCount = unclassified.Count + declared.Count(d => d.System.Count == 0 && d.Stage.Count == 0),
             Unknown = CollectUnknown(sqlStatus, iisStatus, instances, rows),
+            Declared = declared,
         };
     }
 

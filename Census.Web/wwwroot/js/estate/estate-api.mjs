@@ -60,6 +60,14 @@ export async function saveEntityTags(config) {
     await send('/api/entity-tags', 'PUT', config);
 }
 
+export function fetchDeclaredEntities() {
+    return getJson('/api/declared-entities');
+}
+
+export async function saveDeclaredEntities(config) {
+    await send('/api/declared-entities', 'PUT', config);
+}
+
 export function fetchBlacklist() {
     return getJson('/api/blacklist');
 }

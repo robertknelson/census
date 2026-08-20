@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "onMachines": {
+    "APPSRV01": {
+      "Nightly ETL sweep": {
+        "kind": "scheduled-task",
+        "system": [
+          "BillingSvc"
+        ],
+        "stage": [
+          "prod"
+        ],
+        "note": "Task Scheduler; runs Import-Feeds.ps1 at 02:00",
+        "assertedBy": "robert",
+        "assertedAt": "2026-08-20"
+      }
+    },
+    "WEB01": {
+      "Log cleanup": {
+        "kind": "scheduled-task",
+        "system": [],
+        "stage": [],
+        "assertedBy": "robert",
+        "assertedAt": "2026-08-20"
+      }
+    },
+    "OLDBATCH01": {
+      "Feed import": {
+        "kind": "scheduled-task",
+        "system": [
+          "Reporting"
+        ],
+        "stage": [
+          "prod"
+        ],
+        "assertedBy": "robert",
+        "assertedAt": "2026-08-20"
+      }
+    }
+  },
+  "external": {}
+}

@@ -9,7 +9,7 @@ namespace Census.Web.Controllers.Api;
 
 [ApiController]
 [Route("api/canvas")]
-public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine, EntityTagsStore entityTagsStore, EntityTagsEvaluator entityTagsEvaluator) : ControllerBase
+public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator) : ControllerBase
 {
     public const string UnassignedOwner = "Unassigned";
 
@@ -29,16 +29,22 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
 
         var assets = assetsStore.Load();
         var entityTags = entityTagsStore.Load();
+        var declaredEntities = declaredEntitiesStore.Load();
         var findingsByMachine = findingsEngine.Compute(asOfDate).Findings
             .GroupBy(f => f.Machine, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 
         // The canvas shows the whole known universe: collected machines, configured-but-
         // never-collected machines (ghost tiles), and dangling assertions (also ghosts) —
-        // absence is signal, so nothing silently drops off the map.
+        // absence is signal, so nothing silently drops off the map. Machines named only by
+        // entity-tags or declared-entities are assertions too: without them here, their
+        // dangling findings would exist in the stream but never render on the canvas.
         var universe = censusStore.GetMachineDirs()
             .Concat(censusStore.GetMachinesConfig().Names)
             .Concat(assets.Assets.Keys)
+            .Concat(entityTags.Databases.Keys)
+            .Concat(entityTags.Applications.Keys)
+            .Concat(declaredEntities.OnMachines.Keys)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(m => m, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -53,7 +59,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
             var findings = findingsByMachine.GetValueOrDefault(machine, []);
             var observedRoles = envelope?.Roles ?? [];
             var (resolvedClass, classSource) = MachineClassifier.Resolve(entry?.Class, observedRoles);
-            var tagsDto = envelope is null ? null : entityTagsEvaluator.Evaluate(machine, envelope, entityTags);
+            var tagsDto = envelope is null ? null : entityTagsEvaluator.Evaluate(machine, envelope, entityTags, declaredEntities);
 
             machines.Add(new CanvasMachineDto
             {

@@ -480,7 +480,27 @@ export function dossierHtml(m, envelope, entityTags = null) {
                         ${sqlStorageBlock(files)}`;
                     })()}
                 </div>`).join('') || '<p class="est-status">No instances.</p>')}
-        </section>`;
+        </section>
+
+        ${!entityTags?.declared?.length ? '' : `
+        <section>
+            <h3>Declared on this machine</h3>
+            <p class="est-status">Asserted to exist here, never observed — census cannot corroborate these, and says so rather than pretending.</p>
+            ${entityTags.declared.map((d) => {
+                const title = `asserted by ${d.assertedBy || 'unknown'}${d.assertedAt ? `, ${d.assertedAt}` : ''}`;
+                const chips = [
+                    ...(d.system ?? []).map((v) => `<span class="est-badge est-tag-system">${escapeHtml(v)}</span>`),
+                    ...(d.stage ?? []).map((v) => `<span class="est-badge est-tag-stage">${escapeHtml(v)}</span>`),
+                ];
+                return `
+                <div class="est-blast-row" title="${escapeHtml(title)}">
+                    <span class="est-mono">${escapeHtml(d.name)}</span>
+                    <span class="est-badge est-badge-declared">${escapeHtml(d.kind ?? 'declared')}</span>
+                    ${chips.length ? chips.join('') : '<span class="est-tag-none">unclassified</span>'}
+                    ${d.note ? `<span class="est-muted">${escapeHtml(d.note)}</span>` : ''}
+                </div>`;
+            }).join('')}
+        </section>`}`;
 }
 
 export function bindDossier(container) {

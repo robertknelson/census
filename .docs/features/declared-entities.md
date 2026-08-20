@@ -230,6 +230,19 @@ concurrency. Hand-editing remains a first-class write path.
 
 ## 11. Verification plan — every branch needs a fixture
 
+> **Slice A executed 2026-08-20, all green** — the machine-anchored branches below,
+> plus live: the declare gesture end-to-end (duplicate name refused
+> case-insensitively), classify 22→21 through the assertion bar, edit-with-emptied
+> axes clearing tags while the untagged record survived the prune (§10.6 proved),
+> Remove un-declaring outright, `tier` extension key surviving GET/PUT, the API
+> GET→PUT→GET byte-identical, and the APPSRV01 blast panel answering
+> `BillingSvc × prod — Nightly ETL sweep (scheduled-task)`. One gap found and
+> fixed during verification: the canvas universe did not include machines named
+> only by entity-tags/declared-entities, so their dangling findings existed in
+> the stream but never rendered — OLDBATCH01 now draws as a ghost tile carrying
+> `dangling-declared-entity` (a pre-existing hole for entity-tags too).
+> Slice B branches (external, attribution) pending that build.
+
 The verification constraint holds: fixtures are the coverage. Demo tree additions
 (`config/declared-entities.demo.json`, plus planted edges in the fixture
 topology):

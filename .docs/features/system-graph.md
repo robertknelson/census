@@ -5,8 +5,10 @@
 > (`blast-radius.md`), delivered in the order the principles doc fixed. This document
 > remains the concept record; the slice docs hold the decisions and verification.
 > Still parked: tag nesting (§5), machine-facet retirement (entity-tags.md §8.4),
-> http-edge corroboration (census-web.md §11.7), declared nodes/edges (G-6), and the
-> matrix landing view sketched in §6.
+> http-edge corroboration (census-web.md §11.7), and the matrix landing view sketched
+> in §6. Declared nodes/edges: G-6's trigger fired 2026-08-20 (field trial — scheduled
+> tasks and external endpoints); reopened per its own terms as reading #2 of §8 —
+> spec: `declared-entities.md`.
 
 ---
 

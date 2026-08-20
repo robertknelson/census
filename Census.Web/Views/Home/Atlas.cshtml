@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Atlas";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/atlas.css" asp-append-version="true" />
+}
+
+<div id="atlas-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import atlasPage from '/js/atlas/atlas-page.mjs';
+        atlasPage.init({ rootId: 'atlas-root' });
+    </script>
+}

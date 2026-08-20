@@ -27,6 +27,14 @@ public class HomeController : Controller
         return View();
     }
 
+    // The Atlas module (system-view.md §1): its own page and JS tree, apart from the
+    // Estate SPA — same stores underneath, so the truth never forks.
+    [HttpGet("/atlas")]
+    public IActionResult Atlas()
+    {
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

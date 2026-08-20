@@ -112,3 +112,21 @@ contradicted edge, a cross-stage edge (bleed ghosting under filter), an
 unstaged association. Live: build a tab, filter stages, drag-pin, reopen
 (positions survive), inspector on node and edge, registry edit round-trip,
 register-an-unregistered gesture.
+
+> **Executed 2026-08-20, all green** against the demo fleet. API: MyWeb graph =
+> 11 members + 3 off-system YourWeb neighbors, 9 confirmed edges, stages
+> dev/prod/ref/val; OrderPortal graph = the tagged Portal database + the
+> external Partner Payments API as members with two *unclassified* web apps
+> pulled in by their edges, external edges verdict `declared`. Browser: builder
+> lists registered-first with descriptions; the MyWeb tab settles instantly and
+> **identically across reloads** (seeded + persisted positions); the `dev` chip
+> ghosts non-dev members while every edge keeps both endpoints visible; a real
+> click opens the docked inspector (MyDB_DEV · DEVSQLBOX · MSSQLSERVER ·
+> `MyWeb · dev` with provenance) without covering the graph; the registry panel
+> shows MyWeb's drift (expected uat unserved; qa and ref in use unexpected),
+> Payroll's zero-member smell, and Register… on the three unregistered names.
+> **One §7 refinement forced by the build**: the simulation runs *synchronously*
+> at mount (settle-then-freeze literally) — a frame-driven loop throttles with
+> window focus and drifts for minutes, which is the jiggle the ratification
+> forbids. A 4px threshold separates click from drag. The v1/v2 ux-switch is
+> suppressed on /atlas (it compares the two Estate UIs; Atlas is neither).

@@ -1,0 +1,191 @@
+/* Atlas — the system view's own chrome (system-view.md §1). Deliberately its own file:
+   the module is separate from the Estate SPA; only the truth underneath is shared. */
+
+:root {
+    --atl-bg: #f6f7f9;
+    --atl-panel: #ffffff;
+    --atl-line: #d9dde3;
+    --atl-text: #1c2430;
+    --atl-muted: #6b7686;
+    --atl-accent: #2f6feb;
+    --atl-ok: #3a7d44;
+    --atl-warn: #b26a00;
+    --atl-bad: #b3261e;
+    --atl-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+#atlas-root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--atl-bg);
+    color: var(--atl-text);
+    position: relative;
+}
+
+.atl-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--atl-panel);
+    border-bottom: 1px solid var(--atl-line);
+}
+
+.atl-title { font-weight: 600; white-space: nowrap; }
+.atl-header-right { margin-left: auto; display: flex; gap: 0.5rem; }
+
+.atl-tabs { display: flex; gap: 0.25rem; overflow-x: auto; }
+
+.atl-tab {
+    border: 1px solid var(--atl-line);
+    border-radius: 6px 6px 0 0;
+    background: var(--atl-bg);
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    font: inherit;
+    white-space: nowrap;
+}
+.atl-tab.is-active { background: var(--atl-panel); border-bottom-color: var(--atl-panel); font-weight: 600; }
+.atl-tab-x { margin-left: 0.4rem; color: var(--atl-muted); }
+.atl-tab-x:hover { color: var(--atl-bad); }
+
+.atl-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    border-bottom: 1px solid var(--atl-line);
+    background: var(--atl-panel);
+    min-height: 2.4rem;
+    flex-wrap: wrap;
+}
+.atl-toolbar-right { margin-left: auto; display: flex; gap: 0.75rem; align-items: center; }
+
+.atl-main { flex: 1; overflow: auto; position: relative; }
+.atl-canvas { width: 100%; height: 100%; }
+.atl-svg { width: 100%; height: 100%; display: block; }
+
+.atl-builder { max-width: 46rem; margin: 2rem auto; display: flex; flex-direction: column; gap: 0.5rem; }
+.atl-card-pick { text-align: left; cursor: pointer; display: flex; gap: 0.75rem; align-items: baseline; font: inherit; flex-wrap: wrap; }
+.atl-card-pick:hover { border-color: var(--atl-accent); }
+
+.atl-card {
+    background: var(--atl-panel);
+    border: 1px solid var(--atl-line);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    margin: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.atl-card-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.atl-subhead { margin: 1rem 1rem 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--atl-muted); }
+.atl-row { display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap; margin: 0 1rem; }
+.atl-card .atl-row { margin: 0; }
+
+.atl-status { color: var(--atl-muted); margin: 0.75rem 1rem; }
+.atl-error { color: var(--atl-bad); }
+.atl-muted { color: var(--atl-muted); font-size: 0.85rem; }
+.atl-mono { font-family: var(--atl-mono); }
+.atl-key { color: var(--atl-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.atl-btn {
+    border: 1px solid var(--atl-line);
+    border-radius: 6px;
+    background: var(--atl-panel);
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.85rem;
+    text-decoration: none;
+    color: inherit;
+}
+.atl-btn:hover { border-color: var(--atl-accent); }
+.atl-btn-primary { background: var(--atl-accent); color: #fff; border-color: var(--atl-accent); }
+.atl-btn-danger { color: var(--atl-bad); }
+
+.atl-chip {
+    border: 1px solid var(--atl-line);
+    border-radius: 999px;
+    background: var(--atl-panel);
+    padding: 0.15rem 0.7rem;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.85rem;
+}
+.atl-chip.is-active { background: var(--atl-accent); border-color: var(--atl-accent); color: #fff; }
+
+.atl-input {
+    border: 1px solid var(--atl-line);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    font: inherit;
+    flex: 1;
+}
+
+.atl-badge {
+    border: 1px solid var(--atl-line);
+    border-radius: 999px;
+    padding: 0.05rem 0.5rem;
+    font-size: 0.8rem;
+    background: var(--atl-bg);
+}
+.atl-badge-declared { border-style: dashed; }
+
+.atl-drift-warn { color: var(--atl-warn); font-size: 0.85rem; }
+.atl-drift-bad { color: var(--atl-bad); font-size: 0.85rem; }
+
+/* --- the graph ---------------------------------------------------------------------------- */
+
+.atl-edge { stroke: #9aa4b1; stroke-width: 2; }
+.atl-edge-confirmed { stroke: var(--atl-ok); }
+.atl-edge-contradicted { stroke: var(--atl-bad); stroke-dasharray: 3 3; }
+.atl-edge-unobserved { stroke: #9aa4b1; }
+/* Asserted, never measured — the dashed seam survives into the picture. */
+.atl-edge-declared { stroke: var(--atl-accent); stroke-dasharray: 6 4; }
+.atl-edge-unresolved { stroke: var(--atl-warn); stroke-dasharray: 2 4; }
+
+.atl-node { cursor: grab; }
+.atl-node circle, .atl-node rect, .atl-node polygon {
+    fill: var(--atl-panel);
+    stroke: var(--atl-text);
+    stroke-width: 1.6;
+}
+.atl-member circle, .atl-member rect, .atl-member polygon { stroke: var(--atl-accent); fill: #e8effc; }
+.atl-unclassified circle, .atl-unclassified rect, .atl-unclassified polygon { stroke: var(--atl-warn); fill: #fbf3e4; }
+.atl-offsystem circle, .atl-offsystem rect, .atl-offsystem polygon { stroke: var(--atl-muted); }
+.atl-declaredish circle, .atl-declaredish rect, .atl-declaredish polygon { stroke-dasharray: 5 3; }
+.atl-phantom circle, .atl-phantom rect, .atl-phantom polygon { stroke: var(--atl-bad); stroke-dasharray: 2 3; fill: transparent; }
+.atl-ghost { opacity: 0.22; }
+
+.atl-label {
+    font-size: 11px;
+    text-anchor: middle;
+    fill: var(--atl-text);
+    font-family: var(--atl-mono);
+}
+.atl-sublabel { font-size: 9px; text-anchor: middle; fill: var(--atl-muted); }
+.atl-also { font-size: 9px; fill: var(--atl-accent); font-weight: 700; }
+
+/* --- the docked inspector (unobtrusive: a corner card, never the slide-in) ---------------- */
+
+.atl-inspector {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    width: 22rem;
+    max-height: 45vh;
+    overflow: auto;
+    background: var(--atl-panel);
+    border: 1px solid var(--atl-line);
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(20, 28, 40, 0.12);
+    padding: 0.7rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    z-index: 5;
+}
+.atl-inspector .atl-row { margin: 0; }

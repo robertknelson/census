@@ -31,13 +31,19 @@
     @{
         var uxPath = Context.Request.Path.Value ?? "/";
         var onClassic = uxPath.StartsWith("/classic", StringComparison.OrdinalIgnoreCase);
+        // The v1/v2 switch compares the two Estate UIs; Atlas is neither, and carries its
+        // own Estate link in its header.
+        var onAtlas = uxPath.StartsWith("/atlas", StringComparison.OrdinalIgnoreCase);
     }
+    @if (!onAtlas)
+    {
     <a class="ux-switch"
        href="@(onClassic ? "/" : "/classic")"
        title="@(onClassic ? "Switch to the Estate (v2)" : "Switch to the classic UI (v1)")">
         <span class="ux-switch-here">@(onClassic ? "v1" : "v2")</span>
         <span>→ @(onClassic ? "Estate" : "Classic")</span>
     </a>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

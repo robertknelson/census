@@ -593,7 +593,7 @@ class EstatePage {
         this.panel = { type: 'baselines' };
         this.panelShell(
             'Approved baselines',
-            'The inverse of the blacklist: what is approved, for which machines. Blessing happens from a machine dossier; edits write straight back to config/baselines.json.',
+            'The inverse of the blacklist: what is approved, for which machines. Bless here or from a machine dossier; edits write straight back to config/baselines.json.',
             '<div data-ref="baselines"></div>');
         this.openPanel();
 

@@ -61,9 +61,11 @@ connection strings — that list is expected to be the fastest source of "oh
 right, THAT system" moments. Robert runs it; the next session turns the
 report-back into fixes and rulings.
 
-Also queued, discussed and positioned but awaiting his go: a "start a baseline
-from here" button on the Baselines tab (creation currently lives only in
-machine dossiers) and grouping that tab's list by scope.
+The Baselines tab also got its field-trial fixes: the list is now grouped by
+what each baseline covers (whole fleet, a machine type, a stage, one machine),
+and a "Bless a new baseline…" button creates one right there — pick the source
+machine and the scope pre-fills from what that machine is. Blessing a machine
+whose software collection failed is refused with the reason shown.
 
 ## Anything alarming
 

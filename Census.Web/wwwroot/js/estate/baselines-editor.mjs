@@ -1,8 +1,9 @@
-import { fetchBaselines, saveBaselines } from './estate-api.mjs';
+import { fetchBaselines, saveBaselines, blessBaseline } from './estate-api.mjs';
 
-// The approved baselines' estate home (approved-baseline.md §9). Baselines are created by
-// blessing a machine from its dossier — this panel is where they are scoped, retired and
-// deleted, and where fleet coverage is stated out loud.
+// The approved baselines' estate home (approved-baseline.md §9). Blessing is reachable from
+// here too (§9 amendment, 2026-08-20) — same gesture as the dossier's, just findable where
+// the field trial went looking for it. The panel is also where baselines are scoped,
+// retired and deleted, and where fleet coverage is stated out loud.
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -114,6 +115,9 @@ export class BaselinesEditor {
         this.editingId = null;
         this.confirmingDeleteId = null;
         this.expandedId = null;
+        this.blessing = false;
+        this.blessDraft = { source: '', id: '', label: '', note: '' };
+        this.blessAutoId = '';
     }
 
     suggestions() {
@@ -176,52 +180,79 @@ export class BaselinesEditor {
                    <span class="est-muted">Machines outside every scope are not judged — no deviations is not the same as nothing unapproved.</span>
                </p>`;
 
-        const cards = this.view.baselines.map((b) => {
-            if (this.editingId === b.id) return this.renderForm(b);
-
-            const actions = this.confirmingDeleteId === b.id
-                ? `<button class="est-btn est-btn-sm est-btn-danger" data-act="delete-confirm" data-id="${escapeHtml(b.id)}">Confirm delete</button>
-                   <button class="est-btn est-btn-sm" data-act="delete-cancel">Cancel</button>`
-                : `<button class="est-btn est-btn-sm" data-act="edit" data-id="${escapeHtml(b.id)}">Edit</button>
-                   <button class="est-btn est-btn-sm" data-act="delete" data-id="${escapeHtml(b.id)}">Delete</button>`;
-
-            const provenance = b.sourceMachine
-                ? `blessed from <span class="est-mono">${escapeHtml(b.sourceMachine)}</span> as collected ${escapeHtml(b.sourceDate)}${b.blessedUtc ? ` · ${escapeHtml(String(b.blessedUtc).slice(0, 10))}` : ''}`
-                : 'hand-assembled — no source machine';
-
-            const requiredCount = b.entries.filter((e) => e.required).length;
-
-            return `
-                <div class="est-subcard ${b.active ? '' : 'est-rule-inactive'}">
-                    <div class="est-subcard-head">
-                        <span class="est-rule-id">
-                            <span class="est-mono">${escapeHtml(b.id)}</span>
-                            <span>${escapeHtml(b.label)}</span>
-                            ${b.active ? '' : '<span class="est-muted">(retired)</span>'}
-                        </span>
-                        <span class="est-rule-actions">
-                            <label class="est-check"><input type="checkbox" data-act="toggle" data-id="${escapeHtml(b.id)}" ${b.active ? 'checked' : ''}> active</label>
-                            ${actions}
-                        </span>
-                    </div>
-                    <div class="est-rule-line">${selectorChips(b.appliesTo)}</div>
-                    <div class="est-rule-line">
-                        <span class="est-badge">${b.entryCount} approved item${b.entryCount === 1 ? '' : 's'}</span>
-                        ${requiredCount > 0 ? `<span class="est-badge est-badge-sdk">${requiredCount} required</span>` : ''}
-                        <span class="est-badge">${b.matchedMachineCount} machine${b.matchedMachineCount === 1 ? '' : 's'}${b.active ? '' : ' would match'}</span>
-                        <span class="est-muted">${provenance}</span>
-                    </div>
-                    ${b.note ? `<div class="est-rule-reason">${escapeHtml(b.note)}</div>` : ''}
-                    ${this.renderEntries(b)}
-                </div>`;
-        }).join('');
+        // The selector already says what kind of baseline each one is — the grouping is
+        // derived from it, never stored (a second grouping vocabulary is what §4 rejected).
+        const groups = new Map();
+        for (const b of this.view.baselines) {
+            const g = this.scopeGroup(b);
+            if (!groups.has(g.label)) groups.set(g.label, { order: g.order, items: [] });
+            groups.get(g.label).items.push(b);
+        }
+        const cards = [...groups.entries()]
+            .sort(([la, a], [lb, b]) => a.order - b.order || la.localeCompare(lb))
+            .map(([label, g]) => `
+                <h4 class="est-subhead">${escapeHtml(label)} <span class="est-muted">${g.items.length}</span></h4>
+                ${g.items.map((b) => this.renderCard(b)).join('')}`)
+            .join('');
 
         this.container.innerHTML = `
             <div data-ref="error"></div>
             ${coverageLine}
-            ${cards || '<p class="est-status">Nothing blessed yet — open a machine and bless its software set to start.</p>'}`;
+            <p>${this.blessing ? '' : '<button class="est-btn est-btn-sm" data-act="bless-open">Bless a new baseline…</button>'}</p>
+            ${this.blessing ? this.blessFormHtml() : ''}
+            ${cards || '<p class="est-status">Nothing blessed yet — bless a machine\'s software set to start, here or from its dossier.</p>'}`;
 
         this.bind();
+    }
+
+    /// Fleet-wide first (the §11 rollout order), classes next, other facet scopes after,
+    /// single-machine exemptions last — the reading order of "broad to narrow".
+    scopeGroup(b) {
+        const keys = Object.keys(b.appliesTo ?? {}).map((k) => k.toLowerCase());
+        if (keys.length === 0) return { order: 0, label: 'Fleet-wide' };
+        if (keys.includes('machine')) return { order: 3, label: 'Single machine' };
+        if (keys.includes('class')) return { order: 1, label: 'By class' };
+        return { order: 2, label: `By ${[...keys].sort().join(' + ')}` };
+    }
+
+    renderCard(b) {
+        if (this.editingId === b.id) return this.renderForm(b);
+
+        const actions = this.confirmingDeleteId === b.id
+            ? `<button class="est-btn est-btn-sm est-btn-danger" data-act="delete-confirm" data-id="${escapeHtml(b.id)}">Confirm delete</button>
+               <button class="est-btn est-btn-sm" data-act="delete-cancel">Cancel</button>`
+            : `<button class="est-btn est-btn-sm" data-act="edit" data-id="${escapeHtml(b.id)}">Edit</button>
+               <button class="est-btn est-btn-sm" data-act="delete" data-id="${escapeHtml(b.id)}">Delete</button>`;
+
+        const provenance = b.sourceMachine
+            ? `blessed from <span class="est-mono">${escapeHtml(b.sourceMachine)}</span> as collected ${escapeHtml(b.sourceDate)}${b.blessedUtc ? ` · ${escapeHtml(String(b.blessedUtc).slice(0, 10))}` : ''}`
+            : 'hand-assembled — no source machine';
+
+        const requiredCount = b.entries.filter((e) => e.required).length;
+
+        return `
+            <div class="est-subcard ${b.active ? '' : 'est-rule-inactive'}">
+                <div class="est-subcard-head">
+                    <span class="est-rule-id">
+                        <span class="est-mono">${escapeHtml(b.id)}</span>
+                        <span>${escapeHtml(b.label)}</span>
+                        ${b.active ? '' : '<span class="est-muted">(retired)</span>'}
+                    </span>
+                    <span class="est-rule-actions">
+                        <label class="est-check"><input type="checkbox" data-act="toggle" data-id="${escapeHtml(b.id)}" ${b.active ? 'checked' : ''}> active</label>
+                        ${actions}
+                    </span>
+                </div>
+                <div class="est-rule-line">${selectorChips(b.appliesTo)}</div>
+                <div class="est-rule-line">
+                    <span class="est-badge">${b.entryCount} approved item${b.entryCount === 1 ? '' : 's'}</span>
+                    ${requiredCount > 0 ? `<span class="est-badge est-badge-sdk">${requiredCount} required</span>` : ''}
+                    <span class="est-badge">${b.matchedMachineCount} machine${b.matchedMachineCount === 1 ? '' : 's'}${b.active ? '' : ' would match'}</span>
+                    <span class="est-muted">${provenance}</span>
+                </div>
+                ${b.note ? `<div class="est-rule-reason">${escapeHtml(b.note)}</div>` : ''}
+                ${this.renderEntries(b)}
+            </div>`;
     }
 
     /// Approved is the default and required is the assertion on top of it — so the toggle
@@ -254,6 +285,42 @@ export class BaselinesEditor {
             ${rows}`;
     }
 
+    // The same gesture as the dossier's "Bless as baseline…", minus the machine already
+    // being chosen: pick the source, and the scope pre-seeds from what that machine is.
+    // Materialize-by-value holds — there is deliberately no create-empty-and-type path.
+    blessFormHtml() {
+        const d = this.blessDraft;
+        const sources = this.fleet.filter((m) => m.hasData).map((m) => m.machine)
+            .sort((a, b) => a.localeCompare(b));
+        return `
+            <div class="est-editor" data-ref="bless-form">
+                <div class="est-edit-row">
+                    <span class="est-facet-key">source</span>
+                    <select class="est-edit-input" data-bless="source">
+                        <option value="">choose a machine to bless…</option>
+                        ${sources.map((m) => `<option value="${escapeHtml(m)}" ${m === d.source ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('')}
+                    </select>
+                    <span class="est-muted">its software set, as collected, becomes the approved set</span>
+                </div>
+                <div class="est-edit-row">
+                    <span class="est-facet-key">id</span>
+                    <input class="est-edit-input" autocomplete="off" data-bless="id" value="${escapeHtml(d.id)}" placeholder="web-prod">
+                    <span class="est-facet-key">label</span>
+                    <input class="est-edit-input" autocomplete="off" data-bless="label" value="${escapeHtml(d.label)}" placeholder="Web servers, production" style="max-width:none;flex:1">
+                </div>
+                <div class="est-edit-row"><span class="est-facet-key">applies to</span></div>
+                ${this.blessSelector ? this.blessSelector.html() : '<div class="est-edit-row"><span class="est-muted">Pick a source machine — the scope pre-fills from its class and stages.</span></div>'}
+                <div class="est-edit-row">
+                    <span class="est-facet-key">note</span>
+                    <input class="est-edit-input" autocomplete="off" data-bless="note" value="${escapeHtml(d.note)}" placeholder="what this set is, and who agreed it" style="max-width:none;flex:1">
+                </div>
+                <div class="est-edit-actions">
+                    <button class="est-btn est-btn-primary" data-act="bless-save">Bless</button>
+                    <button class="est-btn" data-act="bless-cancel">Cancel</button>
+                </div>
+            </div>`;
+    }
+
     renderForm(baseline) {
         // this.selector is created once on entering edit mode: re-creating it here would
         // reset the draft scope every time a chip is added, since render() runs per change.
@@ -284,6 +351,61 @@ export class BaselinesEditor {
 
         const on = (act, event, handler) => el.querySelectorAll(`[data-act="${act}"]`)
             .forEach((node) => node.addEventListener(event, handler));
+
+        on('bless-open', 'click', () => { this.blessing = true; this.render(); });
+        on('bless-cancel', 'click', () => {
+            this.blessing = false;
+            this.blessDraft = { source: '', id: '', label: '', note: '' };
+            this.blessSelector = null;
+            this.blessAutoId = '';
+            this.render();
+        });
+
+        el.querySelectorAll('[data-bless]').forEach((input) => input.addEventListener('input', () => {
+            this.blessDraft[input.dataset.bless] = input.value;
+            if (input.dataset.bless !== 'source') return;
+            // A new source re-seeds the scope and the suggested id — but never a typed one.
+            const m = this.fleet.find((x) => x.machine === input.value);
+            if (m) {
+                const suggested = { class: [m.class] };
+                if ((m.stages ?? []).length > 0) suggested.stage = [...m.stages];
+                this.blessSelector = new SelectorEditor(suggested, this.suggestions());
+                const autoId = `${String(m.class).toLowerCase()}-${(m.stages?.[0] ?? 'all').toLowerCase()}`;
+                if (this.blessDraft.id === '' || this.blessDraft.id === this.blessAutoId) this.blessDraft.id = autoId;
+                this.blessAutoId = autoId;
+            } else {
+                this.blessSelector = null;
+            }
+            this.render();
+        }));
+
+        on('bless-save', 'click', async () => {
+            const form = el.querySelector('[data-ref="bless-form"]');
+            const d = this.blessDraft;
+            if (!d.source) {
+                this.errorEl.innerHTML = '<p class="est-status est-error">Pick a source machine — a baseline is materialized from an observed set, never typed in.</p>';
+                return;
+            }
+            try {
+                await blessBaseline({
+                    id: d.id.trim(),
+                    label: d.label.trim(),
+                    sourceMachine: d.source,
+                    appliesTo: this.blessSelector.harvest(form),
+                    note: d.note.trim(),
+                });
+                this.blessing = false;
+                this.blessDraft = { source: '', id: '', label: '', note: '' };
+                this.blessSelector = null;
+                this.blessAutoId = '';
+                await this.reload();
+            } catch (err) {
+                this.errorEl.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
+            }
+        });
+
+        const blessForm = el.querySelector('[data-ref="bless-form"]');
+        if (blessForm && this.blessSelector) this.blessSelector.bind(blessForm, () => this.render());
 
         on('edit', 'click', (e) => {
             this.editingId = e.target.dataset.id;

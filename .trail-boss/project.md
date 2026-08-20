@@ -56,9 +56,20 @@ relates: []
   fleet-level pile (29 = 22 + 1 untagged external + 6 unresolved).
 - Also: baselines primer committed; Baselines-tab positions given (per-type =
   `class` selector already ratified; gap is a bless-from-tab entry point +
-  scope-grouped list) — **not yet built, awaiting his go**.
-- `main` at `59a70ee`, all pushed. Demo fixtures restored to designed state
-  after every live mutation.
+  scope-grouped list) — **ratified with "go" and built same session**: the
+  panel now groups its list by scope shape (fleet-wide / by class / by facet /
+  single machine, derived from `appliesTo`, never stored) and carries "Bless a
+  new baseline…" — source-machine picker seeds scope and suggested id from the
+  machine's class/stages; bless-refusal for a failed collection surfaces in
+  the panel (verified live against BUILDSRV01); materialize-by-value held, no
+  create-empty path. approved-baseline.md §9 amended + decision logged.
+- **Observation flagged, not fixed** (scope discipline): any baselines-panel
+  write serializes absent `required` as explicit `"required": false`, eroding
+  the §12 fixture branch that deliberately omits the key; fixture restored via
+  git checkout this session. A `JsonIgnore(WhenWritingDefault)` on `Required`
+  would fix it — Robert's call.
+- `main` at `59a70ee` + the baselines-tab commit, all pushed. Demo fixtures
+  restored to designed state after every live mutation.
 
 ### 2026-08-17 (second session)
 - **The whole system-graph arc shipped in one session**: three slices, each

@@ -285,7 +285,15 @@ already says so.
   builder that suggests keys and values mined from `assets.json`, as the assignment editor
   does.
 - **Baselines list** — the existing baselines, their scope, entry count, provenance, and how
-  many machines each currently matches. Activate/retire, edit, delete.
+  many machines each currently matches. Activate/retire, edit, delete. *Amended 2026-08-20
+  after the field trial reported the list unreadable as it grows and creation undiscoverable:*
+  the list is **grouped by scope shape** — fleet-wide, by class, other facet scopes, single
+  machine — with the group derived from each baseline's `appliesTo`, never stored (a stored
+  category would be the second grouping vocabulary §4 rejected); and the panel carries a
+  **"Bless a new baseline…"** entry point — the dossier's gesture with a source-machine
+  picker in front (scope and suggested id pre-seed from the chosen machine's class/stages).
+  Materialize-by-value holds: there is deliberately no create-empty-and-type path, here or
+  anywhere.
 - **Machine dossier** — which baselines matched it, what it carries that none of them approve,
   and what they require that it does not have. The required-but-absent table is listed first:
   absence is the harder thing to notice.
@@ -407,3 +415,4 @@ looked at an error on purpose.
 | 2026-08-12 | Missing direction ships as `required: true` on the entry, not a separate artifact; blessing never sets it; required wins across the union; identity only, never versions |
 | 2026-08-12 | `missing-required-software` is its own kind at `high`, not merged with `unapproved-software` at `medium` — opposite remediations, and a required item is one somebody deliberately marked |
 | 2026-08-12 | A requirement matching nothing in scope surfaces as "found on 0 of N" in the panel, never as a finding — a config error belongs next to the checkbox that made it |
+| 2026-08-20 | "Per-type baseline" needs no schema — the reserved `class` selector already is it. The field-trial gap was UI: bless reachable from the Baselines panel (source-machine picker + the same form), and the list grouped by scope shape derived from `appliesTo`. No stored category, no create-empty path |

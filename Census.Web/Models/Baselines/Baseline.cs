@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Census.Web.Models.Baselines;
 
@@ -60,6 +61,9 @@ public record BaselineEntry
     /// Asserted, never inferred: blessing sets this on nothing (§6.4). Approved means "allowed
     /// here"; required means "must be here", and treating every blessed entry as required would
     /// make each optional tool on the source machine mandatory across the whole scope.
+    /// Absent-means-false is the file's contract (§6.4), so false must serialize away —
+    /// without this, any panel write stamps "required": false onto every untouched entry.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool Required { get; init; }
 }

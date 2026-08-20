@@ -63,11 +63,12 @@ relates: []
   machine's class/stages; bless-refusal for a failed collection surfaces in
   the panel (verified live against BUILDSRV01); materialize-by-value held, no
   create-empty path. approved-baseline.md §9 amended + decision logged.
-- **Observation flagged, not fixed** (scope discipline): any baselines-panel
-  write serializes absent `required` as explicit `"required": false`, eroding
-  the §12 fixture branch that deliberately omits the key; fixture restored via
-  git checkout this session. A `JsonIgnore(WhenWritingDefault)` on `Required`
-  would fix it — Robert's call.
+- **Observation flagged, then fixed on his "fix it"**: any baselines-panel
+  write was serializing absent `required` as explicit `"required": false`,
+  eroding the §12 fixture branch that deliberately omits the key.
+  `JsonIgnore(WhenWritingDefault)` on `Baseline.Required`; verified: whole-file
+  PUT round-trips byte-identical to the committed fixture, un-requiring an
+  entry drops the key entirely, `required: true` survives.
 - `main` at `59a70ee` + the baselines-tab commit, all pushed. Demo fixtures
   restored to designed state after every live mutation.
 

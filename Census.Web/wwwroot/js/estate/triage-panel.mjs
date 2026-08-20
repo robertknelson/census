@@ -42,6 +42,9 @@ export class TriagePanel {
         this.error = null;
         this.declaring = false;
         this.declare = { machine: '', name: '', kind: '', system: '', stage: '', note: '', endpoints: '' };
+        this.attributing = null;        // the unresolved target whose attribute input is open
+        this.attrName = '';
+        this.attrError = null;
     }
 
     async mount(container) {
@@ -211,6 +214,9 @@ export class TriagePanel {
             ${endpoints}`;
     }
 
+    // One row attributes at a time: the input appears where the click was, and a refusal
+    // renders inline beside it — the person is working at the bottom of a long panel, and
+    // a message anywhere else is a message they will not see.
     renderUnresolvedCard() {
         const groups = (this.data.unresolvedEndpoints ?? []).filter((u) => !this.query
             || `${u.target} ${u.edges.map((e) => `${e.machine} ${e.name ?? ''}`).join(' ')}`.toLowerCase().includes(this.query));
@@ -223,6 +229,12 @@ export class TriagePanel {
                 </div>
                 ${groups.map((u) => {
                     const sources = u.edges.map((e) => `${e.machine} · ${e.siteName ?? ''}${e.appPath ?? ''} · ${e.name ?? ''} (${e.sourceFile ?? ''})`).join('\n');
+                    const active = this.attributing === u.target;
+                    const gesture = active
+                        ? `<input class="est-edit-input" data-ref="attr-name" list="est-external-names" value="${escapeHtml(this.attrName)}" placeholder="existing or new entity name…" style="max-width:16rem">
+                           <button class="est-btn est-btn-sm est-btn-primary" data-act="attr-save">Save</button>
+                           <button class="est-btn est-btn-sm" data-act="attr-cancel">Cancel</button>`
+                        : `<button class="est-btn est-btn-sm" data-attr-open="${escapeHtml(u.target)}">Attribute…</button>`;
                     return `
                     <div class="est-triage-row">
                         <span class="est-triage-name" title="${escapeHtml(sources)}">
@@ -230,9 +242,9 @@ export class TriagePanel {
                             <span class="est-badge">${escapeHtml(u.kind)}</span>
                             <span class="est-muted">${u.edges.length} edge${u.edges.length === 1 ? '' : 's'}</span>
                         </span>
-                        <input class="est-edit-input" data-attr-input="${escapeHtml(u.target)}" list="est-external-names" placeholder="entity name…" style="max-width:14rem">
-                        <button class="est-btn est-btn-sm" data-attr-target="${escapeHtml(u.target)}">Attribute</button>
-                    </div>`;
+                        ${gesture}
+                    </div>
+                    ${active && this.attrError ? `<div class="est-triage-unknown"><span class="est-catfail">${escapeHtml(this.attrError)}</span></div>` : ''}`;
                 }).join('')}
                 <datalist id="est-external-names">
                     ${(this.data.external ?? []).map((e) => `<option value="${escapeHtml(e.name)}">`).join('')}
@@ -463,24 +475,28 @@ export class TriagePanel {
 
         // The reconcile gesture (declared-entities.md §4): appending the observed target to
         // an entity's identifiers IS the attribution — the mechanical join does the rest.
-        this.container.querySelectorAll('[data-attr-target]').forEach((btn) => btn.addEventListener('click', () => {
-            const target = btn.dataset.attrTarget;
-            const input = this.container.querySelector(`[data-attr-input="${CSS.escape(target)}"]`);
-            const entityName = input?.value.trim();
-            if (!entityName) {
-                this.error = 'Name the external entity this endpoint belongs to — an existing one, or a new name to declare it.';
-                this.render();
-                return;
-            }
-            const today = new Date().toISOString().slice(0, 10);
-            this.persist({ tags: false, declared: true }, (config) => {
-                const entities = (config.declared.external ??= {});
-                const key = findKey(entities, entityName);
-                const record = (entities[key] ??= { assertedBy: this.assertedBy.trim() || undefined, assertedAt: today });
-                const endpoints = (record.endpoints ??= []);
-                if (!endpoints.some((e) => e.toLowerCase() === target.toLowerCase())) endpoints.push(target);
-            });
+        this.container.querySelectorAll('[data-attr-open]').forEach((btn) => btn.addEventListener('click', () => {
+            this.attributing = btn.dataset.attrOpen;
+            this.attrName = '';
+            this.attrError = null;
+            this.render();
         }));
+        this.container.querySelector('[data-act="attr-cancel"]')?.addEventListener('click', () => {
+            this.attributing = null;
+            this.attrName = '';
+            this.attrError = null;
+            this.render();
+        });
+        const attrInput = this.container.querySelector('[data-ref="attr-name"]');
+        if (attrInput) {
+            attrInput.addEventListener('input', () => { this.attrName = attrInput.value; });
+            attrInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); this.attribute(); }
+            });
+            attrInput.focus();
+            attrInput.setSelectionRange(attrInput.value.length, attrInput.value.length);
+        }
+        this.container.querySelector('[data-act="attr-save"]')?.addEventListener('click', () => this.attribute());
 
         this.container.querySelector('[data-act="declare-toggle"]')?.addEventListener('click', () => {
             this.declaring = !this.declaring;
@@ -510,6 +526,10 @@ export class TriagePanel {
         }));
 
         this.container.querySelector('[data-act="apply"]')?.addEventListener('click', () => this.apply());
+
+        // The shared error slot sits above the fold; anyone triggering it is usually deep
+        // in the queue, so bring it to them rather than hoping they scroll up.
+        if (this.error) this.container.querySelector('[data-ref="error"]')?.scrollIntoView({ block: 'nearest' });
         this.container.querySelector('[data-act="cancel"]')?.addEventListener('click', () => {
             this.selected.clear();
             this.editKey = null;
@@ -589,6 +609,34 @@ export class TriagePanel {
         const containers = tree?.[findKey(tree, machine)];
         const leaves = containers?.[findKey(containers, container)];
         if (leaves) delete leaves[findKey(leaves, name)];
+    }
+
+    async attribute() {
+        const target = this.attributing;
+        const entityName = this.attrName.trim();
+        if (!entityName) {
+            this.attrError = 'Name the external entity this endpoint belongs to — an existing one, or a new name to declare it.';
+            this.render();
+            return;
+        }
+        const today = new Date().toISOString().slice(0, 10);
+        await this.persist({ tags: false, declared: true }, (config) => {
+            const entities = (config.declared.external ??= {});
+            const key = findKey(entities, entityName);
+            const record = (entities[key] ??= { assertedBy: this.assertedBy.trim() || undefined, assertedAt: today });
+            const endpoints = (record.endpoints ??= []);
+            if (!endpoints.some((e) => e.toLowerCase() === target.toLowerCase())) endpoints.push(target);
+        });
+        // A refusal belongs beside the row being worked, not at the top of a long panel.
+        if (this.error) {
+            this.attrError = this.error;
+            this.error = null;
+        } else {
+            this.attributing = null;
+            this.attrName = '';
+            this.attrError = null;
+        }
+        this.render();
     }
 
     async saveDeclaration() {

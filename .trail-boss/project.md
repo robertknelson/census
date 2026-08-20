@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Robert runs the field trial (.docs/field-trial-real-estate.md) against real infrastructure and brings back its Report-back package; next session turns that into fixes and rulings"
+next_step: "Robert runs the field trial (.docs/field-trial-real-estate.md) — now also declaring a real scheduled task and a real external API in Triage and checking what the unresolved-endpoints pile finds in real connection strings — and brings back the Report-back package"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,41 @@ relates: []
 ---
 
 ## notes
+
+### 2026-08-20
+- **G-6's trigger fired and the parked item shipped the same day.** Robert
+  brought two real needs from his field trial: Task Scheduler jobs he ruled
+  will never enter the collector, and external near-peer APIs common in large
+  orgs. He explicitly invited counter-argument on the external case ("if not,
+  convince me of why") — conceded instead: the edge is already *observed*
+  (connection strings, endpoint URLs), so an unattributable target is exactly
+  the unexplained pile the health principle forbids. Reading #2 of §8, per
+  G-6's own terms. Invariant held: asserted never impersonates observed.
+- **Spec written and ratified in one pass** (`declared-entities.md`, all seven
+  open items as proposed): `config/declared-entities.json` sibling file (his
+  open/closed requirement — zero existing schema touched), free-form kinds,
+  external blast subject in-arc, verbatim http targets, A/B slicing, untagged
+  declaration allowed, loose-port rule.
+- **Slice A** (`d4dba3c`): machine-anchored entities — store, GET/PUT, declared
+  rows in Triage (declare form with duplicate guard, classify/edit/remove),
+  rollup contribution with resolution `declared`, dashed seam everywhere,
+  dossier "Declared on this machine", blast radius hosted contributor,
+  `dangling-declared-entity` finding. Verification exposed a real pre-existing
+  gap: canvas universe omitted machines named only by assertions, so their
+  findings never rendered — fixed, OLDBATCH01 now a ghost tile.
+- **Slice B** (`59a70ee`): `ExternalAttribution` — exact-match join, estate
+  machines always win, 80/443 normalize, portless-matches-any; Triage external
+  card (0-match smell, shadows-SQL01 warning live in the fixture) and
+  unresolved-endpoints stratum with the attribute gesture (append identifier =
+  reconcile, verb 5 made mechanical); `GET /api/blast-radius/external/{name}`
+  — "the partner API dies → OrderPortal prod via WEB01" answered on screen,
+  every edge badged *declared target*, never a verdict. Chip now carries the
+  fleet-level pile (29 = 22 + 1 untagged external + 6 unresolved).
+- Also: baselines primer committed; Baselines-tab positions given (per-type =
+  `class` selector already ratified; gap is a bless-from-tab entry point +
+  scope-grouped list) — **not yet built, awaiting his go**.
+- `main` at `59a70ee`, all pushed. Demo fixtures restored to designed state
+  after every live mutation.
 
 ### 2026-08-17 (second session)
 - **The whole system-graph arc shipped in one session**: three slices, each

@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "The system graph shipped: tag what census finds, work the pile in Triage, ask any machine what breaks if it dies"
+summary: "Declared entities shipped: scheduled tasks and partner APIs join the map, and 'the partner API dies?' gets an answer"
 resume: "cd Census.Web; $env:ASPNETCORE_ENVIRONMENT='Demo'; dotnet run   # then http://localhost:5199"
 health: green
 links:
@@ -23,58 +23,56 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**The whole system-graph idea went from concept to working software in one
-session** — three pieces, each one specced, decided, built, and verified in the
-browser before moving on:
+**Declared entities — the map now covers things census cannot observe.** Two
+real needs from Robert's field trial drove it: Windows scheduled tasks (which
+will never be collected — ruled) and partner APIs outside the estate (common in
+any large organization). Both are now first-class, with one hard line held
+everywhere: something a *person* declared never dresses up as something census
+*measured* — declared things draw dashed, carry who-said-so-and-when, and are
+never "verified", because there is nothing to verify them against.
 
-- **Tagging.** You can now say what a database or website *means* — "this is
-  the dev copy of MyWeb" — and census remembers who said it and when. Machines
-  show what they carry as a rollup of those tags, drawn dashed so a computed
-  label never masquerades as something a person typed.
-- **Triage.** A new button in the top bar shows one number: how many things
-  census has found that nobody has explained yet. Open it and you get the
-  to-do list, grouped sensibly, with checkboxes — select a whole instance,
-  type the meaning once, apply to everything selected. The pile shrinks as
-  you work. Tags whose target vanished show up here too, with a Remove button.
-- **Blast radius.** Select any machine, press one button, and get the answer
-  the whole project was built for: *if this box dies, what stops working* —
-  named in business terms, not server names. The demo's shared dev/val
-  database box answers exactly as hoped: "MyWeb dev and val, YourWeb dev and
-  val" — two environments down from one box, visible at last. Every line
-  expands to show the evidence, and things census *couldn't* see are listed
-  as unknown rather than quietly left out.
+- **Declare it.** Triage gained a "Declare entity…" form: name a scheduled task
+  on a machine, or an external API with the web/database addresses that belong
+  to it. Same tagging, same bulk gestures, same pile-counting as everything
+  observed.
+- **The pile got honest about the outside world.** Census already *sees* the
+  connection strings and URLs apps carry. Any address that is neither an estate
+  machine nor a declared entity now shows up as an "unresolved endpoint" —
+  one click attributes it to an entity (or declares a new one on the spot).
+  Matching is exact against what a human typed, never guessed: a declared
+  address that names an estate machine loses to the machine and says so in
+  red; one that matches nothing reads "matched by 0 edges" next to the typo.
+- **The new blast-radius question.** Every external entity has a button
+  answering *the outage you don't control*: "the partner payments API dies →
+  OrderPortal production, via this app on this box, from this config file."
+  The demo answers exactly that on screen.
 
-Also: the earlier "should census model things it can never see?" question was
-withdrawn by Robert as based on a hypothetical — census describes what it
-observes, full stop.
+A bonus find: machines that exist only as assertions (a decommissioned box a
+tag still points at) were silently missing from the map and their warnings
+never showed. They now draw as ghost tiles carrying their warning.
 
 ## What's next
 
-**The field trial.** Everything above was verified against the built-in demo
-fleet. Robert asked for — and has — a written protocol
-(`.docs/field-trial-real-estate.md`) covering what to test on real
-infrastructure and exactly what to report back: the first watched remote
-collection run, whether real connection strings resolve, whether the tagging
-model fits a real estate, and whether a blast-radius answer matches what he
-already knows. He runs it; the next session turns the answers into fixes and
-decisions. Real data has found a gap on first contact twice before; this is
-that moment for the new work.
+**Still the field trial — now with more to test.** The written protocol
+(`.docs/field-trial-real-estate.md`) stands; this session added things worth
+exercising on real infrastructure: declare a real scheduled task, declare a
+real partner API, and see what the unresolved-endpoints pile digs out of real
+connection strings — that list is expected to be the fastest source of "oh
+right, THAT system" moments. Robert runs it; the next session turns the
+report-back into fixes and rulings.
 
-Parked deliberately, with notes on when to pick each up: shorthand for "this
-system contains that one" (tag nesting), retiring the old machine-level stage
-label, following web-address links between apps, and a systems-by-stages
-overview grid.
+Also queued, discussed and positioned but awaiting his go: a "start a baseline
+from here" button on the Baselines tab (creation currently lives only in
+machine dossiers) and grouping that tab's list by scope.
 
 ## Anything alarming
 
-- **The remote login has still never actually been tested.** Census is built to
-  reach out to other machines and collect from them, but every run so far has
-  been against the one local box. The first real attempt should be run by hand,
-  watching it, before anything scheduled depends on it.
-- **No real data has touched the new tagging features yet.** The pattern from
-  past features: real data arrives, something the test data never covered
-  breaks, it gets fixed same-day. Expect that here too; treat the first real
-  run as a live-fire event, not a formality.
+- **The remote login has still never actually been tested.** All runs so far
+  are against the one local box; the first real remote collection should be
+  watched by hand.
+- **Real data has broken something on first contact every time so far.** The
+  new declared-entities work has only met the demo fleet; treat its first real
+  run as live fire.
 
-Nothing is broken. The build is clean, everything is pushed, and the demo
-answers its questions correctly.
+Nothing is broken. Build clean, everything pushed, demo fleet answers all its
+designed questions.

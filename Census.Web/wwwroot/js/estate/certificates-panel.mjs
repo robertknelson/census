@@ -26,6 +26,27 @@ export function certUrgencyClass(days) {
     return '';
 }
 
+// Within-band ordering — the urgency bands themselves stay fixed. Missing values sort last.
+const SORTS = {
+    expiry: { label: 'expiry', value: (c) => c.daysUntilExpiry },
+    subject: { label: 'subject', value: (c) => c.subject },
+    issuer: { label: 'issuer', value: (c) => c.issuer },
+    machine: { label: 'machine', value: (c) => [...c.machines].sort()[0] ?? '' },
+};
+
+function compareValues(a, b) {
+    if (a === null || a === undefined || a === '') return (b === null || b === undefined || b === '') ? 0 : 1;
+    if (b === null || b === undefined || b === '') return -1;
+    if (typeof a === 'number' && typeof b === 'number') return a - b;
+    return String(a).localeCompare(String(b), undefined, { sensitivity: 'base' });
+}
+
+// Hidden only when RDP is the group's sole binding across every machine it appears on —
+// a cert shared with IIS anywhere is a real web cert and must not disappear.
+function isRdpOnly(c) {
+    return c.boundTo.size > 0 && [...c.boundTo].every((b) => b === 'RDP');
+}
+
 /** Group per-machine cert entries into one renewal item per thumbprint. */
 function groupByThumbprint(entries) {
     const groups = new Map();
@@ -45,6 +66,9 @@ export class CertificatesPanel {
     constructor(asOf, onMachine) {
         this.asOf = asOf;
         this.onMachine = onMachine;
+        this.showRdp = false;
+        this.sortKey = 'expiry';
+        this.sortAsc = true;
     }
 
     async mount(container) {
@@ -57,17 +81,22 @@ export class CertificatesPanel {
             container.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
             return;
         }
-        this.render(groupByThumbprint(entries));
+        this.certs = groupByThumbprint(entries);
+        this.render();
     }
 
-    render(certs) {
-        if (certs.length === 0) {
+    render() {
+        if (this.certs.length === 0) {
             this.container.innerHTML = '<p class="est-status">No bound certificates anywhere in the fleet.</p>';
             return;
         }
 
+        const visible = this.certs.filter((c) => this.showRdp || !isRdpOnly(c));
+        const sortValue = SORTS[this.sortKey].value;
+        const ordered = [...visible].sort((a, b) => (this.sortAsc ? 1 : -1) * compareValues(sortValue(a), sortValue(b)));
+
         const bands = BANDS.map((band) => {
-            const members = certs.filter((c) => c.daysUntilExpiry !== null && band.match(c.daysUntilExpiry));
+            const members = ordered.filter((c) => c.daysUntilExpiry !== null && band.match(c.daysUntilExpiry));
             if (members.length === 0) return '';
             return `
                 <div class="est-certband est-certband-${band.key}">
@@ -76,7 +105,29 @@ export class CertificatesPanel {
                 </div>`;
         }).join('');
 
-        this.container.innerHTML = bands;
+        this.container.innerHTML = `
+            <div class="est-triage-controls">
+                <label class="est-check"><input type="checkbox" data-ref="show-rdp" ${this.showRdp ? 'checked' : ''}> show RDP certificates</label>
+                <span class="est-muted">sort within bands by</span>
+                <select class="est-edit-input" data-ref="sort-key" style="max-width:8rem">
+                    ${Object.entries(SORTS).map(([key, s]) => `<option value="${key}" ${this.sortKey === key ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}
+                </select>
+                <button class="est-btn est-btn-sm" data-ref="sort-dir" title="Flip sort direction">${this.sortAsc ? '↑' : '↓'}</button>
+            </div>
+            ${bands || '<p class="est-status">Only RDP certificates in the fleet — toggle them on to see them.</p>'}`;
+
+        this.container.querySelector('[data-ref="show-rdp"]').addEventListener('change', (e) => {
+            this.showRdp = e.target.checked;
+            this.render();
+        });
+        this.container.querySelector('[data-ref="sort-key"]').addEventListener('change', (e) => {
+            this.sortKey = e.target.value;
+            this.render();
+        });
+        this.container.querySelector('[data-ref="sort-dir"]').addEventListener('click', () => {
+            this.sortAsc = !this.sortAsc;
+            this.render();
+        });
 
         this.container.querySelectorAll('[data-open-machine]').forEach((btn) => btn.addEventListener('click', () => {
             this.onMachine(btn.dataset.openMachine);

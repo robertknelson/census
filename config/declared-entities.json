@@ -1,5 +1,37 @@
 {
   "version": 1,
-  "onMachines": {},
-  "external": {}
+  "onMachines": {
+    "BUILDSRV01": {
+      "nightly-job": {
+        "kind": "scheduled-task",
+        "serves": [
+          {
+            "system": "system-a",
+            "stages": [
+              "dev",
+              "val",
+              "prod"
+            ],
+            "assertedAt": "2026-08-21"
+          }
+        ],
+        "note": "d:\\scheduled-tasks",
+        "assertedAt": "2026-08-21"
+      }
+    }
+  },
+  "external": {
+    "reporting": {
+      "endpoints": [
+        "http://legacy-reports.example.com"
+      ],
+      "assertedAt": "2026-08-20"
+    },
+    "billing": {
+      "endpoints": [
+        "https://billing.example.com"
+      ],
+      "assertedAt": "2026-08-21"
+    }
+  }
 }

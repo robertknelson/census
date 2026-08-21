@@ -1,5 +1,48 @@
 {
   "version": 1,
-  "databases": {},
-  "applications": {}
+  "databases": {
+    "DEVSQLBOX": {
+      "MSSQLSERVER": {
+        "MyDB_DEV": {
+          "serves": [
+            {
+              "system": "sysetem-a",
+              "stages": [
+                "dev"
+              ],
+              "assertedAt": "2026-08-21"
+            }
+          ]
+        },
+        "YourDB_DEV": {
+          "serves": [
+            {
+              "system": "sysetem-a",
+              "stages": [
+                "dev"
+              ],
+              "assertedAt": "2026-08-21"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "applications": {
+    "VALWEBBOX": {
+      "myweb.val.example.com": {
+        "/": {
+          "serves": [
+            {
+              "system": "sysetem-a",
+              "stages": [
+                "val"
+              ],
+              "assertedAt": "2026-08-21"
+            }
+          ]
+        }
+      }
+    }
+  }
 }

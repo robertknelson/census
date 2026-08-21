@@ -42,13 +42,22 @@ Two ratified-then-built slices, both from today's design conversation:
   entry is how you release a machine to the derived value. Baseline scoping,
   the canvas, and the compliance CSV all read the effective stage.
 
+Smaller, on request: both certificate views now hide RDP machine certificates
+by default (a toggle brings them back; a cert also serving a website never
+hides), the classic table sorts by any column, and the renewals panel sorts
+within its urgency bands. The first real-estate classifications are committed
+to the repo, with a system-name typo reconciled so all four members join one
+system. A fixture flaw the cert work exposed — two different demo certs
+sharing a thumbprint — is fixed.
+
 ## What's next
 
-**Restart the app** — the running instance predates both slices. Then the
-field trial continues: group your real stage variants under canonical names
-in Triage and look at the clean view in the Atlas. Parked with a trigger: the
-same collapsed listing in the classic Hosting view, once the Atlas gesture
-proves itself on real data.
+**Restart the app** — the running instance predates both slices (the
+certificate changes only need a page reload). Then the field trial continues:
+group your real stage variants under canonical names in Triage and look at
+the clean view in the Atlas. Parked with a trigger: the same collapsed
+listing in the classic Hosting view, once the Atlas gesture proves itself on
+real data.
 
 ## Anything alarming
 

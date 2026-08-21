@@ -54,10 +54,22 @@ relates: []
   /atlas MyWeb 12 members → 6 nodes with inspector variants (screenshot),
   dashed derived badge on SQL01's tile (screenshot), Triage "as" apply wrote
   canonicalName end-to-end then reverted, GET/PUT round-trip byte-identical.
-- `main` at `cfdc05b`, pushed. **His real-profile config edits
-  (declared-entities.json reporting entry, entity-tags.json triage writes)
-  remain uncommitted — his call.** His running instance again predates the
-  session's slices; restart required.
+- **Continuation, same day:** his real-profile config edits committed on his
+  order (`0a658dd` — first real declared entities + association writes);
+  the `sysetem-a`/`system-a` split I flagged in that diff reconciled on his
+  "fix it" (`efced6b`) — his estate now has one system-a, four members.
+  Certificates UX on request: classic view hides RDP-only certs by default
+  (toggle; filter keys on the collector's literal "RDP" binding source,
+  never names; IIS+RDP certs never hide) with sortable columns (`6415df4`);
+  same toggle + within-band sort ported to the Estate renewals panel
+  (`54ca782`) — bands stay fixed, sort orders inside them. That work
+  exposed a fixture impossibility: WEB01's portal cert shared a thumbprint
+  with WEB02's legacy cert, merging two renewals into one; fixed in both
+  snapshots, the gz twin, and the generator on his order (`de4336b`) —
+  fleet now answers 11 renewals, both expired certs listed separately.
+- `main` at `de4336b`, all pushed, working tree clean. His running instance
+  predates the G-8/G-9 backend — restart required; the certificate work is
+  JS-only and needs just a page reload.
 
 ### 2026-08-20 (second session — the association arc + Atlas)
 - **The Triage attribute gesture was field-broken and got redesigned live**: every

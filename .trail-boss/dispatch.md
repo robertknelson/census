@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "The Atlas is open: pick a system at /atlas, see its dependency graph — stages now belong to each system claim"
-resume: "RESTART the app first (running instance predates today's backend), then http://localhost:5199/atlas"
+summary: "Clean view shipped: canonical names collapse stage variants in Atlas; machine stage now derives from what it hosts"
+resume: "RESTART the app (running instance predates today's slices), then /atlas MyWeb for the clean view; group your real stage variants in Triage's new 'as' field"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -23,51 +23,41 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**The Atlas** — a new page at `/atlas`, deliberately separate from the Estate:
-pick a system, get its dependency graph. Views are tabs you build (system +
-stage filter + layout) and they come back exactly as you left them — the graph
-settles once and freezes, dragging pins a node, and positions survive reopening.
-Filtering to a stage *fades* everything else rather than hiding it, so an edge
-crossing stages stays visible — that's environment-bleed detection for free.
-Click anything and a small corner card shows what it is, who said what it
-serves, and each edge's evidence. Everything human-asserted draws dashed, as
-everywhere.
+Two ratified-then-built slices, both from today's design conversation:
 
-Two foundations went in underneath, both from the day's design conversation:
+- **Canonical names — the clean view.** MyAppDB-DEV, MyAppDB-VAL and MyAppDB
+  are one logical database wearing three names; you can now say so. The claim
+  rides the system assertion (per-system, so two systems can each have a
+  "ReportsDB" without colliding), is typed into Triage's new "as" field, and
+  the Atlas collapses the variants into a single node — "MyWeb" over
+  DEVWEBBOX, PRODWEBBOX, VALWEBBOX — with the observed names one click away in
+  the inspector. Hosting, dossiers and blast radius keep the observed names:
+  clean view for management, operator truth untouched. Never guessed from
+  name similarity — that rule stands.
 
-- **Stages now belong to each system claim.** A database can serve MyFancy at
-  dev *and* val while serving Other at val only — the old model literally could
-  not say that and quietly implied combinations nobody asserted. Existing files
-  keep working unchanged forever; anything edited from now on is written the
-  precise way. Blast-radius answers got strictly more truthful (the demo's
-  mixed-stage task now answers two deployment lines where the old model would
-  have invented four).
-- **Systems have name cards** (`config/systems.json`): description, note, and
-  optionally the stages a system is *supposed* to have — so the Atlas's registry
-  panel can say "you expected a UAT stage and nothing serves it" and flag names
-  in use that nobody registered.
-
-Also fixed from the field report: attributing an unresolved endpoint is now one
-row at a time with the input appearing where you clicked, Enter saves, and any
-refusal shows up right at the row instead of off-screen at the top.
+- **Machine stage derives itself.** A machine's stage now rolls up from what
+  it hosts; a hand-asserted stage in assets.json still wins, completely — no
+  merging — and when the assertion disagrees with what's inside, a low
+  finding says so instead of anyone silently losing. Removing the asserted
+  entry is how you release a machine to the derived value. Baseline scoping,
+  the canvas, and the compliance CSV all read the effective stage.
 
 ## What's next
 
-**Restart the app** — the instance running during the session predates all of
-this. Then: build a real system's view in the Atlas, and do the ratification
-pass — several detail decisions were applied under the "go" and are flagged in
-the three specs (entity-associations, systems-registry, system-view) for a
-yes/redirect each. The field trial continues with associations, the registry,
-and the Atlas in hand.
+**Restart the app** — the running instance predates both slices. Then the
+field trial continues: group your real stage variants under canonical names
+in Triage and look at the clean view in the Atlas. Parked with a trigger: the
+same collapsed listing in the classic Hosting view, once the Atlas gesture
+proves itself on real data.
 
 ## Anything alarming
 
-- **The remote login has still never actually been tested.** First real remote
-  collection should be watched by hand.
-- **Today's work is demo-verified only.** The association conversion reads old
-  files as-is by design, but real data has drawn blood on first contact every
-  time — treat the first real run as live fire, especially the first Triage
-  edit of a real leaf (it rewrites that leaf in the new shape).
+- **The remote login has still never actually been tested.** First real
+  remote collection should be watched by hand.
+- **Demo-verified only, as always.** Real data has drawn blood on first
+  contact every time; the first canonical grouping of real entities is the
+  live-fire moment.
 
-Nothing is broken. Build clean, everything pushed, every fixture branch answers
-as designed.
+Nothing is broken. Build clean, all pushed, every fixture branch answers as
+designed — including the round-trip that proves untouched leaves stay
+byte-identical.

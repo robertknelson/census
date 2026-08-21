@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "RESTART Census.Web (the running instance predates the association/registry/atlas backend), open /atlas and build a real system's view; then the ratification pass over the proposed-and-applied items (entity-associations.md §7, systems-registry.md §5+§3 deviation, system-view.md §7) and the field trial continues"
+next_step: "RESTART Census.Web (running instance predates G-8/G-9), then field-trial the new slices: group real stage variants under canonical names in Triage's 'as' field, view the collapse in /atlas; ratification pass over the 08-20 proposed-and-applied items (entity-associations.md §7, systems-registry.md §5+§3 deviation, system-view.md §7) still owed"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,40 @@ relates: []
 ---
 
 ## notes
+
+### 2026-08-21 (derived stage + canonical names)
+- **He restarted, verified G-7 triage and declared entities live, picked a
+  system in /atlas** — first field contact with the 08-20 slices, all good.
+- **Two design questions arrived as his own concrete examples** (MyAppDB-DEV/
+  VAL/prod; MyWeb across WebDev/WebVal/WebUat/WebProd) rather than a
+  generalization — he said so explicitly. Rulings: machine stage becomes
+  derived (usually correct), overridable, override **complete** never partial
+  (his own answer, confirmed); stage variants share a per-system logical
+  identity; **"canonical" is the term** (ruled mid-draft, mid-turn).
+- **Both specs drafted, ratified as proposed in one word, built same day**:
+  `derived-machine-stage.md` (G-8 — effective stage: asserted wins whole else
+  rollup union w/ derivedFrom; `stage-override-drift` low finding, machine-
+  keyed because the machine is an honest subject; no migration, deleting the
+  asserted entry IS release-to-derived) and `canonical-names.md` (G-9 —
+  `canonicalName` rides the association so per-system falls out of the shape
+  and dangling-canonical is impossible by construction; Triage "as" field
+  bulk-sets-if-absent / edit-overwrites; Atlas collapses (system,canonical)
+  into one node with hosts sublabel + variant-expanding inspector; observation
+  surfaces keep observed names; same-name-same-stage = farm, not collision).
+- Fixtures: SQL01 stage facet removed (derived-only; db-prod baseline still
+  matches through the derived stage), DEVSQLBOX/PRODSQLBOX/APPSRV01 fire
+  drift; MyDB + MyWeb grouped across conventions/machines, Shared_REF carries
+  two canonical names in two systems and farms across two hosts, AppDB exists
+  in both MyWeb and YourWeb without collision, legacy flat leaves untouched.
+- Verified live on a second instance (port 5399, demo profile): canvas
+  stage/source per branch, drift findings, derived-stage baseline match,
+  /atlas MyWeb 12 members → 6 nodes with inspector variants (screenshot),
+  dashed derived badge on SQL01's tile (screenshot), Triage "as" apply wrote
+  canonicalName end-to-end then reverted, GET/PUT round-trip byte-identical.
+- `main` at `cfdc05b`, pushed. **His real-profile config edits
+  (declared-entities.json reporting entry, entity-tags.json triage writes)
+  remain uncommitted — his call.** His running instance again predates the
+  session's slices; restart required.
 
 ### 2026-08-20 (second session — the association arc + Atlas)
 - **The Triage attribute gesture was field-broken and got redesigned live**: every

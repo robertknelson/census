@@ -6,7 +6,7 @@
         "MyDB_DEV": {
           "serves": [
             {
-              "system": "sysetem-a",
+              "system": "system-a",
               "stages": [
                 "dev"
               ],
@@ -17,7 +17,7 @@
         "YourDB_DEV": {
           "serves": [
             {
-              "system": "sysetem-a",
+              "system": "system-a",
               "stages": [
                 "dev"
               ],
@@ -34,7 +34,7 @@
         "/": {
           "serves": [
             {
-              "system": "sysetem-a",
+              "system": "system-a",
               "stages": [
                 "val"
               ],

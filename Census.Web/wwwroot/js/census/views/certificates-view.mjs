@@ -18,11 +18,32 @@ function formatDate(iso) {
     return iso ? iso.slice(0, 10) : '—';
 }
 
+// One accessor per sortable column; expiry date and days-left both order by time
+// remaining, so they share the numeric value. Missing values sort last either way.
+const SORT_COLUMNS = {
+    machine: { label: 'Machine', value: (c) => c.machine },
+    subject: { label: 'Subject', value: (c) => c.subject },
+    notAfter: { label: 'Expiry date', value: (c) => c.daysUntilExpiry },
+    days: { label: 'Days left', value: (c) => c.daysUntilExpiry },
+    boundTo: { label: 'Bound to', value: (c) => (c.boundTo ?? []).join(', ') },
+    issuer: { label: 'Issuer', value: (c) => c.issuer },
+};
+
+function compareValues(a, b) {
+    if (a === null || a === undefined || a === '') return (b === null || b === undefined || b === '') ? 0 : 1;
+    if (b === null || b === undefined || b === '') return -1;
+    if (typeof a === 'number' && typeof b === 'number') return a - b;
+    return String(a).localeCompare(String(b), undefined, { sensitivity: 'base' });
+}
+
 export class CertificatesView {
     constructor(container) {
         this.container = container;
         this.maxDays = '';
         this.boundOnly = false;
+        this.showRdp = false;
+        this.sortKey = 'days';
+        this.sortAsc = true;
     }
 
     async render() {
@@ -37,10 +58,16 @@ export class CertificatesView {
 
     renderContent() {
         const filtered = this.certs.filter((c) => {
+            // Hidden only when RDP is the cert's sole binding — a cert shared with IIS is
+            // a real web cert and must not disappear behind the RDP toggle.
+            if (!this.showRdp && c.boundTo.length > 0 && c.boundTo.every((b) => b === 'RDP')) return false;
             if (this.boundOnly && c.boundTo.length === 0) return false;
             if (this.maxDays !== '' && (c.daysUntilExpiry === null || c.daysUntilExpiry > Number(this.maxDays))) return false;
             return true;
         });
+
+        const sortValue = SORT_COLUMNS[this.sortKey].value;
+        filtered.sort((a, b) => (this.sortAsc ? 1 : -1) * compareValues(sortValue(a), sortValue(b)));
 
         const rows = filtered.map((c) => `
             <tr>
@@ -52,18 +79,24 @@ export class CertificatesView {
                 <td>${escapeHtml(c.issuer)}</td>
             </tr>`).join('');
 
+        const headers = Object.entries(SORT_COLUMNS).map(([key, col]) => `
+            <th data-sort="${key}" style="cursor:pointer" title="Sort by ${escapeHtml(col.label)}">${escapeHtml(col.label)}${
+                this.sortKey === key ? (this.sortAsc ? ' ▲' : ' ▼') : ''}</th>`).join('');
+
         this.container.innerHTML = `
             <h2>Certificate expiry</h2>
-            <p class="census-muted">Every certificate from each machine's latest snapshot, soonest expiry first.</p>
+            <p class="census-muted">Every certificate from each machine's latest snapshot; click a column to sort.</p>
             <p>
                 <label>Expires within <input type="number" min="0" data-ref="max-days" value="${escapeHtml(this.maxDays)}" placeholder="any" style="width:5rem"> days</label>
                 &nbsp;
                 <label><input type="checkbox" data-ref="bound-only" ${this.boundOnly ? 'checked' : ''}> Bound only</label>
+                &nbsp;
+                <label><input type="checkbox" data-ref="show-rdp" ${this.showRdp ? 'checked' : ''}> Show RDP certificates</label>
             </p>
             ${filtered.length === 0
                 ? '<p class="census-status">No certificates match this filter.</p>'
                 : `<table class="census-table">
-                    <thead><tr><th>Machine</th><th>Subject</th><th>Expiry date</th><th>Days left</th><th>Bound to</th><th>Issuer</th></tr></thead>
+                    <thead><tr>${headers}</tr></thead>
                     <tbody>${rows}</tbody>
                    </table>`}`;
 
@@ -75,5 +108,14 @@ export class CertificatesView {
             this.boundOnly = e.target.checked;
             this.renderContent();
         });
+        this.container.querySelector('[data-ref="show-rdp"]').addEventListener('change', (e) => {
+            this.showRdp = e.target.checked;
+            this.renderContent();
+        });
+        this.container.querySelectorAll('th[data-sort]').forEach((th) => th.addEventListener('click', () => {
+            if (this.sortKey === th.dataset.sort) this.sortAsc = !this.sortAsc;
+            else { this.sortKey = th.dataset.sort; this.sortAsc = true; }
+            this.renderContent();
+        }));
     }
 }

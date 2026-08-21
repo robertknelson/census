@@ -157,7 +157,7 @@ $web01Sites = {
             physicalPath = Path2 'D:\sites\portal'
             bindings = @(
                 (Binding 'http'  '*:80:portal.example.com'  '*' 80  'portal.example.com' $null $null),
-                (Binding 'https' '*:443:portal.example.com' '*' 443 'portal.example.com' '1' 'A1B2C3D4E5F60718293A4B5C6D7E8F9012345678')
+                (Binding 'https' '*:443:portal.example.com' '*' 443 'portal.example.com' '1' 'C3D4E5F60718293A4B5C6D7E8F9012345678A1B2')
             )
             logFile = LogFile 'D:\logs\W3SVC2' 'true' 8 9216 '2026-04-02T00:11:44Z' $PortalNewest 0
         }

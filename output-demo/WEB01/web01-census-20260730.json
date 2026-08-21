@@ -210,7 +210,7 @@
               "hostHeader": "portal.example.com",
               "parsed": true,
               "sslFlags": "1",
-              "certificateHash": "A1B2C3D4E5F60718293A4B5C6D7E8F9012345678",
+              "certificateHash": "C3D4E5F60718293A4B5C6D7E8F9012345678A1B2",
               "certificateStoreName": "My"
             }
           ],

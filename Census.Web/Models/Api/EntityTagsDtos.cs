@@ -132,6 +132,7 @@ public record AssociationDto
 {
     public string System { get; init; }
     public List<string> Stages { get; init; } = [];
+    public string CanonicalName { get; init; }
     public string AssertedBy { get; init; }
     public string AssertedAt { get; init; }
 }

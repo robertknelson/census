@@ -6,8 +6,8 @@
 > "MyWeb / WebDev, WebVal, WebUat, WebProd" — the clean view management wants.
 > Rulings from conversation: the term is **canonical** (2026-08-21); scope is
 > **per-system**. Parent docs: `entity-associations.md` (the shape this rides),
-> `system-view.md` (where grouping renders). Status: **draft — §7 open items
-> pending ratification.**
+> `system-view.md` (where grouping renders). Status: **ratified as proposed
+> 2026-08-21 (all §7 items), built same day.**
 
 ## 1. What this is — and is not
 
@@ -78,25 +78,20 @@ Resolution semantics, attribution/endpoints, rollups, the unclassified pile's
 arithmetic. G-2 is preserved by construction — the canonical name is input,
 never inference.
 
-## 7. Open items
+## 7. Open items — ratified as proposed, 2026-08-21
 
-1. **Field name `canonicalName`** on the association (term ratified; the key
-   spelling is the proposal). Alternative: `as` — terser, less searchable.
-2. **Atlas-only this slice** (proposed). A logical toggle on the classic
-   hosting view — `MyWeb / WebDev, WebVal, WebUat, WebProd` as a listing —
-   is the natural second consumer; deferred until Atlas proves the gesture.
-3. **Blast radius labeling.** Proposed unchanged this slice; a parenthetical
-   canonical name on deployment lines ("MyAppDB-DEV *(MyAppDB)*") could come
-   later without touching traversal.
-4. **Bulk apply merge rule.** Proposed: applying a canonical name via the bar
-   sets it on the matching system's association in every selected row,
-   overwriting a differing one only on the edit gesture, never on bulk merge —
-   symmetrical with §7.2 of entity-associations. Alternative: bulk overwrite,
-   rejected as silently renaming things somebody else named.
-5. **Registry involvement.** Proposed: none — canonical names are not
-   registered identities, and a registry of them would be membership through
-   the back door (R1). The picker may suggest names already in use within the
-   selected system, which is vocabulary, not registry.
+1. ~~Field name~~ — `canonicalName` on the association.
+2. ~~Atlas-only this slice~~ — the classic hosting view's logical toggle
+   (`MyWeb / WebDev, WebVal, WebUat, WebProd` as a listing) stays deferred
+   until Atlas proves the gesture.
+3. ~~Blast radius labeling~~ — unchanged this slice; a parenthetical canonical
+   name on deployment lines could come later without touching traversal.
+4. ~~Bulk apply merge rule~~ — the bar sets a canonical name only where
+   absent; overwriting a differing one is the edit gesture alone, never bulk —
+   never silently renaming things somebody else named.
+5. ~~Registry involvement~~ — none (a registry of canonical names would be
+   membership through the back door, R1). The bar suggests names already in
+   use within the selected system — vocabulary, not registry.
 
 ## 8. Verification (fixtures per branch)
 

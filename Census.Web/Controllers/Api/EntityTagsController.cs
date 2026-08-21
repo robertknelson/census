@@ -184,7 +184,12 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
         if (serves is null) return null;
         var kept = serves
             .Where(a => a is not null)
-            .Select(a => a with { System = a.System?.Trim() ?? "", Stages = Clean(a.Stages) })
+            .Select(a => a with
+            {
+                System = a.System?.Trim() ?? "",
+                Stages = Clean(a.Stages),
+                CanonicalName = string.IsNullOrWhiteSpace(a.CanonicalName) ? null : a.CanonicalName.Trim(),
+            })
             .Where(a => a.System.Length > 0 || a.Stages.Count > 0)
             .ToList();
         return kept.Count > 0 ? kept : null;

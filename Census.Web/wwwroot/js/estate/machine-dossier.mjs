@@ -236,7 +236,7 @@ function assocChips(source) {
     }));
     return serves.map((a) => {
         const title = `asserted by ${a.assertedBy || 'unknown'}${a.assertedAt ? `, ${a.assertedAt}` : ''}`;
-        const label = `${escapeHtml(a.system || '—')}${(a.stages ?? []).length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}`;
+        const label = `${escapeHtml(a.system || '—')}${(a.stages ?? []).length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}${a.canonicalName ? ` · as ${escapeHtml(a.canonicalName)}` : ''}`;
         return `<span class="est-badge est-tag-system" title="${escapeHtml(title)}">${label}</span>`;
     }).join('');
 }

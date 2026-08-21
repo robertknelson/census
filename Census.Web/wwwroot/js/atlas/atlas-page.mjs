@@ -230,8 +230,17 @@ class AtlasPage {
         const { type, item } = this.selection;
         if (type === 'node') {
             const serves = item.serves.map((a) => `
-                <div class="atl-row"><span class="atl-badge">${escapeHtml(a.system || '—')}${a.stages.length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}</span>
+                <div class="atl-row"><span class="atl-badge">${escapeHtml(a.system || '—')}${a.stages.length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}${a.canonicalName ? ` · as ${escapeHtml(a.canonicalName)}` : ''}</span>
                 <span class="atl-muted">${escapeHtml([a.assertedBy, a.assertedAt].filter(Boolean).join(' · '))}</span></div>`).join('');
+            // A canonical node expands to its concrete variants (canonical-names.md §4) —
+            // observed name, host, stages, provenance — so the clean label never hides
+            // the evidence, and a declared or phantom variant keeps its own mark.
+            const variants = (item.variants ?? []).map((v) => `
+                <div class="atl-row"><span class="atl-mono">${escapeHtml(v.name)}</span>
+                <span class="atl-muted">${escapeHtml([v.machine, v.container].filter(Boolean).join(' · '))}${v.stages.length ? ` · ${v.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}</span>
+                ${v.declared ? '<span class="atl-badge atl-badge-declared">declared</span>' : ''}
+                ${v.phantom ? '<span class="atl-drift-bad">not observed</span>' : ''}
+                <span class="atl-muted">${escapeHtml([v.assertedBy, v.assertedAt].filter(Boolean).join(' · '))}</span></div>`).join('');
             const state = item.member ? '' :
                 item.unclassified ? '<div class="atl-drift-warn">unclassified — nobody has said what this serves; classify it in Triage</div>' :
                 item.offSystem ? '<div class="atl-muted">serves other systems only — shown because an edge touches this view</div>' :
@@ -242,11 +251,14 @@ class AtlasPage {
                     <button class="atl-btn" data-ref="close">×</button>
                 </div>
                 <div class="atl-row"><span class="atl-badge ${item.declared ? 'atl-badge-declared' : ''}">${escapeHtml(item.kind)}</span>
+                    ${item.canonical ? `<span class="atl-badge">canonical · ${item.variants.length} variant${item.variants.length === 1 ? '' : 's'}</span>` : ''}
                     ${item.phantom ? '<span class="atl-drift-bad">not observed at this address — the edge\'s claim only</span>' : ''}
                 </div>
                 ${item.machine ? `<div class="atl-row"><span class="atl-key">machine</span><span class="atl-mono">${escapeHtml(item.machine)}</span></div>` : ''}
+                ${item.canonical && (item.hosts ?? []).length > 1 ? `<div class="atl-row"><span class="atl-key">hosts</span><span class="atl-mono">${item.hosts.map(escapeHtml).join(', ')}</span></div>` : ''}
                 ${item.container ? `<div class="atl-row"><span class="atl-key">${item.kind === 'database' ? 'instance' : 'site'}</span><span class="atl-mono">${escapeHtml(item.container)}</span></div>` : ''}
                 ${serves || state}
+                ${variants}
                 ${item.note ? `<div class="atl-muted">${escapeHtml(item.note)}</div>` : ''}
                 ${item.declared ? '<div class="atl-muted">Declared — asserted to exist, never corroborated.</div>' : ''}`;
         } else {

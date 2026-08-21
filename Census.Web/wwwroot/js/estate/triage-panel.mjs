@@ -65,6 +65,7 @@ export class TriagePanel {
         this.editAssoc = null;          // {key, system} - one association being overwritten
         this.system = '';
         this.stage = '';
+        this.canonical = '';
         this.assertedBy = localStorage.getItem(ASSERTED_BY_KEY) ?? '';
         this.error = null;
         this.declaring = false;
@@ -329,7 +330,7 @@ export class TriagePanel {
     // retires just that claim, leaving the entity's other systems untouched.
     assocChips(row, interactive) {
         return (row.serves ?? []).map((a) => {
-            const label = `${escapeHtml(a.system || '—')}${(a.stages ?? []).length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}`;
+            const label = `${escapeHtml(a.system || '—')}${(a.stages ?? []).length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}${a.canonicalName ? ` · as ${escapeHtml(a.canonicalName)}` : ''}`;
             const prov = `asserted by ${a.assertedBy || 'unknown'}${a.assertedAt ? `, ${a.assertedAt}` : ''}`;
             if (!interactive) return `<span class="est-badge est-tag-system" title="${escapeHtml(prov)}">${label}</span>`;
             const payload = escapeHtml(JSON.stringify([row.key, a.system ?? '']));
@@ -450,12 +451,31 @@ export class TriagePanel {
                     ${chipRow(this.data.stages, 'stage')}
                 </div>
                 <div class="est-edit-row">
+                    <span class="est-facet-key">as</span>
+                    <input class="est-edit-input" data-field="canonical" value="${escapeHtml(this.canonical)}" list="est-canonical-names" placeholder="canonical name within this system (optional)">
+                    ${this.canonicalDatalist()}
+                </div>
+                <div class="est-edit-row">
                     <span class="est-facet-key">by</span>
                     <input class="est-edit-input" data-field="asserted-by" value="${escapeHtml(this.assertedBy)}" placeholder="who is asserting (optional)">
                     <button class="est-btn est-btn-primary" data-act="apply">${escapeHtml(target)}</button>
                     <button class="est-btn" data-act="cancel">Cancel</button>
                 </div>
             </div>`;
+    }
+
+    // Canonical names already in use within the typed system (canonical-names.md §7.5) —
+    // vocabulary, never a registry: the suggestions come from the associations themselves.
+    canonicalDatalist() {
+        const system = (this.editAssoc ? this.editAssoc.system : this.system).trim().toLowerCase();
+        if (!system) return '<datalist id="est-canonical-names"></datalist>';
+        const names = new Set();
+        for (const row of this.data.machines.flatMap((m) => this.machineRows(m)).concat(this.externalRows())) {
+            for (const a of row.serves ?? []) {
+                if (a.canonicalName && (a.system ?? '').toLowerCase() === system) names.add(a.canonicalName);
+            }
+        }
+        return `<datalist id="est-canonical-names">${[...names].sort().map((n) => `<option value="${escapeHtml(n)}">`).join('')}</datalist>`;
     }
 
     // Registered systems lead the picker with their descriptions (systems-registry.md §5.1);
@@ -519,6 +539,7 @@ export class TriagePanel {
             this.selected.clear();
             this.system = system;
             this.stage = (assoc?.stages ?? []).join(', ');
+            this.canonical = assoc?.canonicalName ?? '';
             this.render();
         }));
 
@@ -593,7 +614,7 @@ export class TriagePanel {
         }));
 
         this.container.querySelectorAll('[data-field]').forEach((input) => input.addEventListener('input', () => {
-            const map = { 'system': 'system', 'stage': 'stage', 'asserted-by': 'assertedBy' };
+            const map = { 'system': 'system', 'stage': 'stage', 'canonical': 'canonical', 'asserted-by': 'assertedBy' };
             this[map[input.dataset.field]] = input.value;
         }));
 
@@ -607,6 +628,7 @@ export class TriagePanel {
             this.editAssoc = null;
             this.system = '';
             this.stage = '';
+            this.canonical = '';
             this.render();
         });
     }
@@ -614,6 +636,7 @@ export class TriagePanel {
     async apply() {
         const system = this.system.trim();
         const stages = splitValues(this.stage);
+        const canonical = this.canonical.trim();
         const editing = this.editAssoc !== null;
 
         if (!editing && !system && stages.length === 0) {
@@ -652,11 +675,20 @@ export class TriagePanel {
                     : system || (rowByKey.get(key)?.serves[0]?.system ?? '');
                 const i = serves.findIndex((a) => (a.system ?? '').toLowerCase() === targetSystem.toLowerCase());
                 if (i < 0) {
-                    serves.push({ system: targetSystem, stages, assertedBy: by, assertedAt: today });
+                    serves.push({ system: targetSystem, stages, ...(canonical ? { canonicalName: canonical } : {}), assertedBy: by, assertedAt: today });
                 } else {
                     // Editing overwrites the claim's stages (emptied = unstaged); bulk
                     // merges — never removing a stage somebody else asserted.
                     serves[i].stages = editing ? stages : unionStages(serves[i].stages ?? [], stages);
+                    // Canonical name (canonical-names.md §7.4): edit overwrites, emptied =
+                    // ungrouped; bulk sets it only where absent — never silently renaming
+                    // something somebody else named.
+                    if (editing) {
+                        if (canonical) serves[i].canonicalName = canonical;
+                        else delete serves[i].canonicalName;
+                    } else if (canonical && !serves[i].canonicalName) {
+                        serves[i].canonicalName = canonical;
+                    }
                     serves[i].assertedBy = by;
                     serves[i].assertedAt = today;
                 }
@@ -666,6 +698,7 @@ export class TriagePanel {
         this.editAssoc = null;
         this.system = '';
         this.stage = '';
+        this.canonical = '';
         this.render();
     }
 

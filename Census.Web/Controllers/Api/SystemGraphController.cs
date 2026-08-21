@@ -33,8 +33,30 @@ public record SystemGraphNodeDto
     /// <summary>An edge target census could not observe at its address — exists only as the edge's claim.</summary>
     public bool Phantom { get; init; }
 
+    /// <summary>Groups stage variants sharing this system's canonical name (canonical-names.md §4).</summary>
+    public bool Canonical { get; init; }
+
+    /// <summary>Distinct machines hosting the collapsed variants — the sublabel when Machine is null.</summary>
+    public List<string> Hosts { get; init; } = [];
+
+    /// <summary>The concrete variants collapsed into a canonical node — the clean label is one click from the evidence.</summary>
+    public List<CanonicalVariantDto> Variants { get; init; } = [];
+
     public List<AssociationDto> Serves { get; init; } = [];
     public string Note { get; init; }
+}
+
+public record CanonicalVariantDto
+{
+    public required string Kind { get; init; }
+    public required string Name { get; init; }
+    public string Container { get; init; }
+    public string Machine { get; init; }
+    public bool Declared { get; init; }
+    public bool Phantom { get; init; }
+    public List<string> Stages { get; init; } = [];
+    public string AssertedBy { get; init; }
+    public string AssertedAt { get; init; }
 }
 
 public record SystemGraphEdgeDto
@@ -242,17 +264,102 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
             .Where(e => nodes[e.SourceId].Member || nodes[e.TargetId].Member)
             .ToList();
         var keptIds = new HashSet<string>(kept.SelectMany(e => new[] { e.SourceId, e.TargetId }), StringComparer.Ordinal);
-        var finalNodes = nodes.Values
+        var prunedNodes = nodes.Values
             .Where(n => n.Member || keptIds.Contains(n.Id))
+            .ToList();
+
+        // Canonical grouping (canonical-names.md §4): members sharing this system's
+        // canonical name collapse into one node — the clean view — with the observed
+        // variants riding along for the inspector. Only an association naming the viewed
+        // system carries a canonical name here, so scoping is per-system by construction.
+        string CanonicalOf(SystemGraphNodeDto n) => n.Serves
+            .FirstOrDefault(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrEmpty(a.CanonicalName))?.CanonicalName;
+
+        var idMap = new Dictionary<string, string>(StringComparer.Ordinal);
+        var canonicalNodes = new List<SystemGraphNodeDto>();
+        foreach (var group in prunedNodes
+            .Select(n => (Node: n, Canonical: CanonicalOf(n)))
+            .Where(x => x.Canonical is not null)
+            .GroupBy(x => x.Canonical, StringComparer.OrdinalIgnoreCase))
+        {
+            var variants = group.Select(x => x.Node).ToList();
+            var id = NodeId("canonical", system.ToLowerInvariant(), group.Key.ToLowerInvariant());
+            foreach (var v in variants) idMap[v.Id] = id;
+            var hosts = variants.Select(v => v.Machine).Where(m => m is not null)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(m => m, StringComparer.OrdinalIgnoreCase).ToList();
+            canonicalNodes.Add(new SystemGraphNodeDto
+            {
+                Id = id,
+                Kind = variants[0].Kind,
+                Name = group.Key,
+                Machine = hosts.Count == 1 ? hosts[0] : null,
+                Hosts = hosts,
+                // The seam rules stay honest under grouping: the node reads as observed
+                // if any variant is observed; a lone declared/phantom variant keeps its
+                // own marks in the inspector's variant rows.
+                Declared = variants.All(v => v.Declared),
+                External = variants.All(v => v.External),
+                Phantom = variants.All(v => v.Phantom),
+                Member = true,
+                Canonical = true,
+                Serves = variants.SelectMany(v => v.Serves).ToList(),
+                Variants = variants.Select(v => new CanonicalVariantDto
+                {
+                    Kind = v.Kind,
+                    Name = v.Name,
+                    Container = v.Container,
+                    Machine = v.Machine,
+                    Declared = v.Declared,
+                    Phantom = v.Phantom,
+                    Stages = v.Serves
+                        .Where(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase))
+                        .SelectMany(a => a.Stages)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
+                    AssertedBy = v.Serves.FirstOrDefault(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase))?.AssertedBy,
+                    AssertedAt = v.Serves.FirstOrDefault(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase))?.AssertedAt,
+                }).ToList(),
+            });
+        }
+
+        var finalNodes = prunedNodes
+            .Where(n => !idMap.ContainsKey(n.Id))
+            .Concat(canonicalNodes)
             .OrderBy(n => n.Machine ?? "~", StringComparer.OrdinalIgnoreCase)
             .ThenBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        // Edges re-point to the canonical nodes; parallel edges the collapse created merge
+        // per (endpoints, kind, verdict) — verdicts never merge — with the count stated.
+        // Edges the collapse never touched pass through exactly as before.
+        var canonicalIds = new HashSet<string>(idMap.Values, StringComparer.Ordinal);
+        var finalEdges = kept
+            .Select(e => e with
+            {
+                SourceId = idMap.GetValueOrDefault(e.SourceId, e.SourceId),
+                TargetId = idMap.GetValueOrDefault(e.TargetId, e.TargetId),
+            })
+            .GroupBy(e => (e.SourceId, e.TargetId, e.Kind, e.Verdict))
+            .SelectMany(g =>
+            {
+                if (!canonicalIds.Contains(g.Key.SourceId) && !canonicalIds.Contains(g.Key.TargetId)) return g.AsEnumerable();
+                var merged = g.Count() == 1 ? g.First()
+                    : g.First() with
+                    {
+                        Detail = $"{g.Count()} observed edges under this canonical pairing"
+                            + (string.IsNullOrEmpty(g.First().Detail) ? "" : $" — first: {g.First().Detail}"),
+                    };
+                return [merged];
+            })
             .ToList();
 
         return Ok(new SystemGraphDto
         {
             System = system,
             Nodes = finalNodes,
-            Edges = kept,
+            Edges = finalEdges,
             Stages = finalNodes.Where(n => n.Member)
                 .SelectMany(n => n.Serves.Where(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase)))
                 .SelectMany(a => a.Stages)

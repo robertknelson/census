@@ -150,14 +150,19 @@ export class PhysicsView {
                 d.declared || d.external || d.phantom ? 'atl-declaredish' : '',
                 d.member ? 'atl-member' : d.unclassified ? 'atl-unclassified' : d.offSystem ? 'atl-offsystem' : '',
                 d.phantom ? 'atl-phantom' : '',
+                d.canonical ? 'atl-canonical' : '',
                 focus === 'ghost' ? 'atl-ghost' : '',
             ].filter(Boolean).join(' ');
+            // A canonical node's sublabel is its distinct hosts — the clean-view line
+            // ("MyWeb / WebDev, WebVal, WebProd") drawn under the canonical name.
+            const sublabel = d.machine ?? ((d.hosts ?? []).length ? d.hosts.join(', ') : null);
             return `
             <g data-node="${escapeHtml(d.id)}" class="${classes}">
                 ${shapeSvg(d, 15)}
                 ${alsoServes > 0 ? `<text class="atl-also" x="14" y="-14">+${alsoServes}</text>` : ''}
+                ${d.canonical ? `<text class="atl-also" x="-14" y="-14" text-anchor="end">×${d.variants.length}</text>` : ''}
                 <text class="atl-label" y="30">${escapeHtml(d.name.length > 26 ? d.name.slice(0, 25) + '…' : d.name)}</text>
-                ${d.machine ? `<text class="atl-sublabel" y="42">${escapeHtml(d.machine)}</text>` : ''}
+                ${sublabel ? `<text class="atl-sublabel" y="42">${escapeHtml(sublabel.length > 40 ? sublabel.slice(0, 39) + '…' : sublabel)}</text>` : ''}
             </g>`;
         }).join('');
 

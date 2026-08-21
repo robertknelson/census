@@ -15,6 +15,14 @@ public record SystemAssociation
 {
     public string System { get; init; }
     public List<string> Stages { get; init; } = [];
+
+    /// <summary>
+    /// The identity stage variants share within this system claim (canonical-names.md §2):
+    /// "within that system, this is MyAppDB". Per-system by construction — it rides the
+    /// claim. Asserted only, never inferred from name similarity (G-2). Null = ungrouped.
+    /// </summary>
+    public string CanonicalName { get; init; }
+
     public string AssertedBy { get; init; }
     public string AssertedAt { get; init; }
 

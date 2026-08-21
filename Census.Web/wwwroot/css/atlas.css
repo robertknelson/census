@@ -158,6 +158,7 @@
 .atl-offsystem circle, .atl-offsystem rect, .atl-offsystem polygon { stroke: var(--atl-muted); }
 .atl-declaredish circle, .atl-declaredish rect, .atl-declaredish polygon { stroke-dasharray: 5 3; }
 .atl-phantom circle, .atl-phantom rect, .atl-phantom polygon { stroke: var(--atl-bad); stroke-dasharray: 2 3; fill: transparent; }
+.atl-canonical circle, .atl-canonical rect, .atl-canonical polygon { stroke-width: 3; }
 .atl-ghost { opacity: 0.22; }
 
 .atl-label {

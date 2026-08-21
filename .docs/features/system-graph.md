@@ -230,6 +230,8 @@ decides what the UX is, and everything else follows from it.
 | **G-4** | Two axes, not one: `system` (which thing) × `stage` (which copy) | 2026-08-17 |
 | **G-5** | Naming traps are permanent fixture residents so no code can quietly re-acquire a convention dependency | 2026-08-17 |
 | **G-6** | The §8 boundary question is dismissed as moot — it arose from a hypothetical system, not the real estate. Census tags what it observes; declared nodes/edges parked until a real need appears | 2026-08-17 |
+| **G-8** | Machine stage is derived from hosted entities' associations by default; an asserted `assets.json` stage overrides **completely**, never partially, and asserted-vs-derived tension surfaces as drift (`derived-machine-stage.md`) | 2026-08-21 |
+| **G-9** | Canonical names: stage variants share a human-asserted logical identity, scoped **per-system**, carried on the association — grouping for the clean view, never a replacement of observed names and never inferred from naming (`canonical-names.md`) | 2026-08-21 |
 
 ---
 
@@ -240,13 +242,10 @@ decides what the UX is, and everything else follows from it.
    materialize by hand? §5. Can be added later without breaking stored assertions.
 3. **Which entity kinds are classifiable** — SQL databases and IIS applications are the driving
    cases; instances, sites and machines are open.
-4. **Does machine-level `stage` become derived?** Today `config/assets.json` carries
-   `"DEVSQLBOX": { "stage": ["dev","val"] }`, which is the only entry in the file that states
-   no actionable fact — a shrug meaning "there are dev things and val things in here
-   somewhere." It exists solely because the machine was the finest thing taggable. Once its
-   databases carry their own stage, the machine's could become a *rollup of seven databases*
-   (true and traceable) rather than an assertion. Robert deferred this 2026-08-17 as downstream
-   of the concept work.
+4. ~~Does machine-level `stage` become derived?~~ — **trigger fired 2026-08-21** (associations
+   gave hosted entities their own stage claims). Ruled in conversation: derived by default,
+   asserted overrides *completely*, drift surfaces. Spec drafted: `derived-machine-stage.md`,
+   its §6 open items pending ratification.
 5. **Bulk assignment UX.** Verb #2. A human classifies a real estate by hand; "tag every
    database on this instance" is probably the minimum viable gesture.
 6. **Rename survival.** A tag points at an observed entity; if that entity is renamed or moved,

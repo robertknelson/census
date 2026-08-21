@@ -62,6 +62,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
             var observedRoles = envelope?.Roles ?? [];
             var (resolvedClass, classSource) = MachineClassifier.Resolve(entry?.Class, observedRoles);
             var tagsDto = envelope is null ? null : entityTagsEvaluator.Evaluate(machine, envelope, entityTags, declaredEntities);
+            var (effectiveStages, stageSource) = EntityTagsEvaluator.EffectiveStages(facets.GetValueOrDefault("stage", []), tagsDto?.Rollup);
 
             machines.Add(new CanvasMachineDto
             {
@@ -69,7 +70,8 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
                 Class = resolvedClass,
                 ClassSource = classSource,
                 ObservedRoles = observedRoles,
-                Stages = facets.GetValueOrDefault("stage", []),
+                Stages = effectiveStages,
+                StageSource = stageSource,
                 Owners = owners.Count > 0 ? owners : [UnassignedOwner],
                 Facets = facets,
                 Posture = findings.Any(f => f.Severity.Equals("critical", StringComparison.OrdinalIgnoreCase)) ? "red"

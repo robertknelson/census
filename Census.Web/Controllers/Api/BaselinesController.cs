@@ -73,7 +73,7 @@ public class BaselinesController(BaselinesStore baselinesStore, BaselineEvaluato
     {
         var envelope = censusStore.GetLatestSnapshot(machine);
         var assets = assetsStore.Load();
-        var facets = assetsStore.FacetsFor(assets, machine);
+        var facets = baselineEvaluator.MatchingFacets(assets, machine, envelope);
         var (resolvedClass, _) = MachineClassifier.Resolve(assets.Assets.GetValueOrDefault(machine)?.Class, envelope?.Roles ?? []);
         return Ok(baselineEvaluator.Evaluate(baselinesStore.Load(), machine, resolvedClass, facets, envelope));
     }

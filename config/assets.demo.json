@@ -20,9 +20,6 @@
     },
     "SQL01": {
       "facets": {
-        "stage": [
-          "prod"
-        ],
         "team": [
           "PublicApps"
         ],

@@ -38,6 +38,13 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
 
         var baselines = baselineEvaluator.EvaluateFleet(asOf);
 
+        var entityTags = entityTagsStore.Load();
+        var declaredEntities = declaredEntitiesStore.Load();
+        var tagDtos = collected.ToDictionary(
+            x => x.Machine,
+            x => entityTagsEvaluator.Evaluate(x.Machine, x.Envelope, entityTags, declaredEntities),
+            StringComparer.OrdinalIgnoreCase);
+
         foreach (var (machine, envelope) in collected)
         {
             foreach (var hit in blacklistEvaluator.Evaluate(envelope))
@@ -103,9 +110,11 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                     "Machine is collected but carries no facets — invisible to every grouping."));
             }
 
-            // SQL edition (observed) × stage (asserted): Developer Edition on a prod-staged
-            // machine is a straight license violation.
-            var stages = assetsStore.FacetsFor(assets, machine).GetValueOrDefault("stage", []);
+            // SQL edition (observed) × stage (effective): Developer Edition on a prod-staged
+            // machine is a straight license violation, whether the prod stage was asserted
+            // or derived from what the machine hosts.
+            var assertedStages = assetsStore.FacetsFor(assets, machine).GetValueOrDefault("stage", []);
+            var (stages, _) = EntityTagsEvaluator.EffectiveStages(assertedStages, tagDtos[machine].Rollup);
             if (stages.Contains("prod", StringComparer.OrdinalIgnoreCase))
             {
                 foreach (var instance in envelope.SqlServer?.Data?.Instances ?? [])
@@ -117,6 +126,20 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                             $"{instance.Edition} — Developer Edition is not licensed for production use."));
                     }
                 }
+            }
+
+            // An override is a statement, not a blindfold (derived-machine-stage.md §3):
+            // the asserted stage wins whole, but when what the machine hosts derives a
+            // different set, the tension surfaces — a deliberate drain or a stale override,
+            // and only a human knows which.
+            var derivedStages = tagDtos[machine].Rollup.Stages;
+            if (assertedStages.Count > 0 && derivedStages.Count > 0
+                && !assertedStages.ToHashSet(StringComparer.OrdinalIgnoreCase).SetEquals(derivedStages))
+            {
+                findings.Add(Build(assets, machine, "stage-override-drift", "low",
+                    $"Stage asserted [{string.Join(", ", assertedStages)}] but hosted entities serve [{string.Join(", ", derivedStages)}]",
+                    "assets.json asserts this machine's stage, which overrides the rollup completely. " +
+                    "The associations of what it hosts say otherwise; remove the asserted stage to release the machine to the derived set, or re-assert it to match."));
             }
         }
 
@@ -220,8 +243,6 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
         // stranded assertion, never a silent drop and never a re-attach — following a rename
         // would be inference. Unknown resolutions stay silent here: a failed collection is
         // not evidence of absence, and the collection failure has its own findings.
-        var entityTags = entityTagsStore.Load();
-        var declaredEntities = declaredEntitiesStore.Load();
         var tagMachines = entityTags.Databases.Keys.Concat(entityTags.Applications.Keys)
             .Distinct(StringComparer.OrdinalIgnoreCase);
         foreach (var machine in tagMachines)
@@ -234,9 +255,8 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 continue;
             }
 
-            var envelope = collected.FirstOrDefault(x => string.Equals(x.Machine, machine, StringComparison.OrdinalIgnoreCase)).Envelope;
-            if (envelope is null) continue;
-            foreach (var row in entityTagsEvaluator.Evaluate(machine, envelope, entityTags, declaredEntities).Rows
+            if (!tagDtos.TryGetValue(machine, out var tagDto)) continue;
+            foreach (var row in tagDto.Rows
                 .Where(r => r.Resolution == EntityTagsEvaluator.ResolutionDangling))
             {
                 findings.Add(Build(assets, machine, "dangling-entity-tag", "low",

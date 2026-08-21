@@ -16,7 +16,12 @@ public record CanvasMachineDto
     public required string Class { get; init; }
     public required string ClassSource { get; init; }
     public List<string> ObservedRoles { get; init; } = [];
+
+    /// <summary>Effective stage (derived-machine-stage.md §2): asserted wins whole, else the rollup union.</summary>
     public List<string> Stages { get; init; } = [];
+
+    /// <summary>"asserted" | "derived" | null — which branch produced Stages; derived renders dashed.</summary>
+    public string StageSource { get; init; }
     public List<string> Owners { get; init; } = [];
     public Dictionary<string, List<string>> Facets { get; init; } = [];
     public required string Posture { get; init; }

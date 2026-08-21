@@ -413,19 +413,16 @@ class EstatePage {
 
     renderTile(m) {
         const selected = this.selectedMachines.has(m.machine);
-        const badges = m.stages.map((s) => `<span class="est-badge">${escapeHtml(s)}</span>`).join('');
-        // Derived stages come from entity tags and never merge into the asserted ones —
-        // "someone typed this onto the machine" and "rolled up from what it hosts" must
-        // stay visually distinct. The tooltip is the derivation.
-        const assertedStages = new Set(m.stages.map((s) => s.toLowerCase()));
-        const derivedBadges = (m.entityRollup?.stages ?? [])
-            .filter((s) => !assertedStages.has(s.toLowerCase()))
-            .map((s) => {
-                const from = (m.entityRollup.derivedFrom ?? [])
-                    .filter((r) => (r.stage ?? []).some((v) => v.toLowerCase() === s.toLowerCase()))
-                    .map((r) => `${r.container} · ${r.name}`);
-                return `<span class="est-badge est-badge-derived" title="derived from: ${escapeHtml(from.join(', '))}">${escapeHtml(s)}</span>`;
-            }).join('');
+        // Effective stage (derived-machine-stage.md §2): asserted wins whole, else derived.
+        // A derived stage keeps the dashed badge and its derivation tooltip; asserted-vs-
+        // derived tension is the stage-override-drift finding now, not extra badges.
+        const badges = m.stages.map((s) => {
+            if (m.stageSource !== 'derived') return `<span class="est-badge">${escapeHtml(s)}</span>`;
+            const from = (m.entityRollup?.derivedFrom ?? [])
+                .filter((r) => (r.stage ?? []).some((v) => v.toLowerCase() === s.toLowerCase()))
+                .map((r) => `${r.container} · ${r.name}`);
+            return `<span class="est-badge est-badge-derived" title="derived from: ${escapeHtml(from.join(', '))}">${escapeHtml(s)}</span>`;
+        }).join('');
         const sub = !m.hasData
             ? '<span class="est-tile-sub est-tile-sub-ghost">no data</span>'
             : m.findingCount > 0
@@ -441,7 +438,7 @@ class EstatePage {
                     title="${escapeHtml(CLASS_LABELS[m.class] ?? m.class)}${m.classSource === 'asserted' ? ' (asserted)' : ''}">
                 <span class="est-ring">${glyphSvg(m.class, 30)}${provenance}</span>
                 <span class="est-tile-name">${escapeHtml(m.machine)}</span>
-                <span class="est-tile-badges">${badges}${derivedBadges}</span>
+                <span class="est-tile-badges">${badges}</span>
                 ${sub}
             </button>`;
     }

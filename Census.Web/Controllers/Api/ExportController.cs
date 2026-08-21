@@ -14,7 +14,7 @@ namespace Census.Web.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/export")]
-public class ExportController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine) : ControllerBase
+public class ExportController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator) : ControllerBase
 {
     [HttpGet("compliance.csv")]
     public IActionResult GetComplianceCsv([FromQuery] string asOf)
@@ -27,6 +27,8 @@ public class ExportController(CensusStore censusStore, AssetsStore assetsStore, 
         }
 
         var assets = assetsStore.Load();
+        var entityTags = entityTagsStore.Load();
+        var declaredEntities = declaredEntitiesStore.Load();
         var result = findingsEngine.Compute(asOfDate);
         var findingsByMachine = result.Findings
             .GroupBy(f => f.Machine, StringComparer.OrdinalIgnoreCase)
@@ -50,7 +52,9 @@ public class ExportController(CensusStore censusStore, AssetsStore assetsStore, 
             var (resolvedClass, _) = MachineClassifier.Resolve(entry?.Class, envelope?.Roles ?? []);
             var facets = assetsStore.FacetsFor(assets, machine);
             var owners = string.Join("; ", assetsStore.OwnershipValuesFor(assets, machine));
-            var stages = string.Join("; ", facets.GetValueOrDefault("stage", []));
+            var (effectiveStages, _) = EntityTagsEvaluator.EffectiveStages(facets.GetValueOrDefault("stage", []),
+                envelope is null ? null : entityTagsEvaluator.Evaluate(machine, envelope, entityTags, declaredEntities).Rollup);
+            var stages = string.Join("; ", effectiveStages);
             var lastCollected = (asOfDate is { } d2 ? censusStore.GetSnapshotRefAsOf(machine, d2) : censusStore.GetSnapshotRefs(machine).LastOrDefault())
                 ?.Date.ToString("yyyy-MM-dd") ?? "never";
             var findings = findingsByMachine.GetValueOrDefault(machine, []);

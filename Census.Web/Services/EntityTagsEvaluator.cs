@@ -127,6 +127,18 @@ public class EntityTagsEvaluator
         };
     }
 
+    /// <summary>
+    /// Effective machine stage (derived-machine-stage.md §2): an asserted assets.json facet
+    /// wins whole — never merged with the rollup, a merged set is a stage set nobody
+    /// asserted — else the rollup union. Neither means no stage; nothing defaults.
+    /// </summary>
+    public static (List<string> Stages, string Source) EffectiveStages(List<string> asserted, EntityRollupDto rollup)
+    {
+        if (asserted is { Count: > 0 }) return (asserted, "asserted");
+        var derived = rollup?.Stages ?? [];
+        return (derived, derived.Count > 0 ? "derived" : null);
+    }
+
     public static List<AssociationDto> ToDtos(List<SystemAssociation> serves) =>
         serves.Select(a => new AssociationDto
         {

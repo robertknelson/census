@@ -12,7 +12,7 @@ namespace Census.Web.Services;
 /// of every active baseline that matches it; anything installed and outside that union is a
 /// deviation. Recomputed per read, like every other finding source.
 /// </summary>
-public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore, BaselinesStore baselinesStore)
+public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore, BaselinesStore baselinesStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator)
 {
     public const string StatusOk = "ok";
     public const string StatusNotInScope = "not-in-scope";
@@ -61,6 +61,25 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
     }
 
     /// <summary>
+    /// Facets as `appliesTo` matching sees them (derived-machine-stage.md §4): the stage key
+    /// carries the effective stage — a scope like stage:prod matches a machine whose prod
+    /// stage was derived from what it hosts, not only an asserted one. The stored dict is
+    /// never mutated; a derived stage lands on a copy.
+    /// </summary>
+    public Dictionary<string, List<string>> MatchingFacets(Models.Assets.AssetsConfig assets, string machine, CensusEnvelope envelope) =>
+        MatchingFacets(assets, machine, envelope, entityTagsStore.Load(), declaredEntitiesStore.Load());
+
+    private Dictionary<string, List<string>> MatchingFacets(Models.Assets.AssetsConfig assets, string machine, CensusEnvelope envelope,
+        Models.EntityTags.EntityTagsConfig entityTags, Models.DeclaredEntities.DeclaredEntitiesConfig declaredEntities)
+    {
+        var facets = assetsStore.FacetsFor(assets, machine);
+        if (envelope is null || facets.GetValueOrDefault("stage", []).Count > 0) return facets;
+        var derived = entityTagsEvaluator.Evaluate(machine, envelope, entityTags, declaredEntities).Rollup.Stages;
+        if (derived.Count == 0) return facets;
+        return new Dictionary<string, List<string>>(facets, StringComparer.OrdinalIgnoreCase) { ["stage"] = derived };
+    }
+
+    /// <summary>
     /// Every collected machine judged in one pass — the shape both the findings stream and the
     /// baselines panel need, so the class-and-facet resolution lives in exactly one place.
     /// </summary>
@@ -68,6 +87,8 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
     {
         var config = baselinesStore.Load();
         var assets = assetsStore.Load();
+        var entityTags = entityTagsStore.Load();
+        var declaredEntities = declaredEntitiesStore.Load();
         var byMachine = new Dictionary<string, MachineBaselineDto>(StringComparer.OrdinalIgnoreCase);
         var matchCounts = config.Baselines.ToDictionary(b => b.Id, _ => 0, StringComparer.OrdinalIgnoreCase);
         var judgeableCounts = config.Baselines.ToDictionary(b => b.Id, _ => 0, StringComparer.OrdinalIgnoreCase);
@@ -78,7 +99,7 @@ public class BaselineEvaluator(CensusStore censusStore, AssetsStore assetsStore,
             var envelope = asOf is { } day ? censusStore.GetSnapshotAsOf(machine, day) : censusStore.GetLatestSnapshot(machine);
             if (envelope is null) continue;
 
-            var facets = assetsStore.FacetsFor(assets, machine);
+            var facets = MatchingFacets(assets, machine, envelope, entityTags, declaredEntities);
             var (resolvedClass, _) = MachineClassifier.Resolve(assets.Assets.GetValueOrDefault(machine)?.Class, envelope.Roles);
             byMachine[machine] = Evaluate(config, machine, resolvedClass, facets, envelope);
             var installed = InstalledKeysOf(envelope);

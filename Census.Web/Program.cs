@@ -17,6 +17,7 @@ builder.Services.AddSingleton<BaselineEvaluator>();
 builder.Services.AddSingleton<EntityTagsStore>();
 builder.Services.AddSingleton<DeclaredEntitiesStore>();
 builder.Services.AddSingleton<SystemsStore>();
+builder.Services.AddSingleton<ViewsStore>();
 builder.Services.AddSingleton<EntityTagsEvaluator>();
 builder.Services.AddSingleton<FindingsEngine>();
 

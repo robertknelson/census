@@ -147,12 +147,16 @@
 .atl-edge-declared { stroke: var(--atl-accent); stroke-dasharray: 6 4; }
 .atl-edge-unresolved { stroke: var(--atl-warn); stroke-dasharray: 2 4; }
 
-.atl-node { cursor: grab; }
+.atl-node { cursor: pointer; }
 .atl-node circle, .atl-node rect, .atl-node polygon {
     fill: var(--atl-panel);
     stroke: var(--atl-text);
     stroke-width: 1.6;
 }
+.atl-svg .atl-node:hover circle, .atl-svg .atl-node:hover rect, .atl-svg .atl-node:hover polygon { stroke-width: 3; }
+.atl-svg .atl-edge { cursor: pointer; }
+.atl-selected { filter: drop-shadow(0 0 5px var(--atl-accent)); }
+line.atl-selected { stroke-width: 4; }
 .atl-member circle, .atl-member rect, .atl-member polygon { stroke: var(--atl-accent); fill: #e8effc; }
 .atl-unclassified circle, .atl-unclassified rect, .atl-unclassified polygon { stroke: var(--atl-warn); fill: #fbf3e4; }
 .atl-offsystem circle, .atl-offsystem rect, .atl-offsystem polygon { stroke: var(--atl-muted); }
@@ -162,15 +166,37 @@
 .atl-ghost { opacity: 0.22; }
 
 .atl-label {
-    font-size: 11px;
+    font-size: 13px;
     text-anchor: middle;
     fill: var(--atl-text);
     font-family: var(--atl-mono);
 }
-.atl-sublabel { font-size: 9px; text-anchor: middle; fill: var(--atl-muted); }
-.atl-also { font-size: 9px; fill: var(--atl-accent); font-weight: 700; }
+.atl-sublabel { font-size: 11px; text-anchor: middle; fill: var(--atl-muted); }
+.atl-also { font-size: 11px; fill: var(--atl-accent); font-weight: 700; }
 
 /* --- the docked inspector (unobtrusive: a corner card, never the slide-in) ---------------- */
+
+/* Author display beats the UA [hidden] rule — restate it or hidden never hides. */
+.atl-inspector[hidden], .atl-keycard[hidden] { display: none; }
+
+.atl-keycard {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    background: var(--atl-panel);
+    border: 1px solid var(--atl-line);
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(20, 28, 40, 0.12);
+    padding: 0.5rem 0.8rem 0.7rem;
+    z-index: 5;
+    font-size: 0.78rem;
+}
+.atl-key-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.atl-key-cols { display: flex; gap: 1.4rem; }
+.atl-key-cols > div { display: flex; flex-direction: column; gap: 0.15rem; }
+.atl-key-row { display: flex; align-items: center; gap: 0.45rem; }
+.atl-key-swatch { width: 26px; height: 22px; flex: 0 0 auto; }
+.atl-key-mark { width: 26px; text-align: center; flex: 0 0 auto; font-size: 0.78rem; }
 
 .atl-inspector {
     position: absolute;

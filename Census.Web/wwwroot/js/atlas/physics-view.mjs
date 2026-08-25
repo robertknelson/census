@@ -90,6 +90,18 @@ export class PhysicsView {
 
     destroy() { }
 
+    /// Highlight the selected node/edge element (or clear with null) — the page calls
+    /// this too when the inspector is dismissed from its own close button.
+    setSelected(key) {
+        if (!this.svg) return;
+        this.svg.querySelectorAll('.atl-selected').forEach((el) => el.classList.remove('atl-selected'));
+        if (key == null) return;
+        const el = key.type === 'node'
+            ? this.svg.querySelector(`[data-node="${CSS.escape(key.id)}"]`)
+            : this.svg.querySelector(`[data-edge="${key.index}"]`);
+        el?.classList.add('atl-selected');
+    }
+
     simulate() {
         const ns = this.nodes;
         for (let ticks = 0; ticks < 420; ticks++) {
@@ -104,7 +116,7 @@ export class PhysicsView {
                     const b = ns[j];
                     const dx = a.x - b.x, dy = a.y - b.y;
                     const d2 = Math.max(dx * dx + dy * dy, 64);
-                    const f = 9000 / d2;
+                    const f = 14000 / d2;
                     const d = Math.sqrt(d2);
                     fx += (dx / d) * f;
                     fy += (dy / d) * f;
@@ -117,14 +129,14 @@ export class PhysicsView {
                 if (!s || !t) continue;
                 const dx = t.x - s.x, dy = t.y - s.y;
                 const d = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
-                const f = (d - 170) * 0.015;
+                const f = (d - 200) * 0.015;
                 if (!s.pinned) { s.vx += (dx / d) * f; s.vy += (dy / d) * f; }
                 if (!t.pinned) { t.vx -= (dx / d) * f; t.vy -= (dy / d) * f; }
             }
             for (const n of ns) {
                 if (n.pinned) continue;
-                n.x = Math.min(W - 40, Math.max(40, n.x + n.vx));
-                n.y = Math.min(H - 50, Math.max(40, n.y + n.vy));
+                n.x = Math.min(W - 48, Math.max(48, n.x + n.vx));
+                n.y = Math.min(H - 64, Math.max(48, n.y + n.vy));
                 moved += Math.abs(n.vx) + Math.abs(n.vy);
             }
             if (moved < 0.6) break;
@@ -158,11 +170,11 @@ export class PhysicsView {
             const sublabel = d.machine ?? ((d.hosts ?? []).length ? d.hosts.join(', ') : null);
             return `
             <g data-node="${escapeHtml(d.id)}" class="${classes}">
-                ${shapeSvg(d, 15)}
-                ${alsoServes > 0 ? `<text class="atl-also" x="14" y="-14">+${alsoServes}</text>` : ''}
-                ${d.canonical ? `<text class="atl-also" x="-14" y="-14" text-anchor="end">×${d.variants.length}</text>` : ''}
-                <text class="atl-label" y="30">${escapeHtml(d.name.length > 26 ? d.name.slice(0, 25) + '…' : d.name)}</text>
-                ${sublabel ? `<text class="atl-sublabel" y="42">${escapeHtml(sublabel.length > 40 ? sublabel.slice(0, 39) + '…' : sublabel)}</text>` : ''}
+                ${shapeSvg(d, 21)}
+                ${alsoServes > 0 ? `<text class="atl-also" x="19" y="-19">+${alsoServes}</text>` : ''}
+                ${d.canonical ? `<text class="atl-also" x="-19" y="-19" text-anchor="end">×${d.variants.length}</text>` : ''}
+                <text class="atl-label" y="38">${escapeHtml(d.name.length > 26 ? d.name.slice(0, 25) + '…' : d.name)}</text>
+                ${sublabel ? `<text class="atl-sublabel" y="52">${escapeHtml(sublabel.length > 40 ? sublabel.slice(0, 39) + '…' : sublabel)}</text>` : ''}
             </g>`;
         }).join('');
 
@@ -216,13 +228,21 @@ export class PhysicsView {
             const { n, moved } = drag;
             drag = null;
             if (moved) this.persistPositions();
-            else this.onSelect({ type: 'node', item: n.dto });
+            else {
+                this.setSelected({ type: 'node', id: n.dto.id });
+                this.onSelect({ type: 'node', item: n.dto });
+            }
         });
         this.svg.addEventListener('click', (ev) => {
             if (ev.target.closest('[data-node]')) return;
             const line = ev.target.closest('[data-edge]');
-            if (line) this.onSelect({ type: 'edge', item: this.graph.edges[Number(line.dataset.edge)] });
-            else this.onSelect(null);
+            if (line) {
+                this.setSelected({ type: 'edge', index: Number(line.dataset.edge) });
+                this.onSelect({ type: 'edge', item: this.graph.edges[Number(line.dataset.edge)] });
+            } else {
+                this.setSelected(null);
+                this.onSelect(null);
+            }
         });
     }
 
@@ -232,8 +252,8 @@ export class PhysicsView {
         const ox = (rect.width - W * scale) / 2;
         const oy = (rect.height - H * scale) / 2;
         return {
-            x: Math.min(W - 40, Math.max(40, (ev.clientX - rect.left - ox) / scale)),
-            y: Math.min(H - 50, Math.max(40, (ev.clientY - rect.top - oy) / scale)),
+            x: Math.min(W - 48, Math.max(48, (ev.clientX - rect.left - ox) / scale)),
+            y: Math.min(H - 64, Math.max(48, (ev.clientY - rect.top - oy) / scale)),
         };
     }
 }

@@ -47,11 +47,20 @@ Built once, shared by every strategy:
 A tab = `{name, system, stages[], strategy, strategyOptions, nodePositions}`.
 The "+" tab opens the builder: system picker (registry-backed: registered with
 descriptions first, unregistered in-use values beneath), stage multi-select,
-strategy select, name. Persistence: **localStorage** (personal workspace, the
-`assertedBy` precedent); promotion to a shared `config/views.json` only if the
-field trial proves views are estate artifacts. One system per tab in this
-slice; multi-system tabs deferred (filter-widening later; complicates
-also-serves rendering).
+strategy select, name. One system per tab in this slice; multi-system tabs
+deferred (filter-widening later; complicates also-serves rendering).
+
+**Persistence — promoted to `config/views.json` (field trial proved it,
+ratified 2026-08-25).** Views are estate artifacts: the tab set — id, name,
+system, stage filter, strategy, node positions — lives in the operator-owned
+sibling config, `GET/PUT /api/views` whole-file (the config-editor pattern
+with its known concurrent-write caveat), hand-editable, unknown keys
+round-trip. Positions ride the view deliberately: if the view is shared, the
+arrangement that makes it readable is too. What stays personal, in
+localStorage: which tab is open and whether the key card shows. One-time
+adoption: a browser holding pre-promotion localStorage tabs writes them up on
+first load *if the server file has no views* — after that the server file is
+the truth and localStorage tabs are never read again.
 
 ## 4. Strategy v1 — physics, hand-rolled, settle-and-freeze
 
@@ -94,14 +103,23 @@ register, and the expected-stage drift readout. Writes via
 
 ## 7. Proposed-and-applied decisions (ratify on return)
 
-1. Module name **`/atlas`**.
-2. Tabs in localStorage; `config/views.json` only on proven need.
-3. One system per tab; multi-system deferred.
+1. Module name **`/atlas`**. *(Ratified 2026-08-25.)*
+2. Tabs in localStorage; `config/views.json` only on proven need. *(The field
+   trial proved the need — promoted to `config/views.json`, 2026-08-25; §3.)*
+3. One system per tab; multi-system deferred. *(Ratified 2026-08-25.)*
 4. Physics = seeded, settle-and-freeze, drag-pin, positions per tab.
-5. Inspector as docked card with the contents of §5.
-6. Edge/node styling vocabulary of §4.
+   *(Ratified 2026-08-25 as "a good start"; his field call: objects too small
+   to view — node radius, labels, and spacing enlarged same day.)*
+5. Inspector as docked card with the contents of §5. *(Ratified 2026-08-25;
+   the field trial found it undiscoverable — nodes advertised only `grab`, and
+   a CSS bug kept the empty card from ever truly hiding. Fixed: pointer
+   cursor + hover, selection highlight, toolbar hint, `[hidden]` restated.)*
+6. Edge/node styling vocabulary of §4. *(Ratified 2026-08-25; his ask "is
+   there a key?" exposed that the §2 legend was never built — an on-screen
+   key card now renders the vocabulary from the live CSS classes.)*
 7. Unclassified neighbors and off-system endpoints included in the graph API
-   (never-hidden applied to scope itself).
+   (never-hidden applied to scope itself). *(Ratified in substance
+   2026-08-25; **open** — he wants the experience smoothed, specifics owed.)*
 
 ## 8. Verification plan (fixtures per branch)
 

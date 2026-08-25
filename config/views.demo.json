@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "views": [
+    {
+      "id": "t1-myweb",
+      "name": "MyWeb",
+      "system": "MyWeb",
+      "stages": [],
+      "strategy": "physics",
+      "positions": {
+        "[\"canonical\",\"myweb\",\"appdb\"]": {
+          "x": 597,
+          "y": 646,
+          "pinned": false
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDatabase_VAL\"]": {
+          "x": 439,
+          "y": 543,
+          "pinned": false
+        },
+        "[\"application\",\"DEVWEBBOX\",\"yourweb.dev.example.com\",\"/\"]": {
+          "x": 895,
+          "y": 532,
+          "pinned": false
+        },
+        "[\"database\",\"PRODSQLBOX\",\"MSSQLSERVER\",\"AppData01\"]": {
+          "x": 743,
+          "y": 587,
+          "pinned": false
+        },
+        "[\"application\",\"PRODWEBBOX\",\"yourweb.example.com\",\"/\"]": {
+          "x": 979,
+          "y": 360,
+          "pinned": false
+        },
+        "[\"application\",\"VALWEBBOX\",\"yourweb.val.example.com\",\"/\"]": {
+          "x": 656,
+          "y": 204,
+          "pinned": false
+        },
+        "[\"canonical\",\"myweb\",\"mydb\"]": {
+          "x": 268,
+          "y": 149,
+          "pinned": true
+        },
+        "[\"canonical\",\"myweb\",\"myweb\"]": {
+          "x": 600,
+          "y": 431,
+          "pinned": false
+        },
+        "[\"canonical\",\"myweb\",\"sharedref\"]": {
+          "x": 786,
+          "y": 352,
+          "pinned": false
+        }
+      },
+      "workbench": "left"
+    }
+  ]
+}

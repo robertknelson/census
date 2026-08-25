@@ -12,4 +12,5 @@ public class CensusOptions
     public required string EntityTagsConfigPath { get; set; }
     public required string DeclaredEntitiesConfigPath { get; set; }
     public required string SystemsConfigPath { get; set; }
+    public required string ViewsConfigPath { get; set; }
 }

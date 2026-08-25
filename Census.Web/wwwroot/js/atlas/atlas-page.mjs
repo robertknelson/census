@@ -1,14 +1,15 @@
-import { fetchSystemsOverview, fetchSystemGraph } from './atlas-api.mjs';
+import { fetchSystemsOverview, fetchSystemGraph, fetchViews, saveViews } from './atlas-api.mjs';
 import { PhysicsView } from './physics-view.mjs';
 import { RegistryPanel } from './registry-panel.mjs';
 
 // Atlas (system-view.md): pick a system, see its dependency graph. Tabs are built views —
-// {system, stages, strategy, positions} — persisted per browser (localStorage, the
-// assertedBy precedent). Strategies own layout and drawing only; the filter strip, the
-// inspector, and the honesty rules (ghost-never-hide, declared seam, unclassified shown)
-// live here, so every future view type inherits them.
+// {id, name, system, stages, strategy, positions} — estate artifacts in config/views.json
+// (GET/PUT /api/views, promoted from localStorage 2026-08-25); localStorage keeps only
+// what is personal: the open tab and whether the key shows. Strategies own layout and
+// drawing only; the filter strip, the inspector, and the honesty rules (ghost-never-hide,
+// declared seam, unclassified shown) live here, so every future view type inherits them.
 
-const TABS_KEY = 'census-atlas-tabs-v1';
+const LOCAL_KEY = 'census-atlas-tabs-v1';
 
 const STRATEGIES = {
     physics: { label: 'Physics graph', make: (onSelect, onPositions) => new PhysicsView(onSelect, onPositions) },
@@ -23,18 +24,52 @@ function escapeHtml(value) {
 class AtlasPage {
     init(config = {}) {
         this.root = document.getElementById(config.rootId ?? 'atlas-root');
-        const stored = JSON.parse(localStorage.getItem(TABS_KEY) ?? '{}');
-        this.tabs = stored.tabs ?? [];
-        this.active = stored.active ?? (this.tabs[0]?.id ?? 'builder');
         this.graphs = new Map();          // tabId -> graph dto
         this.selection = null;
         this.view = null;
         this.renderShell();
+        this.bootstrap(JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '{}'));
+    }
+
+    async bootstrap(stored) {
+        this.keyOpen = stored.keyOpen ?? true;
+        this.mainEl.innerHTML = '<p class="atl-status">Reading the views…</p>';
+        try {
+            let views = (await fetchViews()).views ?? [];
+            // One-time adoption (system-view.md §3): pre-promotion localStorage tabs move
+            // up only while the estate file is empty; after that the file is the truth.
+            // On adoption failure we bail before any saveLocal, so the local tabs survive.
+            if (views.length === 0 && (stored.tabs?.length ?? 0) > 0) {
+                views = stored.tabs;
+                await saveViews({ version: 1, views });
+            }
+            this.tabs = views;
+        } catch (err) {
+            this.mainEl.innerHTML = `<p class="atl-status atl-error">${escapeHtml(err.message)}</p>`;
+            return;
+        }
+        this.active = stored.active ?? (this.tabs[0]?.id ?? 'builder');
         this.open(this.active);
     }
 
-    saveTabs() {
-        localStorage.setItem(TABS_KEY, JSON.stringify({ tabs: this.tabs, active: this.active }));
+    saveLocal() {
+        localStorage.setItem(LOCAL_KEY, JSON.stringify({ active: this.active, keyOpen: this.keyOpen }));
+    }
+
+    async persistViews() {
+        this.saveLocal();
+        try {
+            await saveViews({ version: 1, views: this.tabs });
+            this.setSaveStatus(null);
+        } catch (err) {
+            this.setSaveStatus(err.message);
+        }
+    }
+
+    setSaveStatus(message) {
+        const el = this.root.querySelector('[data-ref="save-status"]');
+        el.textContent = message ?? '';
+        el.hidden = message == null;
     }
 
     tab() {
@@ -47,16 +82,19 @@ class AtlasPage {
                 <span class="atl-title">Census <span class="atl-muted">/ atlas</span></span>
                 <nav class="atl-tabs" data-ref="tabs"></nav>
                 <span class="atl-header-right">
+                    <span class="atl-error" data-ref="save-status" hidden></span>
                     <button class="atl-btn" data-ref="registry-btn">Registry</button>
                     <a class="atl-btn" href="/">Estate</a>
                 </span>
             </header>
             <div class="atl-toolbar" data-ref="toolbar"></div>
             <main class="atl-main" data-ref="main"></main>
+            <aside class="atl-keycard" data-ref="keycard" hidden></aside>
             <aside class="atl-inspector" data-ref="inspector" hidden></aside>`;
         this.tabsEl = this.root.querySelector('[data-ref="tabs"]');
         this.toolbarEl = this.root.querySelector('[data-ref="toolbar"]');
         this.mainEl = this.root.querySelector('[data-ref="main"]');
+        this.keycardEl = this.root.querySelector('[data-ref="keycard"]');
         this.inspectorEl = this.root.querySelector('[data-ref="inspector"]');
         this.root.querySelector('[data-ref="registry-btn"]').addEventListener('click', () => this.open('registry'));
     }
@@ -80,7 +118,7 @@ class AtlasPage {
             this.tabs = this.tabs.filter((t) => t.id !== id);
             this.graphs.delete(id);
             if (this.active === id) this.active = this.tabs[0]?.id ?? 'builder';
-            this.saveTabs();
+            this.persistViews();
             this.open(this.active);
         }));
     }
@@ -90,7 +128,7 @@ class AtlasPage {
         this.selection = null;
         this.view?.destroy?.();
         this.view = null;
-        this.saveTabs();
+        this.saveLocal();
         this.renderTabs();
         this.renderInspector();
         if (what === 'registry') return this.openRegistry();
@@ -102,6 +140,7 @@ class AtlasPage {
 
     async openBuilder() {
         this.toolbarEl.innerHTML = '';
+        this.keycardEl.hidden = true;
         this.mainEl.innerHTML = '<p class="atl-status">Reading the systems…</p>';
         let overview;
         try {
@@ -134,6 +173,7 @@ class AtlasPage {
                 positions: {},
             };
             this.tabs.push(tab);
+            this.persistViews();
             this.open(tab.id);
         }));
     }
@@ -142,6 +182,7 @@ class AtlasPage {
 
     openRegistry() {
         this.toolbarEl.innerHTML = '';
+        this.keycardEl.hidden = true;
         new RegistryPanel(() => { /* overview changes surface on next graph open */ })
             .mount(this.mainEl);
     }
@@ -166,11 +207,62 @@ class AtlasPage {
         const strategy = STRATEGIES[tab.strategy] ?? STRATEGIES.physics;
         this.view = strategy.make(
             (selection) => { this.selection = selection; this.renderInspector(); },
-            (positions) => { tab.positions = positions; this.saveTabs(); },
+            (positions) => { tab.positions = positions; this.persistViews(); },
         );
         this.view.mount(this.mainEl.querySelector('[data-ref="canvas"]'), graph, {
             focus: this.focusMap(graph, tab),
             positions: tab.positions,
+        });
+        this.renderKey();
+    }
+
+    // --- the key ---------------------------------------------------------------------------
+
+    renderKey() {
+        this.keycardEl.hidden = !this.keyOpen;
+        if (!this.keyOpen) return;
+        const node = (classes, shape) => `
+            <svg class="atl-key-swatch" viewBox="-13 -11 26 22" aria-hidden="true"><g class="atl-node ${classes}">${shape}</g></svg>`;
+        const rect = '<rect x="-8" y="-5.8" width="16" height="11.6" rx="2"></rect>';
+        const circle = '<circle r="8"></circle>';
+        const hex = '<polygon points="6.9,4 0,8 -6.9,4 -6.9,-4 0,-8 6.9,-4"></polygon>';
+        const dot = '<circle r="3.6"></circle>';
+        const diamond = '<rect x="-6.4" y="-6.4" width="12.8" height="12.8" transform="rotate(45)"></rect>';
+        const edge = (verdict) => `
+            <svg class="atl-key-swatch" viewBox="0 0 26 22" aria-hidden="true"><line class="atl-edge atl-edge-${verdict}" x1="1" y1="11" x2="25" y2="11"></line></svg>`;
+        const row = (swatch, label) => `<div class="atl-key-row">${swatch}<span>${label}</span></div>`;
+        this.keycardEl.innerHTML = `
+            <div class="atl-key-head"><span class="atl-key">key</span><button class="atl-btn" data-ref="key-close" title="Hide the key">×</button></div>
+            <div class="atl-key-cols">
+            <div>
+                ${row(node('', rect), 'database')}
+                ${row(node('', circle), 'application')}
+                ${row(node('', hex), 'external entity')}
+                ${row(node('', diamond), 'declared kind (task, …)')}
+                ${row(node('', dot), 'endpoint')}
+            </div>
+            <div>
+                ${row(node('atl-member', circle), 'member of this system')}
+                ${row(node('atl-unclassified', circle), 'unclassified — nothing asserted')}
+                ${row(node('atl-offsystem', circle), 'serves other systems only')}
+                ${row(node('atl-declaredish', circle), 'declared — asserted, not observed')}
+                ${row(node('atl-phantom', circle), 'not observed at this address')}
+                ${row(node('atl-member atl-canonical', circle), 'canonical ·  ×n = variants')}
+                ${row(node('atl-member atl-ghost', circle), 'outside stage filter (never hidden)')}
+            </div>
+            <div>
+                ${row(edge('confirmed'), 'observed · confirmed')}
+                ${row(edge('contradicted'), 'contradicted')}
+                ${row(edge('unobserved'), 'target not corroborated')}
+                ${row(edge('declared'), 'declared target')}
+                ${row(edge('unresolved'), 'unresolved endpoint')}
+                ${row('<span class="atl-also atl-key-mark">+n</span>', 'also serves n other systems')}
+            </div>
+            </div>`;
+        this.keycardEl.querySelector('[data-ref="key-close"]').addEventListener('click', () => {
+            this.keyOpen = false;
+            this.saveLocal();
+            this.renderKey();
         });
     }
 
@@ -202,20 +294,26 @@ class AtlasPage {
             <button class="atl-chip ${tab.stages.length === 0 ? 'is-active' : ''}" data-stage="">all</button>
             ${chips}
             <span class="atl-toolbar-right">
+                <button class="atl-btn" data-ref="key-toggle" title="Show or hide the key">Key</button>
                 <button class="atl-btn" data-ref="refetch" title="Re-read the graph">Refresh</button>
-                <span class="atl-muted">${graph.nodes.filter((n) => n.member).length} members · ${graph.edges.length} edges · drag pins a node</span>
+                <span class="atl-muted">${graph.nodes.filter((n) => n.member).length} members · ${graph.edges.length} edges · click opens details · drag pins</span>
             </span>`;
         this.toolbarEl.querySelectorAll('[data-stage]').forEach((chip) => chip.addEventListener('click', () => {
             const stage = chip.dataset.stage;
             if (stage === '') tab.stages = [];
             else if (tab.stages.some((x) => x.toLowerCase() === stage.toLowerCase())) tab.stages = tab.stages.filter((x) => x.toLowerCase() !== stage.toLowerCase());
             else tab.stages.push(stage);
-            this.saveTabs();
+            this.persistViews();
             this.openView();
         }));
         this.toolbarEl.querySelector('[data-ref="refetch"]').addEventListener('click', () => {
             this.graphs.delete(tab.id);
             this.openView();
+        });
+        this.toolbarEl.querySelector('[data-ref="key-toggle"]').addEventListener('click', () => {
+            this.keyOpen = !this.keyOpen;
+            this.saveLocal();
+            this.renderKey();
         });
     }
 
@@ -273,6 +371,7 @@ class AtlasPage {
         }
         this.inspectorEl.querySelector('[data-ref="close"]').addEventListener('click', () => {
             this.selection = null;
+            this.view?.setSelected?.(null);
             this.renderInspector();
         });
     }

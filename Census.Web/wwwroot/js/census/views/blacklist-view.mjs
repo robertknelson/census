@@ -58,7 +58,7 @@ export class BlacklistView {
         }).join('');
 
         this.container.innerHTML = `
-            <h2>Blacklist rules</h2>
+            <h2>Prohibited software rules</h2>
             <p class="census-muted">Edits write straight back to <code>config/blacklist.json</code> — the file stays hand-editable alongside this page. Inactive rules are kept but not evaluated.</p>
             <div data-ref="error"></div>
             <table class="census-table">

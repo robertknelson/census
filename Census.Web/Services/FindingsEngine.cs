@@ -49,7 +49,7 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
         {
             foreach (var hit in blacklistEvaluator.Evaluate(envelope))
             {
-                findings.Add(Build(assets, machine, "blacklist-hit", hit.Severity,
+                findings.Add(Build(assets, machine, "prohibited-software", hit.Severity,
                     $"{hit.MatchedName} {hit.MatchedVersion}",
                     hit.VersionUnparseable ? $"{hit.Reason} (version unparseable — needs manual review)" : hit.Reason));
             }

@@ -106,7 +106,7 @@ class EstatePage {
                         <button class="est-btn" data-ref="hosting-btn">Hosting</button>
                         <button class="est-btn" data-ref="certs-btn">Certificates</button>
                         <button class="est-btn" data-ref="baselines-btn">Baselines</button>
-                        <button class="est-btn" data-ref="blacklist-btn">Blacklist</button>
+                        <button class="est-btn" data-ref="blacklist-btn">Prohibited</button>
                     </div>
                 </header>
                 <div class="est-asof-banner" data-ref="asof-banner" hidden></div>
@@ -252,7 +252,7 @@ class EstatePage {
         this.asofBannerEl.hidden = false;
         this.asofBannerEl.innerHTML = `
             Viewing the estate as of <strong>${escapeHtml(this.asOf)}</strong> — each machine shows its newest
-            snapshot on or before that day, judged under today's assignments and blacklist rules.
+            snapshot on or before that day, judged under today's assignments and prohibited-software rules.
             <button class="est-btn est-btn-sm" data-ref="asof-reset">Return to current</button>`;
         this.asofBannerEl.querySelector('[data-ref="asof-reset"]').addEventListener('click', () => this.setAsOf(null));
     }
@@ -573,7 +573,7 @@ class EstatePage {
     openBlacklist() {
         this.panel = { type: 'blacklist' };
         this.panelShell(
-            'Blacklist rules',
+            'Prohibited software rules',
             'Edits write straight back to config/blacklist.json and take effect on the next render. Inactive rules are kept, not evaluated.',
             '<div data-ref="blacklist"></div>');
         this.openPanel();
@@ -589,7 +589,7 @@ class EstatePage {
         this.panel = { type: 'baselines' };
         this.panelShell(
             'Approved baselines',
-            'The inverse of the blacklist: what is approved, for which machines. Bless here or from a machine dossier; edits write straight back to config/baselines.json.',
+            'The inverse of the prohibited list: what is approved, for which machines. Bless here or from a machine dossier; edits write straight back to config/baselines.json.',
             '<div data-ref="baselines"></div>');
         this.openPanel();
 

@@ -116,10 +116,10 @@ export class MachineDetailView {
             </table>
 
             ${blacklistHits.length > 0 ? `
-                <h4>Blacklist hits</h4>
+                <h4>Prohibited hits</h4>
                 <ul class="census-hit-list">
                     ${blacklistHits.map((h) => `<li class="census-cell-${escapeHtml(h.severity)}">[${escapeHtml(h.severity)}] ${escapeHtml(h.matchedName)} ${escapeHtml(h.matchedVersion)} — ${escapeHtml(h.reason)}</li>`).join('')}
-                </ul>` : '<h4>Blacklist hits</h4><p class="census-muted">none</p>'}
+                </ul>` : '<h4>Prohibited hits</h4><p class="census-muted">none</p>'}
 
             ${certs.length > 0 ? `
                 <h4>Certificates</h4>

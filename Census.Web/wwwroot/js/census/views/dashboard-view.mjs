@@ -36,18 +36,18 @@ export class DashboardView {
                 </div>
                 <div class="census-stat-tile ${summary.machinesWithHits > 0 ? 'census-stat-tile-warning' : ''}">
                     <div class="census-stat-value">${summary.machinesWithHits} / ${summary.totalMachines}</div>
-                    <div class="census-stat-label">Machines with blacklist hits (${pctWithHits}%)</div>
+                    <div class="census-stat-label">Machines with prohibited hits (${pctWithHits}%)</div>
                 </div>
                 ${severityEntries.map(([severity, count]) => `
-                    <div class="census-stat-tile" title="Number of blacklisted software/runtime matches at ${escapeHtml(severity)} severity, across every machine's latest snapshot. One machine can contribute more than one hit.">
+                    <div class="census-stat-tile" title="Number of prohibited software/runtime matches at ${escapeHtml(severity)} severity, across every machine's latest snapshot. One machine can contribute more than one hit.">
                         <div class="census-stat-value census-cell-${escapeHtml(severity.toLowerCase())}">${count}</div>
-                        <div class="census-stat-label">${escapeHtml(severity)}-severity blacklist hits</div>
+                        <div class="census-stat-label">${escapeHtml(severity)}-severity prohibited hits</div>
                     </div>`).join('')}
             </div>
-            <p class="census-muted">A "hit" is one blacklisted software or runtime match found on a machine (see <code>config/blacklist.json</code>) — a machine can account for more than one.</p>
+            <p class="census-muted">A "hit" is one prohibited software or runtime match found on a machine (see <code>config/blacklist.json</code>) — a machine can account for more than one.</p>
 
             <section class="census-panel">
-                <h3>Blacklist hits per collected day</h3>
+                <h3>Prohibited hits per collected day</h3>
                 ${summary.trend.length === 0 ? '<p class="census-status">No data yet.</p>' : `
                     <div class="census-trend">
                         ${summary.trend.map((t) => `

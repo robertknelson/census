@@ -239,7 +239,9 @@ merely unblessed.
 opposites — install something, versus remove or approve something — and `kind` is how the
 dev-ops queue is routed. A machine can carry both.
 
-**Why rolled up.** `blacklist-hit` fans out one finding per hit and should — a blacklist rule is
+**Why rolled up.** `prohibited-software` (né `blacklist-hit`; presentation renamed 2026-08-25,
+the finding kind is computed per read so the slug moved with it) fans out one finding per hit
+and should — a prohibited-software rule is
 deliberately narrow, so each hit is a distinct thing somebody named. A baseline deviation is
 open-ended: the first real machine will produce dozens, and findings have **no lifecycle** by
 ratification (v2-UX §4 — no acknowledge, no snooze, recomputed every read). A per-app fan-out

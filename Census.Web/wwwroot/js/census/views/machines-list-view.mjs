@@ -54,7 +54,7 @@ export class MachinesListView {
                         <th>Roles</th>
                         <th>OS / Build</th>
                         <th>Reboot</th>
-                        <th>Blacklist hits</th>
+                        <th>Prohibited hits</th>
                         <th>Soonest cert expiry</th>
                         <th>Last collected</th>
                     </tr>

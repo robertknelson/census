@@ -20,7 +20,7 @@ class CensusPage {
                         <a href="#/compare">Compare</a>
                         <a href="#/certificates">Certificates</a>
                         <a href="#/coverage">Coverage</a>
-                        <a href="#/blacklist">Blacklist</a>
+                        <a href="#/blacklist">Prohibited</a>
                     </nav>
                 </header>
                 <main class="census-content" data-ref="content"></main>

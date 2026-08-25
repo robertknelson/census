@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Clean view shipped: canonical names collapse stage variants in Atlas; machine stage now derives from what it hosts"
-resume: "RESTART the app (running instance predates today's slices), then /atlas MyWeb for the clean view; group your real stage variants in Triage's new 'as' field"
+summary: "Field-trial verdicts applied: Atlas readable (bigger nodes, key, working inspector); saved views now shared estate config"
+resume: "RESTART the app (running instance predates today's backend), then /atlas — the Key button, click-a-node inspector, and shared views are the new things to try"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -23,50 +23,52 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-Two ratified-then-built slices, both from today's design conversation:
+The field trial's verdicts, applied the same day:
 
-- **Canonical names — the clean view.** MyAppDB-DEV, MyAppDB-VAL and MyAppDB
-  are one logical database wearing three names; you can now say so. The claim
-  rides the system assertion (per-system, so two systems can each have a
-  "ReportsDB" without colliding), is typed into Triage's new "as" field, and
-  the Atlas collapses the variants into a single node — "MyWeb" over
-  DEVWEBBOX, PRODWEBBOX, VALWEBBOX — with the observed names one click away in
-  the inspector. Hosting, dossiers and blast radius keep the observed names:
-  clean view for management, operator truth untouched. Never guessed from
-  name similarity — that rule stands.
+- **The Atlas graph is readable now.** Everything drew bigger — nodes, their
+  labels, the space between them. There's a **Key** (bottom-left card, Key
+  button to toggle) explaining every shape, color and dash. And the
+  **inspector works**: click any node or edge and its card opens bottom-right
+  with everything asserted about it — two genuine bugs had made it nearly
+  undiscoverable (it never truly hid, and everything about the graph said
+  "drag me", nothing said "click me").
 
-- **Machine stage derives itself.** A machine's stage now rolls up from what
-  it hosts; a hand-asserted stage in assets.json still wins, completely — no
-  merging — and when the assertion disagrees with what's inside, a low
-  finding says so instead of anyone silently losing. Removing the asserted
-  entry is how you release a machine to the derived value. Baseline scoping,
-  the canvas, and the compliance CSV all read the effective stage.
+- **Saved graph views are shared now.** The tabs you build in the Atlas —
+  which system, which stage filter, where you dragged every node — used to
+  live only in one browser. They now live in `config/views.json` next to the
+  other config files, so a view arranged once is arranged for everyone, and
+  hand-editable like everything else. Any tabs an old browser was holding
+  move up automatically the first time it opens the Atlas.
 
-Smaller, on request: both certificate views now hide RDP machine certificates
-by default (a toggle brings them back; a cert also serving a website never
-hides), the classic table sorts by any column, and the renewals panel sorts
-within its urgency bands. The first real-estate classifications are committed
-to the repo, with a system-name typo reconciled so all four members join one
-system. A fixture flaw the cert work exposed — two different demo certs
-sharing a thumbprint — is fixed.
+- **The DevServer machine class is gone**, per ruling: it was hardcoded, not
+  data-driven. A server that happens to carry developer SDKs no longer earns
+  a label for it. Old snapshots that recorded the retired class still load
+  fine — it just no longer means anything.
+
+- **"Blacklist" now reads "Prohibited"** everywhere on screen — the word
+  blacklist stays reserved for servers, where it means something else. Only
+  the words changed; the config file keeps its name and nothing needs
+  migrating.
 
 ## What's next
 
-**Restart the app** — the running instance predates both slices (the
-certificate changes only need a page reload). Then the field trial continues:
-group your real stage variants under canonical names in Triage and look at
-the clean view in the Atlas. Parked with a trigger: the same collapsed
-listing in the classic Hosting view, once the Atlas gesture proves itself on
-real data.
+**Restart the app** — the running instance predates today's server-side
+changes. Then two small things are owed from the ratification walkthrough:
+the sign-offs on the two remaining 08-20 spec sections (entity associations
+§7, systems registry §5 and its drift-placement deviation), and one sentence
+on what feels rough about the unclassified-neighbor experience in the Atlas
+so it can be smoothed.
 
 ## Anything alarming
 
 - **The remote login has still never actually been tested.** First real
   remote collection should be watched by hand.
-- **Demo-verified only, as always.** Real data has drawn blood on first
-  contact every time; the first canonical grouping of real entities is the
-  live-fire moment.
+- **Demo-verified only, as always** — today's changes included. Real data has
+  drawn blood on first contact every time.
+- One demo-coverage note, minor: with DevServer gone, the "asserted class
+  beats observed roles" rule is still exercised but less sharply than before
+  (documented in the baseline spec). If it ever matters, one extra demo
+  baseline would restore the sharp version.
 
-Nothing is broken. Build clean, all pushed, every fixture branch answers as
-designed — including the round-trip that proves untouched leaves stay
-byte-identical.
+Nothing is broken. Build clean, all pushed, every change verified live in the
+browser against the demo fleet before its commit.

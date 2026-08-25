@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "RESTART Census.Web (running instance predates G-8/G-9), then field-trial the new slices: group real stage variants under canonical names in Triage's 'as' field, view the collapse in /atlas; ratification pass over the 08-20 proposed-and-applied items (entity-associations.md §7, systems-registry.md §5+§3 deviation, system-view.md §7) still owed"
+next_step: "RESTART Census.Web (running instance predates today's DevServer/prohibited/views backend), open /atlas for the field-trial fixes (bigger nodes, Key card, clickable inspector; views now shared in config/views.json); still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications, and one sentence on what §7.7's neighbor experience should feel like"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,41 @@ relates: []
 ---
 
 ## notes
+
+### 2026-08-25 (field-trial verdicts: Atlas UX pass, DevServer retired, "prohibited")
+- **He ran the 08-20/21 slices in the wild and is pleased.** The walkthrough of
+  owed ratifications produced rulings on **system-view §7 only**: 1 atlas ✓,
+  2 views.json "a good idea" (promoted same day), 3 one-system ✓, 4 physics "a
+  good start" but objects too small, 5 "we need the Inspector, don't see it",
+  6 "is there a key?", 7 smooth the neighbor experience (specifics owed).
+  **Entity-associations §7 and systems-registry §5 + §3 drift-placement
+  deviation got no explicit ruling — still owed**, flagged in next_step.
+- **Atlas pass (`d338284`)**: nodes r15→21 + label/spacing bumps; the §2 key
+  that was specced but never built now a docked card drawing swatches from the
+  live CSS; inspector had two real diseases — author `display:flex` beat the
+  `[hidden]` attribute, and nodes advertised only a grab cursor — fixed plus
+  hover, selection glow, toolbar hint. **Views promoted to `config/views.json`**
+  (GET/PUT /api/views whole-file, positions ride the view, unknown keys
+  round-trip, one-time localStorage adoption only-while-file-empty with
+  bail-before-saveLocal). Verified live: fixture view reopens pinned, drag
+  writes the file, seeded local tab adopted up, local blob shrank to
+  {active, keyOpen}.
+- **DevServer retired (`f262963`)** — his rule: not data-driven, so it goes.
+  Collector mints nothing for SDKs-on-Server (DevLaptop stays client-only),
+  precedence and all UX lists drop it. APPSRV01 asserted class → WebServer
+  (override fixture survives on provenance; the web-prod non-judgment now
+  rests on stage mismatch — coverage note in approved-baseline.md §verification).
+  BUILDSRV01 current snapshot roles → []; **its aged .gz twin deliberately
+  keeps DevServer** as the retired-role-in-old-snapshot fixture (as-of
+  2026-07-31 shows Unclassified with the role as provenance — verified).
+- **"Prohibited" (`f579e77`)** — his word, ratified from my recommendation;
+  'blacklisted server' is a term of art he needs free. Presentation stratum
+  only: config/blacklist.json, API routes, identifiers stay. Finding kind
+  slug → `prohibited-software` (computed per read, nothing stored or
+  filtering on it). Verified: classic dashboard/nav, estate button, findings
+  kinds live.
+- `main` at `d338284` + this close, all pushed. His instance predates all
+  three server-side changes — restart required.
 
 ### 2026-08-21 (derived stage + canonical names)
 - **He restarted, verified G-7 triage and declared entities live, picked a

@@ -64,7 +64,9 @@
       "id": "t2-system-a",
       "name": "system-a",
       "system": "system-a",
-      "stages": [],
+      "stages": [
+        "prod"
+      ],
       "strategy": "physics",
       "positions": {
         "[\"declared\",\"BUILDSRV01\",\"nightly-job\"]": {

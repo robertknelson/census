@@ -146,6 +146,10 @@
 /* Asserted, never measured — the dashed seam survives into the picture. */
 .atl-edge-declared { stroke: var(--atl-accent); stroke-dasharray: 6 4; }
 .atl-edge-unresolved { stroke: var(--atl-warn); stroke-dasharray: 2 4; }
+/* Three-level fade under a stage filter: mid = exactly one endpoint receded (the
+   cross-stage bleed, kept clearly present), ghost = both receded. Never hidden. */
+.atl-edge-bleed { opacity: 0.45; }
+.atl-edge-ghost { opacity: 0.22; }
 
 .atl-node { cursor: pointer; }
 .atl-node circle, .atl-node rect, .atl-node polygon {

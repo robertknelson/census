@@ -228,8 +228,8 @@ class AtlasPage {
         const hex = '<polygon points="6.9,4 0,8 -6.9,4 -6.9,-4 0,-8 6.9,-4"></polygon>';
         const dot = '<circle r="3.6"></circle>';
         const diamond = '<rect x="-6.4" y="-6.4" width="12.8" height="12.8" transform="rotate(45)"></rect>';
-        const edge = (verdict) => `
-            <svg class="atl-key-swatch" viewBox="0 0 26 22" aria-hidden="true"><line class="atl-edge atl-edge-${verdict}" x1="1" y1="11" x2="25" y2="11"></line></svg>`;
+        const edge = (verdict, fade = '') => `
+            <svg class="atl-key-swatch" viewBox="0 0 26 22" aria-hidden="true"><line class="atl-edge atl-edge-${verdict} ${fade}" x1="1" y1="11" x2="25" y2="11"></line></svg>`;
         const row = (swatch, label) => `<div class="atl-key-row">${swatch}<span>${label}</span></div>`;
         this.keycardEl.innerHTML = `
             <div class="atl-key-head"><span class="atl-key">key</span><button class="atl-btn" data-ref="key-close" title="Hide the key">×</button></div>
@@ -259,6 +259,8 @@ class AtlasPage {
                 ${row(edge('unobserved'), 'target not corroborated')}
                 ${row(edge('declared'), 'declared target')}
                 ${row(edge('unresolved'), 'unresolved endpoint')}
+                ${row(edge('confirmed', 'atl-edge-bleed'), 'one end filtered — the bleed')}
+                ${row(edge('confirmed', 'atl-edge-ghost'), 'both ends filtered')}
                 ${row('<span class="atl-also atl-key-mark">+n</span>', 'also serves n other systems')}
             </div>
             </div>`;

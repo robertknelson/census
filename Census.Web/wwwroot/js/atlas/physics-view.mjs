@@ -150,8 +150,17 @@ export class PhysicsView {
     }
 
     render() {
-        const edgeSvg = this.graph.edges.map((e, i) => `
-            <line data-edge="${i}" class="atl-edge atl-edge-${escapeHtml(e.verdict)} atl-edgekind-${escapeHtml(e.kind)}"></line>`).join('');
+        // Edges fade with their endpoints, three levels (ratified 2026-08-25): full when
+        // both ends are in stage, mid when exactly one recedes — that line IS the
+        // cross-stage bleed — and node-ghost level when both recede. Never hidden.
+        const edgeSvg = this.graph.edges.map((e, i) => {
+            const sf = this.state.focus.get(e.sourceId) ?? 'focus';
+            const tf = this.state.focus.get(e.targetId) ?? 'focus';
+            const fade = sf === 'ghost' && tf === 'ghost' ? ' atl-edge-ghost'
+                : sf === 'ghost' || tf === 'ghost' ? ' atl-edge-bleed' : '';
+            return `
+            <line data-edge="${i}" class="atl-edge atl-edge-${escapeHtml(e.verdict)} atl-edgekind-${escapeHtml(e.kind)}${fade}"></line>`;
+        }).join('');
         const nodeSvg = this.nodes.map((n) => {
             const d = n.dto;
             const focus = this.state.focus.get(d.id) ?? 'focus';

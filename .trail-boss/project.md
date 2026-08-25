@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "RESTART Census.Web again (pid 17760 predates the persistent-inspector/vertical-key/normalize slice) and reload /atlas; rule on the edge-recede recommendation (full/mid/ghost three-level fade); close the heirloom t1-sysetem-a tab; still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications"
+next_step: "Reload /atlas (edge fade is JS-only — no restart needed beyond the one already owed) and field-check the three-level edge fade under a stage filter; still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications; close the heirloom t1-sysetem-a tab"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──

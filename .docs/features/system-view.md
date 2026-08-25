@@ -37,7 +37,12 @@ Built once, shared by every strategy:
   selection plumbing, the docked inspector.
 - **The honesty rules live in the substrate** — every strategy inherits them:
   declared renders dashed; a stage filter **ghosts, never hides** an edge's
-  off-stage or unstaged endpoint (cross-stage bleed is the point, not noise);
+  off-stage or unstaged endpoint (cross-stage bleed is the point, not noise).
+  Edges fade *with* their endpoints in three levels (ratified 2026-08-25 — a
+  full-strength line into a receded node read as "connects to nothing"): full
+  when both ends are in stage, mid when exactly one end recedes — that mid
+  line IS the bleed, kept clearly present — and node-ghost level when both
+  recede. Never hidden;
   unclassified neighbors show explicitly with their Triage jump; shared
   entities carry an *also serves* mark; contradicted edges render as drift;
   machines are containers, never members.

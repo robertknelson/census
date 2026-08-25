@@ -1,4 +1,108 @@
 {
   "version": 1,
-  "views": []
+  "views": [
+    {
+      "id": "t1-sysetem-a",
+      "name": "sysetem-a",
+      "system": "sysetem-a",
+      "stages": [],
+      "strategy": "physics",
+      "positions": {
+        "[\"application\",\"APPSRV01\",\"Default Web Site\",\"/\"]": {
+          "x": 468,
+          "y": 514,
+          "pinned": false
+        },
+        "[\"application\",\"APPSRV01\",\"intranet-app\",\"/\"]": {
+          "x": 641,
+          "y": 247,
+          "pinned": false
+        },
+        "[\"application\",\"APPSRV01\",\"intranet-app\",\"/uploads\"]": {
+          "x": 925,
+          "y": 382,
+          "pinned": false
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDB_DEV\"]": {
+          "x": 889,
+          "y": 553,
+          "pinned": false
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDB_VAL\"]": {
+          "x": 763,
+          "y": 653,
+          "pinned": false
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"YourDB_DEV\"]": {
+          "x": 459,
+          "y": 293,
+          "pinned": true
+        },
+        "[\"application\",\"DEVWEBBOX\",\"myweb.dev.example.com\",\"/\"]": {
+          "x": 765,
+          "y": 434,
+          "pinned": false
+        },
+        "[\"application\",\"DEVWEBBOX\",\"yourweb.dev.example.com\",\"/\"]": {
+          "x": 629,
+          "y": 474,
+          "pinned": false
+        },
+        "[\"database\",\"SQL01\",\"\",\"Intranet\"]": {
+          "x": 809,
+          "y": 252,
+          "pinned": false
+        },
+        "[\"application\",\"VALWEBBOX\",\"myweb.val.example.com\",\"/\"]": {
+          "x": 595,
+          "y": 650,
+          "pinned": false
+        }
+      }
+    },
+    {
+      "id": "t2-system-a",
+      "name": "system-a",
+      "system": "system-a",
+      "stages": [],
+      "strategy": "physics",
+      "positions": {
+        "[\"declared\",\"BUILDSRV01\",\"nightly-job\"]": {
+          "x": 700,
+          "y": 479,
+          "pinned": true
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDB_DEV\"]": {
+          "x": 824,
+          "y": 160,
+          "pinned": true
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDB_VAL\"]": {
+          "x": 514,
+          "y": 352,
+          "pinned": true
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"YourDB_DEV\"]": {
+          "x": 498,
+          "y": 123,
+          "pinned": true
+        },
+        "[\"application\",\"DEVWEBBOX\",\"myweb.dev.example.com\",\"/\"]": {
+          "x": 602,
+          "y": 78,
+          "pinned": true
+        },
+        "[\"application\",\"DEVWEBBOX\",\"yourweb.dev.example.com\",\"/\"]": {
+          "x": 782,
+          "y": 252,
+          "pinned": false
+        },
+        "[\"application\",\"VALWEBBOX\",\"myweb.val.example.com\",\"/\"]": {
+          "x": 778,
+          "y": 350,
+          "pinned": true
+        }
+      }
+    }
+  ]
 }

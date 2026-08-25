@@ -241,3 +241,6 @@ line.atl-selected { stroke-width: 4; }
 }
 .atl-kv > :first-child { text-align: right; }
 .atl-kv .atl-mono { overflow-wrap: anywhere; }
+/* Multi-part values (an association's badge + provenance, a variant's name + host +
+   marks) flow inside the value column, wrapping there — never under the label. */
+.atl-kv-cell { display: flex; flex-wrap: wrap; gap: 0.15rem 0.5rem; align-items: baseline; min-width: 0; }

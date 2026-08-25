@@ -340,18 +340,20 @@ class AtlasPage {
         }
         const { type, item } = this.selection;
         if (type === 'node') {
-            const serves = item.serves.map((a) => `
-                <div class="atl-row"><span class="atl-badge">${escapeHtml(a.system || '—')}${a.stages.length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}${a.canonicalName ? ` · as ${escapeHtml(a.canonicalName)}` : ''}</span>
-                <span class="atl-muted">${escapeHtml([a.assertedBy, a.assertedAt].filter(Boolean).join(' · '))}</span></div>`).join('');
+            const serves = item.serves.map((a, i) => `
+                <div class="atl-row atl-kv"><span class="atl-key">${i === 0 ? 'serves' : ''}</span>
+                <span class="atl-kv-cell"><span class="atl-badge">${escapeHtml(a.system || '—')}${a.stages.length ? ` · ${a.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}${a.canonicalName ? ` · as ${escapeHtml(a.canonicalName)}` : ''}</span>
+                <span class="atl-muted">${escapeHtml([a.assertedBy, a.assertedAt].filter(Boolean).join(' · '))}</span></span></div>`).join('');
             // A canonical node expands to its concrete variants (canonical-names.md §4) —
             // observed name, host, stages, provenance — so the clean label never hides
             // the evidence, and a declared or phantom variant keeps its own mark.
-            const variants = (item.variants ?? []).map((v) => `
-                <div class="atl-row"><span class="atl-mono">${escapeHtml(v.name)}</span>
+            const variants = (item.variants ?? []).map((v, i) => `
+                <div class="atl-row atl-kv"><span class="atl-key">${i === 0 ? 'variants' : ''}</span>
+                <span class="atl-kv-cell"><span class="atl-mono">${escapeHtml(v.name)}</span>
                 <span class="atl-muted">${escapeHtml([v.machine, v.container].filter(Boolean).join(' · '))}${v.stages.length ? ` · ${v.stages.map(escapeHtml).join(', ')}` : ' · unstaged'}</span>
                 ${v.declared ? '<span class="atl-badge atl-badge-declared">declared</span>' : ''}
                 ${v.phantom ? '<span class="atl-drift-bad">not observed</span>' : ''}
-                <span class="atl-muted">${escapeHtml([v.assertedBy, v.assertedAt].filter(Boolean).join(' · '))}</span></div>`).join('');
+                <span class="atl-muted">${escapeHtml([v.assertedBy, v.assertedAt].filter(Boolean).join(' · '))}</span></span></div>`).join('');
             const state = item.member ? '' :
                 item.unclassified ? '<div class="atl-drift-warn">unclassified — nobody has said what this serves; classify it in Triage</div>' :
                 item.offSystem ? '<div class="atl-muted">serves other systems only — shown because an edge touches this view</div>' :

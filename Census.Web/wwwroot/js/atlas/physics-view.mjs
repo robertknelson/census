@@ -212,39 +212,48 @@ export class PhysicsView {
         });
     }
 
+    // Selection lives entirely on pointerdown/pointerup — the PRESSED element decides.
+    // A separate `click` listener is a trap here: after pointer capture, or with the few
+    // pixels of jitter a real mouse adds, the browser retargets the follow-up click to
+    // the svg itself, which used to clear the selection the same gesture had just made
+    // (the inspector filled and emptied in one instant — "clicking has no effect").
     bind() {
-        let drag = null;
+        let press = null;
         this.svg.addEventListener('pointerdown', (ev) => {
             const g = ev.target.closest('[data-node]');
-            if (!g) return;
-            const n = this.byId.get(g.dataset.node);
-            drag = { n, moved: false, startX: ev.clientX, startY: ev.clientY };
+            press = {
+                n: g ? this.byId.get(g.dataset.node) : null,
+                target: ev.target,
+                moved: false,
+                startX: ev.clientX,
+                startY: ev.clientY,
+            };
             try { this.svg.setPointerCapture(ev.pointerId); } catch { /* synthetic pointers */ }
         });
         this.svg.addEventListener('pointermove', (ev) => {
-            if (!drag) return;
+            if (!press?.n) return;
             // A click is not a drag until the pointer has really traveled — mice emit
             // same-spot moves that would otherwise eat every selection.
-            if (!drag.moved && Math.hypot(ev.clientX - drag.startX, ev.clientY - drag.startY) < 4) return;
+            if (!press.moved && Math.hypot(ev.clientX - press.startX, ev.clientY - press.startY) < 4) return;
             const pt = this.toGraph(ev);
-            drag.n.x = pt.x; drag.n.y = pt.y;
-            drag.n.pinned = true;
-            drag.moved = true;
+            press.n.x = pt.x; press.n.y = pt.y;
+            press.n.pinned = true;
+            press.moved = true;
             this.positionElements();
         });
-        this.svg.addEventListener('pointerup', (ev) => {
-            if (!drag) return;
-            const { n, moved } = drag;
-            drag = null;
-            if (moved) this.persistPositions();
-            else {
-                this.setSelected({ type: 'node', id: n.dto.id });
-                this.onSelect({ type: 'node', item: n.dto });
+        this.svg.addEventListener('pointerup', () => {
+            if (!press) return;
+            const { n, target, moved } = press;
+            press = null;
+            if (n) {
+                if (moved) this.persistPositions();
+                else {
+                    this.setSelected({ type: 'node', id: n.dto.id });
+                    this.onSelect({ type: 'node', item: n.dto });
+                }
+                return;
             }
-        });
-        this.svg.addEventListener('click', (ev) => {
-            if (ev.target.closest('[data-node]')) return;
-            const line = ev.target.closest('[data-edge]');
+            const line = target.closest('[data-edge]');
             if (line) {
                 this.setSelected({ type: 'edge', index: Number(line.dataset.edge) });
                 this.onSelect({ type: 'edge', item: this.graph.edges[Number(line.dataset.edge)] });
@@ -253,6 +262,7 @@ export class PhysicsView {
                 this.onSelect(null);
             }
         });
+        this.svg.addEventListener('pointercancel', () => { press = null; });
     }
 
     toGraph(ev) {

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Reload /atlas (edge fade is JS-only — no restart needed beyond the one already owed) and field-check the three-level edge fade under a stage filter; still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications; close the heirloom t1-sysetem-a tab"
+next_step: "Reload /atlas (JS-only fix) and click a node — the inspector should now fill and STAY; still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications; close the heirloom t1-sysetem-a tab"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──

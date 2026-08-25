@@ -74,9 +74,10 @@ relates: []
   faithfully adopted up; committed configs scan clean of sysetem-a. His
   instance runs from this repo's bin (exe lock seen) — verification used a
   scratch-output build so his process was never touched. **Edge-recede
-  question parked on his ratification** (recommendation given: three-level
-  fade — full in-stage, mid when one endpoint recedes = the bleed, ghost
-  when both recede; never hidden).
+  recommendation ratified in one word and shipped (`8a26abf`)**: three-level
+  fade — full in-stage, mid when exactly one endpoint recedes = the bleed,
+  node-ghost when both recede; never hidden; both levels in the key.
+  Verified live under MyWeb's dev filter.
 
 ### 2026-08-21 (derived stage + canonical names)
 - **He restarted, verified G-7 triage and declared entities live, picked a

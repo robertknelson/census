@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Field-trial verdicts applied: Atlas readable (bigger nodes, key, working inspector); saved views now shared estate config"
+summary: "Field-trial verdicts applied: Atlas readable (bigger nodes, key, working inspector); saved views now shared"
 resume: "RESTART the app (running instance predates today's backend), then /atlas — the Key button, click-a-node inspector, and shared views are the new things to try"
 health: green
 links:

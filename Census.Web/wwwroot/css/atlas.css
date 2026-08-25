@@ -229,3 +229,15 @@ line.atl-selected { stroke-width: 4; }
     z-index: 5;
 }
 .atl-inspector .atl-row { margin: 0; }
+
+/* Labeled rows are columnar (his 2026-08-25 call): labels right-justified against a
+   gutter, values left-justified after it — every value starts at the same x, instead
+   of landing beside or below as fit decides. */
+.atl-kv {
+    display: grid;
+    grid-template-columns: 5.2rem 1fr;
+    column-gap: 0.8rem;
+    align-items: baseline;
+}
+.atl-kv > :first-child { text-align: right; }
+.atl-kv .atl-mono { overflow-wrap: anywhere; }

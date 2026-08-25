@@ -365,9 +365,9 @@ class AtlasPage {
                     ${item.canonical ? `<span class="atl-badge">canonical · ${item.variants.length} variant${item.variants.length === 1 ? '' : 's'}</span>` : ''}
                     ${item.phantom ? '<span class="atl-drift-bad">not observed at this address — the edge\'s claim only</span>' : ''}
                 </div>
-                ${item.machine ? `<div class="atl-row"><span class="atl-key">machine</span><span class="atl-mono">${escapeHtml(item.machine)}</span></div>` : ''}
-                ${item.canonical && (item.hosts ?? []).length > 1 ? `<div class="atl-row"><span class="atl-key">hosts</span><span class="atl-mono">${item.hosts.map(escapeHtml).join(', ')}</span></div>` : ''}
-                ${item.container ? `<div class="atl-row"><span class="atl-key">${item.kind === 'database' ? 'instance' : 'site'}</span><span class="atl-mono">${escapeHtml(item.container)}</span></div>` : ''}
+                ${item.machine ? `<div class="atl-row atl-kv"><span class="atl-key">machine</span><span class="atl-mono">${escapeHtml(item.machine)}</span></div>` : ''}
+                ${item.canonical && (item.hosts ?? []).length > 1 ? `<div class="atl-row atl-kv"><span class="atl-key">hosts</span><span class="atl-mono">${item.hosts.map(escapeHtml).join(', ')}</span></div>` : ''}
+                ${item.container ? `<div class="atl-row atl-kv"><span class="atl-key">${item.kind === 'database' ? 'instance' : 'site'}</span><span class="atl-mono">${escapeHtml(item.container)}</span></div>` : ''}
                 ${serves || state}
                 ${variants}
                 ${item.note ? `<div class="atl-muted">${escapeHtml(item.note)}</div>` : ''}
@@ -386,9 +386,9 @@ class AtlasPage {
                     <button class="atl-btn" data-ref="close">×</button>
                 </div>
                 <div class="atl-row"><span class="atl-badge">${escapeHtml(item.verdict)}</span><span class="atl-muted">${escapeHtml(item.kind)} edge</span></div>
-                <div class="atl-row"><span class="atl-key">from</span><span class="atl-mono">${escapeHtml(end(item.sourceId))}</span></div>
-                <div class="atl-row"><span class="atl-key">to</span><span class="atl-mono">${escapeHtml(end(item.targetId))}</span></div>
-                ${item.sourceFile ? `<div class="atl-row"><span class="atl-key">seen in</span><span class="atl-mono">${escapeHtml(item.sourceFile)}</span></div>` : ''}
+                <div class="atl-row atl-kv"><span class="atl-key">from</span><span class="atl-mono">${escapeHtml(end(item.sourceId))}</span></div>
+                <div class="atl-row atl-kv"><span class="atl-key">to</span><span class="atl-mono">${escapeHtml(end(item.targetId))}</span></div>
+                ${item.sourceFile ? `<div class="atl-row atl-kv"><span class="atl-key">seen in</span><span class="atl-mono">${escapeHtml(item.sourceFile)}</span></div>` : ''}
                 ${item.detail ? `<div class="atl-muted">${escapeHtml(item.detail)}</div>` : ''}`;
         }
         this.inspectorEl.querySelector('[data-ref="close"]')?.addEventListener('click', () => {

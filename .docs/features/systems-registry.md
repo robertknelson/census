@@ -3,8 +3,9 @@
 > Spec, 2026-08-20. Ratified in conversation (R1): normalization stays a derived
 > join over entity associations (`entity-associations.md`); this file adds only
 > **identity**. Parent docs: `system-graph-principles.md`, `system-view.md` (the
-> module that hosts the editor). Status: **ratified in substance; §5 details
-> proposed-and-applied under the 2026-08-20 "go", for ratification on return.**
+> module that hosts the editor). Status: **ratified** — in substance 2026-08-20;
+> the §5 details and the §3 drift-placement deviation ratified as proposed
+> 2026-08-25.
 
 ## 1. Purpose
 
@@ -52,10 +53,11 @@ pattern:
 - **Expected-stage drift surfaces in the Atlas registry panel** — per system:
   missing-expected stages and unexpected-in-use stages, from
   `GET /api/systems/overview`. *Build-discovered deviation from the original
-  findings-grade proposal (ratify):* the findings stream is machine-keyed by
-  design (facets, ownership routing, canvas tiles), and a system-scoped finding
-  has no honest machine to hang on — a pseudo-machine would mint ghost tiles.
-  Drift stays panel-surfaced until/unless the stream grows a system dimension.
+  findings-grade proposal (ratified 2026-08-25):* the findings stream is
+  machine-keyed by design (facets, ownership routing, canvas tiles), and a
+  system-scoped finding has no honest machine to hang on — a pseudo-machine
+  would mint ghost tiles. Drift stays panel-surfaced until/unless the stream
+  grows a system dimension.
 
 ## 4. Surfaces and write flow
 
@@ -64,7 +66,7 @@ config-editor pattern with its known caveats. The **editor lives in the Atlas
 module** (`system-view.md`) — system identity is system-space; Estate/Triage
 only *reads* the registry (picker suggestions). Hand-editing remains first-class.
 
-## 5. Proposed-and-applied details (ratify on return)
+## 5. Proposed-and-applied details (ratified as proposed, 2026-08-25)
 
 1. Registry-backed picker ordering: registered systems (with descriptions)
    first, unregistered in-use values beneath, free text always allowed.

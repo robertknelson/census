@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Reload /atlas (JS-only): databases are cylinders, apps are globes, external is a cloud, and stage now reads by color (dots under nodes, colored chips, key group); still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications; close the heirloom t1-sysetem-a tab"
+next_step: "Field trial continues on the reshaped /atlas (cylinders/globes/stage colors, JS-only reload); close the heirloom t1-sysetem-a tab; decide whether the real-profile config/views.json writes should be committed"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -26,6 +26,11 @@ relates: []
 ## notes
 
 ### 2026-08-25 (field-trial verdicts: Atlas UX pass, DevServer retired, "prohibited")
+- **The 08-20 ratification debt is cleared (2026-08-25):** entity-associations
+  §7 (association-level provenance, restricted stage-only bulk apply,
+  whole-leaf upgrade-on-write) and systems-registry §5 + the §3
+  drift-placement deviation — all ratified as proposed, one line. Specs
+  updated to ratified status.
 - **He ran the 08-20/21 slices in the wild and is pleased.** The walkthrough of
   owed ratifications produced rulings on **system-view §7 only**: 1 atlas ✓,
   2 views.json "a good idea" (promoted same day), 3 one-system ✓, 4 physics "a

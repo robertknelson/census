@@ -3,8 +3,9 @@
 > Spec, 2026-08-20. Amends the tag model ratified in `entity-tags.md` (G-4's two
 > independent axes) and inherited by `declared-entities.md`. Parent docs:
 > `system-graph.md` (decision log gains G-7), `systems-registry.md` (identity),
-> `system-view.md` (the read side). Status: **draft — §7 open items pending
-> ratification. R2 (the shape itself) ratified 2026-08-20 in conversation.**
+> `system-view.md` (the read side). Status: **ratified.** R2 (the shape itself)
+> ratified 2026-08-20 in conversation; the §7 items ratified as proposed
+> 2026-08-25.
 
 ## 1. The wound
 
@@ -94,17 +95,17 @@ Attribution and `endpoints` are untouched — they answer "which edges are yours
 not "what do you serve". The no-naming law, multi-system membership, and the
 never-hidden rules are all preserved by construction.
 
-## 7. Open items
+## 7. Open items — all ratified as proposed, 2026-08-25
 
 1. **Association-level provenance** (proposed above) vs keeping leaf-level
-   last-writer. Association-level is more code and more truth.
+   last-writer. Association-level is more code and more truth. *(Ratified.)*
 2. **Stage-only bulk apply.** Proposed: allowed only when every selected entity
    has exactly one association (the stages merge into it); otherwise the bar
    requires a system. Alternative: apply to all associations of each entity —
-   rejected as asserting things nobody said.
+   rejected as asserting things nobody said. *(Ratified.)*
 3. **Upgrade-on-write scope.** Proposed: any leaf a UI write touches upgrades
    whole (all its axes convert), not just the edited association — one shape per
-   leaf after first touch.
+   leaf after first touch. *(Ratified.)*
 
 ## 8. Verification plan (sketch — fixtures per branch, as always)
 

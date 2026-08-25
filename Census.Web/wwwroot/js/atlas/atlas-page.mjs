@@ -1,5 +1,6 @@
 import { fetchSystemsOverview, fetchSystemGraph, fetchViews, saveViews } from './atlas-api.mjs';
-import { PhysicsView } from './physics-view.mjs';
+import { PhysicsView, shapeSvg } from './physics-view.mjs';
+import { stageColor } from './stage-colors.mjs';
 import { RegistryPanel } from './registry-panel.mjs';
 
 // Atlas (system-view.md): pick a system, see its dependency graph. Tabs are built views —
@@ -223,36 +224,41 @@ class AtlasPage {
     renderKey() {
         this.keycardEl.hidden = !this.keyOpen;
         if (!this.keyOpen) return;
-        const node = (classes, shape) => `
-            <svg class="atl-key-swatch" viewBox="-13 -11 26 22" aria-hidden="true"><g class="atl-node ${classes}">${shape}</g></svg>`;
-        const rect = '<rect x="-8" y="-5.8" width="16" height="11.6" rx="2"></rect>';
-        const circle = '<circle r="8"></circle>';
-        const hex = '<polygon points="6.9,4 0,8 -6.9,4 -6.9,-4 0,-8 6.9,-4"></polygon>';
-        const dot = '<circle r="3.6"></circle>';
-        const diamond = '<rect x="-6.4" y="-6.4" width="12.8" height="12.8" transform="rotate(45)"></rect>';
+        // Kind swatches render through the graph's own shapeSvg — the key cannot drift.
+        const kind = (shape) => `
+            <svg class="atl-key-swatch" viewBox="-13 -11 26 22" aria-hidden="true"><g class="atl-node">${shapeSvg(shape, 8)}</g></svg>`;
+        const state = (classes) => `
+            <svg class="atl-key-swatch" viewBox="-13 -11 26 22" aria-hidden="true"><g class="atl-node ${classes}"><circle class="atl-shape" r="8"></circle></g></svg>`;
         const edge = (verdict, fade = '') => `
             <svg class="atl-key-swatch" viewBox="0 0 26 22" aria-hidden="true"><line class="atl-edge atl-edge-${verdict} ${fade}" x1="1" y1="11" x2="25" y2="11"></line></svg>`;
         const row = (swatch, label) => `<div class="atl-key-row">${swatch}<span>${label}</span></div>`;
+        const stages = (this.graphs.get(this.active)?.stages ?? []).map((s) => row(
+            `<span class="atl-key-mark"><span class="atl-chip-dot" style="background:${stageColor(s)}"></span></span>`,
+            escapeHtml(s))).join('');
         this.keycardEl.innerHTML = `
             <div class="atl-key-head"><span class="atl-key">key</span><button class="atl-btn" data-ref="key-close" title="Hide the key">×</button></div>
             <div class="atl-key-groups">
             <div>
                 <div class="atl-key-ghead">kind — shape</div>
-                ${row(node('', rect), 'database')}
-                ${row(node('', circle), 'application')}
-                ${row(node('', hex), 'external entity')}
-                ${row(node('', diamond), 'declared kind (task, …)')}
-                ${row(node('', dot), 'endpoint')}
+                ${row(kind('cylinder'), 'database')}
+                ${row(kind('globe'), 'application')}
+                ${row(kind('cloud'), 'external entity')}
+                ${row(kind('diamond'), 'declared kind (task, …)')}
+                ${row(kind('dot'), 'endpoint')}
             </div>
+            ${stages ? `<div>
+                <div class="atl-key-ghead">stages</div>
+                ${stages}
+            </div>` : ''}
             <div>
                 <div class="atl-key-ghead">state</div>
-                ${row(node('atl-member', circle), 'member of this system')}
-                ${row(node('atl-unclassified', circle), 'unclassified — nothing asserted')}
-                ${row(node('atl-offsystem', circle), 'serves other systems only')}
-                ${row(node('atl-declaredish', circle), 'declared — asserted, not observed')}
-                ${row(node('atl-phantom', circle), 'not observed at this address')}
-                ${row(node('atl-member atl-canonical', circle), 'canonical ·  ×n = variants')}
-                ${row(node('atl-member atl-ghost', circle), 'outside stage filter (never hidden)')}
+                ${row(state('atl-member'), 'member of this system')}
+                ${row(state('atl-unclassified'), 'unclassified — nothing asserted')}
+                ${row(state('atl-offsystem'), 'serves other systems only')}
+                ${row(state('atl-declaredish'), 'declared — asserted, not observed')}
+                ${row(state('atl-phantom'), 'not observed at this address')}
+                ${row(state('atl-member atl-canonical'), 'canonical ·  ×n = variants')}
+                ${row(state('atl-member atl-ghost'), 'outside stage filter (never hidden)')}
             </div>
             <div>
                 <div class="atl-key-ghead">connections</div>
@@ -294,7 +300,7 @@ class AtlasPage {
     renderToolbar(graph) {
         const tab = this.tab();
         const chips = graph.stages.map((s) => `
-            <button class="atl-chip ${tab.stages.some((x) => x.toLowerCase() === s.toLowerCase()) ? 'is-active' : ''}" data-stage="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('');
+            <button class="atl-chip ${tab.stages.some((x) => x.toLowerCase() === s.toLowerCase()) ? 'is-active' : ''}" data-stage="${escapeHtml(s)}"><span class="atl-chip-dot" style="background:${stageColor(s)}"></span>${escapeHtml(s)}</button>`).join('');
         this.toolbarEl.innerHTML = `
             <span class="atl-mono">${escapeHtml(tab.system)}</span>
             <span class="atl-key">stages</span>

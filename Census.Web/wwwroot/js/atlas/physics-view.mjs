@@ -5,6 +5,8 @@
 // A strategy owns layout and drawing only; honesty rules (ghost-never-hide, dashed
 // declared seam, unclassified shown) arrive via the node/edge state the page computes.
 
+import { stageColor } from './stage-colors.mjs';
+
 const W = 1400;
 const H = 900;
 
@@ -23,27 +25,42 @@ function escapeHtml(value) {
     })[ch]);
 }
 
-function nodeShape(n) {
-    if (n.kind === 'database') return 'rect';
-    if (n.kind === 'application') return 'circle';
+export function nodeShape(n) {
+    if (n.kind === 'database') return 'cylinder';
+    if (n.kind === 'application') return 'globe';
     if (n.kind === 'endpoint') return 'dot';
-    if (n.external) return 'hex';
+    if (n.external) return 'cloud';
     return 'diamond';
 }
 
-function shapeSvg(n, r) {
-    switch (nodeShape(n)) {
-        case 'rect': return `<rect x="${-r}" y="${-r * 0.72}" width="${r * 2}" height="${r * 1.44}" rx="3"></rect>`;
-        case 'dot': return `<circle r="${r * 0.45}"></circle>`;
-        case 'hex': {
-            const p = [...Array(6)].map((_, i) => {
-                const a = Math.PI / 3 * i + Math.PI / 6;
-                return `${(Math.cos(a) * r).toFixed(1)},${(Math.sin(a) * r).toFixed(1)}`;
-            }).join(' ');
-            return `<polygon points="${p}"></polygon>`;
+// The common-understanding vocabulary (his 2026-08-25 ruling, and §4's promise of
+// consistency with the Estate glyphs): database = cylinder, application/website =
+// globe, external = cloud; diamond stays the neutral "declared kind" (free-form kinds
+// can't each be honest as a pictogram), dot stays the unresolved endpoint. The
+// silhouette (.atl-shape) is closed and fillable so the state vocabulary — member
+// fill, declared dash, phantom dotted, canonical weight — survives; interior line
+// work (.atl-detail) tints with the state but never fights the fill. Exported so the
+// key renders from this exact code and cannot drift.
+export function shapeSvg(shape, r) {
+    switch (shape) {
+        case 'cylinder': {
+            const rx = (r * 0.82).toFixed(1), ry = (r * 0.32).toFixed(1), h = (r * 0.52).toFixed(1);
+            return `<path class="atl-shape" d="M ${-rx} ${-h} A ${rx} ${ry} 0 0 1 ${rx} ${-h} V ${h} A ${rx} ${ry} 0 0 1 ${-rx} ${h} Z"></path>
+                <path class="atl-detail" d="M ${-rx} ${-h} A ${rx} ${ry} 0 0 0 ${rx} ${-h}"></path>`;
         }
-        case 'diamond': return `<rect x="${-r * 0.8}" y="${-r * 0.8}" width="${r * 1.6}" height="${r * 1.6}" transform="rotate(45)"></rect>`;
-        default: return `<circle r="${r}"></circle>`;
+        case 'globe': {
+            const cr = r * 0.9;
+            const y = cr * 0.48, cx = Math.sqrt(cr * cr - y * y).toFixed(1);
+            return `<circle class="atl-shape" r="${cr.toFixed(1)}"></circle>
+                <ellipse class="atl-detail" rx="${(cr * 0.45).toFixed(1)}" ry="${cr.toFixed(1)}"></ellipse>
+                <path class="atl-detail" d="M ${(-cr).toFixed(1)} 0 H ${cr.toFixed(1)} M ${-cx} ${(-y).toFixed(1)} H ${cx} M ${-cx} ${y.toFixed(1)} H ${cx}"></path>`;
+        }
+        case 'cloud': {
+            const s = (r / 21).toFixed(3);
+            return `<path class="atl-shape" transform="scale(${s})" d="M -14 9 A 8.5 8.5 0 0 1 -12.5 -7.5 A 11.5 11.5 0 0 1 9 -9.5 A 8.5 8.5 0 0 1 14.5 9 Z"></path>`;
+        }
+        case 'dot': return `<circle class="atl-shape" r="${(r * 0.45).toFixed(1)}"></circle>`;
+        default: return `<rect class="atl-shape" x="${-r * 0.8}" y="${-r * 0.8}" width="${r * 1.6}" height="${r * 1.6}" transform="rotate(45)"></rect>`;
     }
 }
 
@@ -183,9 +200,18 @@ export class PhysicsView {
             // A canonical node's sublabel is its distinct hosts — the clean-view line
             // ("MyWeb / WebDev, WebVal, WebProd") drawn under the canonical name.
             const sublabel = d.machine ?? ((d.hosts ?? []).length ? d.hosts.join(', ') : null);
+            // Stage dots (ratified 2026-08-25): one colored dot per stage this node's
+            // claim on the viewed system asserts — stage reads at a glance without a
+            // filter. Color is a dedicated channel; fill stays state, edges stay verdict.
+            const stages = [...new Set(d.serves
+                .filter((a) => a.system && a.system.toLowerCase() === this.graph.system.toLowerCase())
+                .flatMap((a) => a.stages.map((s) => s.toLowerCase())))];
+            const stageDots = stages.map((s, si) => `
+                <circle class="atl-stage-dot" cx="${((si - (stages.length - 1) / 2) * 9).toFixed(1)}" cy="26" r="3.4" fill="${stageColor(s)}"><title>${escapeHtml(s)}</title></circle>`).join('');
             return `
             <g data-node="${escapeHtml(d.id)}" class="${classes}">
-                ${shapeSvg(d, 21)}
+                ${shapeSvg(nodeShape(d), 21)}
+                ${stageDots}
                 ${alsoServes > 0 ? `<text class="atl-also" x="19" y="-19">+${alsoServes}</text>` : ''}
                 ${d.canonical ? `<text class="atl-also" x="-19" y="-19" text-anchor="end">×${d.variants.length}</text>` : ''}
                 <text class="atl-label" y="38">${escapeHtml(d.name.length > 26 ? d.name.slice(0, 25) + '…' : d.name)}</text>

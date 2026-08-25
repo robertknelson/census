@@ -85,6 +85,24 @@ being viewed, also-serves mark, unclassified styled as such. Edge styling:
 solidity = provenance (observed solid, attributed/declared dashed), color =
 verdict (confirmed neutral, contradicted red, unobserved muted).
 
+**Glyphs re-imagined as common understandings (his 2026-08-25 ruling, closing
+§4's Estate-consistency promise):** database = cylinder, application = globe,
+external = cloud; diamond stays the neutral declared-kind (free-form kinds
+can't each be honest as a pictogram), dot stays the unresolved endpoint. The
+closed silhouette carries the state vocabulary (fill/dash/weight); interior
+line work tints with the state but never fights the fill. The key renders
+through the same shape code as the graph, so it cannot drift.
+
+**Stage colors (ratified 2026-08-25):** stage gets its own dedicated color
+channel — one colored dot per claimed stage under each node, the same colors
+on the toolbar filter chips (the chip row doubles as the legend) and in the
+key's stages group — so one unfiltered view shows stage structure at a
+glance. Fill stays state; edge color stays verdict. Assignment is
+deterministic (`stage-colors.mjs`): well-known stage names and aliases pin to
+distinct slots of a color-blind-distinguishable palette (a pure hash put dev,
+val and prod in one slot), unknown names hash. Nothing stored, same color
+everywhere, and never color-only for meaning — the inspector keeps the words.
+
 **Layered** (websites / services / data, with declared asides) is the named
 second strategy, parked: it arrives as one renderer class on the same
 substrate. Layer assignment starts kind-derived (databases low) with an

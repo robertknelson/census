@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
 summary: "Field-trial verdicts applied: Atlas readable (bigger nodes, key, working inspector); saved views now shared"
-resume: "RESTART the app (running instance predates today's backend), then /atlas — the Key button, click-a-node inspector, and shared views are the new things to try"
+resume: "RESTART the app once more (running pid predates the second round), reload /atlas — inspector is now always docked, key is vertical"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }

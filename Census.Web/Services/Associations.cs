@@ -21,7 +21,10 @@ public static class Associations
         foreach (var assoc in serves ?? [])
         {
             if (assoc is null) continue;
-            Merge(merged, assoc, overwriteProvenance: true);
+            // Hand-edited config is a boundary: an entry may omit the system or stages key
+            // (or write an explicit null, which beats the model default — the 08-14 wound).
+            // Normalize here, once, so no consumer ever sees a null.
+            Merge(merged, assoc with { System = assoc.System ?? "", Stages = assoc.Stages ?? [] }, overwriteProvenance: true);
         }
         return merged;
     }

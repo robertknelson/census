@@ -13,6 +13,12 @@
               "canonicalName": "MyDB",
               "assertedBy": "robert",
               "assertedAt": "2026-08-21"
+            },
+            {
+              "system": "MyWeb",
+              "canonicalName": "MyDB",
+              "assertedBy": "robert",
+              "assertedAt": "2026-08-21"
             }
           ],
           "assertedBy": "robert",

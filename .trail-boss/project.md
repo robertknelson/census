@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "RESTART Census.Web (running instance predates today's DevServer/prohibited/views backend), open /atlas for the field-trial fixes (bigger nodes, Key card, clickable inspector; views now shared in config/views.json); still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications, and one sentence on what §7.7's neighbor experience should feel like"
+next_step: "RESTART Census.Web again (pid 17760 predates the persistent-inspector/vertical-key/normalize slice) and reload /atlas; rule on the edge-recede recommendation (full/mid/ghost three-level fade); close the heirloom t1-sysetem-a tab; still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -59,6 +59,24 @@ relates: []
   kinds live.
 - `main` at `d338284` + this close, all pushed. His instance predates all
   three server-side changes — restart required.
+- **Same day, second round (his live-dogfood reports):** inspector made
+  **persistent** — always docked while a view is open, empty state until a
+  click fills it (his twice-repeated "still not visible" ruled the design:
+  visibility must not depend on discovering the gesture). Key went
+  **vertical** on his call (browsers are wide; the graph wants the width)
+  with its three groups named: kind — shape / state / connections.
+  Association normalize centralized in `Associations.Of` (hand-edited config
+  is a boundary; missing/null `system` or `stages` no longer reaches any
+  consumer — the 08-14 explicit-null wound class), fixtured as a
+  missing-stages entry on MyDB_DEV that merges to a semantic no-op (6
+  members/7 edges/×3 variants unchanged, verified). His t1-sysetem-a view is
+  an **heirloom, not a live typo** — built pre-reconcile in localStorage,
+  faithfully adopted up; committed configs scan clean of sysetem-a. His
+  instance runs from this repo's bin (exe lock seen) — verification used a
+  scratch-output build so his process was never touched. **Edge-recede
+  question parked on his ratification** (recommendation given: three-level
+  fade — full in-stage, mid when one endpoint recedes = the bleed, ghost
+  when both recede; never hidden).
 
 ### 2026-08-21 (derived stage + canonical names)
 - **He restarted, verified G-7 triage and declared entities live, picked a

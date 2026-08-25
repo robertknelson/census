@@ -233,8 +233,9 @@ class AtlasPage {
         const row = (swatch, label) => `<div class="atl-key-row">${swatch}<span>${label}</span></div>`;
         this.keycardEl.innerHTML = `
             <div class="atl-key-head"><span class="atl-key">key</span><button class="atl-btn" data-ref="key-close" title="Hide the key">×</button></div>
-            <div class="atl-key-cols">
+            <div class="atl-key-groups">
             <div>
+                <div class="atl-key-ghead">kind — shape</div>
                 ${row(node('', rect), 'database')}
                 ${row(node('', circle), 'application')}
                 ${row(node('', hex), 'external entity')}
@@ -242,6 +243,7 @@ class AtlasPage {
                 ${row(node('', dot), 'endpoint')}
             </div>
             <div>
+                <div class="atl-key-ghead">state</div>
                 ${row(node('atl-member', circle), 'member of this system')}
                 ${row(node('atl-unclassified', circle), 'unclassified — nothing asserted')}
                 ${row(node('atl-offsystem', circle), 'serves other systems only')}
@@ -251,6 +253,7 @@ class AtlasPage {
                 ${row(node('atl-member atl-ghost', circle), 'outside stage filter (never hidden)')}
             </div>
             <div>
+                <div class="atl-key-ghead">connections</div>
                 ${row(edge('confirmed'), 'observed · confirmed')}
                 ${row(edge('contradicted'), 'contradicted')}
                 ${row(edge('unobserved'), 'target not corroborated')}
@@ -319,12 +322,18 @@ class AtlasPage {
 
     // --- the inspector ---------------------------------------------------------------------
 
+    /// Persistent while a view is open (his 2026-08-25 field call — visibility must not
+    /// depend on discovering the click): empty state until a selection fills it.
     renderInspector() {
+        const viewOpen = this.active !== 'builder' && this.active !== 'registry' && !!this.tab();
+        this.inspectorEl.hidden = !viewOpen;
+        if (!viewOpen) return;
         if (!this.selection) {
-            this.inspectorEl.hidden = true;
+            this.inspectorEl.innerHTML = `
+                <div class="atl-card-head"><span class="atl-key">inspector</span></div>
+                <p class="atl-muted">Nothing selected — click a node or edge for its details. Dragging pins instead of selecting.</p>`;
             return;
         }
-        this.inspectorEl.hidden = false;
         const { type, item } = this.selection;
         if (type === 'node') {
             const serves = item.serves.map((a) => `
@@ -369,7 +378,7 @@ class AtlasPage {
                 ${item.sourceFile ? `<div class="atl-row"><span class="atl-key">from</span><span class="atl-mono">${escapeHtml(item.sourceFile)}</span></div>` : ''}
                 ${item.detail ? `<div class="atl-muted">${escapeHtml(item.detail)}</div>` : ''}`;
         }
-        this.inspectorEl.querySelector('[data-ref="close"]').addEventListener('click', () => {
+        this.inspectorEl.querySelector('[data-ref="close"]')?.addEventListener('click', () => {
             this.selection = null;
             this.view?.setSelected?.(null);
             this.renderInspector();

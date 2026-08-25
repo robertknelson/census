@@ -113,7 +113,10 @@ register, and the expected-stage drift readout. Writes via
 5. Inspector as docked card with the contents of §5. *(Ratified 2026-08-25;
    the field trial found it undiscoverable — nodes advertised only `grab`, and
    a CSS bug kept the empty card from ever truly hiding. Fixed: pointer
-   cursor + hover, selection highlight, toolbar hint, `[hidden]` restated.)*
+   cursor + hover, selection highlight, toolbar hint, `[hidden]` restated.
+   Still reported invisible in the field the same day → the card is now
+   **persistent** while a view is open, empty state until a click fills it —
+   visibility no longer depends on discovering the gesture.)*
 6. Edge/node styling vocabulary of §4. *(Ratified 2026-08-25; his ask "is
    there a key?" exposed that the §2 legend was never built — an on-screen
    key card now renders the vocabulary from the live CSS classes.)*

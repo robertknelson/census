@@ -183,6 +183,8 @@ line.atl-selected { stroke-width: 4; }
     position: absolute;
     left: 1rem;
     bottom: 1rem;
+    max-height: calc(100vh - 9rem);
+    overflow-y: auto;
     background: var(--atl-panel);
     border: 1px solid var(--atl-line);
     border-radius: 10px;
@@ -192,8 +194,11 @@ line.atl-selected { stroke-width: 4; }
     font-size: 0.78rem;
 }
 .atl-key-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-.atl-key-cols { display: flex; gap: 1.4rem; }
-.atl-key-cols > div { display: flex; flex-direction: column; gap: 0.15rem; }
+/* Vertical (his 2026-08-25 call): browsers are wide, the graph wants the width —
+   a tall narrow card on the left costs the least canvas. */
+.atl-key-groups { display: flex; flex-direction: column; gap: 0.6rem; }
+.atl-key-groups > div { display: flex; flex-direction: column; gap: 0.15rem; }
+.atl-key-ghead { color: var(--atl-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.1rem; }
 .atl-key-row { display: flex; align-items: center; gap: 0.45rem; }
 .atl-key-swatch { width: 26px; height: 22px; flex: 0 0 auto; }
 .atl-key-mark { width: 26px; text-align: center; flex: 0 0 auto; font-size: 0.78rem; }

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Reload /atlas (JS-only fix) and click a node — the inspector should now fill and STAY; still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications; close the heirloom t1-sysetem-a tab"
+next_step: "Reload /atlas (JS-only): key and inspector now dock to the TOP of the graph area, edge clicks have a fat hit target and show from/to endpoints; still owed: entity-associations.md §7 + systems-registry.md §5/§3-deviation ratifications; close the heirloom t1-sysetem-a tab"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──

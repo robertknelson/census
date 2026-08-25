@@ -88,9 +88,11 @@ class AtlasPage {
                 </span>
             </header>
             <div class="atl-toolbar" data-ref="toolbar"></div>
-            <main class="atl-main" data-ref="main"></main>
-            <aside class="atl-keycard" data-ref="keycard" hidden></aside>
-            <aside class="atl-inspector" data-ref="inspector" hidden></aside>`;
+            <div class="atl-body">
+                <main class="atl-main" data-ref="main"></main>
+                <aside class="atl-keycard" data-ref="keycard" hidden></aside>
+                <aside class="atl-inspector" data-ref="inspector" hidden></aside>
+            </div>`;
         this.tabsEl = this.root.querySelector('[data-ref="tabs"]');
         this.toolbarEl = this.root.querySelector('[data-ref="toolbar"]');
         this.mainEl = this.root.querySelector('[data-ref="main"]');
@@ -371,13 +373,22 @@ class AtlasPage {
                 ${item.note ? `<div class="atl-muted">${escapeHtml(item.note)}</div>` : ''}
                 ${item.declared ? '<div class="atl-muted">Declared — asserted to exist, never corroborated.</div>' : ''}`;
         } else {
+            // Both endpoints resolved from the graph (§5 promised them): name · host machine.
+            const byId = new Map((this.graphs.get(this.active)?.nodes ?? []).map((n) => [n.id, n]));
+            const end = (id) => {
+                const n = byId.get(id);
+                const host = n?.machine ?? ((n?.hosts ?? []).join(', ') || null);
+                return n ? `${n.name}${host ? ` · ${host}` : ''}` : id;
+            };
             this.inspectorEl.innerHTML = `
                 <div class="atl-card-head">
                     <span class="atl-mono">${escapeHtml(item.name ?? 'edge')}</span>
                     <button class="atl-btn" data-ref="close">×</button>
                 </div>
-                <div class="atl-row"><span class="atl-badge">${escapeHtml(item.verdict)}</span><span class="atl-muted">${escapeHtml(item.kind)}</span></div>
-                ${item.sourceFile ? `<div class="atl-row"><span class="atl-key">from</span><span class="atl-mono">${escapeHtml(item.sourceFile)}</span></div>` : ''}
+                <div class="atl-row"><span class="atl-badge">${escapeHtml(item.verdict)}</span><span class="atl-muted">${escapeHtml(item.kind)} edge</span></div>
+                <div class="atl-row"><span class="atl-key">from</span><span class="atl-mono">${escapeHtml(end(item.sourceId))}</span></div>
+                <div class="atl-row"><span class="atl-key">to</span><span class="atl-mono">${escapeHtml(end(item.targetId))}</span></div>
+                ${item.sourceFile ? `<div class="atl-row"><span class="atl-key">seen in</span><span class="atl-mono">${escapeHtml(item.sourceFile)}</span></div>` : ''}
                 ${item.detail ? `<div class="atl-muted">${escapeHtml(item.detail)}</div>` : ''}`;
         }
         this.inspectorEl.querySelector('[data-ref="close"]')?.addEventListener('click', () => {

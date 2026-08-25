@@ -161,6 +161,12 @@ export class PhysicsView {
             return `
             <line data-edge="${i}" class="atl-edge atl-edge-${escapeHtml(e.verdict)} atl-edgekind-${escapeHtml(e.kind)}${fade}"></line>`;
         }).join('');
+        // A rendered edge is barely over a CSS pixel wide once the viewBox scales down —
+        // an invisible fat twin under the nodes gives every connection a real hit target.
+        // Same data-edge index, so positionElements moves both and selection resolves the
+        // visible line first (it precedes the twin in document order).
+        const edgeHitSvg = this.graph.edges.map((e, i) => `
+            <line data-edge="${i}" class="atl-edge-hit"></line>`).join('');
         const nodeSvg = this.nodes.map((n) => {
             const d = n.dto;
             const focus = this.state.focus.get(d.id) ?? 'focus';
@@ -190,6 +196,7 @@ export class PhysicsView {
         this.host.innerHTML = `
             <svg class="atl-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
                 <g>${edgeSvg}</g>
+                <g>${edgeHitSvg}</g>
                 <g>${nodeSvg}</g>
             </svg>`;
         this.svg = this.host.querySelector('svg');

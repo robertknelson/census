@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Field trial continues on the reshaped /atlas (cylinders/globes/stage colors, JS-only reload); close the heirloom t1-sysetem-a tab; decide whether the real-profile config/views.json writes should be committed"
+next_step: "Field trial at his pace: reload /atlas for glyphs + stage colors, close the heirloom t1-sysetem-a tab (file self-cleans on next write); no design decisions pending"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -26,6 +26,22 @@ relates: []
 ## notes
 
 ### 2026-08-25 (field-trial verdicts: Atlas UX pass, DevServer retired, "prohibited")
+- **Session close (third round, all his live reports → same-hour slices):**
+  the REAL inspector bug found and killed (`b86de1e`) — after pointer capture
+  the browser retargets the follow-up `click` to the svg, whose empty-space
+  branch cleared the selection pointerup had just made; zero-jitter automated
+  clicks could never reproduce it. Selection now lives on pointer events
+  only; verified with a simulated 2px-jitter press. Then his rulings, each
+  shipped and verified: cards dock to the TOP (`9437d28`), edge inspector
+  answers from/to/verdict/seen-in + edges get a 14-unit invisible hit twin,
+  columnar label/value rows — right-justified labels, gutter, aligned values
+  (`5105b6d`), serves/variants join the grid (`c37f134`), **glyphs
+  re-imagined** (`1d4dc75`) — cylinder/globe/cloud, his call, closing §4's
+  Estate-consistency promise — and **stage colors** as a dedicated channel
+  (dots + chips + key; stage-colors.mjs pins dev/val/prod… to distinct
+  slots because a pure hash collided exactly those three). Ratification debt
+  cleared (`9627aa7`); his real views committed on his order (`02acba9`).
+- `main` at `02acba9` + this close, all pushed, tree clean.
 - **The 08-20 ratification debt is cleared (2026-08-25):** entity-associations
   §7 (association-level provenance, restricted stage-only bulk apply,
   whole-leaf upgrade-on-write) and systems-registry §5 + the §3

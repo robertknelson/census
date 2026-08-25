@@ -10,7 +10,7 @@ const ASPECTS = [
     { key: 'sqlserver', label: 'SQL Server' },
 ];
 
-const ROLE_CHIPS = ['WebServer', 'DatabaseServer', 'DevServer', 'DevLaptop'];
+const ROLE_CHIPS = ['WebServer', 'DatabaseServer', 'DevLaptop'];
 
 export class CompareView {
     constructor(container) {

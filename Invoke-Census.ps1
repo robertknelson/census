@@ -1587,14 +1587,10 @@ foreach ($machine in $machines) {
         if ($censusObject.sqlserver.status -eq 'ok' -and $censusObject.sqlserver.data.instances.Count -gt 0) {
             $roles.Add('DatabaseServer')
         }
+        # SDKs on a Server install mint no role — DevServer was retired as a class (2026-08-25).
         $devSignal = $censusObject.dotnet.status -eq 'ok' -and $censusObject.dotnet.data.sdks.Count -gt 0
-        if ($devSignal) {
-            if ($censusObject.os.data.installationType -match 'Server') {
-                $roles.Add('DevServer')
-            }
-            else {
-                $roles.Add('DevLaptop')
-            }
+        if ($devSignal -and $censusObject.os.data.installationType -notmatch 'Server') {
+            $roles.Add('DevLaptop')
         }
         $censusObject | Add-Member -NotePropertyName roles -NotePropertyValue $roles.ToArray() -Force
 

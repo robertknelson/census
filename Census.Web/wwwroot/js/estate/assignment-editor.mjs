@@ -10,7 +10,7 @@ function escapeHtml(value) {
     })[ch]);
 }
 
-const CLASS_OPTIONS = ['DatabaseServer', 'WebServer', 'DevServer', 'DevLaptop'];
+const CLASS_OPTIONS = ['DatabaseServer', 'WebServer', 'DevLaptop'];
 
 export class AssignmentEditor {
     /**

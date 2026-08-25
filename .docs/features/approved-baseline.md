@@ -117,8 +117,8 @@ model.
 - **`{}` matches the entire fleet.** That is the natural reading of "every key present" and it
   is the fleet-common-set case, so it is deliberate rather than an accident to guard against.
 - **Two reserved pseudo-keys.** `class` resolves through `MachineClassifier.Resolve` — an
-  asserted present-as override wins over observed roles, so a dev box on a Server SKU that has
-  been called a `DevServer` is judged as one. `machine` matches the machine name directly.
+  asserted present-as override wins over observed roles, so a machine that has been called a
+  `WebServer` is judged as one whatever it runs. `machine` matches the machine name directly.
   Reserved keys win a collision with an operator-invented facet of the same name; that is
   stated here so it is not discovered.
 - **Every other key is a free-string facet from `assets.json`** — `stage`, the ownership key,
@@ -348,7 +348,7 @@ needs a fixture deliberately.
 | Facet-only scope (no class) | `dev-stage`, `{ stage: [dev] }` — 3 machines |
 | One-machine scope (the exemption) | `devbox-jsmith-container-work` |
 | Union across three baselines | DEVBOX-JSMITH matches fleet + dev-stage + its exemption |
-| Asserted class beats observed | APPSRV01 is observed WebServer+DatabaseServer, asserted `DevServer` — `web-prod` correctly does **not** judge it |
+| Asserted class beats observed | APPSRV01 is observed WebServer+DatabaseServer, asserted `WebServer` (was `DevServer` until that class retired, 2026-08-25) — `web-prod` still does not judge it, but now on the stage mismatch (dev/qa vs prod), so this row covers the override's *provenance* more than its scope-matching effect |
 | `systemComponent` excluded | WEB01's ASP.NET Core Module V2 and SQL01's engine entry are approved by nothing and deviate on nothing |
 | Per-user install, different SID per machine | Slack on DEVBOX-JSMITH (`…-1417`) and APPSRV01 (`…-2209`), one baseline entry, no deviation on either — the §6.1 rule that would otherwise flood the stream |
 | In scope but not judgeable | WEB02 (`insufficient-rights`) and BUILDSRV01 (`failed`) — matched, never rendered as approved |

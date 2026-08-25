@@ -123,11 +123,13 @@ app, since this script is the whole deliverable:
 - **WebServer** — IIS installed with at least one site.
 - **DatabaseServer** — a SQL Server instance is installed.
 - **DevMachine signal** — .NET SDK and/or Visual Studio present.
-- Combine the dev signal with OS installation type to distinguish **DevServer** (Server OS +
-  dev signal — a VM built on a Server SKU actually used as a workstation) from **DevLaptop**
-  (Windows 11 / Client OS + dev signal).
-- A machine can carry more than one tag (e.g. WebServer *and* DevServer) — never forced into
-  a single label.
+- The dev signal mints **DevLaptop** on Client-OS installs only. On a Server SKU it mints
+  nothing — `DevServer` was retired as a classification (2026-08-25 ruling): SDKs on a
+  server are not a class, and the machine classifies by its other roles or stays
+  Unclassified. Old snapshots carrying `DevServer` in `roles` stay valid; the value simply
+  no longer participates in class derivation.
+- A machine can carry more than one tag (e.g. WebServer *and* DatabaseServer) — never
+  forced into a single label.
 
 ## 4. Output
 

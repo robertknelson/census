@@ -30,7 +30,7 @@
       }
     },
     "APPSRV01": {
-      "class": "DevServer",
+      "class": "WebServer",
       "facets": {
         "stage": [
           "dev",

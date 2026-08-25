@@ -129,8 +129,6 @@
     "durationMs": 4
   },
   "requestedName": "buildsrv01",
-  "roles": [
-    "DevServer"
-  ],
+  "roles": [],
   "collectorVersion": "1.0.0"
 }

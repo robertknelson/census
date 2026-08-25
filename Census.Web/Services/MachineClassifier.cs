@@ -11,7 +11,7 @@ namespace Census.Web.Services;
 /// </summary>
 public static class MachineClassifier
 {
-    public static readonly string[] Precedence = ["DatabaseServer", "WebServer", "DevServer", "DevLaptop"];
+    public static readonly string[] Precedence = ["DatabaseServer", "WebServer", "DevLaptop"];
 
     public const string Unclassified = "Unclassified";
 

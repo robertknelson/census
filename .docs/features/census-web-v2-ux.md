@@ -156,7 +156,9 @@ with VS + SQL Express is observationally three things, organizationally one dev 
 The original principle survives as **provenance**: the glyph renders the override with a
 visible asserted-marker; observed roles stay one hover away and are never destroyed.
 Without an override, the glyph's class derives from observed roles by fixed precedence:
-DatabaseServer > WebServer > DevServer > DevLaptop.
+DatabaseServer > WebServer > DevLaptop. (`DevServer` sat between WebServer and DevLaptop
+until 2026-08-25, when it was retired as a classification — see requirements.md §3.11;
+snapshots carrying it derive past it.)
 
 ### 5.4 Retained working tools
 

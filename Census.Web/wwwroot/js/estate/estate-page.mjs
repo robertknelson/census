@@ -23,7 +23,6 @@ function escapeHtml(value) {
 const CLASS_LABELS = {
     DatabaseServer: 'Database server',
     WebServer: 'Web server',
-    DevServer: 'Dev server',
     DevLaptop: 'Dev laptop',
     Unclassified: 'Unclassified',
 };
@@ -134,7 +133,7 @@ class EstatePage {
         // class shows every machine of that class across all owners.
         this.legendEl = this.root.querySelector('[data-ref="legend"]');
         this.legendEl.innerHTML =
-            ['DatabaseServer', 'WebServer', 'DevServer', 'DevLaptop']
+            ['DatabaseServer', 'WebServer', 'DevLaptop']
                 .map((c) => `<button class="est-legend-item" data-class="${escapeHtml(c)}" title="Show all ${escapeHtml(CLASS_LABELS[c])}s">${glyphSvg(c, 15)} ${escapeHtml(CLASS_LABELS[c])}</button>`)
                 .join('');
         this.legendEl.querySelectorAll('[data-class]').forEach((btn) => btn.addEventListener('click', () => {

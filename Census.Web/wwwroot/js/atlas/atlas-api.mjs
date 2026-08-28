@@ -19,8 +19,8 @@ export function fetchSystemsConfig() {
     return getJson('/api/systems');
 }
 
-export function fetchSystemGraph(system) {
-    return getJson(`/api/system-graph/${encodeURIComponent(system)}`);
+export function fetchSystemGraph(system, grouping = 'canonical') {
+    return getJson(`/api/system-graph/${encodeURIComponent(system)}?grouping=${encodeURIComponent(grouping)}`);
 }
 
 export function fetchViews() {

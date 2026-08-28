@@ -23,6 +23,9 @@ public record ViewRecord
     public List<string> Stages { get; init; } = [];
     public string Strategy { get; init; }
 
+    /// <summary>canonical | observed — whether variants sharing a canonical name collapse (system-view.md §3). Null reads as canonical.</summary>
+    public string Grouping { get; init; }
+
     /// <summary>Keyed by graph node id; pinned marks a hand-dragged node.</summary>
     public Dictionary<string, ViewPosition> Positions { get; init; } = new();
 

@@ -7,6 +7,7 @@
       "system": "MyWeb",
       "stages": [],
       "strategy": "physics",
+      "grouping": "canonical",
       "positions": {
         "[\"canonical\",\"myweb\",\"appdb\"]": {
           "x": 597,
@@ -14,28 +15,28 @@
           "pinned": false
         },
         "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDatabase_VAL\"]": {
-          "x": 439,
-          "y": 543,
+          "x": 462,
+          "y": 683,
           "pinned": false
         },
         "[\"application\",\"DEVWEBBOX\",\"yourweb.dev.example.com\",\"/\"]": {
-          "x": 895,
-          "y": 532,
+          "x": 715,
+          "y": 258,
           "pinned": false
         },
         "[\"database\",\"PRODSQLBOX\",\"MSSQLSERVER\",\"AppData01\"]": {
-          "x": 743,
-          "y": 587,
+          "x": 689,
+          "y": 409,
           "pinned": false
         },
         "[\"application\",\"PRODWEBBOX\",\"yourweb.example.com\",\"/\"]": {
-          "x": 979,
-          "y": 360,
+          "x": 872,
+          "y": 161,
           "pinned": false
         },
         "[\"application\",\"VALWEBBOX\",\"yourweb.val.example.com\",\"/\"]": {
-          "x": 656,
-          "y": 204,
+          "x": 610,
+          "y": 116,
           "pinned": false
         },
         "[\"canonical\",\"myweb\",\"mydb\"]": {
@@ -51,6 +52,51 @@
         "[\"canonical\",\"myweb\",\"sharedref\"]": {
           "x": 786,
           "y": 352,
+          "pinned": false
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDatabase_DEV\"]": {
+          "x": 762,
+          "y": 759,
+          "pinned": false
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDB_DEV\"]": {
+          "x": 1002,
+          "y": 507,
+          "pinned": false
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"MyDB_VAL\"]": {
+          "x": 886,
+          "y": 664,
+          "pinned": false
+        },
+        "[\"database\",\"DEVSQLBOX\",\"MSSQLSERVER\",\"Shared_REF\"]": {
+          "x": 511,
+          "y": 288,
+          "pinned": false
+        },
+        "[\"application\",\"DEVWEBBOX\",\"myweb.dev.example.com\",\"/\"]": {
+          "x": 798,
+          "y": 537,
+          "pinned": false
+        },
+        "[\"database\",\"PRODSQLBOX\",\"MSSQLSERVER\",\"MyDB\"]": {
+          "x": 365,
+          "y": 410,
+          "pinned": false
+        },
+        "[\"database\",\"PRODSQLBOX\",\"MSSQLSERVER\",\"Shared_REF\"]": {
+          "x": 939,
+          "y": 344,
+          "pinned": false
+        },
+        "[\"application\",\"PRODWEBBOX\",\"myweb.example.com\",\"/\"]": {
+          "x": 527,
+          "y": 516,
+          "pinned": false
+        },
+        "[\"application\",\"VALWEBBOX\",\"myweb.val.example.com\",\"/\"]": {
+          "x": 662,
+          "y": 648,
           "pinned": false
         }
       },

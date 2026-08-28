@@ -4,7 +4,7 @@ import { stageColor } from './stage-colors.mjs';
 import { RegistryPanel } from './registry-panel.mjs';
 
 // Atlas (system-view.md): pick a system, see its dependency graph. Tabs are built views —
-// {id, name, system, stages, strategy, positions} — estate artifacts in config/views.json
+// {id, name, system, stages, strategy, grouping, positions} — estate artifacts in config/views.json
 // (GET/PUT /api/views, promoted from localStorage 2026-08-25); localStorage keeps only
 // what is personal: the open tab and whether the key shows. Strategies own layout and
 // drawing only; the filter strip, the inspector, and the honesty rules (ghost-never-hide,
@@ -173,6 +173,7 @@ class AtlasPage {
                 system,
                 stages: [],           // empty = all stages
                 strategy: 'physics',
+                grouping: 'canonical', // collapse variants sharing a canonical name; 'observed' keeps every entity
                 positions: {},
             };
             this.tabs.push(tab);
@@ -198,7 +199,7 @@ class AtlasPage {
         let graph = this.graphs.get(tab.id);
         if (!graph) {
             try {
-                graph = await fetchSystemGraph(tab.system);
+                graph = await fetchSystemGraph(tab.system, tab.grouping ?? 'canonical');
             } catch (err) {
                 this.mainEl.innerHTML = `<p class="atl-status atl-error">${escapeHtml(err.message)}</p>`;
                 return;
@@ -210,7 +211,9 @@ class AtlasPage {
         const strategy = STRATEGIES[tab.strategy] ?? STRATEGIES.physics;
         this.view = strategy.make(
             (selection) => { this.selection = selection; this.renderInspector(); },
-            (positions) => { tab.positions = positions; this.persistViews(); },
+            // Merge, never replace: canonical and observed nodes have disjoint ids, so one
+            // map holds both modes' layouts and shared neighbors keep their spots across a flip.
+            (positions) => { tab.positions = { ...tab.positions, ...positions }; this.persistViews(); },
         );
         this.view.mount(this.mainEl.querySelector('[data-ref="canvas"]'), graph, {
             focus: this.focusMap(graph, tab),
@@ -306,6 +309,9 @@ class AtlasPage {
             <span class="atl-key">stages</span>
             <button class="atl-chip ${tab.stages.length === 0 ? 'is-active' : ''}" data-stage="">all</button>
             ${chips}
+            <span class="atl-key">grouping</span>
+            <button class="atl-chip ${(tab.grouping ?? 'canonical') === 'canonical' ? 'is-active' : ''}" data-grouping="canonical" title="Variants sharing a canonical name collapse into one node">canonical</button>
+            <button class="atl-chip ${tab.grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" title="Every observed entity stays its own node">observed</button>
             <span class="atl-toolbar-right">
                 <button class="atl-btn" data-ref="key-toggle" title="Show or hide the key">Key</button>
                 <button class="atl-btn" data-ref="refetch" title="Re-read the graph">Refresh</button>
@@ -316,6 +322,13 @@ class AtlasPage {
             if (stage === '') tab.stages = [];
             else if (tab.stages.some((x) => x.toLowerCase() === stage.toLowerCase())) tab.stages = tab.stages.filter((x) => x.toLowerCase() !== stage.toLowerCase());
             else tab.stages.push(stage);
+            this.persistViews();
+            this.openView();
+        }));
+        this.toolbarEl.querySelectorAll('[data-grouping]').forEach((chip) => chip.addEventListener('click', () => {
+            if ((tab.grouping ?? 'canonical') === chip.dataset.grouping) return;
+            tab.grouping = chip.dataset.grouping;
+            this.graphs.delete(tab.id);
             this.persistViews();
             this.openView();
         }));

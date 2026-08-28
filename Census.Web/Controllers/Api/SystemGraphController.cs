@@ -89,8 +89,11 @@ public record SystemGraphDto
 [Route("api/system-graph")]
 public class SystemGraphController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore) : ControllerBase
 {
+    /// <param name="grouping">canonical (default) collapses stage variants sharing a canonical
+    /// name; observed leaves every entity as its own node — the canonical name stays a fact
+    /// on the association, and the collapse becomes the view's choice (system-view.md §3).</param>
     [HttpGet("{system}")]
-    public ActionResult<SystemGraphDto> Get(string system)
+    public ActionResult<SystemGraphDto> Get(string system, [FromQuery] string grouping = "canonical")
     {
         var snapshots = new List<(string Machine, CensusEnvelope Envelope)>();
         foreach (var dir in censusStore.GetMachineDirs())
@@ -272,7 +275,8 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
         // canonical name collapse into one node — the clean view — with the observed
         // variants riding along for the inspector. Only an association naming the viewed
         // system carries a canonical name here, so scoping is per-system by construction.
-        string CanonicalOf(SystemGraphNodeDto n) => n.Serves
+        var collapse = !string.Equals(grouping, "observed", StringComparison.OrdinalIgnoreCase);
+        string CanonicalOf(SystemGraphNodeDto n) => !collapse ? null : n.Serves
             .FirstOrDefault(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase)
                 && !string.IsNullOrEmpty(a.CanonicalName))?.CanonicalName;
 

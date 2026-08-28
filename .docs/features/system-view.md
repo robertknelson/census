@@ -49,7 +49,21 @@ Built once, shared by every strategy:
 
 ## 3. Tabs — built views
 
-A tab = `{name, system, stages[], strategy, strategyOptions, nodePositions}`.
+A tab = `{name, system, stages[], strategy, grouping, strategyOptions, nodePositions}`.
+
+**Grouping is the view's choice, not the name's (ratified 2026-08-28).** A
+canonical name records a fact on the association — these variants are one
+thing. Whether the picture *collapses* them is a per-tab setting:
+`grouping: canonical` (default, and what a missing key reads as) collapses
+variants sharing a canonical name; `grouping: observed` leaves every entity
+its own node, the canonical name still visible in the inspector. Sent as
+`?grouping=` on the graph fetch; a toolbar chip pair flips it. Why: he built
+the same system before and after naming, preferred the before, and wanted
+both — naming must never make a view unreachable. Positions: canonical and
+observed node ids are disjoint (`["canonical",…]` vs `["database",…]`), so one
+positions map holds both layouts and the page *merges* what a settle emits
+rather than replacing — shared neighbors keep their spots across a flip.
+Deliberately no partial mode (collapse some names, not others).
 The "+" tab opens the builder: system picker (registry-backed: registered with
 descriptions first, unregistered in-use values beneath), stage multi-select,
 strategy select, name. One system per tab in this slice; multi-system tabs

@@ -37,6 +37,20 @@
           "prod"
         ]
       }
+    },
+    "APPSRV01": {
+      "facets": {
+        "team": [
+          "team-a"
+        ]
+      }
+    },
+    "PRODSQLBOX": {
+      "facets": {
+        "team": [
+          "team-b"
+        ]
+      }
     }
   }
 }

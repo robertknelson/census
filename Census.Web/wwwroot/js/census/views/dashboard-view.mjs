@@ -52,12 +52,11 @@ export class DashboardView {
                     <div class="census-trend">
                         ${summary.trend.map((t) => `
                             <div class="census-trend-bar-wrap" title="${escapeHtml(t.date)}: ${t.totalHits} hit(s) across ${t.machinesCollected} machine(s) collected">
+                                <div class="census-trend-value">${t.totalHits}</div>
                                 <div class="census-trend-bar" style="height:${Math.max(2, Math.round((t.totalHits / maxHits) * 100))}%"></div>
                                 <div class="census-trend-label">${escapeHtml(t.date.slice(5))}</div>
                             </div>`).join('')}
                     </div>`}
-            </section>
-
-            <p><a href="#/machines">Browse all machines &rarr;</a> &nbsp; <a href="#/certificates">Certificate expiry &rarr;</a> &nbsp; <a href="#/coverage">Coverage &rarr;</a></p>`;
+            </section>`;
     }
 }

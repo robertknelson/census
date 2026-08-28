@@ -222,7 +222,7 @@ details summary {
     display: flex;
     align-items: flex-end;
     gap: 0.5rem;
-    height: 8rem;
+    height: 9rem;
     padding-top: 0.5rem;
 }
 
@@ -246,6 +246,13 @@ details summary {
     margin-top: 0.3rem;
     font-size: 0.75rem;
     color: #888;
+}
+
+.census-trend-value {
+    margin-bottom: 0.15rem;
+    font-size: 0.7rem;
+    color: #aaa;
+    font-variant-numeric: tabular-nums;
 }
 
 .census-compare-controls {

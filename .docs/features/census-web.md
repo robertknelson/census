@@ -669,3 +669,31 @@ the alias work.
   table if it turns out to matter.
 - **Version-string parse failures** — confirm "flag for manual review" (§4.2) is the right
   behavior rather than best-effort lexical comparison.
+
+## 12. Board scope carried into the fleet panels
+
+> **Ratified 2026-08-28.** He liked the team filter and asked whether it could reach
+> Changes, Software, Hosting, and Certificates. It can, client-side, with no server change.
+
+**Rule:** what the board shows is what a fleet panel lists. `panelScope()` on the page
+is `null` when no owner and no class is selected (panels read the whole fleet, as they
+always did); otherwise the set of machines the board is rendering — owners, then class,
+then stage, the same `visibleMachines()` + `stageMatches()` the tiles use. The four panels
+take a `getScope` thunk (`panel-scope.mjs`), filter on it at render, and the page calls
+`fleetPanel.refresh()` from `renderAll()` so a rail click re-scopes the open panel in
+place — no refetch, no reopen.
+
+**Per panel, where the knife goes:**
+- Changes — drop machines out of scope.
+- Software — drop out-of-scope machines from each version, drop emptied versions and
+  applications, recount `machineCount` and `unapprovedOn` against what is left.
+- Hosting — cut on the machine that hosts the row: application/database instances, and
+  a dependency's **sources**. A consumer in scope shows its target wherever the target
+  lives, because the question is "what do my machines depend on," not "what lives here."
+- Certificates — cut **before** thumbprint grouping, so a cert on six machines reads as
+  "on two of yours."
+
+**Say it on screen:** a scope line above the list — `scoped to PublicApps · 4 machines
+[show fleet]` — so a short list never reads as a small fleet. `show fleet` is a
+panel-local escape (the board does not change); it resets when the panel reopens.
+Deliberately no per-panel scope editor: the rail is the one place scope is chosen.

@@ -1,4 +1,5 @@
 import { fetchSoftware } from './estate-api.mjs';
+import { PanelScope } from './panel-scope.mjs';
 
 // The fleet pivoted by application: search an app, see every machine carrying it and the
 // version spread. A spread badge marks software running more than one version — the
@@ -11,9 +12,29 @@ function escapeHtml(value) {
 }
 
 export class SoftwarePanel {
-    constructor(state, onMachine) {
+    constructor(state, getScope, onMachine) {
         this.state = state;      // persisted: { query: string }
+        this.scope = new PanelScope(getScope);
         this.onMachine = onMachine;
+    }
+
+    refresh() {
+        if (this.items) this.render();
+    }
+
+    /// Scope cuts per machine: versions lose out-of-scope machines, emptied versions and
+    /// applications drop, counts and the unapproved list recount against what is left.
+    scopedItems() {
+        if (this.scope.active() === null) return this.items;
+        return this.items
+            .map((item) => {
+                const versions = item.versions
+                    .map((v) => ({ ...v, machines: v.machines.filter((m) => this.scope.has(m)) }))
+                    .filter((v) => v.machines.length > 0);
+                const machines = new Set(versions.flatMap((v) => v.machines));
+                return { ...item, versions, machineCount: machines.size, unapprovedOn: item.unapprovedOn.filter((m) => machines.has(m)) };
+            })
+            .filter((item) => item.versions.length > 0);
     }
 
     async mount(container) {
@@ -31,11 +52,14 @@ export class SoftwarePanel {
     }
 
     render() {
+        this.visible = this.scopedItems();
         this.container.innerHTML = `
-            <input class="est-filter" type="search" placeholder="Search ${this.items.length} applications…"
+            ${this.scope.lineHtml()}
+            <input class="est-filter" type="search" placeholder="Search ${this.visible.length} applications…"
                    value="${escapeHtml(this.state.query)}" data-ref="query" autofocus>
             <div data-ref="list"></div>`;
 
+        this.scope.bind(this.container, () => this.render());
         this.container.querySelector('[data-ref="query"]').addEventListener('input', (e) => {
             this.state.query = e.target.value;
             this.renderList();
@@ -48,11 +72,11 @@ export class SoftwarePanel {
         const listEl = this.container.querySelector('[data-ref="list"]');
         const q = this.state.query.trim().toLowerCase();
         const matches = q === ''
-            ? this.items
-            : this.items.filter((i) => i.name.toLowerCase().includes(q) || (i.publisher ?? '').toLowerCase().includes(q));
+            ? this.visible
+            : this.visible.filter((i) => i.name.toLowerCase().includes(q) || (i.publisher ?? '').toLowerCase().includes(q));
 
         if (matches.length === 0) {
-            listEl.innerHTML = '<p class="est-status">Nothing in the fleet matches.</p>';
+            listEl.innerHTML = `<p class="est-status">Nothing ${this.scope.active() ? 'in scope' : 'in the fleet'} matches.</p>`;
             return;
         }
 

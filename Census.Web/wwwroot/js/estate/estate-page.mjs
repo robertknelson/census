@@ -67,6 +67,17 @@ class EstatePage {
         return this.selectedClasses.size === 0 || this.selectedClasses.has(machine.class);
     }
 
+    /// What the board shows is what a fleet panel lists (census-web.md §11): null when
+    /// nothing is selected — the panels read the whole fleet, as they always did.
+    panelScope() {
+        if (this.selectedOwners.size === 0 && this.selectedClasses.size === 0) return null;
+        const machines = new Set(this.visibleMachines().filter((m) => this.stageMatches(m)).map((m) => m.machine));
+        const parts = [...this.selectedOwners];
+        if (this.selectedClasses.size) parts.push([...this.selectedClasses].join('/'));
+        if (this.selectedStages.size) parts.push([...this.selectedStages].join('/'));
+        return { machines, label: parts.join(' · ') };
+    }
+
     visibleMachines() {
         // Owner selection scopes the canvas; a class selection with no owner widens the
         // scope to the whole fleet — "all database servers regardless of team/stage."
@@ -215,6 +226,7 @@ class EstatePage {
     }
 
     renderAll() {
+        this.fleetPanel?.refresh();
         this.renderRail();
         this.renderStagebar();
         this.renderCanvas();
@@ -484,6 +496,7 @@ class EstatePage {
 
     closePanel() {
         this.panel = null;
+        this.fleetPanel = null;
         this.panelEl.classList.remove('is-open');
         this.backdropEl.hidden = true;
         setTimeout(() => { if (!this.panel) this.panelEl.hidden = true; }, 260);
@@ -530,8 +543,8 @@ class EstatePage {
             '<div data-ref="software"></div>');
         this.openPanel();
 
-        new SoftwarePanel(this.softwareState, (machine) => this.openDetails(machine))
-            .mount(this.panelEl.querySelector('[data-ref="software"]'));
+        this.fleetPanel = new SoftwarePanel(this.softwareState, () => this.panelScope(), (machine) => this.openDetails(machine));
+        this.fleetPanel.mount(this.panelEl.querySelector('[data-ref="software"]'));
     }
 
     openHosting() {
@@ -542,8 +555,8 @@ class EstatePage {
             '<div data-ref="hosting"></div>');
         this.openPanel();
 
-        new HostingPanel(this.hostingState, (machine) => this.openDetails(machine))
-            .mount(this.panelEl.querySelector('[data-ref="hosting"]'));
+        this.fleetPanel = new HostingPanel(this.hostingState, () => this.panelScope(), (machine) => this.openDetails(machine));
+        this.fleetPanel.mount(this.panelEl.querySelector('[data-ref="hosting"]'));
     }
 
     openChanges() {
@@ -554,8 +567,8 @@ class EstatePage {
             '<div data-ref="changes"></div>');
         this.openPanel();
 
-        new ChangesFeed((machine) => this.openDetails(machine))
-            .mount(this.panelEl.querySelector('[data-ref="changes"]'));
+        this.fleetPanel = new ChangesFeed(() => this.panelScope(), (machine) => this.openDetails(machine));
+        this.fleetPanel.mount(this.panelEl.querySelector('[data-ref="changes"]'));
     }
 
     openCertificates() {
@@ -566,8 +579,8 @@ class EstatePage {
             '<div data-ref="certs"></div>');
         this.openPanel();
 
-        new CertificatesPanel(this.asOf, (machine) => this.openDetails(machine))
-            .mount(this.panelEl.querySelector('[data-ref="certs"]'));
+        this.fleetPanel = new CertificatesPanel(this.asOf, () => this.panelScope(), (machine) => this.openDetails(machine));
+        this.fleetPanel.mount(this.panelEl.querySelector('[data-ref="certs"]'));
     }
 
     openBlacklist() {

@@ -1,4 +1,5 @@
 import { fetchChanges } from './estate-api.mjs';
+import { PanelScope } from './panel-scope.mjs';
 
 // "What changed since yesterday, anywhere?" — the fleet's day-over-day story in one
 // stream. Machines with a single collected day simply aren't in it yet.
@@ -27,8 +28,13 @@ const SECTION_TITLES = {
 };
 
 export class ChangesFeed {
-    constructor(onMachine) {
+    constructor(getScope, onMachine) {
+        this.scope = new PanelScope(getScope);
         this.onMachine = onMachine;
+    }
+
+    refresh() {
+        if (this.feed) this.render();
     }
 
     async mount(container) {
@@ -41,16 +47,22 @@ export class ChangesFeed {
             container.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
             return;
         }
-        this.render(feed);
+        this.feed = feed;
+        this.render();
     }
 
-    render(feed) {
-        if (feed.machines.length === 0) {
-            this.container.innerHTML = '<p class="est-status">No changes between the last two collections — or not enough collected days yet to compare.</p>';
+    render() {
+        const scopeLine = this.scope.lineHtml();
+        const machines = this.feed.machines.filter((m) => this.scope.has(m.machine));
+        if (machines.length === 0) {
+            this.container.innerHTML = scopeLine + (this.feed.machines.length === 0
+                ? '<p class="est-status">No changes between the last two collections — or not enough collected days yet to compare.</p>'
+                : '<p class="est-status">No changes on the machines in scope.</p>');
+            this.scope.bind(this.container, () => this.render());
             return;
         }
 
-        this.container.innerHTML = feed.machines.map((m) => `
+        this.container.innerHTML = scopeLine + machines.map((m) => `
             <div class="est-changes-machine">
                 <div class="est-changes-head">
                     <button class="est-q-machine est-mono" data-open-machine="${escapeHtml(m.machine)}">${escapeHtml(m.machine)}</button>
@@ -63,6 +75,7 @@ export class ChangesFeed {
                     </div>`).join('')}
             </div>`).join('');
 
+        this.scope.bind(this.container, () => this.render());
         this.container.querySelectorAll('[data-open-machine]').forEach((btn) => btn.addEventListener('click', () => {
             this.onMachine(btn.dataset.openMachine);
         }));

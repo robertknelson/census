@@ -1,4 +1,5 @@
 import { fetchCertificates } from './estate-api.mjs';
+import { PanelScope } from './panel-scope.mjs';
 
 // The renewal horizon at a glance. Grouped by thumbprint — a cert deployed across a farm
 // is ONE renewal with many touchpoints — banded by urgency, each cert with a time-runway
@@ -63,8 +64,9 @@ function groupByThumbprint(entries) {
 }
 
 export class CertificatesPanel {
-    constructor(asOf, onMachine) {
+    constructor(asOf, getScope, onMachine) {
         this.asOf = asOf;
+        this.scope = new PanelScope(getScope);
         this.onMachine = onMachine;
         this.showRdp = false;
         this.sortKey = 'expiry';
@@ -81,13 +83,23 @@ export class CertificatesPanel {
             container.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
             return;
         }
-        this.certs = groupByThumbprint(entries);
+        this.entries = entries;
         this.render();
     }
 
+    refresh() {
+        if (this.entries) this.render();
+    }
+
     render() {
+        const scopeLine = this.scope.lineHtml();
+        // Scope cuts BEFORE grouping, so a cert on six machines reads "on two of yours".
+        this.certs = groupByThumbprint(this.entries.filter((e) => this.scope.has(e.machine)));
         if (this.certs.length === 0) {
-            this.container.innerHTML = '<p class="est-status">No bound certificates anywhere in the fleet.</p>';
+            this.container.innerHTML = scopeLine + (this.entries.length === 0
+                ? '<p class="est-status">No bound certificates anywhere in the fleet.</p>'
+                : '<p class="est-status">No bound certificates on the machines in scope.</p>');
+            this.scope.bind(this.container, () => this.render());
             return;
         }
 
@@ -106,6 +118,7 @@ export class CertificatesPanel {
         }).join('');
 
         this.container.innerHTML = `
+            ${scopeLine}
             <div class="est-triage-controls">
                 <label class="est-check"><input type="checkbox" data-ref="show-rdp" ${this.showRdp ? 'checked' : ''}> show RDP certificates</label>
                 <span class="est-muted">sort within bands by</span>
@@ -114,7 +127,9 @@ export class CertificatesPanel {
                 </select>
                 <button class="est-btn est-btn-sm" data-ref="sort-dir" title="Flip sort direction">${this.sortAsc ? '↑' : '↓'}</button>
             </div>
-            ${bands || '<p class="est-status">Only RDP certificates in the fleet — toggle them on to see them.</p>'}`;
+            ${bands || '<p class="est-status">Only RDP certificates here — toggle them on to see them.</p>'}`;
+
+        this.scope.bind(this.container, () => this.render());
 
         this.container.querySelector('[data-ref="show-rdp"]').addEventListener('change', (e) => {
             this.showRdp = e.target.checked;

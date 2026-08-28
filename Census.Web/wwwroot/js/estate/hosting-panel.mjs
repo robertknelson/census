@@ -1,4 +1,5 @@
 import { fetchHosting } from './estate-api.mjs';
+import { PanelScope } from './panel-scope.mjs';
 
 // The fleet pivoted by what it hosts: where an application runs, where a database lives, and
 // what depends on what. Derived from software-panel.mjs — same search-then-drill shape, same
@@ -29,9 +30,34 @@ function machineButton(name) {
 }
 
 export class HostingPanel {
-    constructor(state, onMachine) {
+    constructor(state, getScope, onMachine) {
         this.state = state;      // persisted: { view: string, query: string }
+        this.scope = new PanelScope(getScope);
         this.onMachine = onMachine;
+    }
+
+    refresh() {
+        if (this.data) this.render();
+    }
+
+    /// Scope cuts on the machine that hosts the row: an application's or database's
+    /// instances, a dependency's SOURCES — a consumer in scope shows its target wherever
+    /// that target lives, because the question is "what do my machines depend on."
+    scoped() {
+        if (this.scope.active() === null) return this.data;
+        const applications = this.data.applications
+            .map((a) => ({ ...a, instances: a.instances.filter((i) => this.scope.has(i.machine)) }))
+            .filter((a) => a.instances.length > 0)
+            .map((a) => ({ ...a, machineCount: new Set(a.instances.map((i) => i.machine)).size, runtimes: [...new Set(a.instances.map((i) => i.runtime))] }));
+        const databases = this.data.databases
+            .map((d) => ({ ...d, instances: d.instances.filter((i) => this.scope.has(i.machine)) }))
+            .filter((d) => d.instances.length > 0)
+            .map((d) => ({ ...d, instanceCount: d.instances.length }));
+        const dependencies = this.data.dependencies
+            .map((d) => ({ ...d, sources: d.sources.filter((s) => this.scope.has(s.machine)) }))
+            .filter((d) => d.sources.length > 0)
+            .map((d) => ({ ...d, sourceCount: d.sources.length }));
+        return { applications, databases, dependencies };
     }
 
     async mount(container) {
@@ -48,15 +74,17 @@ export class HostingPanel {
 
     counts() {
         return {
-            applications: this.data.applications.length,
-            databases: this.data.databases.length,
-            dependencies: this.data.dependencies.length,
+            applications: this.visible.applications.length,
+            databases: this.visible.databases.length,
+            dependencies: this.visible.dependencies.length,
         };
     }
 
     render() {
+        this.visible = this.scoped();
         const counts = this.counts();
         this.container.innerHTML = `
+            ${this.scope.lineHtml()}
             <div class="est-tabs">
                 ${VIEWS.map((v) => `
                     <button class="est-tab${v.key === this.state.view ? ' is-active' : ''}" data-view="${v.key}">
@@ -67,6 +95,7 @@ export class HostingPanel {
                    value="${escapeHtml(this.state.query)}" data-ref="query" autofocus>
             <div data-ref="list"></div>`;
 
+        this.scope.bind(this.container, () => this.render());
         this.container.querySelectorAll('[data-view]').forEach((btn) => btn.addEventListener('click', () => {
             this.state.view = btn.dataset.view;
             this.render();
@@ -84,9 +113,9 @@ export class HostingPanel {
         const q = this.state.query.trim().toLowerCase();
         const view = this.state.view;
 
-        const matches = this.data[view].filter((item) => q === '' || this.haystack(view, item).includes(q));
+        const matches = this.visible[view].filter((item) => q === '' || this.haystack(view, item).includes(q));
         if (matches.length === 0) {
-            listEl.innerHTML = '<p class="est-status">Nothing in the fleet matches.</p>';
+            listEl.innerHTML = `<p class="est-status">Nothing ${this.scope.active() ? 'in scope' : 'in the fleet'} matches.</p>`;
             return;
         }
 

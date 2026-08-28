@@ -11,11 +11,32 @@ const MATCH_TYPES = ['exact', 'contains', 'regex'];
 const OPS = ['<', '<=', '==', '>=', '>'];
 const SEVERITIES = ['critical', 'high', 'medium', 'low'];
 
+// Display-only sort: the default is file order (config/blacklist.json is hand-editable
+// and its order is the operator's), and saves mutate by id, so sorting never reorders it.
+const COLUMNS = [
+    { key: 'id', label: 'Id', value: (r) => r.id.toLowerCase() },
+    { key: 'target', label: 'Target', value: (r) => r.target },
+    { key: 'match', label: 'Match', value: (r) => `${r.match.field} ${r.match.matchType} ${r.match.value}`.toLowerCase() },
+    { key: 'version', label: 'Version', value: (r) => (r.version ? `${r.version.op} ${r.version.value}` : null) },
+    { key: 'severity', label: 'Severity', value: (r) => SEVERITIES.indexOf(r.severity) },
+    { key: 'reason', label: 'Reason', value: (r) => r.reason?.toLowerCase() || null },
+    { key: 'active', label: 'Active', value: (r) => (r.active ? 0 : 1) },
+];
+
+function compare(a, b) {
+    if (a === null && b === null) return 0;
+    if (a === null) return 1;
+    if (b === null) return -1;
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+
 export class BlacklistView {
     constructor(container) {
         this.container = container;
         this.editingId = null;   // rule id being edited, '__new' for the add form, null = no form
         this.confirmingDeleteId = null;
+        this.sortKey = null;     // null = file order
+        this.sortAsc = true;
     }
 
     async render() {
@@ -36,7 +57,14 @@ export class BlacklistView {
     }
 
     renderContent() {
-        const rows = this.config.rules.map((r) => {
+        const column = COLUMNS.find((c) => c.key === this.sortKey);
+        const rules = column === undefined ? this.config.rules : [...this.config.rules].sort((a, b) => {
+            const va = column.value(a);
+            const vb = column.value(b);
+            if (va === null || vb === null) return compare(va, vb);
+            return (this.sortAsc ? 1 : -1) * compare(va, vb) || compare(a.id.toLowerCase(), b.id.toLowerCase());
+        });
+        const rows = rules.map((r) => {
             if (this.editingId === r.id) return this.renderForm(r);
             const version = r.version ? `${r.version.op} ${r.version.value}` : 'any version';
             const deleteCell = this.confirmingDeleteId === r.id
@@ -62,7 +90,7 @@ export class BlacklistView {
             <p class="census-muted">Edits write straight back to <code>config/blacklist.json</code> — the file stays hand-editable alongside this page. Inactive rules are kept but not evaluated.</p>
             <div data-ref="error"></div>
             <table class="census-table">
-                <thead><tr><th>Id</th><th>Target</th><th>Match</th><th>Version</th><th>Severity</th><th>Reason</th><th>Active</th><th></th></tr></thead>
+                <thead><tr>${COLUMNS.map((c) => `<th class="census-th-sort ${c.key === this.sortKey ? 'is-sorted' : ''}" data-sort="${c.key}">${escapeHtml(c.label)}<span class="census-sort-mark">${c.key === this.sortKey ? (this.sortAsc ? '▲' : '▼') : ''}</span></th>`).join('')}<th></th></tr></thead>
                 <tbody>
                     ${rows}
                     ${this.editingId === '__new' ? this.renderForm(null) : ''}
@@ -105,6 +133,13 @@ export class BlacklistView {
 
         const on = (action, handler) => this.container.querySelectorAll(`[data-action="${action}"]`)
             .forEach((el) => el.addEventListener(action === 'toggle-active' ? 'change' : 'click', handler));
+
+        this.container.querySelectorAll('[data-sort]').forEach((th) => th.addEventListener('click', () => {
+            const key = th.dataset.sort;
+            if (key === this.sortKey) this.sortAsc = !this.sortAsc;
+            else { this.sortKey = key; this.sortAsc = true; }
+            this.renderContent();
+        }));
 
         on('add', () => { this.editingId = '__new'; this.confirmingDeleteId = null; this.renderContent(); });
         on('edit', (e) => { this.editingId = e.target.dataset.id; this.confirmingDeleteId = null; this.renderContent(); });

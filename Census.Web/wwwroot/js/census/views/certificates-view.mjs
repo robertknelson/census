@@ -80,8 +80,8 @@ export class CertificatesView {
             </tr>`).join('');
 
         const headers = Object.entries(SORT_COLUMNS).map(([key, col]) => `
-            <th data-sort="${key}" style="cursor:pointer" title="Sort by ${escapeHtml(col.label)}">${escapeHtml(col.label)}${
-                this.sortKey === key ? (this.sortAsc ? ' ▲' : ' ▼') : ''}</th>`).join('');
+            <th class="census-th-sort ${this.sortKey === key ? 'is-sorted' : ''}" data-sort="${key}" title="Sort by ${escapeHtml(col.label)}">${escapeHtml(col.label)}<span class="census-sort-mark">${
+                this.sortKey === key ? (this.sortAsc ? '▲' : '▼') : ''}</span></th>`).join('');
 
         this.container.innerHTML = `
             <h2>Certificate expiry</h2>

@@ -72,6 +72,24 @@ html, body {
     font-weight: 600;
 }
 
+.census-th-sort {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.census-th-sort:hover {
+    color: #4a7ac2;
+}
+
+.census-sort-mark {
+    display: inline-block;
+    width: 1em;
+    margin-left: 0.25rem;
+    font-size: 0.65rem;
+    color: #888;
+}
+
 .census-tag {
     display: inline-block;
     padding: 0.1rem 0.5rem;

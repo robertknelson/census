@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Atlas grew up in one day: real symbols, stage colors, a working inspector, shared views; ratification debt cleared"
-resume: "start-census.bat (or reload /atlas if running) — cylinders, globes, stage-color dots, and the docked inspector are the new things to see"
+summary: "Naming a system no longer hides the old picture; the team filter now reaches every fleet panel; classic tables sort"
+resume: "start-census.bat — in /atlas flip a tab between canonical and observed; in /estate pick a team then open Software"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -23,33 +23,28 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-A full day of live dogfooding turned into eleven shipped slices — he reported,
-each fix went out the same hour, verified in the browser before its commit:
+Five slices, each asked for in a sentence, ratified in a word, and verified in
+the browser before its commit:
 
-- **The Atlas graph now speaks the common symbol language**: databases are
-  cylinders, websites are globes, external parties are clouds — the same
-  silhouette vocabulary the Estate's machine tiles always had.
-- **Stage reads by color**: each node wears a small colored dot per stage it
-  serves, the filter chips wear the same colors, and the key explains them —
-  so one unfiltered view shows the whole dev/val/prod structure at a glance.
-- **The inspector finally works and reads well**: always docked (top-right),
-  fills on a click, and the real reason clicks "did nothing" was found — the
-  browser was un-selecting in the same gesture; that class of bug is gone.
-  Its rows are columnar now: right-justified labels, a gutter, aligned values.
-  Clicking a connection answers from, to, verdict, and the file it was seen in.
-- **Saved views are shared estate config** (`config/views.json`), his first
-  two real views committed on his order.
-- Also: edges fade with their filtered endpoints in three honest levels, the
-  key is vertical and top-docked, the DevServer class is retired, and
-  "Blacklist" reads "Prohibited" everywhere on screen.
-- **All outstanding design sign-offs from 08-20 are now ratified** — nothing
-  is pending anyone's decision.
+- **Atlas: naming a system no longer hides the picture you had before.** Giving
+  members a canonical name used to collapse them into one node, permanently.
+  Now each view chooses — *canonical* (collapsed) or *observed* (every entity
+  its own node) — so the before and after can sit in two tabs side by side.
+- **Estate: the team filter reaches Changes, Software, Hosting, and
+  Certificates.** Pick a team and those panels list only its machines,
+  re-scoping live as you click the rail, with a "scoped to … · show fleet" line
+  so a short list never reads as a small fleet.
+- **Classic dashboard tidied**: stray links gone, the trend bars show their
+  numbers quietly.
+- **Classic tables sort by column**: Machines, Coverage, Prohibited (Certificates
+  already did). Coverage keeps its "needs attention first" order by default;
+  Prohibited keeps the file's own order by default.
 
 ## What's next
 
-Nothing owed. The field trial continues at his pace; the one bit of tidying
-is his: close the leftover "sysetem-a" view tab (a pre-typo-fix heirloom) and
-the file cleans itself on the next write.
+Nothing owed. Field trial continues at his pace — the two new things worth
+trying on real data are the grouping chips in Atlas and a team-scoped Software
+panel. The leftover "sysetem-a" view tab is still his to close.
 
 ## Anything alarming
 

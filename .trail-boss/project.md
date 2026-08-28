@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Field trial at his pace: reload /atlas for glyphs + stage colors, close the heirloom t1-sysetem-a tab (file self-cleans on next write); no design decisions pending"
+next_step: "Field trial at his pace — try the Atlas grouping chips (canonical/observed) and the team-scoped Changes/Software/Hosting/Certificates panels on the real profile; nothing pending ratification"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,29 @@ relates: []
 ---
 
 ## notes
+
+### 2026-08-28 (five ratified-and-shipped slices, all live-verified)
+- **Atlas grouping is the view's choice** (`2efdcb7`): he built the same
+  system before and after adding a canonical name, preferred the before,
+  and could never see it again. Now `grouping: canonical|observed` per tab
+  (toolbar chips, `?grouping=` on the graph fetch, persisted in views.json).
+  Positions merge rather than replace — canonical/observed ids are disjoint,
+  so one map holds both layouts. Ratified in one word. system-view.md §3.
+- **Board scope reaches the fleet panels** (`7e31c12`): "can the team
+  filtering apply to Changes/Software/Hosting/Certificates?" — sized at
+  half a day, ratified, shipped client-side only. `panel-scope.mjs`; panels
+  re-scope in place on a rail click; scope line with a panel-local
+  "show fleet" escape. Hosting cuts on dependency *sources*; certs cut
+  before thumbprint grouping. census-web.md §12.
+- **Classic dashboard** (`e679cfc`): browse links dropped, trend bars carry
+  their counts in light grey.
+- **Classic column sorting** (`ab7619e`, `46e6484`): Machines and Coverage
+  (attention order kept as default: never first, then stalest), Prohibited
+  (display-only, file order is the default because the file is his). His
+  ask wandered mid-turn — Machines → "and Certificates" → "oh, it already
+  sorts" → "i mean the coverage tab" → "Prohibited needs sorting".
+- `main` at `46e6484` + this close, pushed, tree clean. Demo `views.json`
+  now carries MyWeb observed-mode positions (fixture drift, harmless).
 
 ### 2026-08-25 (field-trial verdicts: Atlas UX pass, DevServer retired, "prohibited")
 - **Session close (third round, all his live reports → same-hour slices):**

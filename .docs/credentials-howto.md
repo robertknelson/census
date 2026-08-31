@@ -3,6 +3,10 @@
 > **Who this is for:** whoever has to make the census reach a machine it currently cannot.
 > The *design* and its rationale are in `.docs/features/census-collector.md` §5.2–5.2.2; this
 > file is the procedure.
+>
+> **Setting up several buckets in one sitting?** `credential-setup-runbook.html` in this folder
+> is the same material as a step-by-step walkthrough, worked through for five buckets with five
+> different stored credentials. Open it in a browser. This file stays the reference.
 
 ---
 
@@ -91,7 +95,62 @@ sequenceDiagram
 
 ---
 
-## 4. Setting up a `clixml` bucket
+## 4. Registering the scheduled task
+
+The task is registered **before** any credential file is created, and the order is not
+cosmetic. `New-CensusCredential.ps1` catches a wrong creating account by comparing it against
+the account the census task runs as — and it can only do that if there is a task to read. With
+none registered it drops to a warning, which is a failure notice arriving hours before anyone
+is in a position to act on it.
+
+```powershell
+$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
+  -Argument '-NoProfile -ExecutionPolicy Bypass -File "C:\github\ai\census\Invoke-Census.ps1"' `
+  -WorkingDirectory 'C:\github\ai\census'
+
+$trigger = New-ScheduledTaskTrigger -Daily -At 2:00am
+
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable `
+  -ExecutionTimeLimit (New-TimeSpan -Hours 4)
+
+Register-ScheduledTask -TaskName 'Census' `
+  -Action $action -Trigger $trigger -Settings $settings `
+  -User 'CORP\svc-census' -Password (Read-Host 'svc-census password') `
+  -RunLevel Highest
+```
+
+Through the Task Scheduler UI the equivalent settings are *Run whether user is logged on or
+not*, *Run with highest privileges*, and *Start in* set to the repo root. `Invoke-Census.ps1`
+takes `-MachinesPath` and `-CensusRoot`, but both default relative to the script, so with
+*Start in* correct neither is needed on the command line.
+
+The account needs **log on as a batch job** on the control box and write access to the repo
+folder and `output\`. It needs nothing on the target machines — for a `clixml` bucket that is
+the stored credential's job, and for `task-identity` it is this same account that must hold
+local administrator rights on the targets.
+
+Confirm what the task will actually run as. This string is what §5 step 3 compares against:
+
+```powershell
+Get-ScheduledTask -TaskName 'Census' | Select-Object TaskName, @{n='RunsAs';e={$_.Principal.UserId}}
+```
+
+### Two ways the account check goes quiet
+
+**Do not run the task as `SYSTEM` if any bucket is `clixml`.** There is no practical way to
+reach a shell as `SYSTEM` to create the files, so they end up written as a human account and
+fail to decrypt — and `New-CensusCredential.ps1` deliberately skips its mismatch check when the
+task account is `SYSTEM` or `S-1-5-18`, so the guard rail that would have caught it says
+nothing. `task-identity` buckets under `SYSTEM` are a different question and store no secret,
+but a machine account rarely has rights on other machines.
+
+**The check compares short names only** — the part after the backslash. `CORP\svc-census` and
+`OTHERDOM\svc-census` pass it and then fail to decrypt. Where more than one domain is in play
+on the control box, verify the full string yourself.
+
+---
+
+## 5. Setting up a `clixml` bucket
 
 ### Step 1 — reach a shell as the census account
 
@@ -163,7 +222,7 @@ Set-Item WSMan:\localhost\Client\TrustedHosts -Value 'DMZ-WEB01,DMZ-WEB02' -Conc
 
 ---
 
-## 5. Verifying before you trust the nightly run
+## 6. Verifying before you trust the nightly run
 
 ```powershell
 .\Invoke-Census.ps1 -CensusRoot C:\temp\census-test -Verbose
@@ -206,18 +265,18 @@ flowchart TD
 
 ---
 
-## 6. Rotating a password
+## 7. Rotating a password
 
-1. Reach a shell as the census account (§4 step 1).
+1. Reach a shell as the census account (§5 step 1).
 2. `.\New-CensusCredential.ps1 -BucketId dmz -Force`
-3. Verify with §5.
+3. Verify with §6.
 
 Every machine in the bucket picks it up on the next run. Nothing else changes — which is what
 the bucket indirection bought.
 
 ---
 
-## 7. What is *not* proven
+## 8. What is *not* proven
 
 **No remote WinRM call carrying a `-Credential` has ever been exercised.** The development
 environment has one machine and one account, so bucket resolution, DPAPI round-tripping, the

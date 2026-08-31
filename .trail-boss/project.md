@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Field trial at his pace — try the Atlas grouping chips (canonical/observed) and the team-scoped Changes/Software/Hosting/Certificates panels on the real profile; nothing pending ratification"
+next_step: "Field trial at his pace; when the census reaches a second machine, .docs/credential-setup-runbook.html is the walkthrough — register the scheduled task before creating any credential file, and watch the first credentialed run by hand"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,35 @@ relates: []
 ---
 
 ## notes
+
+### 2026-08-30 (documentation session — the credential setup, end to end)
+- He had started down the DPAPI route from an earlier session's instructions
+  and got stuck on a question the docs never answered because it has no
+  answer: **where do username and password go in `machines.json`?** Nowhere.
+  A bucket holds a *path*; `New-CensusCredential.ps1` prompts for the
+  credential and encrypts it in the same action. The block was conceptual,
+  not procedural — worth remembering the next time a howto reads complete.
+- **`.docs/credential-setup-runbook.html`** (`735fea2`): a walkthrough for
+  five buckets with five different stored credentials. Leads with the
+  distinction that actually blocks people — *one* account creates all the
+  files (DPAPI binds to it), a *different* credential lives inside each one.
+  Worksheet, eight ordered steps, run-log triage, rotation. Standalone HTML,
+  no build step; also published as an artifact.
+- **`credentials-howto.md` gains §4, Registering the scheduled task.** The
+  real gap: the doc covered creating a credential file thoroughly but never
+  said how the task gets registered, or that the order matters —
+  `New-CensusCredential.ps1` catches a wrong creating account only by
+  comparing against the task's account, so with no task registered its guard
+  rail drops to a warning. Sections 4–7 renumbered to 5–8.
+- Two blind spots in that guard rail found by reading it and now written
+  down: it skips the check entirely when the task account is `SYSTEM` or
+  `S-1-5-18`, and it compares **short names only**, so `CORP\svc-census` and
+  `OTHERDOM\svc-census` both pass and then fail to decrypt.
+- Verified: section numbering 1–8 sequential with both internal cross-refs
+  updated; HTML tags balance. **Not** verified: the standalone page rendered
+  in a browser — the tool refuses `file://` URLs, so the wrapper is
+  structurally checked only. Said so at the time rather than implying more.
+- `main` at `735fea2`, pushed, tree clean.
 
 ### 2026-08-28 (five ratified-and-shipped slices, all live-verified)
 - **Atlas grouping is the view's choice** (`2efdcb7`): he built the same

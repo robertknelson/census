@@ -1,10 +1,11 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Naming a system no longer hides the old picture; the team filter now reaches every fleet panel; classic tables sort"
-resume: "start-census.bat — in /atlas flip a tab between canonical and observed; in /estate pick a team then open Software"
+summary: "Getting the census onto a second machine is documented end to end — runbook plus the missing Task Scheduler step"
+resume: "start-census.bat — or open .docs/credential-setup-runbook.html in a browser for the credential setup"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
+  - { label: "Credential setup runbook", url: "https://claude.ai/code/artifact/7b9ba51c-5c67-44d7-9795-11f1f19865b4" }
 phase_suggestion: execution
 ignite: start-census.bat
 #
@@ -23,33 +24,54 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-Five slices, each asked for in a sentence, ratified in a word, and verified in
-the browser before its commit:
+Not a feature this time — the instructions for a job he'd already started and
+got stuck on.
 
-- **Atlas: naming a system no longer hides the picture you had before.** Giving
-  members a canonical name used to collapse them into one node, permanently.
-  Now each view chooses — *canonical* (collapsed) or *observed* (every entity
-  its own node) — so the before and after can sit in two tabs side by side.
-- **Estate: the team filter reaches Changes, Software, Hosting, and
-  Certificates.** Pick a team and those panels list only its machines,
-  re-scoping live as you click the rail, with a "scoped to … · show fleet" line
-  so a short list never reads as a small fleet.
-- **Classic dashboard tidied**: stray links gone, the trend bars show their
-  numbers quietly.
-- **Classic tables sort by column**: Machines, Coverage, Prohibited (Certificates
-  already did). Coverage keeps its "needs attention first" order by default;
-  Prohibited keeps the file's own order by default.
+He went to set the census up to reach other machines under a nightly scheduled
+job, and hit a wall on a question that had no answer: **where do the username
+and password go?** They don't. There is no username or password field anywhere
+in the machine list. A "bucket" names a *file*, and one command both asks for
+the credential and encrypts it, in a single step. Nothing in the old
+documentation ever said that plainly, so it read like a missing feature rather
+than the design.
+
+Two things now cover it:
+
+- **A step-by-step walkthrough**, `.docs/credential-setup-runbook.html` — open
+  it in a browser. It's written for the real case: five groups of machines,
+  five different logins. It leads with the one distinction that trips everyone
+  up — **one** account creates all five encrypted files, while **five
+  different** logins live inside them — then walks eight steps in the order
+  they have to happen, with a table to fill in first and every command ready
+  to copy. There's a checklist that remembers where you left off.
+- **The reference document gained the missing chapter**: how the nightly job
+  itself gets registered, and why it has to be set up *before* the encrypted
+  files are made. The setup script protects you from the classic disaster —
+  files created by the wrong account, which look perfect and then fail at 3am
+  across every machine at once — but it can only do that by checking against
+  the registered job. No job registered, no protection.
+
+While writing it, two gaps in that protection turned up and are now written
+down: it stays silent if the job runs as the built-in SYSTEM account, and it
+only compares the short part of an account name, so two accounts with the same
+name in different domains pass the check and fail later.
 
 ## What's next
 
-Nothing owed. Field trial continues at his pace — the two new things worth
-trying on real data are the grouping chips in Atlas and a team-scoped Software
-panel. The leftover "sysetem-a" view tab is still his to close.
+Nothing owed. The field trial continues at his pace. When the census does reach
+a second machine, the runbook is the thing to follow — and the first run should
+be watched by hand rather than left to the schedule.
 
 ## Anything alarming
 
-- **The remote login has still never actually been tested.** First real
-  remote collection should be watched by hand.
+- **The remote login has still never actually been tested.** One machine, one
+  account here, so the part that reaches out and logs into another machine has
+  never run for real. That remains the single biggest unknown in the project,
+  and the runbook says so plainly rather than burying it.
+- **The runbook page was checked for structure, not appearance.** The published
+  version renders correctly; the copy in the repo couldn't be opened in a
+  browser from here to confirm it looks the same. Worth thirty seconds of his
+  eyes.
 - **Demo-verified only, as always** — real data has drawn blood on first
   contact every time.
 

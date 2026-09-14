@@ -563,6 +563,7 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/Invoke-AppTrakDemo.ps1` | here only | runs DDL, lookups, seed, backfill against local `AppTrak` |
 | `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |
 | `apptrak/Invoke-AppTrakQuestions.ps1` | both | runs every question; against fixtures it is the proof, against real data it is the first board |
+| `.docs/move-it-morning-guide.md` | real | the step-by-step for the first real-environment run: recon, DDL, backfill, first board, processor rule, report-back |
 
 **The twelve questions, and what the fixtures made each one show** (all run
 clean 2026-09-14):

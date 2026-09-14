@@ -374,6 +374,144 @@ pipeline stamps a fresh Deploymentat on a rollback redeploy. If yes, the tuple
 compare catches rollbacks; if Deploymentat is baked at build time, rollbacks
 are invisible to this table and DetectedAt gaps are the fallback signal.
 
+### 10.2 The `moveit` schema — ratified 2026-09-14
+
+Assertions, in a schema of their own beside the observed `health` tables.
+Six tables, five `core.SelectItem` groupings, everything else derived by
+query. "Just enough" — it records what is *in a build*, never what people are
+*doing*.
+
+```sql
+CREATE TABLE moveit.Release (
+    Id            int IDENTITY   NOT NULL,
+    ApplicationId int            NOT NULL,
+    Name          nvarchar(100)  NOT NULL,   -- "Sprint 42", "Q3 mortgage changes"
+    Kind          nvarchar(25)   NOT NULL,   -- SelectItem ReleaseKind: featureset | hotfix (asserted intent)
+    TargetDate    date           NULL,       -- planned PROD; actual is health.Deployment
+    Note          nvarchar(max)  NULL,
+    CreatedAt     datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
+    CreatedBy     nvarchar(50)   NOT NULL,
+    CONSTRAINT PK_Release PRIMARY KEY CLUSTERED (Id)
+);
+
+CREATE TABLE moveit.WorkItem (
+    Id              int IDENTITY   NOT NULL,
+    ReleaseId       int            NOT NULL,
+    Kind            nvarchar(25)   NOT NULL,   -- SelectItem WorkItemKind: feature | fix
+    Title           nvarchar(200)  NOT NULL,
+    Description     nvarchar(max)  NULL,
+    BuiltBy         nvarchar(50)   NULL,       -- who built it: provenance, never assignment
+    ExternalRef     nvarchar(100)  NULL,       -- Team A's task id, verbatim
+    IncludedInBuild nvarchar(50)   NULL,       -- first build containing it, verbatim; NULL = with the devs
+    FoundInStage    nvarchar(25)   NULL,       -- for fixes: where the defect was found
+    RemovedAt       datetimeoffset NULL,       -- pulled from the release
+    RemovedNote     nvarchar(255)  NULL,
+    CreatedAt       datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
+    CreatedBy       nvarchar(50)   NOT NULL,
+    CONSTRAINT PK_WorkItem PRIMARY KEY CLUSTERED (Id)
+);
+
+CREATE TABLE moveit.ReleaseBuild (                -- assertion: build B belongs to release R
+    Id        int IDENTITY   NOT NULL,
+    ReleaseId int            NOT NULL,
+    Build     nvarchar(50)   NOT NULL,   -- verbatim
+    Note      nvarchar(255)  NULL,
+    CreatedAt datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
+    CreatedBy nvarchar(50)   NOT NULL,
+    CONSTRAINT PK_ReleaseBuild PRIMARY KEY CLUSTERED (Id)
+);
+
+CREATE TABLE moveit.ReleaseEvent (                -- human events only; observed ones are health.Deployment
+    Id        int IDENTITY   NOT NULL,
+    ReleaseId int            NOT NULL,
+    Kind      nvarchar(25)   NOT NULL,   -- SelectItem EventKind, see below
+    Stage     nvarchar(25)   NULL,       -- the stage the event speaks about
+    Build     nvarchar(50)   NULL,       -- the build it speaks about, verbatim
+    At        datetimeoffset NOT NULL,   -- when the humans did it
+    By        nvarchar(50)   NOT NULL,   -- who recorded it
+    Note      nvarchar(max)  NULL,
+    CreatedAt datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
+    CONSTRAINT PK_ReleaseEvent PRIMARY KEY CLUSTERED (Id)
+);
+
+CREATE TABLE moveit.WorkItemLink (                -- directed, feature-level dependency
+    Id               int IDENTITY   NOT NULL,
+    WorkItemId       int            NOT NULL,   -- the dependent side
+    LinkedWorkItemId int            NOT NULL,   -- the thing it needs
+    Kind             nvarchar(25)   NOT NULL,   -- SelectItem LinkKind: dependsOn | relatedTo
+    Note             nvarchar(255)  NULL,
+    CreatedAt        datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
+    CreatedBy        nvarchar(50)   NOT NULL,
+    CONSTRAINT PK_WorkItemLink PRIMARY KEY CLUSTERED (Id),
+    CONSTRAINT UQ_WorkItemLink UNIQUE (WorkItemId, LinkedWorkItemId, Kind)
+);
+```
+
+Plus `health.Deployment` (§10.1) as the observed side: six tables in all.
+
+**Lookups (`core.SelectItem`, by `Grouping`):** `Stage` (with `Sort` as
+sequence — DEV, VAL, UAT peers; PROD above); `ReleaseKind` featureset |
+hotfix; `WorkItemKind` feature | fix; `LinkKind` dependsOn | relatedTo;
+`EventKind` approved | verified | hold | resumed | note | abandoned |
+deployed-asserted. Adding a kind is data, not DDL.
+
+**Rules.**
+
+1. **Gates hold only human events.** Promotion and PROD arrival are in
+   `health.Deployment`; storing them again is dual truth. `ReleaseEvent`
+   holds what leaves no trace on a box.
+2. **Release kind is asserted; composition is derived.** Features-only,
+   fixes-only or mixed falls out of work-item kinds. *Hotfix* is intent — a
+   fix that skipped the development phase, branched from PROD while the
+   sprint continues in DEV — so it is claimed. A hotfix containing a feature
+   is a visible contradiction.
+3. **Builds are attributed to releases** (`ReleaseBuild`) because hotfix
+   breaks the single-lineage assumption: a hotfix build lands on PROD while
+   sprint builds keep landing on DEV, interleaved in time. One row per build
+   that matters, written at promotion with the manifest; DEV churn needs
+   none. `health.Deployment.Branch` is a *suggestion* for attribution and
+   kind in the inbox — one click to confirm, never a rule.
+4. **One build per work item; membership derived.** A work item enters at
+   one build and is in every later one. "What is in build B" = work items of
+   *B's release* whose `IncludedInBuild` was detected (`health.Deployment.
+   DetectedAt`, DEV endpoint) no later than B, ordered within that release's
+   builds only. Order from observation, never from parsing build strings.
+5. **Where a feature is, in one query:** highest stage among the app's
+   endpoints whose current deployment is at or after the work item's first
+   build by rule 4. No first build = with the devs. `approved` with no later
+   PROD deployment = approved, awaiting deploy. `hold` with no `resumed` =
+   parked, with the reason. All of §2's states, none stored.
+6. **`deployed-asserted` is declared evidence** for apps outside the health
+   regime (Team A until they report): carries provenance, renders as declared
+   everywhere, never counts as observed, never corroborated. Without it Move
+   It says nothing about Team A for as long as a year.
+7. **A coordinated release is derived**: whatever set of releases across apps
+   is connected by `dependsOn`/`relatedTo` links. From it: order violation (a
+   dependent work item observed in a higher stage than its dependency —
+   gateway in PROD, downstream in VAL); ready-to-approve (every dependency at
+   least at VAL); where-is-the-whole-thing; orphaned dependency (linked
+   target removed from its release).
+8. **Three layers of the same dependency check each other:** the payload's
+   `downstream-services[]` (observed), `appgraph` edges (asserted, app
+   level), `WorkItemLink` (asserted, feature level). A link between apps with
+   no `appgraph` edge is a smell in either direction — inbox suggestion, not
+   a constraint.
+9. **Every Appendix A answer is a `.sql` file under `moveit`**, one per
+   question; the board and the inbox read them. A wrong answer is a wrong
+   query, fixed without touching a table.
+
+**Parked, deliberately:** effort/hours/estimates (Team A's tool; tracking it
+here is what makes this Jira); client and team (Application registry, open
+item 10); a coordinated-release entity (derived); a release version label
+(`health.Deployment.Version` at the attributed build); audit in the
+PreviousValue/NewValue pattern (the day a second person writes); release
+closure (derived: last attributed build in PROD, or `abandoned`).
+
+**Where the spec goes.** This section is the record of what was decided; the
+proper data-model spec moves to AppTrak's repository beside the tables when
+the code is in reach (open item 11). Census keeps a seam contract for the
+`monitoredAs` axis (§9).
+
 ## 11. Open items
 
 1. ~~Extract distinct deployment events into a fact table.~~ Shape ratified
@@ -409,6 +547,8 @@ are invisible to this table and DetectedAt gaps are the fallback signal.
 10. Where AppTrak's Application registry lives (not in the `AppTrak`
    database). Team ownership attaches to it; the `monitoredAs` picker
    suggests from it.
+11. AppTrak's repository in reach — the `moveit` data-model spec and the
+   `.sql` question files live there, not here.
 
 ## Appendix A — questions the data could answer
 

@@ -4,6 +4,41 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-14 — Move It question queries
+
+**Shared derivation copied into each question file, not views.** Six of the twelve
+questions need the same location derivation (stage sequence, observed+asserted
+deployments, build order by first-seen, holds, at-stage). Options: views in a `moveit`
+schema; one file with all questions; copy the CTE block. Call: copy the block. Reason:
+AppTrak has no views or procs anywhere, and rule 9 wants one file per question so a wrong
+answer is fixed in one place without touching a table. The duplication is the cost; if
+the block changes, it changes in six files — grep for `holds AS (`. Revisit if the board
+needs them as views.
+
+**The location rule was wrong and is now refined (rule 5).** Rule 4's "within the build's
+own release" lost Sprint 42 from PROD the moment the hotfix replaced its build. Call: at
+stage S iff a holding build was ever deployed at S and the build there now is not older
+(first-seen) than it. Reason: carries work forward through later builds and drops it on
+rollback with no lineage table; reverts stay explicit. Recorded in the spec.
+
+**`contains` renamed `holds`.** `CONTAINS` is a T-SQL keyword. Cosmetic.
+
+**Fixture additions to exercise empty answers.** Ready-to-approve, PROD-without-approval,
+deployed-before-approval and skipped-a-stage all returned nothing from the original seed.
+Call: two Team A releases at UAT (one ready, one blocked), release 4's approval removed,
+the hotfix left as deployed-before-approval, two other approvals moved a day earlier so
+the same-day timing is deliberate rather than accidental. Reason: fixtures are the
+coverage; an empty result proves nothing.
+
+**"Release started" = earliest of attributed builds and work items' first builds.** Lead
+time and hotfix interleave first used attributed builds only, which said Sprint 43 began
+on day 45 when its first work landed in DEV on day 30. Call: union both. Reason: the
+sprint's real start is when its first work item hit DEV.
+
+**Team A's app has no name anywhere.** Regime coverage shows NULL for application 4.
+Call: leave it. Reason: the Application registry is open item 10; inventing a name column
+in moveit would be a second registry.
+
 ## 2026-09-14 — Move It AppTrak artifacts
 
 **Where the AppTrak SQL and seed live while AppTrak's repo is out of reach.**

@@ -501,11 +501,20 @@ deployed-asserted. Adding a kind is data, not DDL.
    *B's release* whose `IncludedInBuild` was detected (`health.Deployment.
    DetectedAt`, DEV endpoint) no later than B, ordered within that release's
    builds only. Order from observation, never from parsing build strings.
-5. **Where a feature is, in one query:** highest stage among the app's
-   endpoints whose current deployment is at or after the work item's first
-   build by rule 4. No first build = with the devs. `approved` with no later
-   PROD deployment = approved, awaiting deploy. `hold` with no `resumed` =
-   parked, with the reason. All of §2's states, none stored.
+5. **Where a feature is, in one query** — *refined 2026-09-14 while building
+   `01-where-is-everything.sql`:* a work item is at stage S if some build
+   holding it was ever deployed at S **and the build at S now is not older
+   than that build**, "older" meaning first seen anywhere for the app, from
+   evidence, never from parsing. Rule 4 alone was wrong: Sprint 42's work is
+   still in PROD after the hotfix replaced its build, and rule 4 would have
+   said it vanished. The refinement carries items forward through later
+   builds (next sprint, a hotfix branched from PROD) and drops them on a
+   rollback, because a rollback puts an *older* build back. No lineage table
+   needed; reverts stay explicit via `RemovedAt`. Highest such S is the
+   answer. No first build = with the devs; app with no evidence at all = no
+   evidence; `approved` with no later PROD deployment = awaiting deploy;
+   `hold` with no `resumed` = parked, with the reason. All of §2's states,
+   none stored.
 6. **`deployed-asserted` is declared evidence** for apps outside the health
    regime (Team A until they report): carries provenance, renders as declared
    everywhere, never counts as observed, never corroborated. Without it Move
@@ -552,6 +561,26 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/sql/history-deployment-episodes.sql` | real only | read-only; three questions to bring back (open item 1) |
 | `apptrak/seed/seed-apptrak-demo.sql` | here only | the fixtures — 13 endpoints, 131,040 pings, 8 releases |
 | `apptrak/Invoke-AppTrakDemo.ps1` | here only | runs DDL, lookups, seed, backfill against local `AppTrak` |
+| `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |
+| `apptrak/Invoke-AppTrakQuestions.ps1` | both | runs every question; against fixtures it is the proof, against real data it is the first board |
+
+**The twelve questions, and what the fixtures made each one show** (all run
+clean 2026-09-14):
+
+| # | Question | Fixture proof |
+|---|---|---|
+| 01 | where is every work item | 16 rows: Sprint 42 carried into PROD by the hotfix; Sprint 43 back to DEV after rollback; one removed; one with the devs; Ledger "no evidence"; Team A at PROD/UAT by assertion |
+| 02 | release status: composition, highest stage, hold, past target | hotfix = fixes only; two releases on hold with reasons; three past target |
+| 03 | order violations, current and historical | Audit viewer in PROD over Audit trail in DEV (current); Portfolio dashboard beat its dependency to PROD by one day (historical) |
+| 04 | ready to approve | Q4 statements ready; Q4 letters blocked on a fix still with the devs |
+| 05 | inbox: unattributed builds, PROD without manifest, attributed-unseen | the three pre-window builds; Ledger's never-seen build |
+| 06 | registration vs payload stage | endpoint 22 |
+| 07 | servers disagree, now and history | 24 hours on WidgetCore PROD |
+| 08 | rollbacks with variant | three, both variants named; the machine move correctly absent |
+| 09 | lead time and VAL round-trips | Sprint 43: zero round-trips, it skipped VAL |
+| 10 | hotfixes and escaped defects | hotfix landed 11 days into Sprint 43; one PROD escape vs two caught in VAL |
+| 11 | regime coverage | observed / pinged-no-block / asserted-only verdicts per app |
+| 12 | approval vs PROD | one deployed-before-approval (the phone call), one PROD-without-approval |
 
 **Coverage the seed exercises deliberately** (each verified by query after the backfill,
 39 `health.Deployment` rows, the count the map predicts): DEV churn and two promotions;
@@ -562,8 +591,10 @@ inside a stable episode producing no row; a partial deploy across two PROD serve
 registration/payload stage mismatch; an app that never sends a deployment block (zero
 rows); an app with no health regime, moving only by `deployed-asserted` events; Jenkins-
 style build ids; a removed work item; a `hold` with its reason; one historical and one
-current cross-app order violation. A second backfill inserts nothing and refreshes no
-back-pointers.
+current cross-app order violation; two Team A releases at UAT awaiting approval, one
+ready and one blocked; a hotfix deployed before its approval was recorded; a PROD deploy
+with no approval at all; a release that skipped VAL. A second backfill inserts nothing and
+refreshes no back-pointers.
 
 **Known blind spot, by design:** a redeploy of the same build with no intervening build
 and an unchanged Deploymentat is invisible to any observer of the payload.

@@ -181,11 +181,13 @@ INSERT INTO moveit.Release (Id, ApplicationId, Name, Kind, TargetDate, Note, Cre
  (1, 1, 'Sprint 42',              'featureset', DATEADD(day, 32, CAST(@T0 AS date)), 'Shipped two days early.',                                  'demo-seed'),
  (2, 1, 'Hotfix: login timeout',  'hotfix',     NULL,                                 'Found in PROD under load; branched from 20260723.2.',        'demo-seed'),
  (3, 1, 'Sprint 43',              'featureset', DATEADD(day, 57, CAST(@T0 AS date)), 'Past target: rolled back from PROD on day 56.',            'demo-seed'),
- (4, 2, 'Sprint 42',              'featureset', DATEADD(day, 30, CAST(@T0 AS date)), 'Deployed to PROD a day before its WidgetCore dependency.', 'demo-seed'),
+ (4, 2, 'Sprint 42',              'featureset', DATEADD(day, 30, CAST(@T0 AS date)), 'Deployed to PROD a day before its WidgetCore dependency; never approved.', 'demo-seed'),
  (5, 2, 'Sprint 43',              'featureset', DATEADD(day, 60, CAST(@T0 AS date)), 'In PROD while its WidgetCore dependency is rolled back.',  'demo-seed'),
  (6, 4, 'Q3 rate changes',        'featureset', DATEADD(day, 50, CAST(@T0 AS date)), 'Team A; no health regime - movement is asserted.',         'demo-seed'),
  (7, 5, 'Reporting refresh',      'featureset', DATEADD(day, 49, CAST(@T0 AS date)), 'Rolled back from PROD on day 52.',                         'demo-seed'),
- (8, 3, 'Ledger cleanup',         'featureset', DATEADD(day, 40, CAST(@T0 AS date)), 'App reports no deployment block: build unknown everywhere.','demo-seed');
+ (8, 3, 'Ledger cleanup',         'featureset', DATEADD(day, 40, CAST(@T0 AS date)), 'App reports no deployment block: build unknown everywhere.','demo-seed'),
+ (9, 4, 'Q4 statements',          'featureset', DATEADD(day, 80, CAST(@T0 AS date)), 'Team A; at UAT, unapproved, dependency satisfied: READY.',   'demo-seed'),
+ (10,4, 'Q4 letters',             'featureset', DATEADD(day, 85, CAST(@T0 AS date)), 'Team A; at UAT, unapproved, depends on work still with the devs: BLOCKED.', 'demo-seed');
 SET IDENTITY_INSERT moveit.Release OFF;
 
 SET IDENTITY_INSERT moveit.WorkItem ON;
@@ -203,7 +205,9 @@ INSERT INTO moveit.WorkItem (Id, ReleaseId, Kind, Title, BuiltBy, ExternalRef, I
  (601, 6, 'feature', 'Q3 rate tables',                   'dev-e', 'PM-4471',  'J-1187',     NULL,   NULL, NULL, 'demo-seed'),
  (602, 6, 'fix',     'Rounding on blended rates',        'dev-e', 'PM-4502',  'J-1190',     'UAT',  NULL, NULL, 'demo-seed'),
  (701, 7, 'feature', 'Scheduled refresh',                'dev-f', NULL,       '20260720.2', NULL,   NULL, NULL, 'demo-seed'),
- (801, 8, 'feature', 'Ledger archive',                   'dev-g', NULL,       '20260710.1', NULL,   NULL, NULL, 'demo-seed');
+ (801, 8, 'feature', 'Ledger archive',                   'dev-g', NULL,       '20260710.1', NULL,   NULL, NULL, 'demo-seed'),
+ (901, 9, 'feature', 'Quarterly statement PDF',          'dev-e', 'PM-4610',  'J-1203',     NULL,   NULL, NULL, 'demo-seed'),
+ (1001,10,'feature', 'Rate-change letters',              'dev-h', 'PM-4622',  'J-1207',     NULL,   NULL, NULL, 'demo-seed');
 SET IDENTITY_INSERT moveit.WorkItem OFF;
 
 INSERT INTO moveit.ReleaseBuild (ReleaseId, Build, Note, CreatedBy) VALUES
@@ -216,28 +220,36 @@ INSERT INTO moveit.ReleaseBuild (ReleaseId, Build, Note, CreatedBy) VALUES
  (6, 'J-1187',     'Jenkins build number, verbatim',          'demo-seed'),
  (6, 'J-1190',     NULL,                                      'demo-seed'),
  (7, '20260720.2', NULL,                                      'demo-seed'),
- (8, '20260710.1', 'No evidence will ever match this: the app reports no block', 'demo-seed');
+ (8, '20260710.1', 'No evidence will ever match this: the app reports no block', 'demo-seed'),
+ (9, 'J-1203',     NULL,                                      'demo-seed'),
+ (10,'J-1207',     NULL,                                      'demo-seed');
 
 INSERT INTO moveit.ReleaseEvent (ReleaseId, Kind, Stage, Build, At, [By], Note, CreatedBy) VALUES
  (1, 'note',              NULL,   NULL,         (SELECT At FROM @D WHERE Day = 14), 'robert', 'Promoted 20260715.3 to VAL; bulk export under review', 'demo-seed'),
  (1, 'verified',          'VAL',  '20260723.2', (SELECT At FROM @D WHERE Day = 27), 'robert', NULL, 'demo-seed'),
  (1, 'approved',          'PROD', '20260723.2', (SELECT At FROM @D WHERE Day = 28), 'robert', 'Client meeting', 'demo-seed'),
- (2, 'approved',          'PROD', '20260815.1', (SELECT At FROM @D WHERE Day = 41), 'robert', 'Emergency approval by phone', 'demo-seed'),
+ (2, 'approved',          'PROD', '20260815.1', (SELECT At FROM @D WHERE Day = 41), 'robert', 'Emergency approval by phone, recorded after the deploy that morning', 'demo-seed'),
  (3, 'approved',          'PROD', '20260820.4', (SELECT At FROM @D WHERE Day = 54), 'robert', NULL, 'demo-seed'),
  (3, 'hold',              'PROD', '20260820.4', (SELECT At FROM @D WHERE Day = 56), 'robert', 'Rolled back after PROD errors; awaiting fix for timezone defect', 'demo-seed'),
- (4, 'approved',          'PROD', '20260718.1', (SELECT At FROM @D WHERE Day = 29), 'robert', NULL, 'demo-seed'),
+ -- release 4 has NO approval on purpose: its PROD deploy is the 'PROD without approval' fixture
  (5, 'approved',          'PROD', '20260801.1', (SELECT At FROM @D WHERE Day = 57), 'robert', NULL, 'demo-seed'),
  (6, 'deployed-asserted', 'DEV',  'J-1187',     (SELECT At FROM @D WHERE Day = 20), 'robert', 'Per Team A stand-up', 'demo-seed'),
  (6, 'deployed-asserted', 'UAT',  'J-1190',     (SELECT At FROM @D WHERE Day = 35), 'robert', NULL, 'demo-seed'),
  (6, 'approved',          'PROD', 'J-1190',     (SELECT At FROM @D WHERE Day = 45), 'robert', NULL, 'demo-seed'),
  (6, 'deployed-asserted', 'PROD', 'J-1190',     (SELECT At FROM @D WHERE Day = 47), 'robert', 'Infra team confirmed by email', 'demo-seed'),
- (7, 'approved',          'PROD', '20260720.2', (SELECT At FROM @D WHERE Day = 50), 'robert', NULL, 'demo-seed'),
+ (7, 'approved',          'PROD', '20260720.2', (SELECT At FROM @D WHERE Day = 49), 'robert', NULL, 'demo-seed'),
  (7, 'hold',              'PROD', '20260720.2', (SELECT At FROM @D WHERE Day = 52), 'robert', 'Rolled back: refresh job locked the reporting database', 'demo-seed'),
- (8, 'verified',          'VAL',  '20260710.1', (SELECT At FROM @D WHERE Day = 20), 'robert', 'Tester signed off; no evidence available from the app', 'demo-seed');
+ (8, 'verified',          'VAL',  '20260710.1', (SELECT At FROM @D WHERE Day = 20), 'robert', 'Tester signed off; no evidence available from the app', 'demo-seed'),
+ (9, 'deployed-asserted', 'DEV',  'J-1203',     (SELECT At FROM @D WHERE Day = 55), 'robert', NULL, 'demo-seed'),
+ (9, 'deployed-asserted', 'UAT',  'J-1203',     (SELECT At FROM @D WHERE Day = 62), 'robert', NULL, 'demo-seed'),
+ (10,'deployed-asserted', 'DEV',  'J-1207',     (SELECT At FROM @D WHERE Day = 58), 'robert', NULL, 'demo-seed'),
+ (10,'deployed-asserted', 'UAT',  'J-1207',     (SELECT At FROM @D WHERE Day = 65), 'robert', NULL, 'demo-seed');
 
 INSERT INTO moveit.WorkItemLink (WorkItemId, LinkedWorkItemId, Kind, Note, CreatedBy) VALUES
  (401, 101, 'dependsOn', 'Dashboard reads the v2 rules endpoint',   'demo-seed'),
  (501, 302, 'dependsOn', 'Viewer reads the audit trail',            'demo-seed'),
- (701, 301, 'relatedTo', 'Same client ask, different apps',         'demo-seed');
+ (701, 301, 'relatedTo', 'Same client ask, different apps',         'demo-seed'),
+ (901, 601, 'dependsOn', 'Statements use the Q3 rate tables',       'demo-seed'),
+ (1001,303, 'dependsOn', 'Letters need the timezone fix',           'demo-seed');
 
-PRINT 'moveit: 8 releases, 14 work items, 10 attributed builds, 15 events, 3 links';
+PRINT 'moveit: 10 releases, 16 work items, 12 attributed builds, 18 events, 5 links';

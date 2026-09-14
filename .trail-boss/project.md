@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Field trial at his pace; when the census reaches a second machine, .docs/credential-setup-runbook.html is the walkthrough — register the scheduled task before creating any credential file, and watch the first credentialed run by hand"
+next_step: "Tomorrow morning: follow .docs/move-it-morning-guide.md against the real AppTrak — recon query first, then DDL + backfill, then the five health-only questions; bring back the nine report-back items"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,45 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-14 (Move It — brainstorm to fixture-proven schema in one day)
+- **The project widened.** Two web teams, one tracking site;
+  the governance reader cannot see where features and fixes are (with devs / DEV /
+  VAL-UAT / PROD). A Gemini sketch (realm→domain→capability→delivery-unit, regex
+  "topology resolvers", relational DDL) arrived in `move-it/`. Ruled by
+  conversation, not redraft: keep the ledger, manifest, inbox and stage
+  sequence; drop the taxonomy and the resolvers (the 2025 convention-sniffing
+  failure rebuilt). Folder deleted once `.docs/features/move-it.md` held it.
+- **Ratified in sequence, each recorded:** release (not build) is the unit that
+  moves; the build string is the only join, never parsed; the ledger already
+  exists in AppTrak's ten-minute `/api/health` pings; Census's JSON stays truth
+  and *projects* into AppTrak (four reopen triggers written); identity across
+  the seam is endpoint-level `monitoredAs` on the IIS-app leaf; `project` in
+  the payload is not a team label, recorded verbatim; `health.Deployment`
+  written by his report processor on tuple change with four rules; a six-table
+  `moveit` schema (Release, WorkItem, ReleaseBuild, ReleaseEvent, WorkItemLink
+  + the ledger), five SelectItem lookups, nine derivation rules, hotfix as
+  asserted intent, cross-app dependsOn links.
+- **HARD CONSTRAINT recorded** (his words): no real data here of any kind —
+  AppTrak, IIS logs, census evidence. All manufactured; he carries code to the
+  real environment and reports back. Now in memory too.
+- **Built under `apptrak/`** (parked here until AppTrak's repo is in reach):
+  DDL, lookups, `backfill-health-deployment.sql` (THE rule, which his live
+  processor must match exactly), the read-only history query for the real
+  side, a 131,040-ping deterministic seed covering both rollback variants, a
+  machine move, silent 503s, a partial deploy, a stage mismatch, no-block and
+  no-regime apps, a skipped stage, order violations, deployed-before-approval
+  and PROD-without-approval. 39 ledger rows, the count the coverage map
+  predicts; second backfill a no-op.
+- **Twelve question queries**, one `.sql` per Appendix A question, plus a
+  runner; every answer checked against the coverage map. Building 01 exposed
+  that rule 4 alone loses shipped work when a hotfix replaces its build; rule 5
+  now reads "at S if a holding build was ever deployed at S and the build there
+  now is not older (first-seen)". Spec and calls ledger updated.
+- **`.docs/calls-made-for-you.md` created** (16 entries today). `.docs/move-it-
+  morning-guide.md` is tomorrow's checklist.
+- Verified: fixture-only, fully, and said so. **Nothing has touched real data.**
+- `main` at `adf8e1d`, pushed, tree clean.
 
 ### 2026-08-30 (documentation session — the credential setup, end to end)
 - He had started down the DPAPI route from an earlier session's instructions

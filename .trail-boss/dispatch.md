@@ -1,11 +1,12 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Getting the census onto a second machine is documented end to end — runbook plus the missing Task Scheduler step"
-resume: "start-census.bat — or open .docs/credential-setup-runbook.html in a browser for the credential setup"
+summary: "Move It: the where-is-my-feature tracker is designed, its tables and twelve answer-queries built and proven on fixtures; tomorrow it meets the real database"
+resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
   - { label: "Credential setup runbook", url: "https://claude.ai/code/artifact/7b9ba51c-5c67-44d7-9795-11f1f19865b4" }
+  - { label: "Move It discovery note", url: "https://github.com/robertknelson/census/blob/main/.docs/features/move-it.md" }
 phase_suggestion: execution
 ignite: start-census.bat
 #
@@ -24,55 +25,54 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-Not a feature this time — the instructions for a job he'd already started and
-got stuck on.
+A new thing, not a tweak: **Move It**, the answer to a question the governance reader
+keeps asking and nobody can answer quickly — *where is this feature? Still with
+the developers, on DEV, being tested, or live?*
 
-He went to set the census up to reach other machines under a nightly scheduled
-job, and hit a wall on a question that had no answer: **where do the username
-and password go?** They don't. There is no username or password field anywhere
-in the machine list. A "bucket" names a *file*, and one command both asks for
-the credential and encrypts it, in a single step. Nothing in the old
-documentation ever said that plainly, so it read like a missing feature rather
-than the design.
+The insight that made it small: the tracking site he already runs has been
+pinging every application every ten minutes for years, and each answer says
+which build is running. So the history of "what went where, when" already
+exists. What was missing was a place to write down *what is in each build*
+(features and fixes, a few lines per sprint) and *when the client said yes*.
+Everything else — where a feature is, how long releases take, what got rolled
+back, what skipped testing, what went live without approval, which service
+went out ahead of the service it depends on — is worked out from those two
+things plus the pings. Nothing is guessed from names; every answer traces to a
+measurement or to a person who typed it.
 
-Two things now cover it:
-
-- **A step-by-step walkthrough**, `.docs/credential-setup-runbook.html` — open
-  it in a browser. It's written for the real case: five groups of machines,
-  five different logins. It leads with the one distinction that trips everyone
-  up — **one** account creates all five encrypted files, while **five
-  different** logins live inside them — then walks eight steps in the order
-  they have to happen, with a table to fill in first and every command ready
-  to copy. There's a checklist that remembers where you left off.
-- **The reference document gained the missing chapter**: how the nightly job
-  itself gets registered, and why it has to be set up *before* the encrypted
-  files are made. The setup script protects you from the classic disaster —
-  files created by the wrong account, which look perfect and then fail at 3am
-  across every machine at once — but it can only do that by checking against
-  the registered job. No job registered, no protection.
-
-While writing it, two gaps in that protection turned up and are now written
-down: it stays silent if the job runs as the built-in SYSTEM account, and it
-only compares the short part of an account name, so two accounts with the same
-name in different domains pass the check and fail later.
+Today it went from a sketch to: the design written down and argued through,
+the database tables, the rule that turns pings into a deployment history, a
+large fabricated test dataset built to exercise every awkward case (rollbacks,
+hotfixes mid-sprint, a server swapped under a running build, apps that report
+nothing), and twelve ready-to-run questions — each proven against that data.
 
 ## What's next
 
-Nothing owed. The field trial continues at his pace. When the census does reach
-a second machine, the runbook is the thing to follow — and the first run should
-be watched by hand rather than left to the schedule.
+**Tomorrow morning**, following the step-by-step guide written for it: run a
+read-only query against the real database first, then add the new tables and
+build the deployment history from years of real pings, then ask the five
+questions that need no manual entry yet. Some of those may surface real
+findings on day one (an app reporting it is in the wrong environment, a server
+pair out of step). He brings back nine specific answers, several of which
+settle assumptions the fabricated data had to guess at.
+
+After that: his own change to the tracking site so new deployments are
+recorded as they happen, and the first hand-entered release to watch the board
+light up.
 
 ## Anything alarming
 
-- **The remote login has still never actually been tested.** One machine, one
-  account here, so the part that reaches out and logs into another machine has
-  never run for real. That remains the single biggest unknown in the project,
-  and the runbook says so plainly rather than burying it.
-- **The runbook page was checked for structure, not appearance.** The published
-  version renders correctly; the copy in the repo couldn't be opened in a
-  browser from here to confirm it looks the same. Worth thirty seconds of his
-  eyes.
-- **Demo-verified only, as always** — real data has drawn blood on first
-  contact every time.
+- **Everything is proven against fabricated data only.** That is the standing
+  rule of this environment — no real data can come here — and it is said
+  plainly everywhere. The real database will teach us things tomorrow.
+- **One design rule had to be corrected while building.** The first version
+  would have said a shipped feature *vanished* from production the moment a
+  hotfix replaced its build. Caught by the test data, fixed, and written down.
+  Worth mentioning because it is exactly the kind of thing the fabricated data
+  is for, and exactly the kind of thing real data may do again.
+- **Two teams' pipelines have no programmatic access.** What is in a build is
+  typed by hand, by him alone, for the foreseeable future. The design keeps
+  that to a handful of edits per sprint, but the habit has to hold.
+- The Census remote login has still never run for real. Unchanged.
 
 Nothing is broken. Build clean, all pushed, working tree clean.

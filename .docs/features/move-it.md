@@ -120,6 +120,16 @@ everything found is either explained or known-unexplained. Resolutions include
 
 ## 6. Constraints that shaped the above
 
+- **HARD CONSTRAINT (2026-09-14): no real data here, of any kind.** Not in
+  AppTrak (schema only, zero rows), not IIS logs, not census evidence. All
+  data in the working environment is manufactured. Robert can move whatever
+  is coded or scripted here into a real environment and report back; that
+  round-trip is the only path to real-data answers. Consequences: every
+  question needing real data is written as a `.sql` file for him to run
+  there; every design branch that depends on real behaviour (e.g. Deploymentat
+  on rollback) gets a fixture per possible behaviour, not a guess; AppTrak
+  seed data is a deliberate fixture set in the spirit of `output-demo/` and
+  `config/*.demo.json`, and it *is* the coverage.
 - **No API and no export** from either team's CI/CD. Feature/fix contents of a
   build are manual, period.
 - **Robert is the sole entrant for the foreseeable future** — deliberately. The

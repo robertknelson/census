@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It: the where-is-my-feature tracker is designed, its tables and twelve answer-queries built and proven on fixtures; tomorrow it meets the real database"
+summary: "Move It designed and proven on fixtures: where every feature is, from health pings; tomorrow it meets the real database"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:

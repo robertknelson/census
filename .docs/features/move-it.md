@@ -277,11 +277,108 @@ question from API access.
 databases it talks to — a second voice on the edge Census observes from
 `web.config`. Not Move It; blast radius's business, and already in the table.
 
-## 10. Open items
+## 10. AppTrak as found, and the first slice — ratified 2026-09-14
 
-1. Extract distinct deployment events from raw health responses into a fact
-   table — the first concrete slice, and the prerequisite for everything else.
-   Robert's process, Robert's call on shape.
+**The tracking site is AppTrak** (local SQL Server database `AppTrak`; code
+not yet in reach). Schemas seen: `health`, `core`, `log`, `appgraph` (the
+dependency graph from `graph-interop.md` lives here). Conventions: schema per
+area, `Id` identity PKs, `datetimeoffset` with `sysdatetimeoffset()`
+defaults, `Uid nvarchar(36)`, Session/Correlation ids, denormalized
+name-beside-id columns, no foreign keys in `health`, no procs or views.
+
+- `health.HealthReport` — one row per ping; **Build, BuildId, SourceVersion,
+  Branch, Deploymentat are already typed columns.** The ledger source; the
+  extraction is a `GROUP BY`, not a parse.
+- `health.HealthEndpoint` — the (ApplicationId, Stage, Url) registration. No
+  unique constraint on (ApplicationId, Stage): the multi-server door is
+  already open.
+- `health.HealthFact` — per check, not per deployment (`DeployBuild` is 25
+  chars against `HealthReport.Build`'s 50; `DeployAt` is a string). Not the
+  source for deployments.
+- `core.SelectItem` (`Grouping`, `Sort`) — the lookup pattern. **Stage
+  sequence lives here** as rows grouped `Stage`; DEV, VAL and UAT peers, PROD
+  above. No new table; supersedes §6's "add ordering to the registry".
+- **No Application table in this database.** `ApplicationId` references
+  nothing here. Where the registry lives is open item 10; team ownership
+  attaches to it once found.
+
+**Decisions that were waiting on the schema (item 3 of the preconditions):**
+gates as rows in a `moveit.ReleaseEvent` table (kind, at, build, by, note),
+so "verified in VAL" is a row one may or may not write; team on the
+Application registry, nullable; stage sequence in `core.SelectItem`.
+Observed evidence stays in `health`; assertions go in a new `moveit` schema —
+the observed/asserted line, drawn in SQL.
+
+### 10.1 First slice — `health.Deployment`, written by the report processor
+
+Robert's proposal, ratified with four refinements: the HealthReport
+processing code inspects each report's deployment block and, if it differs
+from the most recent row for that endpoint, inserts a row. One table where
+deployment changes are recorded.
+
+1. **Compare the whole tuple**, not just Build: Build, BuildId,
+   SourceVersion, Deploymentat, Machine, Branch. A rollback is the same Build
+   with a new Deploymentat (rollback is the only reason a build ever
+   redeploys; rare outside PROD, uncommon in PROD). A move is the same Build
+   on a new Machine. Both produce a row.
+2. **Insert-only, with one back-pointer update.** A new row sets
+   `SupersededAt` on the endpoint's previous row — one update per deployment,
+   not per ping. Intervals come free; the table stays a ledger.
+3. **Observed and claimed timestamps are separate columns.** `DetectedAt` is
+   the StartAt of the detecting ping (our fact); `Deploymentat` is what the
+   pipeline injected (the app's claim).
+4. **Absence is not change.** A failed ping, empty content, or a payload with
+   no deployment block inserts nothing and supersedes nothing — half the apps
+   lack the block today, and a 500 at 3am is not an undeploy. Census's rule
+   for a collector section that did not run.
+
+```sql
+CREATE TABLE health.Deployment (
+    Id              bigint IDENTITY NOT NULL,
+    Uid             nvarchar(36)   NOT NULL DEFAULT (newid()),
+    ApplicationId   int            NOT NULL,
+    EndpointId      int            NOT NULL,
+    Application     nvarchar(50)   NOT NULL,   -- as reported
+    ReportedStage   nvarchar(25)   NOT NULL,   -- payload's claim; registration stage via EndpointId
+    Machine         nvarchar(50)   NOT NULL,   -- as reported
+    Project         nvarchar(50)   NULL,       -- verbatim, never interpreted
+    Version         nvarchar(25)   NOT NULL,
+    Build           nvarchar(50)   NOT NULL,
+    BuildId         nvarchar(50)   NULL,
+    SourceVersion   nvarchar(50)   NULL,
+    Branch          nvarchar(50)   NULL,
+    Deploymentat    datetimeoffset NOT NULL,   -- pipeline's claim
+    DetectedAt      datetimeoffset NOT NULL,   -- StartAt of the detecting ping
+    HealthReportId  bigint         NOT NULL,   -- the raw evidence row
+    PreviousId      bigint         NULL,       -- prior row for this endpoint
+    SupersededAt    datetimeoffset NULL,       -- set when the next row lands
+    CreatedAt       datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
+    CONSTRAINT PK_Deployment PRIMARY KEY CLUSTERED (Id)
+);
+CREATE INDEX IX_Deployment_Endpoint ON health.Deployment (EndpointId, DetectedAt DESC);
+```
+
+`PreviousId` makes rollback a self-join (same Build as an earlier row for the
+endpoint). `HealthReportId` is the raw-evidence reference — the one Gemini
+column kept by name. `Project` is stored only because the payload is being
+opened anyway, and only verbatim. No `IsRollback` or any stored judgment:
+facts stored, judgments derived.
+
+**Backfill uses the same comparison.** A `LAG` over `HealthReport`
+partitioned by EndpointId, ordered by StartAt, yields identical rows from
+history, HealthReportId included. Two producers, one rule — simplest guarantee
+is running the live code path over history rather than writing the rule twice.
+
+**Pending on real data** (open item 1's history query): whether the release
+pipeline stamps a fresh Deploymentat on a rollback redeploy. If yes, the tuple
+compare catches rollbacks; if Deploymentat is baked at build time, rollbacks
+are invisible to this table and DetectedAt gaps are the fallback signal.
+
+## 11. Open items
+
+1. ~~Extract distinct deployment events into a fact table.~~ Shape ratified
+   as `health.Deployment` (§10.1). Still owed: the history query against real
+   data to confirm Deploymentat behaves on rollback.
 2. Backfill: for apps already in the regime, reconstruct release history from
    ping history and attach manifests to past builds from the emails. Zero new
    collection code; the field trial's first exercise.
@@ -309,6 +406,9 @@ databases it talks to — a second voice on the edge Census observes from
    machine join simply missing. Never asserted evidence dressed as observed.
 9. Read access to both teams' repositories — decides whether
    `deployment.sourceVersion` can prompt manifests from commit history.
+10. Where AppTrak's Application registry lives (not in the `AppTrak`
+   database). Team ownership attaches to it; the `monitoredAs` picker
+   suggests from it.
 
 ## Appendix A — questions the data could answer
 

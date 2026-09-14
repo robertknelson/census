@@ -2,8 +2,8 @@
 
 > Discovery note, 2026-09-14. **Unratified.** Brainstorm session, expansion
 > not narrowing; nothing here is a spec and no build is authorized. Seeded by a
-> Gemini conversation (sketches and loose DDL in `move-it/notes.move-it.txt`,
-> untracked) and reshaped against Census's principles
+> Gemini conversation (sketches and loose DDL, dropped in as `move-it/notes.move-it.txt`
+> and deleted 2026-09-14 once this note captured them) and reshaped against Census's principles
 > (`system-graph-principles.md`). Parent docs: `systems-registry.md`
 > (stages per system), `entity-associations.md` (stage belongs to the system
 > claim), `triage-workbench.md` (the unexplained pile as the health metric).
@@ -177,7 +177,8 @@ Not worth fixing; this note supersedes it.
    "in VAL" — decides whether a second human gate exists.
 6. Team ownership on release/work item — with two teams under one specialist it
    is the first cut he will want; none of the sketched DDL had it.
-7. Whether the `move-it/` folder is deleted once this note is ratified.
+7. ~~Whether the `move-it/` folder is deleted once this note is ratified.~~
+   Deleted 2026-09-14; this note supersedes it.
 
 ## Appendix A — questions the data could answer
 

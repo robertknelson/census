@@ -179,6 +179,16 @@ Not worth fixing; this note supersedes it.
    is the first cut he will want; none of the sketched DDL had it.
 7. ~~Whether the `move-it/` folder is deleted once this note is ratified.~~
    Deleted 2026-09-14; this note supersedes it.
+8. **Team A's servers are AWS, administered by a separate infrastructure
+   team.** Unknown (2026-09-14) whether the collector can run against them.
+   Matters little to Move It — the build string arrives over HTTP from the
+   app, no server access needed — and much to Census's inventory of those
+   machines. Honest shapes, in preference order: collected by proxy (infra
+   team runs the portable collector, hands over JSON; evidence stays
+   observed); declared entities with provenance (`declared-entities.md`,
+   never corroborated, never counted as observed); or absent from Census,
+   with stage asserted on the app as the tracking site knows it and the
+   machine join simply missing. Never asserted evidence dressed as observed.
 
 ## Appendix A — questions the data could answer
 

@@ -159,7 +159,50 @@ The Mermaid in the notes does not render as-is (several `}` for `|`, a sequence
 step targeting a nonexistent participant, three custom stages all labelled DEV).
 Not worth fixing; this note supersedes it.
 
-## 8. Open items
+## 8. Storage — ratified 2026-09-14
+
+Two different questions, answered differently.
+
+**Census's logical layer stays in files.** The no-database ruling
+(`census-web.md` §2) carries an explicit revisit trigger — fleet or retention
+grows by an order of magnitude — and it has not fired. The whole assertion
+layer is under 30 KB across seven `config/*.json` files; git already holds their
+history and authorship (27 commits touching them to date); hand-editing is the
+documented *primary* write path (`entity-tags.md` §3); Robert is the sole
+writer, so last-writer-wins never fires. SQL Server would solve no pain that
+exists. Moving now would be speculative engineering.
+
+Triggers that reopen it, recorded so it is not re-argued:
+
+1. A second person editing assertions — concurrency and authorization become
+   real that day.
+2. Team A doubling the estate with the collector reaching it, so evidence
+   volume nears the original ruling's trigger.
+3. A consumer that must join evidence to assertions at query time rather than
+   in memory.
+
+**Move It lives in SQL Server from day one** — not because SQL is better but
+because its ledger is already there: the tracking site's health-response table.
+Release, work item, attachment and approval are foreign keys onto app and build
+string, which the extracted deployment fact table carries. Holding those
+assertions in JSON on the Census side would separate them from their evidence
+across a process boundary for no reason. Move It is a tracking-site feature
+that *reads* Census; Census does not store it.
+
+**Rejected explicitly:** moving Census's JSON into the tracking site's database
+"since it's right there." It kills hand-editing, couples Census's deployment to
+another app's database, and the read-both-forever / unknown-keys-round-trip
+ethos of the assertion files is file-shaped. The posture toward the tracking
+site is the one `graph-interop.md` settled toward the graph: Census supplies
+observations as an overlay and never governs.
+
+**The design question underneath "storage" is identity across the seam.**
+Census knows an IIS app by machine, site and path, with system and stage
+asserted. The tracking site knows an app by the name in its health response.
+Move It needs one human-asserted join between them. That is the thing to spec;
+where the bytes sit follows from it.
+
+## 9. Open items
 
 1. Extract distinct deployment events from raw health responses into a fact
    table — the first concrete slice, and the prerequisite for everything else.

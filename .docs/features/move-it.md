@@ -202,7 +202,82 @@ asserted. The tracking site knows an app by the name in its health response.
 Move It needs one human-asserted join between them. That is the thing to spec;
 where the bytes sit follows from it.
 
-## 9. Open items
+## 9. Identity across the seam — ratified 2026-09-14
+
+**What each side knows about a deployed app.** Census observes machine, IIS
+site, app path, and bindings (protocol, IP, port, host header, certificate);
+onto that leaf a human asserts `serves [{system, stages, canonicalName}]`.
+The tracking site registers one endpoint per (app, stage) with a URL — the
+friendly hostnames are host headers bound to certificates in IIS on each web
+server, so Census sees them in bindings. The `/api/health` payload returns
+`name, version, machine, stage, project, deployment.{at, branch, build,
+buildid, sourceVersion}, connection-strings[].health,
+downstream-services[].health, logging[].health` — the pipeline's claims,
+carried by the app.
+
+**Join level: endpoint, not system.** One assertion per registered endpoint
+(≈ a dozen apps × four stages), stored on the Census side as a tag axis on the
+IIS-application leaf in `entity-tags.json`, keyed by the tracking site's
+(app, stage) identity and carrying the URL:
+
+```json
+"monitoredAs": {
+  "app": "mywidgets",
+  "stage": "val",
+  "url": "https://mywidgets-val.corp.example/api/health",
+  "assertedBy": "robert",
+  "assertedAt": "2026-09-14"
+}
+```
+
+Reasons: the ping is a fact about one endpoint and "which IIS app on which box
+answered" is the question Census exists to answer; it is an assertion about an
+observed thing, which is what the leaf already holds (unknown keys round-trip,
+provenance for free); the dependency direction stays right (the tracking site
+reads Census, Census stores nothing about Move It); a later observed build
+lands on the same leaf, making it the meeting point of observed build, asserted
+system/stage and asserted endpoint. Multi-server per stage (none in eight
+years) is simply a second endpoint on a second leaf; nothing to build.
+
+**Suggestion is near-exact; assertion is still a human gesture.** For a
+registered endpoint Census can find the IIS app whose machine equals the
+payload's `machine`, whose site binds the URL's host header, and whose app path
+matches the URL path — exact equality on observed values, the same rule tags
+use for names, not convention-sniffing. But the payload's `machine` is a claim
+carried by the app (a proxy or container can report a different name), so
+Census presents the match in the inbox and Robert confirms once per endpoint.
+
+**Four voices, one endpoint — disagreement after assertion is a finding.** The
+payload (name, stage, machine); the registration (app, stage, URL); Census
+(system, stage, machine); the binding (host header). Any pair disagreeing means
+a release variable on the wrong slot, a friendly URL moved to another box, or a
+val app serving prod config. Every case hangs on an honest machine, so it rides
+the machine-keyed findings stream.
+
+**Vocabularies.** App names are *typically* the Census system name — typically
+is not always, so the assertion stores the tracking app name explicitly and
+the picker pre-fills on a match. Stage strings: Robert owns both sides; make
+them identical, no mapping table.
+
+**`project` is not a team label.** It is not exactly the Azure DevOps project
+name — the .NET Framework "Widget" project and the .NET "Widget" project both
+exist — and the names follow no consistent convention. Record it verbatim as
+payload evidence; derive nothing from it. Team stays a human assertion (open
+item 6).
+
+**`deployment.sourceVersion` reopens a door.** No pipeline API, but a commit
+SHA per deployed build means that with *read access to the repositories* the
+changes between the previous build's SHA and this one are a `git log` away.
+Commit messages are not work items, but they are a strong prompt for the
+manifest — and for Team B's verbal process, possibly the only written record.
+Whether Robert can clone both teams' repos is open item 9; it is a different
+question from API access.
+
+**In passing:** `connection-strings[].health` is the app stating which
+databases it talks to — a second voice on the edge Census observes from
+`web.config`. Not Move It; blast radius's business, and already in the table.
+
+## 10. Open items
 
 1. Extract distinct deployment events from raw health responses into a fact
    table — the first concrete slice, and the prerequisite for everything else.
@@ -232,6 +307,8 @@ where the bytes sit follows from it.
    never corroborated, never counted as observed); or absent from Census,
    with stage asserted on the app as the tracking site knows it and the
    machine join simply missing. Never asserted evidence dressed as observed.
+9. Read access to both teams' repositories — decides whether
+   `deployment.sourceVersion` can prompt manifests from commit history.
 
 ## Appendix A — questions the data could answer
 

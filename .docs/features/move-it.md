@@ -452,9 +452,10 @@ CREATE TABLE moveit.ReleaseEvent (                -- human events only; observed
     Stage     nvarchar(25)   NULL,       -- the stage the event speaks about
     Build     nvarchar(50)   NULL,       -- the build it speaks about, verbatim
     At        datetimeoffset NOT NULL,   -- when the humans did it
-    By        nvarchar(50)   NOT NULL,   -- who recorded it
+    [By]      nvarchar(50)   NOT NULL,   -- who did it (the approver, the tester)
     Note      nvarchar(max)  NULL,
     CreatedAt datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
+    CreatedBy nvarchar(50)   NOT NULL,   -- who recorded it
     CONSTRAINT PK_ReleaseEvent PRIMARY KEY CLUSTERED (Id)
 );
 
@@ -536,11 +537,48 @@ proper data-model spec moves to AppTrak's repository beside the tables when
 the code is in reach (open item 11). Census keeps a seam contract for the
 `monitoredAs` axis (§9).
 
-## 11. Open items
+## 11. Artifacts in this repo — built and fixture-verified 2026-09-14
+
+Parked under `apptrak/` until AppTrak's repository is in reach (open item 11); the
+move is a cut-and-paste. Everything idempotent. Calls made while building them are in
+`.docs/calls-made-for-you.md`.
+
+| File | For | Notes |
+|---|---|---|
+| `apptrak/sql/001-create-health-deployment.sql` | both | §10.1 table; unique on HealthReportId |
+| `apptrak/sql/002-create-moveit-schema.sql` | both | §10.2 tables; no FKs, matching AppTrak |
+| `apptrak/sql/003-lookups.sql` | both | the five `core.SelectItem` groupings, MERGE |
+| `apptrak/sql/backfill-health-deployment.sql` | both | **the rule**, in SQL; the live processor implements exactly this |
+| `apptrak/sql/history-deployment-episodes.sql` | real only | read-only; three questions to bring back (open item 1) |
+| `apptrak/seed/seed-apptrak-demo.sql` | here only | the fixtures — 13 endpoints, 131,040 pings, 8 releases |
+| `apptrak/Invoke-AppTrakDemo.ps1` | here only | runs DDL, lookups, seed, backfill against local `AppTrak` |
+
+**Coverage the seed exercises deliberately** (each verified by query after the backfill,
+39 `health.Deployment` rows, the count the map predicts): DEV churn and two promotions;
+a fix landing after VAL testing; a hotfix interleaved with the next sprint; rollback
+variant A (fresh Deploymentat) on WidgetCore PROD; rollback variant B (original
+Deploymentat) on Reporting PROD; a machine move on the same build; twelve hours of 503s
+inside a stable episode producing no row; a partial deploy across two PROD servers; a
+registration/payload stage mismatch; an app that never sends a deployment block (zero
+rows); an app with no health regime, moving only by `deployed-asserted` events; Jenkins-
+style build ids; a removed work item; a `hold` with its reason; one historical and one
+current cross-app order violation. A second backfill inserts nothing and refreshes no
+back-pointers.
+
+**Known blind spot, by design:** a redeploy of the same build with no intervening build
+and an unchanged Deploymentat is invisible to any observer of the payload.
+
+**Verified here, fixture-only.** Nothing has touched real data. The real environment's
+first run of `001`–`003` and the backfill is Robert's, and the history query results
+decide which rollback variant the fixtures got right.
+
+## 12. Open items
 
 1. ~~Extract distinct deployment events into a fact table.~~ Shape ratified
-   as `health.Deployment` (§10.1). Still owed: the history query against real
-   data to confirm Deploymentat behaves on rollback.
+   as `health.Deployment` (§10.1), built (§11). Still owed: run
+   `apptrak/sql/history-deployment-episodes.sql` against real data and bring
+   back the three results — episode shape, Deploymentat on rollback, regime
+   coverage.
 2. Backfill: for apps already in the regime, reconstruct release history from
    ping history and attach manifests to past builds from the emails. Zero new
    collection code; the field trial's first exercise.
@@ -572,7 +610,8 @@ the code is in reach (open item 11). Census keeps a seam contract for the
    database). Team ownership attaches to it; the `monitoredAs` picker
    suggests from it.
 11. AppTrak's repository in reach — the `moveit` data-model spec and the
-   `.sql` question files live there, not here.
+   `.sql` files live there, not here. Until then they are parked under
+   `apptrak/` (§11).
 
 ## Appendix A — questions the data could answer
 

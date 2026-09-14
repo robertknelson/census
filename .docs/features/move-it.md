@@ -196,6 +196,20 @@ ethos of the assertion files is file-shaped. The posture toward the tracking
 site is the one `graph-interop.md` settled toward the graph: Census supplies
 observations as an overlay and never governs.
 
+**Addendum, ratified 2026-09-14 — publish, don't move.** Move It's board needs
+Census's system, stage and machine per endpoint as a SQL join. The tag shape
+is still moving (flat axes became `serves` three weeks ago with no migration
+event; SQL would have needed an ALTER and a data migration), fixtures are the
+test coverage, hand-editing is the primary write path, and git is the audit.
+So the files stay truth and Census *projects* its resolved semantic layer into
+a `census` schema in AppTrak: endpoint, machine, system, stage, canonical
+name, provenance, projected-at. Regenerable on every load, disposable, never
+hand-edited; `graph-interop.md`'s overlay posture applied to AppTrak. Not dual
+truth because derived, not owned. **Fourth trigger:** the tag shape stable for
+several months *and* the projection proves insufficient — Move It needs to
+*write* an assertion Census must see (the `monitoredAs` confirmation is the
+test case). Then the question reopens with evidence.
+
 **The design question underneath "storage" is identity across the seam.**
 Census knows an IIS app by machine, site and path, with system and stage
 asserted. The tracking site knows an app by the name in its health response.

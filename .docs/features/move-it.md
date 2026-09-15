@@ -324,7 +324,11 @@ name-beside-id columns, no foreign keys in `health`, no procs or views.
   above. No new table; supersedes §6's "add ordering to the registry".
 - **No Application table in this database.** `ApplicationId` references
   nothing here. Where the registry lives is open item 10; team ownership
-  attaches to it once found.
+  attaches to it once found. *Corrected 2026-09-14 evening, from Robert's
+  own review of the real schema:* the local copy is incomplete. The real
+  AppTrak has the tables that let a team register its applications and
+  endpoints, plus an authorization table, and a handful more. They are
+  missing here, not absent there. He brings them; the board waits.
 
 **Decisions that were waiting on the schema (item 3 of the preconditions):**
 gates as rows in a `moveit.ReleaseEvent` table (kind, at, build, by, note),
@@ -641,9 +645,16 @@ decide which rollback variant the fixtures got right.
    machine join simply missing. Never asserted evidence dressed as observed.
 9. Read access to both teams' repositories — decides whether
    `deployment.sourceVersion` can prompt manifests from commit history.
-10. Where AppTrak's Application registry lives (not in the `AppTrak`
-   database). Team ownership attaches to it; the `monitoredAs` picker
-   suggests from it.
+10. ~~Where AppTrak's Application registry lives.~~ In AppTrak; the local
+   copy lacks it (2026-09-14 evening, his schema review): application and
+   endpoint registration, authorization, and a handful more tables are
+   missing here. **Owed by Robert: the schema for those tables**, as DDL
+   with zero rows (the hard constraint holds). Until then: the board shows
+   unnamed apps by id, `applications.sql` names from the payload only, and
+   **level 2 of the board is parked** — its application page hangs off the
+   registry (name, team, endpoints), so building it against a guessed shape
+   would be rework. Team ownership attaches here; the `monitoredAs` picker
+   suggests from here.
 11. AppTrak's repository in reach — the `moveit` data-model spec and the
    `.sql` files live there, not here. Until then they are parked under
    `apptrak/` (§11).

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Morning: .docs/move-it-morning-guide.md against the real AppTrak (recon, DDL, backfill, five questions, nine report-back items). Then /moveit level 2: the application page (02, 07, 03) — the board is live at http://localhost:5292/moveit against the fixtures"
+next_step: "Morning: .docs/move-it-morning-guide.md against the real AppTrak (recon, DDL, backfill, five questions, nine report-back items). Also bring the missing AppTrak tables as zero-row DDL (application/endpoint registration, authorization, the rest) — board level 2 is parked on them"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,14 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-14, late (parked: board level 2)
+- Robert reviewed the real AppTrak schema himself: the local copy is missing
+  the tables that let a team register applications and endpoints, the
+  authorization table, and a handful more. Open item 10 is answered (the
+  registry is in AppTrak) and re-owed (he brings the DDL, zero rows).
+- **Parked by his call:** the board's level 2 (application page) waits for
+  those tables — its spine is the registry. Level 1 stands as built.
 
 ### 2026-09-14, evening (Move It — the board, level 1)
 - **Open item 4 closed by a fact, not an argument:** in the deployed environment

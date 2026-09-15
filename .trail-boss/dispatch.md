@@ -49,9 +49,12 @@ database — a read-only look first, then the new tables and the deployment
 history built from years of pings, then the five questions that need no
 typing. He brings back nine answers.
 
-**Then the board's second screen:** one application in depth — its releases in
-order, which build is on which server, and anything that went out ahead of
-something it depends on.
+**Then the board's second screen, once the missing tables arrive.** He read
+the real tracking database's schema tonight and found the copy here lacks
+the tables that register applications and endpoints, plus authorization.
+The second screen is built on those, so it waits for them, by his call. When
+it comes: one application in depth — its releases in order, which build is
+on which server, and anything that went out ahead of something it depends on.
 
 ## Anything alarming
 

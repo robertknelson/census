@@ -9,3 +9,6 @@ output/
 # DPAPI-protected credential files. Ignored before the first one exists, not after -
 # see .docs/features/census-collector.md 5.2.1.
 config/creds/
+
+# Local-only notes: personal or organisational context that never goes to GitHub.
+.docs/local/

@@ -15,13 +15,13 @@ the developers, deployed to DEV, in VAL/UAT, or in PROD. Today the answer lives
 in emails and a weekly meeting. Move It is the idea of answering it from
 evidence.
 
-Context (2026-09-14): two web-development teams (the situation itself lives in .docs/local/, never in git);
-Team
-A uses Azure DevOps; Team B uses a Jenkins-based pipeline. He built Team B's
-application-tracking site (health, ApiRequests, Errors, Messages for a dozen-plus
-apps across four stages), on which Census also rests. Later, Team A's
-apps join both the tracking site and Census. Move It is worth building against
-Team B regardless.
+Context (2026-09-14): two web-development teams. Team A uses Azure DevOps;
+Team B uses a Jenkins-based pipeline. Team B's application-tracking site
+(health, ApiRequests, Errors, Messages for a dozen-plus apps across four
+stages) is the one Census rests on. Team A's apps may join both the tracking
+site and Census later. Move It is worth building against Team B regardless.
+(Who the governance reader is, and the rest of the situation, lives in
+`.docs/local/`, which never goes to GitHub.)
 
 ## 2. What moves
 

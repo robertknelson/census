@@ -558,7 +558,7 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/sql/002-create-moveit-schema.sql` | both | §10.2 tables; no FKs, matching AppTrak |
 | `apptrak/sql/003-lookups.sql` | both | the five `core.SelectItem` groupings, MERGE |
 | `apptrak/sql/backfill-health-deployment.sql` | both | **the rule**, in SQL; the live processor implements exactly this |
-| `apptrak/sql/history-deployment-episodes.sql` | real only | read-only; three questions to bring back (open item 1) |
+| `apptrak/sql/history-deployment-episodes.sql` | real only | read-only; three questions to bring back (open item 1). Executed against the fixtures 2026-09-14 evening: parses, all three sections return — the morning risk is the answers, not the syntax |
 | `apptrak/seed/seed-apptrak-demo.sql` | here only | the fixtures — 13 endpoints, 131,040 pings, 8 releases |
 | `apptrak/Invoke-AppTrakDemo.ps1` | here only | runs DDL, lookups, seed, backfill against local `AppTrak` |
 | `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Tomorrow morning: follow .docs/move-it-morning-guide.md against the real AppTrak — recon query first, then DDL + backfill, then the five health-only questions; bring back the nine report-back items"
+next_step: "Morning: .docs/move-it-morning-guide.md against the real AppTrak (recon, DDL, backfill, five questions, nine report-back items). Then /moveit level 2: the application page (02, 07, 03) — the board is live at http://localhost:5292/moveit against the fixtures"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,27 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-14, evening (Move It — the board, level 1)
+- **Open item 4 closed by a fact, not an argument:** in the deployed environment
+  Census is hosted inside AppTrakWeb, so the board is a Census module reading
+  AppTrak's database from AppTrak's own process. Recorded in §13. He drew the
+  persona line: Estate and Atlas are *his* views; the governance reader needs their
+  own navigable page.
+- **§13 written and ratified in one exchange**, then level 1 built against the
+  fixtures and verified in the browser: `/moveit` — question 01 drawn as lanes
+  (one row per application, one column per lane, peers share a lane, two lanes
+  before DEV for "with the developers" and "built, not seen"), the counts strip
+  (open items per lane; past target, on hold, reached PROD this week, awaiting
+  approval with how many are ready), application filter, chip → detail column
+  with the release's row from 02. Fifteen open items, five applications, hold
+  and late flags on the right chips, Team A's items marked asserted.
+- **First Census code that reads SQL.** `MoveItQuestions` runs the question
+  files verbatim (one endpoint per question); optional connection string,
+  module unmounted without it; dev profile points at the local fixture DB.
+  Two board lookups added under `apptrak/sql/board/`; 01 gained `ReleaseId`.
+- Applications 3 and 4 show by id — no name anywhere in the database and no
+  inference from monikers. Item 10 (the registry) is now visible on a page.
 
 ### 2026-09-14 (Move It — brainstorm to fixture-proven schema in one day)
 - **The project widened.** Two web teams, one tracking site;

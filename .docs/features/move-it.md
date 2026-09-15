@@ -564,6 +564,8 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |
 | `apptrak/Invoke-AppTrakQuestions.ps1` | both | runs every question; against fixtures it is the proof, against real data it is the first board |
 | `.docs/move-it-morning-guide.md` | real | the step-by-step for the first real-environment run: recon, DDL, backfill, first board, processor rule, report-back |
+| `apptrak/sql/board/stages.sql`, `applications.sql` | both | the board's two lookups (§13); read-only |
+| `Census.Web` — `Views/Home/MoveIt.cshtml`, `wwwroot/js/moveit/*`, `wwwroot/css/moveit.css`, `Controllers/Api/MoveItController.cs`, `Services/MoveItQuestions.cs`, `Options/MoveItOptions.cs` | here (Census) | the board, level 1 (§13); mounted only with a `MoveIt:ConnectionString` |
 
 **The twelve questions, and what the fixtures made each one show** (all run
 clean 2026-09-14):
@@ -617,9 +619,10 @@ decide which rollback variant the fixtures got right.
 3. What does Team A's Jenkins job put on the box? A version in the assembly or a
    text file in the deploy folder is observable by the collector without an
    endpoint.
-4. Whether the ledger's *presentation* (the "where is it" board) lives in the
-   tracking site or Census. Data lives in the tracking site; the board could be
-   either. Not today's decision.
+4. ~~Whether the ledger's *presentation* (the "where is it" board) lives in the
+   tracking site or Census.~~ Resolved 2026-09-14: a Census module, because in
+   the deployed environment Census is hosted inside AppTrakWeb — the two apps are one
+   process, and the board reads AppTrak's database from inside AppTrak. §13.
 5. Whether "verified in VAL" is a state the governance reader wants distinct from
    "in VAL" — decides whether a second human gate exists.
 6. Team ownership on release/work item — with two teams under one specialist it
@@ -644,6 +647,98 @@ decide which rollback variant the fixtures got right.
 11. AppTrak's repository in reach — the `moveit` data-model spec and the
    `.sql` files live there, not here. Until then they are parked under
    `apptrak/` (§11).
+
+## 13. The board — the governance reader's page (ratified 2026-09-14; level 1 built)
+
+**Who it is for.** Estate and Atlas are Robert's views. The board is the third
+module and the first one built for someone else: the governance reader, the
+governance persona of `census-web-v2-ux.md` §2, strictly read-only, thinking
+in groups. One landing page they can navigate without Robert in the room.
+
+**Where it lives — item 4 resolved.** In the deployed environment Census already
+runs inside AppTrakWeb; the board is a Census module, and in production it
+reads AppTrak's database from AppTrak's own process. Nothing crosses a
+network seam. The consequence for this repo is honest and small: the board
+is the first Census code that reads SQL. It takes an optional connection
+string to `AppTrak`; absent, the module is not mounted. Estate and Atlas keep
+reading files and are untouched.
+
+**Shape — the Estate/Atlas pattern, third instance.** Own Razor page, own JS
+tree, own CSS, own API controllers; shared stores only.
+
+| Piece | Location | Note |
+|---|---|---|
+| Landing | `Views/Home/MoveIt.cshtml` | one `<div id>` and a module `init`, as Estate |
+| Front end | `wwwroot/js/moveit/*.mjs`, `css/moveit.css` | page singleton + one panel class per question |
+| API | `Controllers/Api/MoveIt*` | one endpoint per question; runs the question's `.sql` file verbatim |
+| SQL | `apptrak/sql/questions/*.sql` | the same files, path configurable; no SQL in C# (rule 9 and the coding standard agree) |
+
+**Navigation — three levels, filter by application throughout.**
+
+1. **Dashboard.** Question 01 as the spine: every open work item and its
+   stage, grouped by application. Beside it the counts that answer the
+   weekly-meeting questions at a glance: at each stage, past target, on
+   hold, reached PROD this week, awaiting approval (02, 04, 12).
+2. **Application.** Its releases in target order, each with composition,
+   highest stage, hold and reason (02); its builds per stage and whether
+   servers agree (07); its order violations (03).
+3. **Release, then work item.** The release's events in time (deployed,
+   asserted, approved, held) and the builds that carried it; a work item's
+   trail from "with the devs" to wherever it is now.
+
+Team is the second filter, added the day the Application registry is found
+(items 6 and 10); the fixtures already carry it.
+
+**Growth is the design assumption.** A new question is a new `.sql` file, a
+new endpoint, a new panel; the page singleton composes them. The twelve are
+the first board, not the board. Questions 05–11 are architect's questions
+and stay off the governance reader's landing page until asked for; the inbox (05)
+is Robert's queue and belongs to the dev-ops side.
+
+**Built here against the fixtures.** The local `AppTrak` database from
+`Invoke-AppTrakDemo.ps1` is the whole test bed; the fixture proofs in §11
+are the acceptance list, screen by screen. Nothing real touches this repo.
+
+**Level 1, built and browser-verified 2026-09-14.** Route `/moveit` (working
+name). The spine is question 01 drawn as *lanes*: one row per application,
+one column per lane, every open work item a chip in the lane the evidence
+puts it at. Lanes are the stage sequence from `core.SelectItem`, peers (VAL
+and UAT, equal `Sort`) sharing one lane, with two lanes before the first
+stage for "with the developers" and "built, not seen" (01's `not deployed`
+and `no evidence`). Fixes are dashed, features solid; the lane hue is the
+chip's left edge, the same hues Atlas pins to stage names. Above it the
+counts: open items per lane, then past target, on hold, reached PROD in the
+last seven days, awaiting approval with how many are ready. The application
+filter is the header. A chip opens the detail column: what 01 knows about the
+item and the release's row from 02 (composition, highest stage, target, hold
+and reason, approval, contradiction). Removed items are counted in the
+application cell, not drawn.
+
+Two board-only queries sit beside the questions in `apptrak/sql/board/`:
+`stages.sql` (the sequence) and `applications.sql` (every application with a
+release or an endpoint; name from `health.Deployment.Application` — what the
+app says about itself — never from a moniker; an app that has never reported
+shows by id until the registry is found, item 10). Question 01 gained a
+`ReleaseId` column so the board can join its rows to 02's without a name
+match.
+
+What the fixtures made the first board show: fifteen open items across five
+applications; three releases past target, two on hold, two awaiting approval
+with one ready; Application 3 and Application 4 unnamed (no payload, no
+registry); Team A's items at UAT and PROD by assertion only, said on every
+chip; WidgetCore's Sprint 42 still at PROD under the hotfix's build (rule 5).
+
+**Open items for this section**
+- Route and name. `/moveit` is the working name; the governance reader needs a
+  word they would click. Robert's.
+- Whether the dashboard's top line is the twelve questions verbatim or the
+  five counts above. Draft says the five; a query that is not on the board
+  is still one click away.
+- Refresh: live query per page load, or cached on a cadence. Draft says live;
+  the question files run in milliseconds against fixtures and the real
+  volume is one report per ping per endpoint.
+- Whether "verified in VAL" gets its own column (item 5) — the event row
+  exists; the board shows it if written.
 
 ## Appendix A — questions the data could answer
 

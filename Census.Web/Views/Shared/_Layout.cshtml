@@ -34,8 +34,9 @@
         // The v1/v2 switch compares the two Estate UIs; Atlas is neither, and carries its
         // own Estate link in its header.
         var onAtlas = uxPath.StartsWith("/atlas", StringComparison.OrdinalIgnoreCase);
+        var onMoveIt = uxPath.StartsWith("/moveit", StringComparison.OrdinalIgnoreCase);
     }
-    @if (!onAtlas)
+    @if (!onAtlas && !onMoveIt)
     {
     <a class="ux-switch"
        href="@(onClassic ? "/" : "/classic")"

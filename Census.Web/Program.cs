@@ -20,6 +20,8 @@ builder.Services.AddSingleton<SystemsStore>();
 builder.Services.AddSingleton<ViewsStore>();
 builder.Services.AddSingleton<EntityTagsEvaluator>();
 builder.Services.AddSingleton<FindingsEngine>();
+builder.Services.Configure<MoveItOptions>(builder.Configuration.GetSection(MoveItOptions.SectionName));
+builder.Services.AddSingleton<MoveItQuestions>();
 
 var app = builder.Build();
 

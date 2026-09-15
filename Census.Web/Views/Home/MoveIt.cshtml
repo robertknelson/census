@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Where is it";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/moveit.css" asp-append-version="true" />
+}
+
+<div id="moveit-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import moveItPage from '/js/moveit/moveit-page.mjs';
+        moveItPage.init({ rootId: 'moveit-root' });
+    </script>
+}

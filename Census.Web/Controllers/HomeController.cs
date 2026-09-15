@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Census.Web.Models;
+using Census.Web.Services;
 
 namespace Census.Web.Controllers;
 
@@ -32,6 +33,15 @@ public class HomeController : Controller
     [HttpGet("/atlas")]
     public IActionResult Atlas()
     {
+        return View();
+    }
+
+    // The board (move-it.md §13): the governance reader's page, read-only over AppTrak. Not
+    // mounted without a connection string — the rest of Census stays file-only.
+    [HttpGet("/moveit")]
+    public IActionResult MoveIt([FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
         return View();
     }
 

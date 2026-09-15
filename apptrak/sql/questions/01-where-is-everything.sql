@@ -67,7 +67,7 @@ best AS (
            ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC, Evidence DESC) AS rn
     FROM at_stage
 )
-SELECT w.Id AS WorkItemId, r.ApplicationId, r.Name AS [Release], r.Kind AS ReleaseKind,
+SELECT w.Id AS WorkItemId, r.ApplicationId, r.Id AS ReleaseId, r.Name AS [Release], r.Kind AS ReleaseKind,
        w.Kind, w.Title, w.BuiltBy, w.ExternalRef, w.IncludedInBuild,
        CASE
            WHEN w.RemovedAt IS NOT NULL      THEN 'removed'

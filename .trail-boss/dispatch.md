@@ -1,6 +1,7 @@
 ---
+---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It designed and proven on fixtures: where every feature is, from health pings; tomorrow it meets the real database"
+summary: "Move It has its first screen: every feature and fix in the column the evidence puts it in, proven on fixtures; the real database is tomorrow"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -25,54 +26,45 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-A new thing, not a tweak: **Move It**, the answer to a question the governance reader
-keeps asking and nobody can answer quickly — *where is this feature? Still with
-the developers, on DEV, being tested, or live?*
+**The board has a first screen.** Move It's question — *where is this feature:
+still with the developers, on DEV, being tested, or live?* — now has a page a
+manager can open without a guide: one row per application, one column per
+stage, every open feature and fix sitting in the column the evidence puts it
+in. Above it, the numbers for the weekly meeting: how many items are at each
+stage, how many releases are late, on hold, went live this week, or are
+waiting for the client's yes. Click an application to see only it; click an
+item to see what is known about it and its release. Fixes are drawn dashed,
+features solid; anything Team A reports by hand rather than by measurement
+says so on the item.
 
-The insight that made it small: the tracking site he already runs has been
-pinging every application every ten minutes for years, and each answer says
-which build is running. So the history of "what went where, when" already
-exists. What was missing was a place to write down *what is in each build*
-(features and fixes, a few lines per sprint) and *when the client said yes*.
-Everything else — where a feature is, how long releases take, what got rolled
-back, what skipped testing, what went live without approval, which service
-went out ahead of the service it depends on — is worked out from those two
-things plus the pings. Nothing is guessed from names; every answer traces to a
-measurement or to a person who typed it.
-
-Today it went from a sketch to: the design written down and argued through,
-the database tables, the rule that turns pings into a deployment history, a
-large fabricated test dataset built to exercise every awkward case (rollbacks,
-hotfixes mid-sprint, a server swapped under a running build, apps that report
-nothing), and twelve ready-to-run questions — each proven against that data.
+It runs against the fabricated data only, as everything here does. The design
+decision underneath it was settled today by a fact rather than a debate: in
+the real environment Census already lives inside the tracking site, so the
+board is simply a Census page reading the tracking site's own database.
 
 ## What's next
 
-**Tomorrow morning**, following the step-by-step guide written for it: run a
-read-only query against the real database first, then add the new tables and
-build the deployment history from years of real pings, then ask the five
-questions that need no manual entry yet. Some of those may surface real
-findings on day one (an app reporting it is in the wrong environment, a server
-pair out of step). He brings back nine specific answers, several of which
-settle assumptions the fabricated data had to guess at.
+**Tomorrow morning, unchanged:** the step-by-step guide against the real
+database — a read-only look first, then the new tables and the deployment
+history built from years of pings, then the five questions that need no
+typing. He brings back nine answers.
 
-After that: his own change to the tracking site so new deployments are
-recorded as they happen, and the first hand-entered release to watch the board
-light up.
+**Then the board's second screen:** one application in depth — its releases in
+order, which build is on which server, and anything that went out ahead of
+something it depends on.
 
 ## Anything alarming
 
-- **Everything is proven against fabricated data only.** That is the standing
-  rule of this environment — no real data can come here — and it is said
-  plainly everywhere. The real database will teach us things tomorrow.
-- **One design rule had to be corrected while building.** The first version
-  would have said a shipped feature *vanished* from production the moment a
-  hotfix replaced its build. Caught by the test data, fixed, and written down.
-  Worth mentioning because it is exactly the kind of thing the fabricated data
-  is for, and exactly the kind of thing real data may do again.
-- **Two teams' pipelines have no programmatic access.** What is in a build is
-  typed by hand, by him alone, for the foreseeable future. The design keeps
-  that to a handful of edits per sprint, but the habit has to hold.
+- **Everything is proven against fabricated data only.** Unchanged, and said
+  plainly on every artifact.
+- **Two applications have no name.** The tracking site's database holds
+  application ids but no registry of names; the board shows "Application 3"
+  and "Application 4" rather than guess from labels. Where the registry lives
+  is an open item he owns.
+- **Census now reads a database for the first time** — only on this one page,
+  only when a connection string is configured, and the rest of Census is
+  untouched. Worth saying because it was a line the project had never crossed.
 - The Census remote login has still never run for real. Unchanged.
 
-Nothing is broken. Build clean, all pushed, working tree clean.
+Nothing is broken. Build clean; the board verified in the browser against the
+fixtures.

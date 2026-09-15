@@ -1,0 +1,175 @@
+/* The board (move-it.md §13) — the governance reader's page. Its own file, like atlas.css: a
+   separate module over shared truth. One bold element, the lane board; everything else quiet. */
+
+:root {
+    --mi-paper: #f3f4f6;
+    --mi-panel: #ffffff;
+    --mi-rule: #d6dae1;
+    --mi-rule-soft: #e7eaef;
+    --mi-ink: #1a212c;
+    --mi-muted: #66707e;
+    --mi-alert: #b3261e;
+    --mi-alert-bg: #fbe9e7;
+    --mi-hold: #8a5a00;
+    --mi-hold-bg: #fff4dd;
+    --mi-font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mi-display: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mi-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    --mi-app-col: 13rem;
+}
+
+#moveit-root {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--mi-paper);
+    color: var(--mi-ink);
+    font: 14px/1.45 var(--mi-font);
+}
+
+#moveit-root h1, #moveit-root h2, #moveit-root h3, #moveit-root p, #moveit-root ol, #moveit-root ul, #moveit-root dl { margin: 0; }
+#moveit-root button { font: inherit; }
+#moveit-root code { font: 12px/1 var(--mi-mono); background: var(--mi-rule-soft); padding: 0.1rem 0.3rem; border-radius: 3px; }
+#moveit-root :focus-visible { outline: 2px solid var(--mi-ink); outline-offset: 2px; }
+
+/* Header: the name of the question, then the applications as the one filter. */
+.mi-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.6rem 2rem 1rem;
+    background: var(--mi-panel);
+    border-bottom: 1px solid var(--mi-rule);
+    flex-wrap: wrap;
+}
+.mi-title { font: 600 26px/1.1 var(--mi-display); letter-spacing: -0.01em; }
+.mi-tagline { color: var(--mi-muted); margin-top: 0.35rem; max-width: 40rem; }
+
+.mi-filter { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.mi-filter-chip {
+    display: inline-flex; align-items: baseline; gap: 0.45rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--mi-rule);
+    border-radius: 999px;
+    background: var(--mi-panel);
+    color: var(--mi-ink);
+    cursor: pointer;
+}
+.mi-filter-chip:hover { border-color: var(--mi-ink); }
+.mi-filter-chip.is-active { background: var(--mi-ink); color: #fff; border-color: var(--mi-ink); }
+.mi-filter-count { font-size: 12px; color: var(--mi-muted); font-variant-numeric: tabular-nums; }
+.mi-filter-chip.is-active .mi-filter-count { color: rgba(255, 255, 255, 0.7); }
+
+/* The counts strip: work items per lane, then the four release numbers. */
+.mi-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 4rem;
+    padding: 1rem 2rem;
+    background: var(--mi-panel);
+    border-bottom: 1px solid var(--mi-rule);
+}
+.mi-counts-title { font: 600 12px/1 var(--mi-font); color: var(--mi-muted); margin-bottom: 0.6rem; }
+.mi-lane-counts, .mi-release-counts { display: flex; gap: 1.75rem; list-style: none; padding: 0; flex-wrap: wrap; }
+.mi-lane-count, .mi-release-counts li { display: flex; flex-direction: column; gap: 0.1rem; min-width: 5rem; }
+.mi-lane-count { border-left: 3px solid var(--lane); padding-left: 0.6rem; }
+.mi-num { font: 500 30px/1 var(--mi-display); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.mi-num-label { font-size: 12px; color: var(--mi-muted); }
+.mi-release-counts li.is-alert .mi-num { color: var(--mi-alert); }
+.mi-release-counts li.is-hold .mi-num { color: var(--mi-hold); }
+
+/* Body: the board, with the detail column when a chip is open. */
+.mi-body { flex: 1; display: flex; min-height: 0; }
+/* No top padding: the lane header sticks to the scroll port's top edge, and anything
+   scrolled past it would otherwise show through a padding gap above it. */
+.mi-main { flex: 1; overflow: auto; padding: 0 2rem 3rem; }
+.mi-status { color: var(--mi-muted); max-width: 40rem; padding: 2rem 0; }
+.mi-status.is-error { color: var(--mi-alert); }
+
+/* The lane board. A grid with the application column pinned and one column per lane; each
+   application is one row, ruled off from the next; chips fall into the lane they are at. */
+.mi-board {
+    --lane-min: 9.5rem;
+    display: grid;
+    grid-template-columns: var(--mi-app-col) repeat(var(--lanes), minmax(var(--lane-min), 1fr));
+    min-width: calc(var(--mi-app-col) + var(--lanes) * var(--lane-min));
+    background: var(--mi-panel);
+    border: 1px solid var(--mi-rule);
+    border-top: 0;
+    border-radius: 0 0 6px 6px;
+}
+.mi-board-head, .mi-board-row { display: contents; }
+.mi-corner { left: 0; z-index: 2; }
+.mi-corner, .mi-lane-head {
+    position: sticky; top: 0; z-index: 1;
+    background: var(--mi-panel);
+    border-bottom: 1px solid var(--mi-rule);
+    padding: 0.7rem 0.75rem 0.5rem;
+}
+.mi-lane-head {
+    font-weight: 600;
+    box-shadow: inset 0 -3px 0 var(--lane);
+}
+.mi-app, .mi-lane { padding: 0.75rem; border-bottom: 1px solid var(--mi-rule-soft); }
+.mi-board-row:last-child .mi-app, .mi-board-row:last-child .mi-lane { border-bottom: 0; }
+.mi-app { display: flex; flex-direction: column; gap: 0.15rem; position: sticky; left: 0; background: var(--mi-panel); border-right: 1px solid var(--mi-rule-soft); }
+.mi-app-name { font-weight: 600; font-size: 15px; }
+.mi-app-name.is-unnamed { color: var(--mi-muted); font-weight: 500; }
+.mi-app-meta { font-size: 12px; color: var(--mi-muted); }
+.mi-lane { display: flex; flex-direction: column; gap: 0.4rem; border-right: 1px solid var(--mi-rule-soft); min-height: 3.5rem; }
+.mi-lane:last-child { border-right: 0; }
+
+/* A chip is one work item. Features are solid, fixes are dashed; the lane's hue is its
+   left edge, so a chip carries where it is even when read on its own. */
+.mi-chip {
+    display: flex; flex-direction: column; gap: 0.15rem;
+    text-align: left;
+    padding: 0.4rem 0.6rem 0.4rem 0.7rem;
+    border: 1px solid var(--mi-rule);
+    border-left: 4px solid var(--lane);
+    border-radius: 4px;
+    background: var(--mi-panel);
+    color: var(--mi-ink);
+    cursor: pointer;
+}
+.mi-chip.is-fix { border-style: dashed; border-left-style: solid; }
+.mi-chip:hover { border-color: var(--mi-ink); border-left-color: var(--lane); }
+.mi-chip.is-selected { background: var(--mi-ink); color: #fff; border-color: var(--mi-ink); border-left-color: var(--lane); }
+.mi-chip-title { font-weight: 500; line-height: 1.3; }
+.mi-chip-meta { font-size: 11.5px; color: var(--mi-muted); line-height: 1.3; }
+.mi-chip.is-selected .mi-chip-meta { color: rgba(255, 255, 255, 0.72); }
+
+.mi-flag { font-size: 10.5px; font-weight: 600; padding: 0.05rem 0.35rem; border-radius: 3px; }
+.mi-flag.is-hold { color: var(--mi-hold); background: var(--mi-hold-bg); }
+.mi-flag.is-alert { color: var(--mi-alert); background: var(--mi-alert-bg); }
+
+/* The detail column: one work item, then its release. */
+.mi-detail {
+    width: 22rem; flex: none;
+    position: relative;
+    overflow: auto;
+    padding: 1.5rem 1.5rem 2rem;
+    background: var(--mi-panel);
+    border-left: 1px solid var(--mi-rule);
+}
+.mi-detail-close { position: absolute; top: 0.6rem; right: 0.8rem; border: 0; background: none; font-size: 20px; color: var(--mi-muted); cursor: pointer; }
+.mi-detail-close:hover { color: var(--mi-ink); }
+.mi-detail-title { font: 600 18px/1.25 var(--mi-display); padding-right: 1.5rem; }
+.mi-detail-sub { color: var(--mi-muted); margin: 0.3rem 0 1rem; }
+.mi-detail-h3 { font: 600 12px/1 var(--mi-font); color: var(--mi-muted); margin: 1.25rem 0 0.5rem; padding-top: 1rem; border-top: 1px solid var(--mi-rule-soft); }
+.mi-detail-grid { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.4rem 0.75rem; }
+.mi-dt { color: var(--mi-muted); }
+.mi-dd { min-width: 0; overflow-wrap: anywhere; }
+.mi-muted { color: var(--mi-muted); }
+.mi-stage { font-weight: 600; border-left: 3px solid var(--lane); padding-left: 0.4rem; }
+
+@media (max-width: 900px) {
+    .mi-body { flex-direction: column; }
+    .mi-detail { width: auto; border-left: 0; border-top: 1px solid var(--mi-rule); }
+    :root { --mi-app-col: 9rem; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .mi-chip, .mi-filter-chip { transition: background-color 0.12s ease, border-color 0.12s ease; }
+}

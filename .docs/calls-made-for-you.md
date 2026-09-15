@@ -4,6 +4,65 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-14 — Move It board, level 1 built
+
+**Question 01 drawn as lanes, not a grouped table.** The spec said "every open work item
+and its stage, grouped by application." Options: a grouped table with a stage column; a
+kanban-style lane board. Call: lanes — one row per application, one column per lane. Reason:
+the governance reader reads a lane board without translating; "where is it" is a position, and a
+position is a column. The one bold element on the page; everything else is quiet.
+
+**Two lanes before DEV.** 01 returns `with the devs`, `not deployed` and `no evidence` as
+statuses that are nowhere. Call: "With the developers" and "Built, not seen" (the latter
+holding both `not deployed` and `no evidence`, the reason said on the chip). Reason: an item
+that is nowhere still needs a place on a board that claims to show everything.
+
+**Peers share a lane.** VAL and UAT have equal `Sort`. Call: one lane, labelled "VAL / UAT".
+Reason: the sequence says they are the same step; two lanes would invent an order.
+
+**`ReleaseId` added to 01's output.** The board needs 02's release row for a chip's flags
+and detail; 01 only carried the release name. Options: join by (ApplicationId, Name); add
+the id. Call: add `r.Id AS ReleaseId`. Reason: names are not keys. The file is "both"; the
+column moves with it.
+
+**Stage hues copied from Atlas, not imported.** `stage-hues.mjs` repeats Atlas's pinned map.
+Reason: §13 says own JS tree; the hues are deliberately the same so a stage reads the same
+colour in both views. If the map changes, it changes in two files.
+
+**Unnamed applications shown by id.** Applications 3 and 4 have no name anywhere in the
+database. Options: derive from the endpoint moniker ("LedgerService DEV"); show the id.
+Call: the id, muted, "Application 3". Reason: no inference from naming; the moniker is a
+label someone typed for an endpoint, not the application's name. Item 10 is the fix.
+
+**Connection string in `appsettings.Development.json`, none in `appsettings.json`.** Reason:
+the module is opt-in (§13); the checked-in default runs Census file-only, and the dev
+profile points at the local fixture database. Demo profile unchanged: it has no AppTrak.
+
+**Chip detail shows the release, not the release page.** Levels 2 and 3 (application,
+release, work item trail) are the next slice; the detail column is the seed for them.
+
+## 2026-09-14 — Move It board, spec draft (§13)
+
+**The board is a Census module, not a wired-to-AppTrak-site page.** Robert's fact:
+Census runs inside AppTrakWeb in the deployed environment. Call: resolve open item 4 as a
+Census module in the Estate/Atlas pattern (own Razor page, own `wwwroot/js/moveit/`
+tree, own API controllers). Reason: same process as AppTrak in production, and the only
+code in reach here.
+
+**Optional connection string; module absent without it.** The board is the first Census
+code that reads SQL. Options: make the connection required; read the fixtures from a JSON
+dump instead; optional and unmounted when missing. Call: optional. Reason: Estate and
+Atlas stay file-only and untouched; the repo still runs with no database.
+
+**Landing page shows five counts plus question 01, not all twelve.** Reason: questions
+05–11 are the architect's; the governance reader asked "where is it," and the inbox is
+Robert's queue. Every question stays one click away. Listed as an open item for him.
+
+**SQL runs from the question files verbatim, path configurable.** Reason: rule 9 (one
+file per question) and the no-inline-SQL standard say the same thing; the files move to
+AppTrak's repo later and only the path changes.
+
+
 ## 2026-09-14 — Move It question queries
 
 **Shared derivation copied into each question file, not views.** Six of the twelve

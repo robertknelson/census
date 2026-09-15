@@ -25,6 +25,13 @@ relates: []
 
 ## notes
 
+### 2026-09-14, close (repo scrubbed of work details)
+- Robert found personal and organisational context in the spec on review.
+  Ruling: name as ratifier is fine; no details about work, ever. Scrubbed
+  from the tree, then from every commit (git filter-repo, force-pushed;
+  origin/main verified clean). Personal context now lives only in the
+  git-ignored `.docs/local/`. Rule saved to memory.
+
 ### 2026-09-14, late (parked: board level 2)
 - Robert reviewed the real AppTrak schema himself: the local copy is missing
   the tables that let a team register applications and endpoints, the

@@ -1,7 +1,7 @@
 ---
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It can be fed from the board now: a history of every build seen, click one and say what was in it — Census's first write, ratified and proven on fixtures"
+summary: "Move It has its way in and its release page: name builds from history, open a release, record approvals and holds, pull or rename items — all proven on fixtures tonight"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -26,7 +26,15 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**The board has a way in.** A History page lists every build the system ever
+**One release in depth, with the human record kept there.** Open any release
+from the board or the history and see what is in it and where each piece is,
+which builds carry it and where those builds are right now, and every human
+event in order. On the same page: record an approval, a sign-off, a hold or a
+resume with who did it and when; pull an item with a reason; fix a title.
+Nothing is deleted, repeating an entry changes nothing, and a hold recorded
+here shows up on the board's numbers the moment the page reloads.
+
+**Earlier tonight: the board has a way in.** A History page lists every build the system ever
 saw arrive, newest first, and says which ones nobody has named yet. Click one
 and say what was in it: pick or create the release, list the features and
 fixes, save. Or start a release for work still with the developers and attach
@@ -80,8 +88,8 @@ board is simply a Census page reading the tracking site's own database.
 
 **He names the first real builds.** This build of Census goes into the real
 environment; he opens the History page and names the recent builds he
-remembers, and sets up what is in progress. That is the first real reading
-of the board.
+remembers, sets up what is in progress, and records the approvals he knows
+about on each release's page. That is the first real reading of the board.
 
 **Then the board's third screen, ahead of the second.** The release page and
 the work item's trail hang off tables that exist; the second screen still

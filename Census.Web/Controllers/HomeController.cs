@@ -54,6 +54,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // The release page (move-it.md §16): one release in depth, with its events and edits.
+    [HttpGet("/moveit/release/{id:int}")]
+    public IActionResult MoveItRelease(int id, [FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
+        ViewData["ReleaseId"] = id;
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

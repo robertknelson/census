@@ -50,11 +50,35 @@ export function fetchLists() {
     return getJson('/api/moveit/lists');
 }
 
-// The board's one write (move-it.md §15). A 400 carries the server's validation messages.
-export async function postNameBuild(request) {
+export function fetchEvents() {
+    return getJson('/api/moveit/events');
+}
+
+export function fetchReleaseBuilds() {
+    return getJson('/api/moveit/release-builds');
+}
+
+// The board's writes (move-it.md §15, §16). A 400 carries the server's validation messages.
+export function postNameBuild(request) {
+    return postJson('/api/moveit/name-build', request);
+}
+
+export function postEvent(request) {
+    return postJson('/api/moveit/event', request);
+}
+
+export function postPullItem(request) {
+    return postJson('/api/moveit/pull-item', request);
+}
+
+export function postRetitle(request) {
+    return postJson('/api/moveit/retitle', request);
+}
+
+async function postJson(url, request) {
     let response;
     try {
-        response = await fetch('/api/moveit/name-build', {
+        response = await fetch(url, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request),
         });
     } catch {

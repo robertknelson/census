@@ -235,3 +235,25 @@
 @media (max-width: 900px) {
     .mi-entry { width: auto; }
 }
+
+/* The release page (move-it.md §16): three sections in the main column, the event form beside. */
+.mi-section { margin-top: 1.5rem; }
+.mi-section:first-child { margin-top: 0; }
+.mi-section-title { font: 600 13px/1 var(--mi-font); color: var(--mi-muted); margin: 1.25rem 0 0.6rem; }
+.mi-section .mi-hist { border-top: 1px solid var(--mi-rule); border-radius: 6px; }
+.mi-items tr.is-pulled td { color: var(--mi-muted); text-decoration: line-through; }
+.mi-items tr.is-pulled td:last-child, .mi-items tr.is-pulled td:nth-child(5) { text-decoration: none; }
+.mi-actions { white-space: nowrap; text-align: right; }
+.mi-inline { display: inline-flex; gap: 0.35rem; align-items: center; }
+.mi-inline input { min-width: 14rem; }
+.mi-builds, .mi-events { list-style: none; padding: 0; background: var(--mi-panel); border: 1px solid var(--mi-rule); border-radius: 6px; }
+.mi-builds li, .mi-events li { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--mi-rule-soft); display: flex; gap: 0.75rem; align-items: baseline; flex-wrap: wrap; }
+.mi-builds li:last-child, .mi-events li:last-child { border-bottom: 0; }
+.mi-build-where { flex: 1; }
+.mi-event-when { min-width: 4.5rem; color: var(--mi-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mi-event-what { flex: 1; }
+.mi-events li.is-hold .mi-event-what strong { color: var(--mi-hold); }
+.mi-events li.is-abandoned .mi-event-what strong { color: var(--mi-alert); }
+.mi-events li.is-approved .mi-event-what strong { color: #1b6e3a; }
+.mi-release-link { color: var(--mi-ink); }
+.mi-detail-link { margin-top: 1.25rem; }

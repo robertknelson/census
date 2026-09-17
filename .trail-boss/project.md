@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Deploy this build of Census inside the real AppTrakWeb and name the first real builds from /moveit/history. Repo side: board level 3 (release page, with events and edits). Owed: the missing AppTrak tables as zero-row DDL for level 2; the read-only sidebar view when the nav exists"
+next_step: "Deploy this build of Census inside the real AppTrakWeb; name the first real builds from /moveit/history and record events from /moveit/release/{id}. Owed: the missing AppTrak tables as zero-row DDL for level 2; the read-only sidebar view (board and release page without controls) when the nav exists"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,15 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-17, later (level 3 — the release page, §16)
+- "go" on the release page. Built and browser-verified: `/moveit/release/{id}`
+  — what is in it (01's status per item), builds it claims and where the
+  ledger has them now, events newest first, 02's flags in the subtitle.
+  Entry: record an event (validated kinds/stages, build from the claimed
+  set, by whom required), pull an item with a reason, rename in place. All
+  idempotent; nothing deleted. Linked from History (release name) and from
+  the board's chip detail. Demo reset restores the seed.
 
 ### 2026-09-17, night (the History page — §15 built)
 - Ratified: entry lives on the Census board "because that is where I will be

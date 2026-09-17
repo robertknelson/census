@@ -4,6 +4,31 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-17 — the release page (§16)
+
+**Rename edits the title in place.** §14 keyed manifests on title and treated a rename as an
+orphan plus a new item. Options: the same on the page (pull the old, add the new); update
+by Id. Call: update by Id. Reason: on the page the item's identity is its Id and a typo fix
+is what the user means; the loader still reports the orphan against an old manifest, which
+is the right side to be loud on.
+
+**Pull needs a reason, and there is no restore.** Reason: `RemovedAt`/`RemovedNote` is an
+assertion; a silent undo would rewrite history. Open item in §16 if restore is wanted.
+
+**Events form: build is a select of the release's claimed builds, not free text.** Reason:
+an event about a build the release does not claim is almost always a typo; claiming the
+build first (History, *Add to*) is one click. Free text can be added if a real case appears.
+
+**"By whom" is required and separate from `CreatedBy`.** Reason: the approver or tester is
+the fact; the entrant is provenance.
+
+**Events listed newest first, like History.** Reason: the reader arrives asking what
+happened last.
+
+**"Not on any box now" for a claimed build the ledger no longer sees.** Options: hide such
+builds; word it as superseded. Call: show, with that wording, beside items that still read
+PROD. Reason: both facts are true and the page should not pick one.
+
 ## 2026-09-17 — the History page (§15)
 
 **History is its own route, the board unchanged.** Options: a mode switch on `/moveit`; a

@@ -22,6 +22,12 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
     [HttpGet("history")]
     public Task<IActionResult> History() => Run("board/history.sql");
 
+    [HttpGet("events")]
+    public Task<IActionResult> Events() => Run("board/events.sql");
+
+    [HttpGet("release-builds")]
+    public Task<IActionResult> ReleaseBuilds() => Run("board/release-builds.sql");
+
     [HttpGet("lists")]
     public Task<IActionResult> Lists() => Run("manifest/lists.sql");
 
@@ -44,6 +50,31 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
         var errors = await entry.ValidateAsync(request);
         if (errors.Count > 0) return BadRequest(new { errors });
         return Ok(await entry.NameBuildAsync(request));
+    }
+
+    [HttpPost("event")]
+    public async Task<IActionResult> RecordEvent([FromBody] EventRequest request)
+    {
+        if (!entry.Enabled) return NotFound();
+        var errors = await entry.ValidateEventAsync(request);
+        if (errors.Count > 0) return BadRequest(new { errors });
+        return Ok(new { outcome = await entry.RecordEventAsync(request) });
+    }
+
+    [HttpPost("pull-item")]
+    public async Task<IActionResult> PullItem([FromBody] ItemRequest request)
+    {
+        if (!entry.Enabled) return NotFound();
+        if (request.WorkItemId <= 0) return BadRequest(new { errors = new[] { "An item is required." } });
+        return Ok(new { outcome = await entry.PullItemAsync(request) });
+    }
+
+    [HttpPost("retitle")]
+    public async Task<IActionResult> Retitle([FromBody] ItemRequest request)
+    {
+        if (!entry.Enabled) return NotFound();
+        if (request.WorkItemId <= 0 || string.IsNullOrWhiteSpace(request.Title)) return BadRequest(new { errors = new[] { "An item and a title are required." } });
+        return Ok(new { outcome = await entry.RetitleAsync(request) });
     }
 
     private async Task<IActionResult> Run(string file)

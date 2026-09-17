@@ -109,6 +109,56 @@ public class MoveItEntry
         return result;
     }
 
+    public async Task<List<string>> ValidateEventAsync(EventRequest request)
+    {
+        var errors = new List<string>();
+        if (request.ReleaseId <= 0) errors.Add("A release is required.");
+        if (string.IsNullOrWhiteSpace(request.By)) errors.Add("Say who did it.");
+        if (!DateTimeOffset.TryParse(request.At, out _)) errors.Add("'at' must be a date-time.");
+        var lists = await ListsAsync();
+        bool In(string list, string value) => lists.TryGetValue(list, out var members) && members.Contains(value, StringComparer.OrdinalIgnoreCase);
+        if (!In("event-kinds", request.Kind)) errors.Add($"Event kind '{request.Kind}' is not in event-kinds.");
+        if (!string.IsNullOrWhiteSpace(request.Stage) && !In("stages", request.Stage)) errors.Add($"Stage '{request.Stage}' is not in stages.");
+        return errors;
+    }
+
+    // Events are history (§14): inserted if absent by (release, kind, stage, build, at), never updated.
+    public async Task<string> RecordEventAsync(EventRequest request)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        var row = await RunAsync(connection, null, "event-insert",
+            ("ReleaseId", request.ReleaseId, SqlDbType.Int),
+            ("Kind", request.Kind, SqlDbType.NVarChar),
+            ("Stage", Text(request.Stage), SqlDbType.NVarChar),
+            ("Build", Text(request.Build), SqlDbType.NVarChar),
+            ("At", DateTimeOffset.Parse(request.At), SqlDbType.DateTimeOffset),
+            ("EventBy", request.By.Trim(), SqlDbType.NVarChar),
+            ("Note", Text(request.Note), SqlDbType.NVarChar),
+            ("By", _by, SqlDbType.NVarChar));
+        return (string)row["Outcome"];
+    }
+
+    public async Task<string> PullItemAsync(ItemRequest request)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        var row = await RunAsync(connection, null, "workitem-pull",
+            ("Id", request.WorkItemId, SqlDbType.Int),
+            ("Note", Text(request.Note), SqlDbType.NVarChar));
+        return (string)row["Outcome"];
+    }
+
+    public async Task<string> RetitleAsync(ItemRequest request)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        var row = await RunAsync(connection, null, "workitem-retitle",
+            ("Id", request.WorkItemId, SqlDbType.Int),
+            ("Title", request.Title.Trim(), SqlDbType.NVarChar));
+        return (string)row["Outcome"];
+    }
+
     private async Task<Dictionary<string, string[]>> ListsAsync()
     {
         await using var connection = new SqlConnection(_connectionString);
@@ -175,6 +225,24 @@ public class NewItem
     public string ExternalRef { get; set; }
     public string FoundInStage { get; set; }
     public bool InThisBuild { get; set; }
+}
+
+public class EventRequest
+{
+    public int ReleaseId { get; set; }
+    public string Kind { get; set; }
+    public string Stage { get; set; }
+    public string Build { get; set; }
+    public string At { get; set; }
+    public string By { get; set; }
+    public string Note { get; set; }
+}
+
+public class ItemRequest
+{
+    public int WorkItemId { get; set; }
+    public string Note { get; set; }
+    public string Title { get; set; }
 }
 
 public class NameBuildResult

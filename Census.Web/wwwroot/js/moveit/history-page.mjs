@@ -130,7 +130,7 @@ class HistoryPage {
                 <td class="mi-muted">${escapeHtml(r.Branch ?? '')}</td>
                 <td>
                     ${r.ReleaseId
-                        ? `<span>${escapeHtml(r.Release)}</span>${r.Claims > 1 ? `<span class="mi-muted"> +${r.Claims - 1}</span>` : ''}
+                        ? `<a class="mi-release-link" href="/moveit/release/${r.ReleaseId}">${escapeHtml(r.Release)}</a>${r.Claims > 1 ? `<span class="mi-muted"> +${r.Claims - 1}</span>` : ''}
                            <button type="button" class="mi-button is-quiet" data-name="${r.DeploymentId}">Add to</button>`
                         : `<button type="button" class="mi-button" data-name="${r.DeploymentId}">Name it</button>`}
                 </td>

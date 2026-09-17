@@ -113,5 +113,6 @@ export function renderDetail(item, release, app, now) {
             ${row('On hold', release?.OnHold === 1 ? escapeHtml(release.HoldReason ?? 'no reason recorded') : null)}
             ${row('Approved', release?.ApprovedAt ? `${shortDate(release.ApprovedAt)} for <code>${escapeHtml(release.ApprovedBuild)}</code>` : null)}
             ${row('Contradiction', escapeHtml(release?.Contradiction))}
-        </dl>`;
+        </dl>
+        ${release ? `<p class="mi-detail-link"><a class="mi-button is-quiet" href="/moveit/release/${release.ReleaseId}">Open the release</a></p>` : ''}`;
 }

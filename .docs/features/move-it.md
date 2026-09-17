@@ -584,6 +584,10 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/sql/board/history.sql` | both | §15: the ledger newest first with the claiming release |
 | `apptrak/sql/board/releases.sql` | both | §15: the entry form's release picker |
 | `apptrak/sql/manifest/workitem-attach.sql` | both | §15: set `IncludedInBuild` once, where null |
+| `apptrak/sql/board/events.sql` | both | §16: every human event |
+| `apptrak/sql/board/release-builds.sql` | both | §16: claimed builds and where the ledger has them now |
+| `apptrak/sql/manifest/workitem-pull.sql` | both | §16: `RemovedAt` + note, once |
+| `apptrak/sql/manifest/workitem-retitle.sql` | both | §16: title in place, by Id |
 | `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |
 | `apptrak/Invoke-AppTrakQuestions.ps1` | both | runs every question; against fixtures it is the proof, against real data it is the first board |
 | `.docs/move-it-morning-guide.md` | real | the step-by-step for the first real-environment run: recon, DDL, backfill, first board, processor rule, report-back |
@@ -1046,8 +1050,69 @@ is withdrawn.
   typo. Draft: from the release page (level 3), under §14's rules — a title
   change is a new item and an orphan the page shows, a pull is `RemovedAt`
   with a note.
-- **Level 3 scope moves.** It now includes writing events and editing items,
-  not only reading.
+- ~~Level 3 scope moves.~~ Built as §16 with events, pull and rename.
+
+## 16. The release page — level 3 (ratified 2026-09-17 "go"; built and browser-verified the same night)
+
+**What it is.** One release in depth, reached from a release name on History or
+from *Open the release* in the board's chip detail: `/moveit/release/{id}`.
+Three sections in the main column and the event form beside them.
+
+1. **What is in it.** Every work item: kind, title, built by, the build it
+   first appeared in, and where it is now — question 01's status with the
+   stage hue and days there, `asserted` where the evidence is Team A's word.
+   Pulled items stay in the list, struck through, with their note.
+2. **Builds it claims.** Each `ReleaseBuild`, its note, and where the ledger
+   says that build is *right now* (`board/release-builds.sql`: current
+   `moveit.Deployment` rows for the application and build). A claimed build
+   that later builds have replaced on every box reads *not on any box now*
+   while its features still read PROD in section 1 — both are true: the
+   build is gone, the feature was carried forward.
+3. **Events.** Every `ReleaseEvent`, newest first: kind, stage, build, who,
+   note. Question 02's flags (on hold with its reason, late, contradiction,
+   approved for which build) sit in the subtitle, so an event recorded here
+   changes the subtitle on reload — the write flows through the questions,
+   not around them.
+
+**Entry on this page.** Three writes through `MoveItEntry`, same rules as
+§14 and §15:
+
+| Action | Statement | Rule |
+|---|---|---|
+| Record an event (kind, stage?, build from the claimed set?, when, by whom, note) | `event-insert` | keyed (release, kind, stage, build, at); inserted or *unchanged*; never updated |
+| Pull an item, with a reason | `workitem-pull` | sets `RemovedAt` and `RemovedNote` once; an item already pulled is unchanged; never deleted |
+| Rename an item | `workitem-retitle` | in place, by Id; a manifest keyed on the old title reports it as an orphan, which is the loader saying so |
+
+Kinds and stages are validated against the lists on the server; the event's
+*by whom* is required (the approver, the tester — not the entrant, who is
+`CreatedBy`). Pull and rename are inline in the row: the title becomes a box
+with Save/Cancel, or a *why it is pulled* box with Pull/Cancel; no dialogs.
+
+**Verified 2026-09-17 in the browser on the fixtures:** Sprint 42 for
+WidgetCore renders with four items (one already pulled), two claimed builds
+(neither on a box now — the hotfix replaced them, and the items still read
+PROD), three events. Recorded a *hold* at PROD for `20260723.2` → row written,
+the subtitle shows *on hold: Verification test hold* from question 02.
+Renamed *Rate lookup cache* to *…v2* → in place, the board chip reads the
+new name. Pulled *Underwriting rules v2* with a reason → struck through with
+the note, the board's application cell counts *2 removed*. Through the API:
+the same event again is *unchanged*; a bad kind, bad stage, missing *by* and
+unparseable *at* come back as four named errors; pull and rename repeated are
+*unchanged*. The chip detail's *Open the release* link points at the page.
+The demo reset restores the seed rows and removes the event.
+
+**Open items for this section**
+- **Restore a pulled item.** Not offered; a pull is an assertion with a
+  reason and undoing it silently would rewrite history. If it is needed, a
+  *restored* note plus clearing `RemovedAt`, both visible.
+- **Retract an event** (§14's open item, still open): a wrong event stays
+  beside its correction. A `RetractedAt` column is the honest shape when it
+  is wanted.
+- **Edit an item's other fields** (kind, built by, first build) — only title
+  and pull today; the rest waits for a case.
+- **The reader's copy of this page.** Level 3 carries writes; when the
+  read-only sidebar view exists (§15), this page needs the same split as
+  History: the release in depth without the form and the row controls.
 
 ## Appendix A — questions the data could answer
 

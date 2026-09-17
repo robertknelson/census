@@ -1,7 +1,7 @@
 ---
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It met the real database: history reads true, 26 deployments found, no surprises — except our lookup script rewrote four rows it should have left alone; fixed, owner checks the damage"
+summary: "Move It met the real database: history reads true, 26 deployments found, no surprises; the lookup rows were entered by hand and the repo's script owes a rewrite to match"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -55,12 +55,11 @@ board is simply a Census page reading the tracking site's own database.
 
 ## What's next
 
-**He checks four rows.** The lookup script found the tracking site already
-had its own stage names and overwrote their labels. He compares them against
-the backup he took first, restores the labels if the site shows them, and
-brings back how those four rows were ordered. That one answer also settles
-whether the empty "inbox" is genuinely empty or the query was looking in the
-wrong place.
+**The repo's lookup script learns how the real lookup table works.** It is a
+list-of-lists table and the script had written list names instead of list
+members. He entered the real rows correctly by hand, so nothing is wrong on
+the live side; the script and the local copy get rewritten to match once he
+reports how he entered them.
 
 **The live half of the ledger is 2–4 weeks out at least.** Until his code
 writes the ledger as pings arrive, the backfill script has to be re-run
@@ -75,12 +74,10 @@ on which server, and anything that went out ahead of something it depends on.
 
 ## Anything alarming
 
-- **The lookup script broke its own promise.** The guide said no existing row
-  in the tracking database would change; the script changed the labels on
-  four stage rows that were already there. Fixed so it can never update an
-  existing row again; he has a backup from before it ran. Small, and worth
-  saying because it is the first time this project wrote over something it
-  did not own.
+- **The lookup script misread the tracking site's lookup table** and wrote
+  list names where it should have written list members. No harm done: he
+  entered the real rows by hand. The script can no longer update an existing
+  row, and it owes a rewrite.
 - **One question takes a minute on real data.** Not one that is on the board,
   so nothing to do yet; noted for when it is.
 - **The real environment is now no longer fabricated-only for the SQL side.**

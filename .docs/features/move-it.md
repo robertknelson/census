@@ -705,21 +705,13 @@ evidence, "looks correct", in 59 seconds — item 16.
    endpoints send deployment blocks today, nothing has been *observed* past
    DEV, and 11's 32 endpoints without evidence are the VAL/UAT/PROD ones. 26
    deployment rows across the whole history fits a regime that is young.
-   Confirmed once item 14's cleanup has run and 05 is re-run under item 18's
-   shape.
-14. **003 inserted seventeen list headers into the real `core.SelectItem`.**
-   Every row it wrote has `MasterId = -1`, which in AppTrak's model makes it a
-   list name, not a member (item 18). The real stage names Robert saw are
-   members of AppTrak's own stage list (`MasterId = that list's Id`), so the
-   `MERGE ON (Grouping, Identifier)` almost certainly matched nothing and
-   updated nothing; it added four headers called DEV, VAL, UAT, PROD and
-   thirteen more. Owed by Robert: confirm against the backup that no
-   pre-existing row changed (`Identifier IN ('DEV','VAL','UAT','PROD')` should
-   show the real members untouched beside ours), and bring back the real stage
-   list's header `Identifier` and its members' `Identifier`s (reference values,
-   not data). Cleanup script owed by this repo once item 18 is ratified:
-   delete rows where `MasterId = -1` and `Grouping` and `Identifier` are ours.
-   003 is insert-only from 2026-09-17 and is rewritten under item 18.
+   Robert entered the rows by hand in the real environment, so the join had
+   real members to read; the inbox is empty because nothing is observed past
+   DEV. Honest.
+14. ~~003 wrote seventeen list headers into the real `core.SelectItem`.~~
+   Moot (2026-09-17, Robert): he entered the records properly by hand in the
+   real environment, and everything ran. No cleanup, no restore. What 003
+   does in *this* repo is item 18.
 15. **Backfill on real data:** 26 rows, `Broken` 0, second run 0. Minutes not
    recorded; bring the number next time so the processor's batch cost is
    known. 26 episodes over the whole ping history is small — see item 13(a).
@@ -735,28 +727,18 @@ evidence, "looks correct", in 59 seconds — item 16.
    backfill's watermark. Re-run `backfill-deployment.sql` before any
    real board reading; it is idempotent and prints what it added. The
    two-producer test waits on the processor.
-18. **`core.SelectItem` rework — proposed 2026-09-17, unratified.** The table
-   is a recursive hierarchy (header `MasterId = -1`, members point at the
-   header; `Grouping` is dropdown grouping only). Proposed shape:
-   - `ReleaseKind`, `WorkItemKind`, `LinkKind`, `EventKind`: one header row
-     each, members under it, `Grouping` NULL. 003 finds or creates the header
-     by `(MasterId = -1, Identifier)` and inserts missing members by
-     `(MasterId = header.Id, Identifier)`. Never updates.
-   - `Stage`: **no rows of ours.** AppTrak already has its stage list, and its
-     `Sort` is a dropdown order, not a promotion sequence (peers cannot be
-     equal there). The sequence Move It needs lives in a four-row
-     `moveit.Stage (Stage, Rank)` — DEV 10, VAL 20, UAT 20, PROD 30 — keyed by
-     the identifier `HealthEndpoint.Stage` holds. Every question's `stg` CTE
-     and `board/stages.sql` read that table; nothing reads `SelectItem` for
-     stages at all.
-   - The Kind columns on the `moveit` tables keep storing the member
-     `Identifier` string (as now); the header is the dropdown's source, not a
-     foreign key, matching the rest of AppTrak.
-   Alternatives rejected in the proposal: (b) reuse AppTrak's stage `Sort` as
-   the sequence — wrong meaning, peers inexpressible; (c) a Move It-owned
-   stage list in `SelectItem` — duplicates a list AppTrak owns. Waits on
-   Robert's ratification and on item 14's two values (whether the real
-   identifiers are exactly DEV/VAL/UAT/PROD).
+18. **003 and the fixture should mirror what Robert entered by hand.** The
+   real rows are right; the repo's script and the local copy are not (all 17
+   rows are headers, `MasterId = -1`). Needed from him, as values: the list
+   header identifiers he used, and whether the members carry `Grouping`
+   (`'Stage'` etc.) or NULL. The second matters: eight questions and
+   `board/stages.sql` select stages by `WHERE Grouping = 'Stage'`, and all
+   eight were empty on the morning run by design (`moveit` empty), so a
+   Grouping mismatch would not have shown. If his members have no Grouping,
+   the `stg` CTEs move to `MasterId = (header Id)`. The stage *sequence*
+   question (AppTrak's `Sort` is a dropdown order; VAL and UAT peers need
+   equal rank) is answered by whatever Sort he gave the members. Not urgent;
+   nothing is broken for him.
 
 ## 13. The board — the governance reader's page (ratified 2026-09-14; level 1 built)
 

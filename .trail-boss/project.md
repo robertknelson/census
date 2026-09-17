@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Open item 14: compare the four Stage rows in the real core.SelectItem against the Part C backup, restore Display/Description if AppTrak shows them, and bring back the four Identifier/Sort pairs — that decides whether 05's empty inbox is honest (item 13). Still owed: the missing AppTrak tables as zero-row DDL for board level 2"
+next_step: "Bring back how the core.SelectItem lists were entered by hand (header identifiers; whether members carry Grouping) so 003 and the fixture mirror the real rows (item 18). Still owed: the missing AppTrak tables as zero-row DDL for board level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -33,10 +33,11 @@ relates: []
   26 rows, Broken 0, second run 0; 06/07 empty, 08 three rollbacks he knew;
   05 empty; full set clean; 11 correct-looking in 59 seconds; processor change
   2–4 weeks out at least.
-- **One promise broken:** the real `core.SelectItem` already had Stage rows and
-  003's MERGE updated them. 003 is insert-only now; he owes a comparison
-  against his backup and the four Identifier/Sort pairs (open item 14). That
-  answer also decides whether 05's empty inbox is honest (item 13).
+- `core.SelectItem` is a recursive hierarchy (header `MasterId = -1`, members
+  point at it; `Grouping` is dropdown grouping only). 003 had written headers,
+  not lists; Robert entered the real rows by hand and everything ran, so no
+  cleanup. 003 and the fixture still owe a rewrite to match (item 18).
+- Robert moved the ledger to `moveit.Deployment`; renamed across the repo.
 - Open items 12–17 added. Level 2 still parked on the missing tables.
 
 ### 2026-09-14, close (repo scrubbed of work details)

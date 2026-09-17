@@ -18,7 +18,7 @@ prod AS (SELECT MAX(Sort) AS Sort FROM stg),
 pre  AS (SELECT MAX(s.Sort) AS Sort FROM stg s CROSS JOIN prod WHERE s.Sort < prod.Sort),
 dep AS (
     SELECT d.ApplicationId, ep.Stage, d.Build, d.DetectedAt AS At
-    FROM health.Deployment d JOIN health.HealthEndpoint ep ON ep.Id = d.EndpointId
+    FROM moveit.Deployment d JOIN health.HealthEndpoint ep ON ep.Id = d.EndpointId
     UNION ALL
     SELECT r.ApplicationId, e.Stage, e.Build, e.At
     FROM moveit.ReleaseEvent e JOIN moveit.Release r ON r.Id = e.ReleaseId

@@ -3,12 +3,12 @@
 
     WHY THIS EXISTS. No real AppTrak data can reach this environment (move-it.md 6, hard
     constraint), so the fixtures in seed/ are the coverage. This runs the pieces in the only
-    order that works: DDL, lookups, seed, then the backfill that derives health.Deployment
+    order that works: DDL, lookups, seed, then the backfill that derives moveit.Deployment
     from the seeded HealthReport history using the same rule the live processor will use.
 
     Everything it runs is idempotent; run it again after changing any file.
 
-    The real environment gets 001, 002, 003 and backfill-health-deployment.sql. It never
+    The real environment gets 001, 002, 003 and backfill-deployment.sql. It never
     gets seed/ - and sql/history-deployment-episodes.sql is read-only and only for there.
 
     Usage: .\Invoke-AppTrakDemo.ps1 [-Server localhost] [-Database AppTrak] [-SkipSeed]
@@ -21,12 +21,12 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $steps = @(
-    'sql\001-create-health-deployment.sql',
+    'sql\001-create-deployment.sql',
     'sql\002-create-moveit-schema.sql',
     'sql\003-lookups.sql'
 )
 if (-not $SkipSeed) { $steps += 'seed\seed-apptrak-demo.sql' }
-$steps += 'sql\backfill-health-deployment.sql'
+$steps += 'sql\backfill-deployment.sql'
 
 foreach ($step in $steps) {
     $path = Join-Path $PSScriptRoot $step
@@ -42,7 +42,7 @@ Write-Host '-- row counts'
 SET NOCOUNT ON;
 SELECT 'health.HealthEndpoint' AS [table], COUNT(*) AS [rows] FROM health.HealthEndpoint WHERE Tags = 'demo'
 UNION ALL SELECT 'health.HealthReport',  COUNT(*) FROM health.HealthReport WHERE SessionId = 'demo-seed'
-UNION ALL SELECT 'health.Deployment',    COUNT(*) FROM health.Deployment
+UNION ALL SELECT 'moveit.Deployment',    COUNT(*) FROM moveit.Deployment
 UNION ALL SELECT 'moveit.Release',       COUNT(*) FROM moveit.Release
 UNION ALL SELECT 'moveit.WorkItem',      COUNT(*) FROM moveit.WorkItem
 UNION ALL SELECT 'moveit.ReleaseBuild',  COUNT(*) FROM moveit.ReleaseBuild

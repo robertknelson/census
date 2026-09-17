@@ -319,9 +319,13 @@ name-beside-id columns, no foreign keys in `health`, no procs or views.
 - `health.HealthFact` — per check, not per deployment (`DeployBuild` is 25
   chars against `HealthReport.Build`'s 50; `DeployAt` is a string). Not the
   source for deployments.
-- `core.SelectItem` (`Grouping`, `Sort`) — the lookup pattern. **Stage
+- `core.SelectItem` (`Grouping`, `Sort`) — the lookup pattern. ~~**Stage
   sequence lives here** as rows grouped `Stage`; DEV, VAL and UAT peers, PROD
-  above. No new table; supersedes §6's "add ordering to the registry".
+  above. No new table; supersedes §6's "add ordering to the registry".~~
+  **Misread** (2026-09-17, Robert): `SelectItem` is a single-table recursive
+  hierarchy — a list is a header row with `MasterId = -1`, its members carry
+  `MasterId = header.Id`; `Grouping` only groups options inside a dropdown.
+  Our 17 rows were all headers. Open item 18 holds the rework.
 - **No Application table in this database.** `ApplicationId` references
   nothing here. Where the registry lives is open item 10; team ownership
   attaches to it once found. *Corrected 2026-09-14 evening, from Robert's
@@ -335,9 +339,13 @@ gates as rows in a `moveit.ReleaseEvent` table (kind, at, build, by, note),
 so "verified in VAL" is a row one may or may not write; team on the
 Application registry, nullable; stage sequence in `core.SelectItem`.
 Observed evidence stays in `health`; assertions go in a new `moveit` schema —
-the observed/asserted line, drawn in SQL.
+the observed/asserted line, drawn in SQL. *Amended 2026-09-17, Robert's call:*
+the ledger is `moveit.Deployment`, not `health.Deployment`. It is derived from
+`HealthReport` and owned by Move It, so it sits with Move It's other tables;
+observed-versus-asserted is the row's provenance (`HealthReportId`), not the
+schema it lives in. `health` stays untouched by this work.
 
-### 10.1 First slice — `health.Deployment`, written by the report processor
+### 10.1 First slice — `moveit.Deployment`, written by the report processor
 
 Robert's proposal, ratified with four refinements: the HealthReport
 processing code inspects each report's deployment block and, if it differs
@@ -361,7 +369,7 @@ deployment changes are recorded.
    for a collector section that did not run.
 
 ```sql
-CREATE TABLE health.Deployment (
+CREATE TABLE moveit.Deployment (
     Id              bigint IDENTITY NOT NULL,
     Uid             nvarchar(36)   NOT NULL DEFAULT (newid()),
     ApplicationId   int            NOT NULL,
@@ -383,7 +391,7 @@ CREATE TABLE health.Deployment (
     CreatedAt       datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
     CONSTRAINT PK_Deployment PRIMARY KEY CLUSTERED (Id)
 );
-CREATE INDEX IX_Deployment_Endpoint ON health.Deployment (EndpointId, DetectedAt DESC);
+CREATE INDEX IX_Deployment_Endpoint ON moveit.Deployment (EndpointId, DetectedAt DESC);
 ```
 
 `PreviousId` makes rollback a self-join (same Build as an earlier row for the
@@ -415,7 +423,7 @@ CREATE TABLE moveit.Release (
     ApplicationId int            NOT NULL,
     Name          nvarchar(100)  NOT NULL,   -- "Sprint 42", "Q3 mortgage changes"
     Kind          nvarchar(25)   NOT NULL,   -- SelectItem ReleaseKind: featureset | hotfix (asserted intent)
-    TargetDate    date           NULL,       -- planned PROD; actual is health.Deployment
+    TargetDate    date           NULL,       -- planned PROD; actual is moveit.Deployment
     Note          nvarchar(max)  NULL,
     CreatedAt     datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
     CreatedBy     nvarchar(50)   NOT NULL,
@@ -449,7 +457,7 @@ CREATE TABLE moveit.ReleaseBuild (                -- assertion: build B belongs 
     CONSTRAINT PK_ReleaseBuild PRIMARY KEY CLUSTERED (Id)
 );
 
-CREATE TABLE moveit.ReleaseEvent (                -- human events only; observed ones are health.Deployment
+CREATE TABLE moveit.ReleaseEvent (                -- human events only; observed ones are moveit.Deployment
     Id        int IDENTITY   NOT NULL,
     ReleaseId int            NOT NULL,
     Kind      nvarchar(25)   NOT NULL,   -- SelectItem EventKind, see below
@@ -476,7 +484,7 @@ CREATE TABLE moveit.WorkItemLink (                -- directed, feature-level dep
 );
 ```
 
-Plus `health.Deployment` (§10.1) as the observed side: six tables in all.
+Plus `moveit.Deployment` (§10.1) as the observed side: six tables in all.
 
 **Lookups (`core.SelectItem`, by `Grouping`):** `Stage` (with `Sort` as
 sequence — DEV, VAL, UAT peers; PROD above); `ReleaseKind` featureset |
@@ -487,7 +495,7 @@ deployed-asserted. Adding a kind is data, not DDL.
 **Rules.**
 
 1. **Gates hold only human events.** Promotion and PROD arrival are in
-   `health.Deployment`; storing them again is dual truth. `ReleaseEvent`
+   `moveit.Deployment`; storing them again is dual truth. `ReleaseEvent`
    holds what leaves no trace on a box.
 2. **Release kind is asserted; composition is derived.** Features-only,
    fixes-only or mixed falls out of work-item kinds. *Hotfix* is intent — a
@@ -498,11 +506,11 @@ deployed-asserted. Adding a kind is data, not DDL.
    breaks the single-lineage assumption: a hotfix build lands on PROD while
    sprint builds keep landing on DEV, interleaved in time. One row per build
    that matters, written at promotion with the manifest; DEV churn needs
-   none. `health.Deployment.Branch` is a *suggestion* for attribution and
+   none. `moveit.Deployment.Branch` is a *suggestion* for attribution and
    kind in the inbox — one click to confirm, never a rule.
 4. **One build per work item; membership derived.** A work item enters at
    one build and is in every later one. "What is in build B" = work items of
-   *B's release* whose `IncludedInBuild` was detected (`health.Deployment.
+   *B's release* whose `IncludedInBuild` was detected (`moveit.Deployment.
    DetectedAt`, DEV endpoint) no later than B, ordered within that release's
    builds only. Order from observation, never from parsing build strings.
 5. **Where a feature is, in one query** — *refined 2026-09-14 while building
@@ -541,7 +549,7 @@ deployed-asserted. Adding a kind is data, not DDL.
 **Parked, deliberately:** effort/hours/estimates (Team A's tool; tracking it
 here is what makes this Jira); client and team (Application registry, open
 item 10); a coordinated-release entity (derived); a release version label
-(`health.Deployment.Version` at the attributed build); audit in the
+(`moveit.Deployment.Version` at the attributed build); audit in the
 PreviousValue/NewValue pattern (the day a second person writes); release
 closure (derived: last attributed build in PROD, or `abandoned`).
 
@@ -558,10 +566,10 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 
 | File | For | Notes |
 |---|---|---|
-| `apptrak/sql/001-create-health-deployment.sql` | both | §10.1 table; unique on HealthReportId |
+| `apptrak/sql/001-create-deployment.sql` | both | §10.1 table; unique on HealthReportId |
 | `apptrak/sql/002-create-moveit-schema.sql` | both | §10.2 tables; no FKs, matching AppTrak |
 | `apptrak/sql/003-lookups.sql` | both | the five `core.SelectItem` groupings, MERGE |
-| `apptrak/sql/backfill-health-deployment.sql` | both | **the rule**, in SQL; the live processor implements exactly this |
+| `apptrak/sql/backfill-deployment.sql` | both | **the rule**, in SQL; the live processor implements exactly this |
 | `apptrak/sql/history-deployment-episodes.sql` | real only | read-only; three questions to bring back (open item 1). Executed against the fixtures 2026-09-14 evening: parses, all three sections return — the morning risk is the answers, not the syntax |
 | `apptrak/seed/seed-apptrak-demo.sql` | here only | the fixtures — 13 endpoints, 131,040 pings, 8 releases |
 | `apptrak/Invoke-AppTrakDemo.ps1` | here only | runs DDL, lookups, seed, backfill against local `AppTrak` |
@@ -590,7 +598,7 @@ clean 2026-09-14):
 | 12 | approval vs PROD | one deployed-before-approval (the phone call), one PROD-without-approval |
 
 **Coverage the seed exercises deliberately** (each verified by query after the backfill,
-39 `health.Deployment` rows, the count the map predicts): DEV churn and two promotions;
+39 `moveit.Deployment` rows, the count the map predicts): DEV churn and two promotions;
 a fix landing after VAL testing; a hotfix interleaved with the next sprint; rollback
 variant A (fresh Deploymentat) on WidgetCore PROD; rollback variant B (original
 Deploymentat) on Reporting PROD; a machine move on the same build; twelve hours of 503s
@@ -638,7 +646,7 @@ evidence, "looks correct", in 59 seconds — item 16.
 ### 12.2 The list
 
 1. ~~Extract distinct deployment events into a fact table.~~ Shape ratified
-   as `health.Deployment` (§10.1), built (§11). ~~Still owed: run
+   as `moveit.Deployment` (§10.1), built (§11). ~~Still owed: run
    `apptrak/sql/history-deployment-episodes.sql` against real data.~~ Run
    2026-09-17 (§12.1): episodes recognisable, rollback variant A, coverage
    plausible. Two details from Result C were not brought back — item 12.
@@ -691,27 +699,27 @@ evidence, "looks correct", in 59 seconds — item 16.
    registration's stage or the payload's. Both stay as unconfirmed calls in
    `calls-made-for-you.md`. Next real visit: one query each; an answer from
    memory is enough.
-13. **05 returned no rows on real data.** Two readings. (a) Only DEV endpoints
-   send deployment blocks today, so nothing has been *observed* past DEV and
-   the inbox is honestly empty; 11's 32 endpoints without evidence would then
-   be the VAL/UAT/PROD ones, and 26 deployment rows across the whole history
-   fits a regime that is young. (b) The real `Stage` rows' `Sort` values do
-   not order the stages, so 05's `Sort > MIN(Sort)` never holds and the query
-   is blind. Item 14 decides between them; (a) is the reading the other
-   numbers support. Until settled, an empty inbox is not evidence that the
-   manual habit is holding.
-14. **The real `core.SelectItem` already had `Stage` rows, and 003 touched
-   them.** The guide promised no existing AppTrak row would change; 003's
-   `MERGE` had a `WHEN MATCHED ... UPDATE` branch, so any Stage row whose
-   `Identifier` matched now carries this repo's `Display`, `Description` and
-   `Sort` (10/20/20/30) unless it already did. Owed by Robert: compare the
-   four Stage rows against the Part C backup and restore `Display` and
-   `Description` if AppTrak's UI shows them; bring back the four
-   `Identifier`/`Sort` pairs as they were (reference values, not data). If the
-   originals were not ordered DEV < VAL = UAT < PROD, every question that
-   reads `Sort` needs a decision: keep our Sort on AppTrak's rows, or carry the
-   sequence somewhere `moveit` owns. 003 is insert-only from 2026-09-17
-   (`calls-made-for-you.md`); re-running it changes nothing that exists.
+13. **05 returned no rows on real data.** With item 14's reading, the
+   questions ran against the four `Stage` rows 003 inserted (our Sort, our
+   names), so the join worked and the inbox is honestly empty: only DEV
+   endpoints send deployment blocks today, nothing has been *observed* past
+   DEV, and 11's 32 endpoints without evidence are the VAL/UAT/PROD ones. 26
+   deployment rows across the whole history fits a regime that is young.
+   Confirmed once item 14's cleanup has run and 05 is re-run under item 18's
+   shape.
+14. **003 inserted seventeen list headers into the real `core.SelectItem`.**
+   Every row it wrote has `MasterId = -1`, which in AppTrak's model makes it a
+   list name, not a member (item 18). The real stage names Robert saw are
+   members of AppTrak's own stage list (`MasterId = that list's Id`), so the
+   `MERGE ON (Grouping, Identifier)` almost certainly matched nothing and
+   updated nothing; it added four headers called DEV, VAL, UAT, PROD and
+   thirteen more. Owed by Robert: confirm against the backup that no
+   pre-existing row changed (`Identifier IN ('DEV','VAL','UAT','PROD')` should
+   show the real members untouched beside ours), and bring back the real stage
+   list's header `Identifier` and its members' `Identifier`s (reference values,
+   not data). Cleanup script owed by this repo once item 18 is ratified:
+   delete rows where `MasterId = -1` and `Grouping` and `Identifier` are ours.
+   003 is insert-only from 2026-09-17 and is rewritten under item 18.
 15. **Backfill on real data:** 26 rows, `Broken` 0, second run 0. Minutes not
    recorded; bring the number next time so the processor's batch cost is
    known. 26 episodes over the whole ping history is small — see item 13(a).
@@ -723,10 +731,32 @@ evidence, "looks correct", in 59 seconds — item 16.
    cost on real data is unmeasured: it returned no rows because `moveit` is
    empty.
 17. **The processor change (guide Part E) will not ship for at least 2–4 weeks
-   from 2026-09-17.** Until it does, `health.Deployment` stops at the
-   backfill's watermark. Re-run `backfill-health-deployment.sql` before any
+   from 2026-09-17.** Until it does, `moveit.Deployment` stops at the
+   backfill's watermark. Re-run `backfill-deployment.sql` before any
    real board reading; it is idempotent and prints what it added. The
    two-producer test waits on the processor.
+18. **`core.SelectItem` rework — proposed 2026-09-17, unratified.** The table
+   is a recursive hierarchy (header `MasterId = -1`, members point at the
+   header; `Grouping` is dropdown grouping only). Proposed shape:
+   - `ReleaseKind`, `WorkItemKind`, `LinkKind`, `EventKind`: one header row
+     each, members under it, `Grouping` NULL. 003 finds or creates the header
+     by `(MasterId = -1, Identifier)` and inserts missing members by
+     `(MasterId = header.Id, Identifier)`. Never updates.
+   - `Stage`: **no rows of ours.** AppTrak already has its stage list, and its
+     `Sort` is a dropdown order, not a promotion sequence (peers cannot be
+     equal there). The sequence Move It needs lives in a four-row
+     `moveit.Stage (Stage, Rank)` — DEV 10, VAL 20, UAT 20, PROD 30 — keyed by
+     the identifier `HealthEndpoint.Stage` holds. Every question's `stg` CTE
+     and `board/stages.sql` read that table; nothing reads `SelectItem` for
+     stages at all.
+   - The Kind columns on the `moveit` tables keep storing the member
+     `Identifier` string (as now); the header is the dropdown's source, not a
+     foreign key, matching the rest of AppTrak.
+   Alternatives rejected in the proposal: (b) reuse AppTrak's stage `Sort` as
+   the sequence — wrong meaning, peers inexpressible; (c) a Move It-owned
+   stage list in `SelectItem` — duplicates a list AppTrak owns. Waits on
+   Robert's ratification and on item 14's two values (whether the real
+   identifiers are exactly DEV/VAL/UAT/PROD).
 
 ## 13. The board — the governance reader's page (ratified 2026-09-14; level 1 built)
 
@@ -796,7 +826,7 @@ application cell, not drawn.
 
 Two board-only queries sit beside the questions in `apptrak/sql/board/`:
 `stages.sql` (the sequence) and `applications.sql` (every application with a
-release or an endpoint; name from `health.Deployment.Application` — what the
+release or an endpoint; name from `moveit.Deployment.Application` — what the
 app says about itself — never from a moniker; an app that has never reported
 shows by id until the registry is found, item 10). Question 01 gained a
 `ReleaseId` column so the board can join its rows to 02's without a name

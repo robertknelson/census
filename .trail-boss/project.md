@@ -88,7 +88,7 @@ relates: []
   exists in AppTrak's ten-minute `/api/health` pings; Census's JSON stays truth
   and *projects* into AppTrak (four reopen triggers written); identity across
   the seam is endpoint-level `monitoredAs` on the IIS-app leaf; `project` in
-  the payload is not a team label, recorded verbatim; `health.Deployment`
+  the payload is not a team label, recorded verbatim; `moveit.Deployment`
   written by his report processor on tuple change with four rules; a six-table
   `moveit` schema (Release, WorkItem, ReleaseBuild, ReleaseEvent, WorkItemLink
   + the ledger), five SelectItem lookups, nine derivation rules, hotfix as
@@ -97,7 +97,7 @@ relates: []
   AppTrak, IIS logs, census evidence. All manufactured; he carries code to the
   real environment and reports back. Now in memory too.
 - **Built under `apptrak/`** (parked here until AppTrak's repo is in reach):
-  DDL, lookups, `backfill-health-deployment.sql` (THE rule, which his live
+  DDL, lookups, `backfill-deployment.sql` (THE rule, which his live
   processor must match exactly), the read-only history query for the real
   side, a 131,040-ping deterministic seed covering both rollback variants, a
   machine move, silent 503s, a partial deploy, a stage mismatch, no-block and

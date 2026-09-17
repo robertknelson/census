@@ -141,7 +141,7 @@ before the comparison). Confirm against real data with query C in
 
 **Is `HealthReport.Stage` the registration's stage or the payload's?** Unknown without the
 processor code. Call: the seed treats it as the payload's claim (endpoint 22 is registered
-VAL and reports PROD), and `health.Deployment.ReportedStage` copies it. Reason: if it is
+VAL and reports PROD), and `moveit.Deployment.ReportedStage` copies it. Reason: if it is
 actually the registration's stage, the four-voice finding loses one voice but nothing else
 changes; if it is the payload's, the fixture is right. Either way the registration stage is
 reachable via `EndpointId`.

@@ -16,7 +16,7 @@ WITH apps AS (
 ),
 ep AS (
     SELECT e.ApplicationId, e.Id AS EndpointId, e.Identifier, e.Stage,
-           (SELECT MAX(d.DetectedAt) FROM health.Deployment d WHERE d.EndpointId = e.Id) AS LastEvidence,
+           (SELECT MAX(d.DetectedAt) FROM moveit.Deployment d WHERE d.EndpointId = e.Id) AS LastEvidence,
            (SELECT MAX(r.StartAt) FROM health.HealthReport r WHERE r.EndpointId = e.Id AND r.IsSuccess = 1) AS LastGoodPing
     FROM health.HealthEndpoint e
 ),
@@ -26,7 +26,7 @@ asr AS (
     WHERE e.Kind = 'deployed-asserted' GROUP BY r.ApplicationId
 )
 SELECT a.ApplicationId,
-       ISNULL((SELECT MAX(Application) FROM health.Deployment d WHERE d.ApplicationId = a.ApplicationId),
+       ISNULL((SELECT MAX(Application) FROM moveit.Deployment d WHERE d.ApplicationId = a.ApplicationId),
               (SELECT MAX(Application) FROM health.HealthReport r WHERE r.ApplicationId = a.ApplicationId)) AS Application,
        COUNT(ep.EndpointId) AS Endpoints,
        SUM(CASE WHEN ep.LastEvidence IS NOT NULL THEN 1 ELSE 0 END) AS EndpointsWithEvidence,
@@ -49,5 +49,5 @@ SELECT e.ApplicationId, e.Id AS EndpointId, e.Identifier, e.Stage,
        CASE WHEN NOT EXISTS (SELECT 1 FROM health.HealthReport r WHERE r.EndpointId = e.Id AND r.IsSuccess = 1)
             THEN 'never answered' ELSE 'answers, no deployment block' END AS Gap
 FROM health.HealthEndpoint e
-WHERE NOT EXISTS (SELECT 1 FROM health.Deployment d WHERE d.EndpointId = e.Id)
+WHERE NOT EXISTS (SELECT 1 FROM moveit.Deployment d WHERE d.EndpointId = e.Id)
 ORDER BY e.ApplicationId, e.Stage;

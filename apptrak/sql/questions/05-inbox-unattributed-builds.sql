@@ -18,7 +18,7 @@ prod AS (SELECT MAX(Sort) AS Sort FROM stg),
 seen_obs AS (
     SELECT d.ApplicationId, d.Application, ep.Stage, s.Sort, d.Build, d.Branch,
            MIN(d.DetectedAt) AS FirstSeen, MAX(CASE WHEN d.SupersededAt IS NULL THEN 1 ELSE 0 END) AS IsCurrent
-    FROM health.Deployment d
+    FROM moveit.Deployment d
     JOIN health.HealthEndpoint ep ON ep.Id = d.EndpointId
     JOIN stg s ON s.Stage = ep.Stage
     GROUP BY d.ApplicationId, d.Application, ep.Stage, s.Sort, d.Build, d.Branch
@@ -28,7 +28,7 @@ attributed AS (
     FROM moveit.ReleaseBuild rb JOIN moveit.Release r ON r.Id = rb.ReleaseId
 ),
 seen_any AS (
-    SELECT ApplicationId, Build FROM health.Deployment
+    SELECT ApplicationId, Build FROM moveit.Deployment
     UNION
     SELECT r.ApplicationId, e.Build FROM moveit.ReleaseEvent e JOIN moveit.Release r ON r.Id = e.ReleaseId
     WHERE e.Kind = 'deployed-asserted' AND e.Build IS NOT NULL

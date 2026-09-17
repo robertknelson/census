@@ -11,7 +11,7 @@
 
 WITH cur AS (
     SELECT d.ApplicationId, d.Application, ep.Stage, d.EndpointId, ep.Identifier, d.Build, d.DetectedAt
-    FROM health.Deployment d JOIN health.HealthEndpoint ep ON ep.Id = d.EndpointId
+    FROM moveit.Deployment d JOIN health.HealthEndpoint ep ON ep.Id = d.EndpointId
     WHERE d.SupersededAt IS NULL
 ),
 groups AS (
@@ -32,9 +32,9 @@ SELECT a.ApplicationId, a.Application, ea.Stage,
        DATEDIFF(hour,
            CASE WHEN a.DetectedAt > b.DetectedAt THEN a.DetectedAt ELSE b.DetectedAt END,
            ISNULL(CASE WHEN ISNULL(a.SupersededAt, '9999-12-31') < ISNULL(b.SupersededAt, '9999-12-31') THEN a.SupersededAt ELSE b.SupersededAt END, sysdatetimeoffset())) AS Hours
-FROM health.Deployment a
+FROM moveit.Deployment a
 JOIN health.HealthEndpoint ea ON ea.Id = a.EndpointId
-JOIN health.Deployment b     ON b.ApplicationId = a.ApplicationId AND b.EndpointId > a.EndpointId
+JOIN moveit.Deployment b     ON b.ApplicationId = a.ApplicationId AND b.EndpointId > a.EndpointId
 JOIN health.HealthEndpoint eb ON eb.Id = b.EndpointId AND eb.Stage = ea.Stage
 WHERE a.Build <> b.Build
   AND a.DetectedAt < ISNULL(b.SupersededAt, '9999-12-31')

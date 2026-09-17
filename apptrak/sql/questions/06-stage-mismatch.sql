@@ -9,7 +9,7 @@
 
 SELECT d.ApplicationId, d.Application, d.EndpointId, ep.Identifier, ep.Url,
        ep.Stage AS RegisteredStage, d.ReportedStage, d.Machine, d.Build, d.DetectedAt AS Since
-FROM health.Deployment d
+FROM moveit.Deployment d
 JOIN health.HealthEndpoint ep ON ep.Id = d.EndpointId
 WHERE d.SupersededAt IS NULL
   AND ep.Stage <> d.ReportedStage COLLATE DATABASE_DEFAULT

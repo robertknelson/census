@@ -1,4 +1,4 @@
--- THE RULE for health.Deployment, in SQL (move-it.md 10.1). Two producers - the live
+-- THE RULE for moveit.Deployment, in SQL (move-it.md 10.1). Two producers - the live
 -- HealthReport processor and this backfill - must agree, so the live code should implement
 -- exactly this and nothing more:
 --
@@ -37,7 +37,7 @@ SET QUOTED_IDENTIFIER ON;
     FROM health.HealthReport r
     WHERE r.IsSuccess = 1 AND r.HasContent = 1 AND r.Build IS NOT NULL
 )
-INSERT INTO health.Deployment
+INSERT INTO moveit.Deployment
     (ApplicationId, EndpointId, Application, ReportedStage, Machine, Project, Version,
      Build, BuildId, SourceVersion, Branch, Deploymentat, DetectedAt, HealthReportId)
 SELECT q.ApplicationId, q.EndpointId, q.Application, q.Stage, q.Machine, NULL, q.Version,
@@ -50,7 +50,7 @@ WHERE (   q.pBuild IS NULL
        OR q.Deploymentat              <> q.pDeploymentat
        OR q.Machine                   <> q.pMachine
        OR ISNULL(q.Branch, '')        <> ISNULL(q.pBranch, ''))
-  AND NOT EXISTS (SELECT 1 FROM health.Deployment d WHERE d.HealthReportId = q.Id);
+  AND NOT EXISTS (SELECT 1 FROM moveit.Deployment d WHERE d.HealthReportId = q.Id);
 
 DECLARE @inserted int = @@ROWCOUNT;
 
@@ -58,14 +58,14 @@ DECLARE @inserted int = @@ROWCOUNT;
     SELECT d.Id,
            LAG(d.Id)          OVER (PARTITION BY d.EndpointId ORDER BY d.DetectedAt, d.Id) AS PrevId,
            LEAD(d.DetectedAt) OVER (PARTITION BY d.EndpointId ORDER BY d.DetectedAt, d.Id) AS NextAt
-    FROM health.Deployment d
+    FROM moveit.Deployment d
 )
 UPDATE d
    SET PreviousId   = o.PrevId,
        SupersededAt = o.NextAt
-FROM health.Deployment d
+FROM moveit.Deployment d
 JOIN o ON o.Id = d.Id
 WHERE ISNULL(d.PreviousId, -1) <> ISNULL(o.PrevId, -1)
    OR ISNULL(d.SupersededAt, '0001-01-01') <> ISNULL(o.NextAt, '0001-01-01');
 
-PRINT CONCAT('health.Deployment: ', @inserted, ' inserted, ', @@ROWCOUNT, ' back-pointers refreshed');
+PRINT CONCAT('moveit.Deployment: ', @inserted, ' inserted, ', @@ROWCOUNT, ' back-pointers refreshed');

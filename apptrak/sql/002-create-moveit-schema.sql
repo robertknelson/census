@@ -1,4 +1,4 @@
--- moveit: the assertions (move-it.md 10.2). Six tables counting health.Deployment; five
+-- moveit: the assertions (move-it.md 10.2). Six tables counting moveit.Deployment; five
 -- lookup groupings in core.SelectItem (003-lookups.sql); everything else derived by query.
 -- Records what is *in a build*, never what people are *doing*.
 --
@@ -15,7 +15,7 @@ BEGIN
         ApplicationId int            NOT NULL,
         Name          nvarchar(100)  NOT NULL,   -- "Sprint 42", "Q3 mortgage changes"
         Kind          nvarchar(25)   NOT NULL,   -- SelectItem ReleaseKind: featureset | hotfix (asserted intent)
-        TargetDate    date           NULL,       -- planned PROD; actual is health.Deployment
+        TargetDate    date           NULL,       -- planned PROD; actual is moveit.Deployment
         Note          nvarchar(max)  NULL,
         CreatedAt     datetimeoffset NOT NULL CONSTRAINT DF_Release_CreatedAt DEFAULT (sysdatetimeoffset()),
         CreatedBy     nvarchar(50)   NOT NULL,
@@ -61,7 +61,7 @@ BEGIN
     );
 END;
 
--- Human events only. Promotion and PROD arrival are observed and live in health.Deployment;
+-- Human events only. Promotion and PROD arrival are observed and live in moveit.Deployment;
 -- storing them again would be dual truth.
 IF OBJECT_ID('moveit.ReleaseEvent', 'U') IS NULL
 BEGIN

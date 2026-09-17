@@ -29,7 +29,7 @@ Ground rules for the day:
 Confirms the tooling works where it was built.
 
 - [ ] `cd C:\github\ai\census\apptrak`
-- [ ] `.\Invoke-AppTrakDemo.ps1` — expect `health.Deployment: 39 inserted` and the row-count
+- [ ] `.\Invoke-AppTrakDemo.ps1` — expect `moveit.Deployment: 39 inserted` and the row-count
       table ending in `core.SelectItem (moveit groupings)|17`.
 - [ ] `.\Invoke-AppTrakQuestions.ps1 -Only 01` — expect 16 rows; Sprint 42 items at PROD,
       Sprint 43 at DEV, item 303 `with the devs`, item 801 `no evidence`.
@@ -78,7 +78,7 @@ Additive and idempotent; safe to re-run if interrupted.
 - [ ] DDL and lookups, in order:
 
       ```
-      sqlcmd -S REALSERVER -d AppTrak -E -I -b -i sql\001-create-health-deployment.sql
+      sqlcmd -S REALSERVER -d AppTrak -E -I -b -i sql\001-create-deployment.sql
       sqlcmd -S REALSERVER -d AppTrak -E -I -b -i sql\002-create-moveit-schema.sql
       sqlcmd -S REALSERVER -d AppTrak -E -I -b -i sql\003-lookups.sql
       ```
@@ -93,22 +93,22 @@ Additive and idempotent; safe to re-run if interrupted.
 - [ ] Backfill:
 
       ```
-      sqlcmd -S REALSERVER -d AppTrak -E -I -b -i sql\backfill-health-deployment.sql
+      sqlcmd -S REALSERVER -d AppTrak -E -I -b -i sql\backfill-deployment.sql
       ```
 
-      It prints `health.Deployment: N inserted, N back-pointers refreshed`. On a large
+      It prints `moveit.Deployment: N inserted, N back-pointers refreshed`. On a large
       history this is one pass over `HealthReport` with a window function; minutes, not hours.
 - [ ] Sanity, same checks the fixtures passed:
 
       ```sql
       -- one row per real deployment episode, roughly; compare against Result A
-      SELECT EndpointId, COUNT(*) FROM health.Deployment GROUP BY EndpointId ORDER BY 1;
+      SELECT EndpointId, COUNT(*) FROM moveit.Deployment GROUP BY EndpointId ORDER BY 1;
       -- every non-first row points at the row it superseded
-      SELECT COUNT(*) AS Broken FROM health.Deployment d
-      LEFT JOIN health.Deployment p ON p.Id = d.PreviousId
+      SELECT COUNT(*) AS Broken FROM moveit.Deployment d
+      LEFT JOIN moveit.Deployment p ON p.Id = d.PreviousId
       WHERE d.PreviousId IS NOT NULL AND (p.SupersededAt <> d.DetectedAt OR p.EndpointId <> d.EndpointId);
       -- exactly one current row per endpoint that ever reported a block
-      SELECT EndpointId, COUNT(*) FROM health.Deployment WHERE SupersededAt IS NULL GROUP BY EndpointId HAVING COUNT(*) <> 1;
+      SELECT EndpointId, COUNT(*) FROM moveit.Deployment WHERE SupersededAt IS NULL GROUP BY EndpointId HAVING COUNT(*) <> 1;
       ```
 
       Expect `Broken = 0` and the third query empty.
@@ -140,11 +140,11 @@ questions work from `health` alone and are useful today:
 ## Part E — the live processor change (your code, not in this repo)
 
 The backfill is the rule; the processor implements the same rule at the moment a report
-arrives. From `sql/backfill-health-deployment.sql`'s header:
+arrives. From `sql/backfill-deployment.sql`'s header:
 
 1. Only a successful ping with content and a non-null `Build` counts. A failed ping, empty
    body, or a payload with no deployment block does nothing — no insert, no supersede.
-2. Load the endpoint's most recent `health.Deployment` row (`SupersededAt IS NULL`).
+2. Load the endpoint's most recent `moveit.Deployment` row (`SupersededAt IS NULL`).
 3. Compare the whole tuple: `Build`, `BuildId`, `SourceVersion`, `Deploymentat`, `Machine`,
    `Branch`. Null-safe on the nullable ones.
 4. Any difference, or no previous row: insert a new row with `DetectedAt = StartAt` of the
@@ -158,7 +158,7 @@ work if that is cheap; otherwise the same batch the fact-table slicer runs in.
 
 - [ ] Implement.
 - [ ] **The two-producer test**, which needs no deployment to happen: let the processor run
-      live for a day, then run `backfill-health-deployment.sql` again. It must report
+      live for a day, then run `backfill-deployment.sql` again. It must report
       `0 inserted`. If it inserts anything, the processor and the rule disagree; the rows it
       inserted show exactly where.
 
@@ -171,13 +171,13 @@ Pick one app you know, and its most recent release.
 - [ ] `INSERT moveit.Release (ApplicationId, Name, Kind, TargetDate, CreatedBy)`; kind
       `featureset` or `hotfix`.
 - [ ] One `moveit.WorkItem` per feature or fix you remember, `IncludedInBuild` = the build
-      it first appeared in (copy the string from `health.Deployment`, verbatim).
+      it first appeared in (copy the string from `moveit.Deployment`, verbatim).
 - [ ] `moveit.ReleaseBuild` for the build that was promoted.
 - [ ] `moveit.ReleaseEvent` kind `approved` with the build and the meeting date, if there was
       one.
 - [ ] `-Only 01` and `-Only 02`. The release should show at the stage you know it is at. If
       it does not, the location rule has met something the fixtures did not; capture the
-      rows from 01 and from `health.Deployment` for that app and bring them back.
+      rows from 01 and from `moveit.Deployment` for that app and bring them back.
 
 ---
 

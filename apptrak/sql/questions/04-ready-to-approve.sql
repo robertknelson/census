@@ -12,7 +12,7 @@ WITH stg AS (
 prod AS (SELECT MAX(Sort) AS Sort FROM stg),
 dep AS (
     SELECT d.ApplicationId, d.EndpointId, ep.Stage, d.Build, d.DetectedAt AS At, d.SupersededAt, 'observed' AS Evidence
-    FROM health.Deployment d JOIN health.HealthEndpoint ep ON ep.Id = d.EndpointId
+    FROM moveit.Deployment d JOIN health.HealthEndpoint ep ON ep.Id = d.EndpointId
     UNION ALL
     SELECT r.ApplicationId, NULL, e.Stage, e.Build, e.At,
            LEAD(e.At) OVER (PARTITION BY r.ApplicationId, e.Stage ORDER BY e.At, e.Id), 'asserted'

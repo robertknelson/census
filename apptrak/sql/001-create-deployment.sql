@@ -1,15 +1,19 @@
--- health.Deployment: the transit ledger. One row per observed change of the deployment
--- tuple at an endpoint (move-it.md 10.1). Observed evidence, so it lives in `health`
--- beside HealthReport, not in `moveit`.
+-- moveit.Deployment: the transit ledger. One row per observed change of the deployment
+-- tuple at an endpoint (move-it.md 10.1). Derived from HealthReport, owned by Move It, so
+-- it lives in `moveit` (Robert's call, 2026-09-17; it began life in `health`).
 --
 -- Written by the HealthReport processor on change (Robert's code, not in this repo) and by
--- backfill-health-deployment.sql over history. Both apply the same rule.
+-- backfill-deployment.sql over history. Both apply the same rule.
 --
 -- Idempotent: safe to re-run.
 
-IF OBJECT_ID('health.Deployment', 'U') IS NULL
+IF SCHEMA_ID('moveit') IS NULL
+    EXEC ('CREATE SCHEMA moveit AUTHORIZATION dbo');
+GO
+
+IF OBJECT_ID('moveit.Deployment', 'U') IS NULL
 BEGIN
-    CREATE TABLE health.Deployment (
+    CREATE TABLE moveit.Deployment (
         Id              bigint IDENTITY NOT NULL,
         Uid             nvarchar(36)    NOT NULL CONSTRAINT DF_Deployment_Uid DEFAULT (newid()),
         ApplicationId   int             NOT NULL,
@@ -32,6 +36,6 @@ BEGIN
         CONSTRAINT PK_Deployment PRIMARY KEY CLUSTERED (Id)
     );
 
-    CREATE INDEX IX_Deployment_Endpoint ON health.Deployment (EndpointId, DetectedAt DESC);
-    CREATE UNIQUE INDEX UX_Deployment_HealthReport ON health.Deployment (HealthReportId);
+    CREATE INDEX IX_Deployment_Endpoint ON moveit.Deployment (EndpointId, DetectedAt DESC);
+    CREATE UNIQUE INDEX UX_Deployment_HealthReport ON moveit.Deployment (HealthReportId);
 END;

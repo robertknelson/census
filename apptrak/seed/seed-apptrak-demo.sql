@@ -6,8 +6,8 @@
 -- produces the same rows. Idempotent: demo rows are marked (HealthEndpoint.Tags = 'demo',
 -- HealthReport.SessionId = 'demo-seed', moveit.*.CreatedBy = 'demo-seed') and deleted first.
 --
--- Run order: 001, 002, 003, this file, then backfill-health-deployment.sql to derive
--- health.Deployment from the HealthReport history. Invoke-AppTrakDemo.ps1 does all of it.
+-- Run order: 001, 002, 003, this file, then backfill-deployment.sql to derive
+-- moveit.Deployment from the HealthReport history. Invoke-AppTrakDemo.ps1 does all of it.
 --
 -- Settings (his rule: a doubtful value is a setting):
 DECLARE @T0        datetimeoffset = '2026-07-06T00:00:00+00:00';   -- day 0 of the window
@@ -41,7 +41,7 @@ SET QUOTED_IDENTIFIER ON;   -- HealthReport carries indexes that refuse writes w
 -- ---------------------------------------------------------------------------------------
 
 -- ---- clean previous demo rows ----------------------------------------------------------
-DELETE FROM health.Deployment    WHERE HealthReportId IN (SELECT Id FROM health.HealthReport WHERE SessionId = 'demo-seed');
+DELETE FROM moveit.Deployment    WHERE HealthReportId IN (SELECT Id FROM health.HealthReport WHERE SessionId = 'demo-seed');
 DELETE FROM health.HealthReport  WHERE SessionId = 'demo-seed';
 DELETE FROM health.HealthEndpoint WHERE Tags = 'demo';
 IF OBJECT_ID('moveit.WorkItemLink', 'U') IS NOT NULL DELETE FROM moveit.WorkItemLink WHERE CreatedBy = 'demo-seed';

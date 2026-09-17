@@ -22,6 +22,7 @@ builder.Services.AddSingleton<EntityTagsEvaluator>();
 builder.Services.AddSingleton<FindingsEngine>();
 builder.Services.Configure<MoveItOptions>(builder.Configuration.GetSection(MoveItOptions.SectionName));
 builder.Services.AddSingleton<MoveItQuestions>();
+builder.Services.AddSingleton<MoveItEntry>();
 
 var app = builder.Build();
 

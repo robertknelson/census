@@ -5,7 +5,7 @@
 -- Deterministic: fixed clock, fixed ids, no newid() in anything a query compares. Re-running
 -- produces the same rows. Idempotent: demo rows are marked (HealthEndpoint.Tags = 'demo',
 -- HealthReport.SessionId = 'demo-seed', moveit.*.CreatedBy = 'demo-seed' or 'demo-manifest',
--- the loader's fixture rows) and deleted first.
+-- the loader's fixture rows, or 'demo-board', the dev profile's entry page) and deleted first.
 --
 -- Run order: 001, 002, 003, this file, then backfill-deployment.sql to derive
 -- moveit.Deployment from the HealthReport history. Invoke-AppTrakDemo.ps1 does all of it.
@@ -45,11 +45,11 @@ SET QUOTED_IDENTIFIER ON;   -- HealthReport carries indexes that refuse writes w
 DELETE FROM moveit.Deployment    WHERE HealthReportId IN (SELECT Id FROM health.HealthReport WHERE SessionId = 'demo-seed');
 DELETE FROM health.HealthReport  WHERE SessionId = 'demo-seed';
 DELETE FROM health.HealthEndpoint WHERE Tags = 'demo';
-IF OBJECT_ID('moveit.WorkItemLink', 'U') IS NOT NULL DELETE FROM moveit.WorkItemLink WHERE CreatedBy IN ('demo-seed', 'demo-manifest');
-IF OBJECT_ID('moveit.ReleaseEvent', 'U') IS NOT NULL DELETE FROM moveit.ReleaseEvent WHERE CreatedBy IN ('demo-seed', 'demo-manifest');
-IF OBJECT_ID('moveit.ReleaseBuild', 'U') IS NOT NULL DELETE FROM moveit.ReleaseBuild WHERE CreatedBy IN ('demo-seed', 'demo-manifest');
-IF OBJECT_ID('moveit.WorkItem', 'U')     IS NOT NULL DELETE FROM moveit.WorkItem     WHERE CreatedBy IN ('demo-seed', 'demo-manifest');
-IF OBJECT_ID('moveit.Release', 'U')      IS NOT NULL DELETE FROM moveit.Release      WHERE CreatedBy IN ('demo-seed', 'demo-manifest');
+IF OBJECT_ID('moveit.WorkItemLink', 'U') IS NOT NULL DELETE FROM moveit.WorkItemLink WHERE CreatedBy IN ('demo-seed', 'demo-manifest', 'demo-board');
+IF OBJECT_ID('moveit.ReleaseEvent', 'U') IS NOT NULL DELETE FROM moveit.ReleaseEvent WHERE CreatedBy IN ('demo-seed', 'demo-manifest', 'demo-board');
+IF OBJECT_ID('moveit.ReleaseBuild', 'U') IS NOT NULL DELETE FROM moveit.ReleaseBuild WHERE CreatedBy IN ('demo-seed', 'demo-manifest', 'demo-board');
+IF OBJECT_ID('moveit.WorkItem', 'U')     IS NOT NULL DELETE FROM moveit.WorkItem     WHERE CreatedBy IN ('demo-seed', 'demo-manifest', 'demo-board');
+IF OBJECT_ID('moveit.Release', 'U')      IS NOT NULL DELETE FROM moveit.Release      WHERE CreatedBy IN ('demo-seed', 'demo-manifest', 'demo-board');
 -- rows the first shape of 003 wrote as list headers (MasterId = -1 with a Grouping); fixture only
 DELETE FROM core.SelectItem WHERE MasterId = -1 AND Grouping IN ('Stage','ReleaseKind','WorkItemKind','LinkKind','EventKind');
 

@@ -1,7 +1,7 @@
 ---
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It's file-based entry was the wrong front door; the owner wants to name builds from a history page — drafted for his ratification, would be Census's first database write"
+summary: "Move It can be fed from the board now: a history of every build seen, click one and say what was in it — Census's first write, ratified and proven on fixtures"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -26,7 +26,18 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Releases can now be entered from a file.** Until today the only way to tell
+**The board has a way in.** A History page lists every build the system ever
+saw arrive, newest first, and says which ones nobody has named yet. Click one
+and say what was in it: pick or create the release, list the features and
+fixes, save. Or start a release for work still with the developers and attach
+it to a build later, from the same list. Saving twice changes nothing;
+nothing is ever deleted; bad input is refused with reasons. This is the first
+time Census writes to the tracking site's database, ratified by the owner
+because it is where he will do the work, with one condition kept on record:
+the manager's view stays read-only and will get its own place in the
+navigation.
+
+**Earlier: releases can be entered from a file.** Until today the only way to tell
 the board what is in a release was to type database rows by hand. Now a
 release is a small text file: its name, the features and fixes in it, the
 builds that carry them, and what the humans did (approved, verified, on
@@ -67,12 +78,10 @@ board is simply a Census page reading the tracking site's own database.
 
 ## What's next
 
-**He ratifies the entry page.** Reading the file-based entry in plain English,
-he ruled it the wrong front door: he wants to look at the history of builds
-the system already saw, newest first, and name what was in the ones he
-remembers, plus set up feature sets for work in progress. Drafted as a page
-on the board. Building it means Census writes to the tracking site's database
-for the first time, which is his line to cross, not the agent's.
+**He names the first real builds.** This build of Census goes into the real
+environment; he opens the History page and names the recent builds he
+remembers, and sets up what is in progress. That is the first real reading
+of the board.
 
 **Then the board's third screen, ahead of the second.** The release page and
 the work item's trail hang off tables that exist; the second screen still
@@ -97,6 +106,9 @@ on which server, and anything that went out ahead of something it depends on.
   table's own shape and can never update an existing row.
 - **One question takes a minute on real data.** Not one that is on the board,
   so nothing to do yet; noted for when it is.
+- **Census now writes to a database**, on one page, through one endpoint, with
+  every value as a parameter and every kind checked against the tracking
+  site's own lists. Ratified; said here because it is a line crossed.
 - **The file-based entry built today is set aside as the way in.** Not
   wasted: its write rules and statements carry into the page unchanged, and
   it remains the way to move releases between environments.

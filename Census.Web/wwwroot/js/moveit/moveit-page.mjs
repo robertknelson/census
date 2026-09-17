@@ -26,7 +26,10 @@ class MoveItPage {
                     <h1 class="mi-title">Where is it</h1>
                     <p class="mi-tagline">Every feature and fix, and the stage the evidence puts it at.</p>
                 </div>
-                <nav class="mi-filter" data-ref="filter" aria-label="Application"></nav>
+                <div class="mi-header-side">
+                    <nav class="mi-filter" data-ref="filter" aria-label="Application"></nav>
+                    <a class="mi-button is-quiet" href="/moveit/history">History</a>
+                </div>
             </header>
             <div class="mi-strip" data-ref="counts"></div>
             <div class="mi-body">

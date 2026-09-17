@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Ratify move-it.md §15 (entry on a History page in the Census module; Census's first database write) and its open items, then build it on fixtures. Owed: the missing AppTrak tables as zero-row DDL for level 2"
+next_step: "Deploy this build of Census inside the real AppTrakWeb and name the first real builds from /moveit/history. Repo side: board level 3 (release page, with events and edits). Owed: the missing AppTrak tables as zero-row DDL for level 2; the read-only sidebar view when the nav exists"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,18 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-17, night (the History page — §15 built)
+- Ratified: entry lives on the Census board "because that is where I will be
+  using it", with one standing requirement: a read-only view for the
+  governance reader that eventually appears on the sidebar nav. Recorded in §15.
+- Built and browser-verified: `/moveit/history` — the ledger newest first,
+  unnamed builds counted per app, *Name it* / *Add to* / *New release*, one
+  form, one POST (`MoveItEntry`, the loader's statements plus
+  `workitem-attach`), kinds and stages validated against the lists. Census's
+  first database write. Named a build, set up an in-progress release,
+  attached it to a build, re-posted (unchanged), sent bad input (refused),
+  reset the fixtures (clean). Lane board links to History and stays read-only.
 
 ### 2026-09-17, late (pivot: entry is a page, not a file)
 - Robert read the loader's plain-English description and ruled it the wrong

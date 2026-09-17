@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "History";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/moveit.css" asp-append-version="true" />
+}
+
+<div id="moveit-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import historyPage from '/js/moveit/history-page.mjs';
+        historyPage.init({ rootId: 'moveit-root' });
+    </script>
+}

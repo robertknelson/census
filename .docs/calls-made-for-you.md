@@ -4,6 +4,32 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-17 — the History page (§15)
+
+**History is its own route, the board unchanged.** Options: a mode switch on `/moveit`; a
+second page. Call: `/moveit/history`, linked from the board's header. Reason: his standing
+requirement that the reader's view be read-only — a page with no write control on it is
+the simplest proof, and the sidebar link, when it exists, points at the board.
+
+**Attach sets a first appearance once.** `workitem-attach.sql` writes `IncludedInBuild` only
+where it is null. Reason: the column means *first* build; a later build on the same item is
+a move or a rollback, which the ledger observes.
+
+**`CreatedBy` is a setting (`MoveIt:By`), default `census-board`, `demo-board` in dev.**
+AppTrak's identity tables are not here (item 10). Reason: one entrant today; the seed's
+cleanup keys on the dev value so the fixtures reset clean.
+
+**Existing items of a release shown in the form, with a tick only for those with no build.**
+Reason: this is the flow he described — set up work in progress, later attach it from the
+ledger — and an item that already has a build must not be re-pointed by a tick.
+
+**Naming a build claims it for the release (`ReleaseBuild`) even with no new lines.**
+Reason: "this release was in that build" is the manifest's minimum record (§3); lines are
+optional detail. A build claimed by two releases shows both on the ledger (`+1`).
+
+**Kinds and stages come from the SelectItem lists at render and again at save.** Reason: the
+form never hardcodes a list AppTrak owns; the server check is the boundary.
+
 ## 2026-09-17 — the manifest loader (§14)
 
 **Title is the work item's key.** The table has no key column. Options: add `Key` (DDL);

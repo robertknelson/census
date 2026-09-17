@@ -37,3 +37,35 @@ export function fetchReadyToApprove() {
 export function fetchApprovalVsProd() {
     return getJson('/api/moveit/approval-vs-prod');
 }
+
+export function fetchReleases() {
+    return getJson('/api/moveit/releases');
+}
+
+export function fetchHistory() {
+    return getJson('/api/moveit/history');
+}
+
+export function fetchLists() {
+    return getJson('/api/moveit/lists');
+}
+
+// The board's one write (move-it.md §15). A 400 carries the server's validation messages.
+export async function postNameBuild(request) {
+    let response;
+    try {
+        response = await fetch('/api/moveit/name-build', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request),
+        });
+    } catch {
+        throw new Error('Census.Web is not reachable — is the app still running?');
+    }
+    if (response.status === 400) {
+        const body = await response.json();
+        throw new Error((body.errors ?? ['The entry was refused.']).join(' '));
+    }
+    if (!response.ok) {
+        throw new Error(`The tracking database did not take the entry (${response.status}).`);
+    }
+    return response.json();
+}

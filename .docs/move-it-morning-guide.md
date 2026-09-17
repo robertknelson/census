@@ -166,8 +166,10 @@ work if that is cheap; otherwise the same batch the fact-table slicer runs in.
 
 ## Part F — first manual entries (optional, if there is time)
 
-*Rewritten 2026-09-17: the entry path is a manifest file and the loader (`move-it.md` §14),
-not hand-typed INSERTs.*
+*Rewritten 2026-09-17, twice. The entry path is the board's History page (`move-it.md` §15)
+once this build of Census is deployed inside AppTrakWeb: open `/moveit/history`, click *Name
+it* on a build you remember, or *New release* for work in progress. Until it is deployed, the
+manifest loader below (§14) does the same writes from a file.*
 
 Pick one app you know, and its most recent release.
 

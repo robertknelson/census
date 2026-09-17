@@ -45,6 +45,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // History (move-it.md §15): the ledger newest first, and the one page where anything is
+    // entered. The board above stays read-only.
+    [HttpGet("/moveit/history")]
+    public IActionResult MoveItHistory([FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

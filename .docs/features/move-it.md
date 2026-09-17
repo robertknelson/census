@@ -581,6 +581,9 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/Invoke-AppTrakManifests.ps1` | both | §14: loads release manifests into `moveit`, parameterised, re-runnable, never deletes |
 | `apptrak/sql/manifest/*.sql` | both | the loader's statements, one per row kind, values as parameters |
 | `apptrak/manifests/demo/*.json` | here only | two fabricated manifests; loaded with `-By demo-manifest`, removed by the seed |
+| `apptrak/sql/board/history.sql` | both | §15: the ledger newest first with the claiming release |
+| `apptrak/sql/board/releases.sql` | both | §15: the entry form's release picker |
+| `apptrak/sql/manifest/workitem-attach.sql` | both | §15: set `IncludedInBuild` once, where null |
 | `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |
 | `apptrak/Invoke-AppTrakQuestions.ps1` | both | runs every question; against fixtures it is the proof, against real data it is the first board |
 | `.docs/move-it-morning-guide.md` | real | the step-by-step for the first real-environment run: recon, DDL, backfill, first board, processor rule, report-back |
@@ -927,7 +930,7 @@ read back as `+00:00`.
   inbox (05) should name the manifest a build is missing from. Both are
   board work, not loader work.
 
-## 15. Entry — how and where, not what (draft 2026-09-17, for ratification)
+## 15. Entry — how and where, not what (ratified 2026-09-17; built and browser-verified the same evening)
 
 **What this section does not change.** Robert, on reading §14: *"I'm NOT changing
 the overall design. It's just how to enter and where to enter."* The release is
@@ -979,8 +982,44 @@ AppTrakWeb itself — is the right long-term home and moves with the rest of
 `apptrak/` when item 11 resolves.
 
 **What it means for Census.** Its first write to a database. Reads arrived
-2026-09-14 with the board; this is the second line crossed, and it is
-Robert's to ratify, not a call.
+2026-09-14 with the board; this is the second line crossed. **Ratified
+2026-09-17:** on the Census board, *"because that is where I will be using
+it."* With one standing requirement, his words: **there MUST be a read-only
+view for the governance reader that EVENTUALLY appears on the sidebar nav.** As
+built, the lane board (`/moveit`) has no write control and History
+(`/moveit/history`) has the only one; the reader's link, when the sidebar
+exists, is the board and never History.
+
+**As built.** Route `/moveit/history`, view `MoveItHistory.cshtml`, JS
+`history-page.mjs` (the ledger as a table, filter chips counting unnamed
+builds, *Name it* / *Add to* per row, *New release* in the header) and
+`name-build-form.mjs` (pick or create the release; the release's existing
+items listed, those with no build offered a *carried by this build?* tick;
+new lines kind / title / built by, each with an *in build* tick; one Save).
+Reads: `board/history.sql` (the ledger newest first with the claiming release
+and a claim count), `board/releases.sql` (the picker), `manifest/lists.sql`
+(kinds and stages for the selects and the server's check). The write:
+`POST api/moveit/name-build` → `MoveItEntry`, which validates every kind and
+stage against the lists, then in one transaction runs `release-upsert`,
+`build-upsert` (when a build is in context), `workitem-upsert` per line, and
+`workitem-attach` per ticked item — the loader's statements, plus one: attach
+sets `IncludedInBuild` only where it is null, so a second build never
+overwrites a first appearance. `CreatedBy` is `MoveIt:By` from settings
+(`census-board` if unset; `demo-board` in the dev profile, which the seed's
+cleanup removes).
+
+**Verified 2026-09-17 in the browser on the fixtures:** the ledger renders
+with 16 unnamed builds counted per application; *Name it* on a Reporting
+build → new release Sprint 41 with one fix → saved: release, build and item
+in the tables, every row carrying that build now reads Sprint 41; *New
+release* → Sprint 45 with one feature and no build → item written with
+`IncludedInBuild` null; *Add to* the same build → pick Sprint 45 → tick the
+item → saved: *1 attached*, the item now carries the build and the release
+claims it. Through the API: an identical re-post reports everything
+unchanged; a bad release kind, an empty title, a bad item kind and a bad
+stage come back as four named errors and nothing is written; attach with no
+build is refused. The lane board shows the History link and counts the new
+items. The demo reset removes every row the page wrote.
 
 **The loader after this.** `Invoke-AppTrakManifests.ps1` stays as import and
 export — moving a set of releases between environments, or a backup that
@@ -989,7 +1028,13 @@ longer how anyone enters anything. §14's *"one script is the only writer"*
 is withdrawn.
 
 **Open items for this section**
-- **Ratify the where.** Census module (recommended) or wait for AppTrakWeb.
+- ~~Ratify the where.~~ Census module, ratified.
+- **The read-only view on the sidebar nav (his requirement).** Neither the
+  sidebar nor the reader's role exists yet. Until they do: the board is the
+  reader's page by convention only; History is reachable by anyone who has
+  the URL. Decide, when the nav is built, whether History hides behind a
+  setting or a role, and whether the counts strip should name how many
+  builds are unnamed.
 - **Who is `CreatedBy`.** The form needs a name. AppTrak's authentication
   tables are among those missing from the local copy (item 10); until they
   arrive, a configured name in the module's settings, and the column is

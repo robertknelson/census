@@ -1,0 +1,22 @@
+{
+  "application": 2,
+  "release": "Sprint 44",
+  "kind": "featureset",
+  "targetDate": "2026-10-02",
+  "note": "FABRICATED. Fixture manifest for the loader: one item depending on another manifest's item.",
+  "workItems": [
+    {
+      "kind": "feature",
+      "title": "Download exports from the portal",
+      "builtBy": "dev-d",
+      "includedInBuild": "20260910.1",
+      "links": [
+        { "kind": "dependsOn", "application": 1, "release": "Sprint 44", "workItem": "Portfolio export v2", "note": "Portal downloads what WidgetCore exports" }
+      ]
+    }
+  ],
+  "builds": [
+    { "build": "20260910.1" }
+  ],
+  "events": []
+}

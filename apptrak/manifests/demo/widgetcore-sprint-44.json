@@ -1,0 +1,39 @@
+{
+  "application": 1,
+  "release": "Sprint 44",
+  "kind": "featureset",
+  "targetDate": "2026-10-02",
+  "note": "FABRICATED. Fixture manifest for the loader: three items, one with the devs, one fix found in VAL.",
+  "workItems": [
+    {
+      "kind": "feature",
+      "title": "Portfolio export v2",
+      "builtBy": "dev-a",
+      "includedInBuild": "20260905.2",
+      "links": [
+        { "kind": "dependsOn", "release": "Sprint 43", "workItem": "Portfolio API v3", "note": "Export reads the v3 endpoint" }
+      ]
+    },
+    {
+      "kind": "fix",
+      "title": "Export drops the last row",
+      "builtBy": "dev-b",
+      "includedInBuild": "20260909.1",
+      "foundInStage": "VAL"
+    },
+    {
+      "kind": "feature",
+      "title": "Export scheduling",
+      "builtBy": "dev-c",
+      "includedInBuild": null
+    }
+  ],
+  "builds": [
+    { "build": "20260905.2", "note": "Promoted to VAL" },
+    { "build": "20260909.1", "note": "Fix build" }
+  ],
+  "events": [
+    { "kind": "note", "at": "2026-09-08T09:00:00+00:00", "by": "robert", "note": "Export scheduling still with the devs" },
+    { "kind": "verified", "stage": "VAL", "build": "20260909.1", "at": "2026-09-12T15:00:00+00:00", "by": "robert" }
+  ]
+}

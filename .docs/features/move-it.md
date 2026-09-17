@@ -578,6 +578,9 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/sql/history-deployment-episodes.sql` | real only | read-only; three questions to bring back (open item 1). Executed against the fixtures 2026-09-14 evening: parses, all three sections return — the morning risk is the answers, not the syntax |
 | `apptrak/seed/seed-apptrak-demo.sql` | here only | the fixtures — 13 endpoints, 131,040 pings, 8 releases |
 | `apptrak/Invoke-AppTrakDemo.ps1` | here only | runs DDL, lookups, seed, backfill against local `AppTrak` |
+| `apptrak/Invoke-AppTrakManifests.ps1` | both | §14: loads release manifests into `moveit`, parameterised, re-runnable, never deletes |
+| `apptrak/sql/manifest/*.sql` | both | the loader's statements, one per row kind, values as parameters |
+| `apptrak/manifests/demo/*.json` | here only | two fabricated manifests; loaded with `-By demo-manifest`, removed by the seed |
 | `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |
 | `apptrak/Invoke-AppTrakQuestions.ps1` | both | runs every question; against fixtures it is the proof, against real data it is the first board |
 | `.docs/move-it-morning-guide.md` | real | the step-by-step for the first real-environment run: recon, DDL, backfill, first board, processor rule, report-back |
@@ -837,6 +840,89 @@ chip; WidgetCore's Sprint 42 still at PROD under the hotfix's build (rule 5).
   timed with rows in `moveit`.
 - Whether "verified in VAL" gets its own column (item 5) — the event row
   exists; the board shows it if written.
+
+## 14. The manifest loader — ratified 2026-09-17, built and fixture-verified the same day
+
+**Why.** Part F of the morning guide was hand-typed INSERTs for one release: the
+only entry path, and one that does not survive the second release. §2 and §3
+already say what the record is — *build 20260910.4 of app X contains fix F and
+feature G* — so the record becomes a file, and one script is the only writer of
+`moveit` assertions until a form exists. Ratified as the slice after the real
+run, ahead of level 2 (parked on the registry) and level 3.
+
+**The manifest.** One JSON file per release. Fields mirror the tables; no ids
+anywhere, so a manifest is portable between environments and readable by the
+person who wrote it.
+
+```json
+{
+  "application": 1, "release": "Sprint 44", "kind": "featureset",
+  "targetDate": "2026-10-02", "note": "…",
+  "workItems": [
+    { "kind": "feature", "title": "Portfolio export v2", "builtBy": "dev-a",
+      "externalRef": null, "includedInBuild": "20260905.2", "foundInStage": null,
+      "removedAt": null, "removedNote": null,
+      "links": [ { "kind": "dependsOn", "application": 1, "release": "Sprint 43",
+                   "workItem": "Portfolio API v3", "note": "…" } ] }
+  ],
+  "builds": [ { "build": "20260905.2", "note": "Promoted to VAL" } ],
+  "events": [ { "kind": "verified", "stage": "VAL", "build": "20260909.1",
+                "at": "2026-09-12T15:00:00+00:00", "by": "robert", "note": null } ]
+}
+```
+
+`application` is the AppTrak application id (the registry is open item 10;
+until it is here, the id is what the payload carries). `includedInBuild` null
+means *with the devs*. A link's `application` and `release` default to the
+manifest's own; the target may live in another manifest.
+
+**Identity — what "the same" means on a re-run.**
+
+| Row | Key | On re-run |
+|---|---|---|
+| Release | (application, release name) | scalars follow the manifest |
+| WorkItem | (release, title) | scalars follow the manifest; a title in the database and not in the manifest is **reported, never deleted** — removal from a release is `removedAt`, an assertion, not an absence |
+| ReleaseBuild | (release, build) — the table's unique key | note follows |
+| ReleaseEvent | (release, kind, stage, build, at) | inserted if absent, **never updated**: events are history; a corrected event is a new row |
+| WorkItemLink | (work item, target, kind) — the table's unique key | note follows; target resolved by application + release + title in a second pass over the whole folder; unresolved is an error for that file, not the run |
+
+**The loader.** `apptrak/Invoke-AppTrakManifests.ps1 -Path <folder or file>
+[-Server] [-Database] [-By]`. Parameterised `SqlClient` throughout — manifest
+text never becomes SQL text; the statements live in `apptrak/sql/manifest/*.sql`
+(rule 9: a wrong write is a wrong file, fixed without touching a table). Before
+any write, every kind and stage is checked against the `core.SelectItem` lists
+(§10.2) and an invalid file is skipped whole. One transaction per file per
+pass. Output per file: inserted / updated / unchanged per table, orphans,
+unresolved links; exit 1 if any file had a problem. It never deletes, and it
+never touches `health` or `core`.
+
+**Where manifests live.** Real ones outside this repository — the hard
+constraint (§6). The repo ships `apptrak/manifests/demo/`: two fabricated
+manifests that exercise insert, no-op, cross-manifest link and a link to a
+seeded item, loaded with `-By demo-manifest` and removed by the seed's cleanup.
+They are **not** run by the demo runner, so the question counts the guide
+quotes stand; `Invoke-AppTrakManifests.ps1 -Path manifests\demo -By
+demo-manifest` after the demo adds them (01 goes from 16 rows to 20).
+
+**Verified 2026-09-17 on the fixtures:** first load inserts; second load reports
+everything unchanged and writes nothing; an edited copy updates the release
+note and one item, adds one event, and reports the dropped title as an orphan;
+an invalid kind rejects the file before any write; a link to a title that does
+not exist is reported and the file exits 1; timestamps written with `+00:00`
+read back as `+00:00`.
+
+**Open items for this section**
+- A `Key` column on `WorkItem` if titles turn out to churn. Title is the key
+  today because the table has nothing else and the manifest is the record;
+  a renamed title is an orphan plus a new item, and the loader says so.
+- Event retraction. Today a wrong event stays beside its correction. Decide
+  whether an event can be marked retracted (a column) or only annotated.
+- `-By` is who ran the loader, defaulting to the Windows user; the manifest
+  carries no authorship. Fine for one entrant; revisit the day a second
+  person writes (with the audit pattern §10.2 parks).
+- Level 3's release page should show the manifest's contents as loaded; the
+  inbox (05) should name the manifest a build is missing from. Both are
+  board work, not loader work.
 
 ## Appendix A — questions the data could answer
 

@@ -4,6 +4,26 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-17 — the real run, recorded from memory
+
+**003 made insert-only.** Robert reported the real `core.SelectItem` already had Stage rows.
+Options: leave the MERGE's update branch (keeps our Sort/Display authoritative, rewrites
+AppTrak's rows on every run); drop it (existing rows untouched, our Sort only applies to rows
+we created). Call: drop it. Reason: the guide promised no existing AppTrak row changes and the
+MERGE broke that promise once already; a lookup script this repo parks for another team must
+not own their reference data. What the real Sort values are is now open item 14.
+
+**Notes 2 and 3 read together as "rollback variant A".** His note 2 said only "rollback
+variant" and note 3 "I saw rollbacks that I remember". The guide's rule: any rows in Result B
+means a fresh Deploymentat on redeploy. Call: record variant A, and the two Result C details
+(no-block Deploymentat, Stage source) as not brought back. Reason: his numbering drifted from
+the guide's; the words match Result B, not Result C.
+
+**05 empty recorded as probably honest, not as a bug.** Options: treat an empty inbox as the
+Sort join failing and rewrite 05 defensively; record both readings and let item 14 decide.
+Call: the latter. Reason: 26 deployment rows and 32 endpoints without evidence say only DEV
+sends blocks; a defensive rewrite would hide a real answer behind a guess.
+
 ## 2026-09-14 — Move It board, level 1 built
 
 **Question 01 drawn as lanes, not a grouped table.** The spec said "every open work item

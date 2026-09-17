@@ -397,10 +397,10 @@ partitioned by EndpointId, ordered by StartAt, yields identical rows from
 history, HealthReportId included. Two producers, one rule — simplest guarantee
 is running the live code path over history rather than writing the rule twice.
 
-**Pending on real data** (open item 1's history query): whether the release
-pipeline stamps a fresh Deploymentat on a rollback redeploy. If yes, the tuple
-compare catches rollbacks; if Deploymentat is baked at build time, rollbacks
-are invisible to this table and DetectedAt gaps are the fallback signal.
+**Resolved on real data 2026-09-17** (open item 1's history query): the rollback
+result set returned rows Robert recognised as rollbacks he remembers, so the
+pipeline stamps a fresh Deploymentat on a redeploy (fixture variant A). The tuple
+compare catches rollbacks; question 08 found three in history. §12.1.
 
 ### 10.2 The `moveit` schema — ratified 2026-09-14
 
@@ -612,14 +612,41 @@ decide which rollback variant the fixtures got right.
 
 ## 12. Open items
 
+### 12.1 The real run, 2026-09-17 — reported from memory
+
+Robert ran `.docs/move-it-morning-guide.md` against the real AppTrak. Nothing
+leaves that environment, not even a result file, so this is his recollection
+against the guide's nine report-back items. Counts are his; nothing here is
+data.
+
+| # | Asked | Answer |
+|---|-------|--------|
+| 1 | Three history result sets | All three "look good"; episodes read as deployments he remembers |
+| 2 | Rollback variant | Result B had rows he recognised: **variant A**, fresh `Deploymentat` on redeploy |
+| 3 | `Deploymentat` with no block; `HealthReport.Stage` source | **Not brought back** — item 12 |
+| 4 | Real stage names | **Already existed in `core.SelectItem`** before 003 ran — item 14 |
+| 5 | Backfill | 26 inserted, `Broken` 0, second run 0 inserted; minutes not noted |
+| 6 | News in 06, 07, 08 | None. 06 and 07 empty; 08 three rollbacks, all remembered |
+| 7 | Inbox count from 05 | **No rows** — item 13 |
+| 8 | Processor change | Will not ship for at least 2–4 weeks — item 17 |
+| 9 | Items 9, 10, 11 | Nothing new |
+
+Full set executed clean. 01–04, 09, 10, 12 empty, as the guide said they must be
+with `moveit` empty. 11 returned 19 applications and 32 endpoints without
+evidence, "looks correct", in 59 seconds — item 16.
+
+### 12.2 The list
+
 1. ~~Extract distinct deployment events into a fact table.~~ Shape ratified
-   as `health.Deployment` (§10.1), built (§11). Still owed: run
-   `apptrak/sql/history-deployment-episodes.sql` against real data and bring
-   back the three results — episode shape, Deploymentat on rollback, regime
-   coverage.
+   as `health.Deployment` (§10.1), built (§11). ~~Still owed: run
+   `apptrak/sql/history-deployment-episodes.sql` against real data.~~ Run
+   2026-09-17 (§12.1): episodes recognisable, rollback variant A, coverage
+   plausible. Two details from Result C were not brought back — item 12.
 2. Backfill: for apps already in the regime, reconstruct release history from
    ping history and attach manifests to past builds from the emails. Zero new
-   collection code; the field trial's first exercise.
+   collection code; the field trial's first exercise. On 2026-09-17 the inbox
+   (05) was empty, so there is nothing observed past DEV to attach a manifest
+   to yet — item 13 says why that is probably right.
 3. What does Team A's Jenkins job put on the box? A version in the assembly or a
    text file in the deploy folder is observable by the collector without an
    endpoint.
@@ -658,6 +685,48 @@ decide which rollback variant the fixtures got right.
 11. AppTrak's repository in reach — the `moveit` data-model spec and the
    `.sql` files live there, not here. Until then they are parked under
    `apptrak/` (§11).
+12. **Two Result C details, not brought back 2026-09-17:** what
+   `HealthReport.Deploymentat` holds on a ping with no deployment block (the
+   seed assumed `0001-01-01`), and whether `HealthReport.Stage` is the
+   registration's stage or the payload's. Both stay as unconfirmed calls in
+   `calls-made-for-you.md`. Next real visit: one query each; an answer from
+   memory is enough.
+13. **05 returned no rows on real data.** Two readings. (a) Only DEV endpoints
+   send deployment blocks today, so nothing has been *observed* past DEV and
+   the inbox is honestly empty; 11's 32 endpoints without evidence would then
+   be the VAL/UAT/PROD ones, and 26 deployment rows across the whole history
+   fits a regime that is young. (b) The real `Stage` rows' `Sort` values do
+   not order the stages, so 05's `Sort > MIN(Sort)` never holds and the query
+   is blind. Item 14 decides between them; (a) is the reading the other
+   numbers support. Until settled, an empty inbox is not evidence that the
+   manual habit is holding.
+14. **The real `core.SelectItem` already had `Stage` rows, and 003 touched
+   them.** The guide promised no existing AppTrak row would change; 003's
+   `MERGE` had a `WHEN MATCHED ... UPDATE` branch, so any Stage row whose
+   `Identifier` matched now carries this repo's `Display`, `Description` and
+   `Sort` (10/20/20/30) unless it already did. Owed by Robert: compare the
+   four Stage rows against the Part C backup and restore `Display` and
+   `Description` if AppTrak's UI shows them; bring back the four
+   `Identifier`/`Sort` pairs as they were (reference values, not data). If the
+   originals were not ordered DEV < VAL = UAT < PROD, every question that
+   reads `Sort` needs a decision: keep our Sort on AppTrak's rows, or carry the
+   sequence somewhere `moveit` owns. 003 is insert-only from 2026-09-17
+   (`calls-made-for-you.md`); re-running it changes nothing that exists.
+15. **Backfill on real data:** 26 rows, `Broken` 0, second run 0. Minutes not
+   recorded; bring the number next time so the processor's batch cost is
+   known. 26 episodes over the whole ping history is small — see item 13(a).
+16. **Question 11 took 59 seconds on real data** (19 applications, 32
+   endpoints). The two correlated subqueries per endpoint scan `HealthReport`.
+   Not on the board today, so nothing to do here; when it is, the fix is an
+   index on `HealthReport (EndpointId, IsSuccess, StartAt)` or a
+   last-good-ping column AppTrak maintains — AppTrak's change (item 11). 01's
+   cost on real data is unmeasured: it returned no rows because `moveit` is
+   empty.
+17. **The processor change (guide Part E) will not ship for at least 2–4 weeks
+   from 2026-09-17.** Until it does, `health.Deployment` stops at the
+   backfill's watermark. Re-run `backfill-health-deployment.sql` before any
+   real board reading; it is idempotent and prints what it added. The
+   two-producer test waits on the processor.
 
 ## 13. The board — the governance reader's page (ratified 2026-09-14; level 1 built)
 
@@ -747,7 +816,9 @@ chip; WidgetCore's Sprint 42 still at PROD under the hotfix's build (rule 5).
   is still one click away.
 - Refresh: live query per page load, or cached on a cadence. Draft says live;
   the question files run in milliseconds against fixtures and the real
-  volume is one report per ping per endpoint.
+  volume is one report per ping per endpoint. Real data 2026-09-17: 11 took
+  59 seconds (item 16); 01 unmeasured. Live stays the draft until 01 is
+  timed with rows in `moveit`.
 - Whether "verified in VAL" gets its own column (item 5) — the event row
   exists; the board shows it if written.
 

@@ -4,7 +4,9 @@
 -- Stage.Sort is the sequence: DEV, VAL and UAT are peers (VAL is Team B's, UAT is Team A's),
 -- PROD above. "Highest stage" and "skipped a stage" read Sort.
 --
--- Idempotent: MERGE, safe to re-run. Adding a kind later is a row here, not DDL.
+-- Idempotent and insert-only: a row that exists is never changed, whatever it holds.
+-- The real core.SelectItem already had Stage rows (found 2026-09-17); this script must not
+-- rewrite AppTrak's reference data. Adding a kind later is a row here, not DDL.
 
 MERGE core.SelectItem AS t
 USING (VALUES
@@ -32,8 +34,6 @@ USING (VALUES
     ('EventKind',     'deployed-asserted', 'Deployed (asserted)', 'Human statement of a deployment for an app with no health regime; declared, never counted as observed', 70)
 ) AS s (Grouping, Identifier, Display, Description, Sort)
     ON t.Grouping = s.Grouping AND t.Identifier = s.Identifier
-WHEN MATCHED AND (t.Display <> s.Display OR t.Description <> s.Description OR t.Sort <> s.Sort) THEN
-    UPDATE SET Display = s.Display, Description = s.Description, Sort = s.Sort
 WHEN NOT MATCHED THEN
     INSERT (Identifier, Display, Description, Sort, IsShow, MasterId, Grouping)
     VALUES (s.Identifier, s.Display, s.Description, s.Sort, 1, -1, s.Grouping);

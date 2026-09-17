@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Morning: .docs/move-it-morning-guide.md against the real AppTrak (recon, DDL, backfill, five questions, nine report-back items). Also bring the missing AppTrak tables as zero-row DDL (application/endpoint registration, authorization, the rest) — board level 2 is parked on them"
+next_step: "Open item 14: compare the four Stage rows in the real core.SelectItem against the Part C backup, restore Display/Description if AppTrak shows them, and bring back the four Identifier/Sort pairs — that decides whether 05's empty inbox is honest (item 13). Still owed: the missing AppTrak tables as zero-row DDL for board level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,20 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-17 (the real run, reported from memory)
+- Robert ran the morning guide against the real AppTrak. Nothing leaves that
+  environment, so the report is his recollection, recorded in `move-it.md`
+  §12.1 against the guide's nine items: history results read as deployments
+  he remembers; rollback variant A (fresh Deploymentat on redeploy); backfill
+  26 rows, Broken 0, second run 0; 06/07 empty, 08 three rollbacks he knew;
+  05 empty; full set clean; 11 correct-looking in 59 seconds; processor change
+  2–4 weeks out at least.
+- **One promise broken:** the real `core.SelectItem` already had Stage rows and
+  003's MERGE updated them. 003 is insert-only now; he owes a comparison
+  against his backup and the four Identifier/Sort pairs (open item 14). That
+  answer also decides whether 05's empty inbox is honest (item 13).
+- Open items 12–17 added. Level 2 still parked on the missing tables.
 
 ### 2026-09-14, close (repo scrubbed of work details)
 - Robert found personal and organisational context in the spec on review.

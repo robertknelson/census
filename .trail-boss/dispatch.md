@@ -1,7 +1,7 @@
 ---
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It has its first screen: every feature and fix in the column the evidence puts it in, proven on fixtures; the real database is tomorrow"
+summary: "Move It met the real database: history reads true, 26 deployments found, no surprises — except our lookup script rewrote four rows it should have left alone; fixed, owner checks the damage"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -26,7 +26,18 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**The board has a first screen.** Move It's question — *where is this feature:
+**The real database has been read, and it agrees with the design.** He ran the
+morning guide against the live tracking site: the deployment history the
+design predicted is there and reads as the deployments he remembers, the
+rollbacks it found are ones he knew about, and the new ledger table filled
+from years of pings with no broken links and nothing added on a second pass.
+The one script that rewrites data was run twice and changed nothing the
+second time, as promised.
+
+Nothing came back but his memory of it, by the rule that nothing leaves that
+environment. The report is recorded from that.
+
+**Previously — the board has a first screen.** Move It's question — *where is this feature:
 still with the developers, on DEV, being tested, or live?* — now has a page a
 manager can open without a guide: one row per application, one column per
 stage, every open feature and fix sitting in the column the evidence puts it
@@ -44,10 +55,16 @@ board is simply a Census page reading the tracking site's own database.
 
 ## What's next
 
-**Tomorrow morning, unchanged:** the step-by-step guide against the real
-database — a read-only look first, then the new tables and the deployment
-history built from years of pings, then the five questions that need no
-typing. He brings back nine answers.
+**He checks four rows.** The lookup script found the tracking site already
+had its own stage names and overwrote their labels. He compares them against
+the backup he took first, restores the labels if the site shows them, and
+brings back how those four rows were ordered. That one answer also settles
+whether the empty "inbox" is genuinely empty or the query was looking in the
+wrong place.
+
+**The live half of the ledger is 2–4 weeks out at least.** Until his code
+writes the ledger as pings arrive, the backfill script has to be re-run
+before any real reading of the board.
 
 **Then the board's second screen, once the missing tables arrive.** He read
 the real tracking database's schema tonight and found the copy here lacks
@@ -58,7 +75,16 @@ on which server, and anything that went out ahead of something it depends on.
 
 ## Anything alarming
 
-- **Everything is proven against fabricated data only.** Unchanged, and said
+- **The lookup script broke its own promise.** The guide said no existing row
+  in the tracking database would change; the script changed the labels on
+  four stage rows that were already there. Fixed so it can never update an
+  existing row again; he has a backup from before it ran. Small, and worth
+  saying because it is the first time this project wrote over something it
+  did not own.
+- **One question takes a minute on real data.** Not one that is on the board,
+  so nothing to do yet; noted for when it is.
+- **The real environment is now no longer fabricated-only for the SQL side.**
+  Census itself is still proven against fabricated data only, and said
   plainly on every artifact.
 - **Two applications have no name.** The tracking site's database holds
   application ids but no registry of names; the board shows "Application 3"
@@ -69,5 +95,5 @@ on which server, and anything that went out ahead of something it depends on.
   untouched. Worth saying because it was a line the project had never crossed.
 - The Census remote login has still never run for real. Unchanged.
 
-Nothing is broken. Build clean; the board verified in the browser against the
-fixtures.
+Nothing is broken. The fixture demo runs clean with the insert-only lookup
+script; the board is unchanged since it was verified in the browser.

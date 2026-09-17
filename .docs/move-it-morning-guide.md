@@ -1,5 +1,10 @@
 # Move It — morning guide: implement and test in the real environment
 
+> **Run 2026-09-17.** The report, from memory, is `move-it.md` §12.1. One correction learned
+> that morning: the real `core.SelectItem` already held `Stage` rows and 003's MERGE updated
+> them, so the "no existing row changes" promise below did not hold. 003 is insert-only now
+> (open item 14).
+>
 > Written 2026-09-14 for the next morning. Everything referenced is committed on `main`
 > (`1db75bc`). Design and reasoning: `.docs/features/move-it.md`. Decisions made without you:
 > `.docs/calls-made-for-you.md`. Tick the boxes; anything that surprises you goes in the

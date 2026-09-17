@@ -13,7 +13,7 @@
 Ground rules for the day:
 
 - **Nothing here touches an existing AppTrak table's shape or rows.** The DDL adds one table
-  to `health`, a new `moveit` schema, and 17 lookup rows in `core.SelectItem`. The backfill
+  to `health`, a new `moveit` schema, and four lists in `core.SelectItem`. The backfill
   only reads `HealthReport`. Every question is read-only.
 - **Never run `seed/` against the real database.** It deletes rows marked demo and inserts
   fabricated ones. The runner for the real side is the questions runner, not the demo runner.
@@ -30,7 +30,7 @@ Confirms the tooling works where it was built.
 
 - [ ] `cd C:\github\ai\census\apptrak`
 - [ ] `.\Invoke-AppTrakDemo.ps1` — expect `moveit.Deployment: 39 inserted` and the row-count
-      table ending in `core.SelectItem (moveit groupings)|17`.
+      table ending in `core.SelectItem (list members)|17`.
 - [ ] `.\Invoke-AppTrakQuestions.ps1 -Only 01` — expect 16 rows; Sprint 42 items at PROD,
       Sprint 43 at DEV, item 303 `with the devs`, item 801 `no evidence`.
 
@@ -83,13 +83,13 @@ Additive and idempotent; safe to re-run if interrupted.
       sqlcmd -S REALSERVER -d AppTrak -E -I -b -i sql\003-lookups.sql
       ```
 
-- [ ] Confirm: `SELECT Grouping, COUNT(*) FROM core.SelectItem WHERE Grouping IN
-      ('Stage','ReleaseKind','WorkItemKind','LinkKind','EventKind') GROUP BY Grouping;`
-      expect Stage 4, ReleaseKind 2, WorkItemKind 2, LinkKind 2, EventKind 7.
-- [ ] **If the real stage names are not exactly `DEV`, `VAL`, `UAT`, `PROD`** (case is
-      ignored, spelling is not), fix the `Stage` rows in `003-lookups.sql` to match what
-      `HealthEndpoint.Stage` actually holds, re-run 003, and note it for the report. Every
-      question joins on those names.
+- [ ] Confirm: `SELECT y.Identifier, COUNT(*) FROM core.SelectItem x JOIN core.SelectItem y
+      ON y.Id = x.MasterId WHERE y.Identifier IN ('stage','release-kind','work-item-kind',
+      'link-kind','event-kind') GROUP BY y.Identifier;` expect release-kind 2, work-item-kind 2,
+      link-kind 2, event-kind 7, and stage = however many stages AppTrak has.
+- [ ] **If AppTrak's stage list is not headed `stage`**, or its members are not exactly
+      `DEV`, `VAL`, `UAT`, `PROD`, note it for the report: the questions read that list by
+      header and join `HealthEndpoint.Stage` to its members.
 - [ ] Backfill:
 
       ```

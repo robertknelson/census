@@ -1,7 +1,7 @@
 ---
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It met the real database: history reads true, 26 deployments found, no surprises; the lookup rows were entered by hand and the repo's script owes a rewrite to match"
+summary: "Move It met the real database: history reads true, 26 deployments found, no surprises; the lookup script now writes lists the way the tracking site reads them"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -55,11 +55,10 @@ board is simply a Census page reading the tracking site's own database.
 
 ## What's next
 
-**The repo's lookup script learns how the real lookup table works.** It is a
-list-of-lists table and the script had written list names instead of list
-members. He entered the real rows correctly by hand, so nothing is wrong on
-the live side; the script and the local copy get rewritten to match once he
-reports how he entered them.
+**He confirms one name.** The lookup script and every stage query now read
+the tracking site's lists the way the site itself does. One list name was
+assumed rather than given, the one for stages; if it is spelled differently
+on the live side it is a one-word change.
 
 **The live half of the ledger is 2–4 weeks out at least.** Until his code
 writes the ledger as pings arrive, the backfill script has to be re-run
@@ -74,10 +73,10 @@ on which server, and anything that went out ahead of something it depends on.
 
 ## Anything alarming
 
-- **The lookup script misread the tracking site's lookup table** and wrote
-  list names where it should have written list members. No harm done: he
-  entered the real rows by hand. The script can no longer update an existing
-  row, and it owes a rewrite.
+- **The lookup script had misread the tracking site's lookup table** and
+  wrote list names where it should have written list members. No harm done:
+  he entered the real rows by hand, and the script is rewritten in the
+  table's own shape and can never update an existing row.
 - **One question takes a minute on real data.** Not one that is on the board,
   so nothing to do yet; noted for when it is.
 - **The real environment is now no longer fabricated-only for the SQL side.**

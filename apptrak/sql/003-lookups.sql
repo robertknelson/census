@@ -1,39 +1,49 @@
--- Reference rows for moveit in core.SelectItem, keyed by (Grouping, Identifier).
--- Reference data, not demo data: these are the same in every environment.
+-- Reference rows for moveit in core.SelectItem, in AppTrak's own shape (move-it.md 10, item 18):
+-- a list is a header row (MasterId = -1, Identifier = the list name, kebab-case); its members
+-- carry MasterId = the header's Id. Grouping only groups options inside a dropdown and is
+-- left NULL. AppTrak reads a list as:
+--   SELECT x.* FROM core.SelectItem x JOIN core.SelectItem y ON x.MasterId = y.Id
+--   WHERE y.Identifier = 'release-kind' AND x.IsShow = 1 ORDER BY x.Sort
 --
--- Stage.Sort is the sequence: DEV, VAL and UAT are peers (VAL is Team B's, UAT is Team A's),
--- PROD above. "Highest stage" and "skipped a stage" read Sort.
+-- Four lists: release-kind, work-item-kind, link-kind, event-kind. No stage list: AppTrak
+-- already has one (header 'stage'); the questions read it and this script never writes it.
 --
--- Idempotent and insert-only: a row that exists is never changed, whatever it holds.
--- The real core.SelectItem already had Stage rows (found 2026-09-17); this script must not
--- rewrite AppTrak's reference data. Adding a kind later is a row here, not DDL.
+-- Insert-only and idempotent: a header or member that exists is never changed, whatever it
+-- holds. Adding a kind later is a row here, not DDL.
 
-MERGE core.SelectItem AS t
-USING (VALUES
-    -- Grouping,      Identifier,          Display,               Description,                                                    Sort
-    ('Stage',         'DEV',               'DEV',                 'Development stage; builds land continuously during a sprint',   10),
-    ('Stage',         'VAL',               'VAL',                 'Validation stage (Team B)',                                     20),
-    ('Stage',         'UAT',               'UAT',                 'User acceptance stage (Team A)',                                20),
-    ('Stage',         'PROD',              'PROD',                'Production',                                                    30),
+SET NOCOUNT ON;
 
-    ('ReleaseKind',   'featureset',        'Feature set',         'The sprint''s planned work for one application',                10),
-    ('ReleaseKind',   'hotfix',            'Hotfix',              'A fix that skipped the development phase, branched from PROD',  20),
+DECLARE @m TABLE (List nvarchar(50), Identifier nvarchar(50), Display nvarchar(50), Description nvarchar(255), Sort int);
+INSERT @m VALUES
+    -- List,             Identifier,          Display,               Description,                                                    Sort
+    ('release-kind',     'featureset',        'Feature set',         'The sprint''s planned work for one application',                10),
+    ('release-kind',     'hotfix',            'Hotfix',              'A fix that skipped the development phase, branched from PROD',  20),
 
-    ('WorkItemKind',  'feature',           'Feature',             'New or changed behaviour',                                      10),
-    ('WorkItemKind',  'fix',               'Fix',                 'Correction of a defect',                                        20),
+    ('work-item-kind',   'feature',           'Feature',             'New or changed behaviour',                                      10),
+    ('work-item-kind',   'fix',               'Fix',                 'Correction of a defect',                                        20),
 
-    ('LinkKind',      'dependsOn',         'Depends on',          'Directed: the linked item must be deployed first',              10),
-    ('LinkKind',      'relatedTo',         'Related to',          'Undirected: these go together',                                 20),
+    ('link-kind',        'dependsOn',         'Depends on',          'Directed: the linked item must be deployed first',              10),
+    ('link-kind',        'relatedTo',         'Related to',          'Undirected: these go together',                                 20),
 
-    ('EventKind',     'approved',          'Approved',            'Client approval to deploy the named build to the named stage',  10),
-    ('EventKind',     'verified',          'Verified',            'Testing signed off in the named stage',                         20),
-    ('EventKind',     'hold',              'On hold',             'Release parked; Note carries the reason',                       30),
-    ('EventKind',     'resumed',           'Resumed',             'Hold lifted',                                                   40),
-    ('EventKind',     'note',              'Note',                'Free text against the release at a moment in time',             50),
-    ('EventKind',     'abandoned',         'Abandoned',           'Release will not ship',                                         60),
-    ('EventKind',     'deployed-asserted', 'Deployed (asserted)', 'Human statement of a deployment for an app with no health regime; declared, never counted as observed', 70)
-) AS s (Grouping, Identifier, Display, Description, Sort)
-    ON t.Grouping = s.Grouping AND t.Identifier = s.Identifier
-WHEN NOT MATCHED THEN
-    INSERT (Identifier, Display, Description, Sort, IsShow, MasterId, Grouping)
-    VALUES (s.Identifier, s.Display, s.Description, s.Sort, 1, -1, s.Grouping);
+    ('event-kind',       'approved',          'Approved',            'Client approval to deploy the named build to the named stage',  10),
+    ('event-kind',       'verified',          'Verified',            'Testing signed off in the named stage',                         20),
+    ('event-kind',       'hold',              'On hold',             'Release parked; Note carries the reason',                       30),
+    ('event-kind',       'resumed',           'Resumed',             'Hold lifted',                                                   40),
+    ('event-kind',       'note',              'Note',                'Free text against the release at a moment in time',             50),
+    ('event-kind',       'abandoned',         'Abandoned',           'Release will not ship',                                         60),
+    ('event-kind',       'deployed-asserted', 'Deployed (asserted)', 'Human statement of a deployment for an app with no health regime; declared, never counted as observed', 70);
+
+-- headers
+INSERT core.SelectItem (Identifier, Display, Description, Sort, IsShow, MasterId, Grouping)
+SELECT l.List, l.List, 'Move It list', 0, 1, -1, NULL
+FROM (SELECT DISTINCT List FROM @m) l
+WHERE NOT EXISTS (SELECT 1 FROM core.SelectItem h WHERE h.MasterId = -1 AND h.Identifier = l.List);
+
+-- members
+INSERT core.SelectItem (Identifier, Display, Description, Sort, IsShow, MasterId, Grouping)
+SELECT m.Identifier, m.Display, m.Description, m.Sort, 1, h.Id, NULL
+FROM @m m
+JOIN core.SelectItem h ON h.MasterId = -1 AND h.Identifier = m.List
+WHERE NOT EXISTS (SELECT 1 FROM core.SelectItem x WHERE x.MasterId = h.Id AND x.Identifier = m.Identifier);
+
+PRINT 'core.SelectItem: ' + CAST(@@ROWCOUNT AS varchar(10)) + ' members inserted';

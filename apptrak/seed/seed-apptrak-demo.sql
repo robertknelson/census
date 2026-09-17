@@ -49,6 +49,22 @@ IF OBJECT_ID('moveit.ReleaseEvent', 'U') IS NOT NULL DELETE FROM moveit.ReleaseE
 IF OBJECT_ID('moveit.ReleaseBuild', 'U') IS NOT NULL DELETE FROM moveit.ReleaseBuild WHERE CreatedBy = 'demo-seed';
 IF OBJECT_ID('moveit.WorkItem', 'U')     IS NOT NULL DELETE FROM moveit.WorkItem     WHERE CreatedBy = 'demo-seed';
 IF OBJECT_ID('moveit.Release', 'U')      IS NOT NULL DELETE FROM moveit.Release      WHERE CreatedBy = 'demo-seed';
+-- rows the first shape of 003 wrote as list headers (MasterId = -1 with a Grouping); fixture only
+DELETE FROM core.SelectItem WHERE MasterId = -1 AND Grouping IN ('Stage','ReleaseKind','WorkItemKind','LinkKind','EventKind');
+
+-- ---- the stage list, as AppTrak has it in the real database (fixture stands in) ----------
+-- Header 'stage', members DEV / VAL / UAT / PROD; Sort is the sequence, VAL and UAT peers.
+IF NOT EXISTS (SELECT 1 FROM core.SelectItem WHERE MasterId = -1 AND Identifier = 'stage')
+    INSERT core.SelectItem (Identifier, Display, Description, Sort, IsShow, MasterId, Grouping)
+    VALUES ('stage', 'stage', 'Deployment stages (fixture stand-in for AppTrak''s list)', 0, 1, -1, NULL);
+INSERT core.SelectItem (Identifier, Display, Description, Sort, IsShow, MasterId, Grouping)
+SELECT v.Identifier, v.Identifier, v.Description, v.Sort, 1, h.Id, NULL
+FROM (VALUES ('DEV',  'Development stage; builds land continuously during a sprint', 10),
+             ('VAL',  'Validation stage (Team B)',                                   20),
+             ('UAT',  'User acceptance stage (Team A)',                              20),
+             ('PROD', 'Production',                                                  30)) v (Identifier, Description, Sort)
+JOIN core.SelectItem h ON h.MasterId = -1 AND h.Identifier = 'stage'
+WHERE NOT EXISTS (SELECT 1 FROM core.SelectItem x WHERE x.MasterId = h.Id AND x.Identifier = v.Identifier);
 
 -- ---- endpoints -------------------------------------------------------------------------
 SET IDENTITY_INSERT health.HealthEndpoint ON;

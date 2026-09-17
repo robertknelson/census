@@ -486,11 +486,16 @@ CREATE TABLE moveit.WorkItemLink (                -- directed, feature-level dep
 
 Plus `moveit.Deployment` (§10.1) as the observed side: six tables in all.
 
-**Lookups (`core.SelectItem`, by `Grouping`):** `Stage` (with `Sort` as
-sequence — DEV, VAL, UAT peers; PROD above); `ReleaseKind` featureset |
-hotfix; `WorkItemKind` feature | fix; `LinkKind` dependsOn | relatedTo;
-`EventKind` approved | verified | hold | resumed | note | abandoned |
-deployed-asserted. Adding a kind is data, not DDL.
+**Lookups (`core.SelectItem` lists, AppTrak's shape — amended 2026-09-17):**
+a list is a header row (`MasterId = -1`, `Identifier` the list name,
+kebab-case) and its members carry `MasterId = header.Id`; `Grouping` is
+dropdown grouping only, left NULL; readers filter `IsShow = 1` and order by
+`Sort`. Move It's four: `release-kind` featureset | hotfix; `work-item-kind`
+feature | fix; `link-kind` dependsOn | relatedTo; `event-kind` approved |
+verified | hold | resumed | note | abandoned | deployed-asserted. The Kind
+columns store the member `Identifier`. **Stages are AppTrak's own `stage`
+list**, read, never written; `Sort` is the sequence (DEV, VAL and UAT peers,
+PROD above). Adding a kind is data, not DDL.
 
 **Rules.**
 
@@ -568,7 +573,7 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 |---|---|---|
 | `apptrak/sql/001-create-deployment.sql` | both | §10.1 table; unique on HealthReportId |
 | `apptrak/sql/002-create-moveit-schema.sql` | both | §10.2 tables; no FKs, matching AppTrak |
-| `apptrak/sql/003-lookups.sql` | both | the five `core.SelectItem` groupings, MERGE |
+| `apptrak/sql/003-lookups.sql` | both | the four `core.SelectItem` lists (header + members), insert-only; the stage list is AppTrak's |
 | `apptrak/sql/backfill-deployment.sql` | both | **the rule**, in SQL; the live processor implements exactly this |
 | `apptrak/sql/history-deployment-episodes.sql` | real only | read-only; three questions to bring back (open item 1). Executed against the fixtures 2026-09-14 evening: parses, all three sections return — the morning risk is the answers, not the syntax |
 | `apptrak/seed/seed-apptrak-demo.sql` | here only | the fixtures — 13 endpoints, 131,040 pings, 8 releases |
@@ -727,18 +732,17 @@ evidence, "looks correct", in 59 seconds — item 16.
    backfill's watermark. Re-run `backfill-deployment.sql` before any
    real board reading; it is idempotent and prints what it added. The
    two-producer test waits on the processor.
-18. **003 and the fixture should mirror what Robert entered by hand.** The
-   real rows are right; the repo's script and the local copy are not (all 17
-   rows are headers, `MasterId = -1`). Needed from him, as values: the list
-   header identifiers he used, and whether the members carry `Grouping`
-   (`'Stage'` etc.) or NULL. The second matters: eight questions and
-   `board/stages.sql` select stages by `WHERE Grouping = 'Stage'`, and all
-   eight were empty on the morning run by design (`moveit` empty), so a
-   Grouping mismatch would not have shown. If his members have no Grouping,
-   the `stg` CTEs move to `MasterId = (header Id)`. The stage *sequence*
-   question (AppTrak's `Sort` is a dropdown order; VAL and UAT peers need
-   equal rank) is answered by whatever Sort he gave the members. Not urgent;
-   nothing is broken for him.
+18. ~~003 and the fixture should mirror what Robert entered by hand.~~ Done
+   2026-09-17 from the query shape he gave (`x.MasterId = y.Id`, header
+   `Identifier` in kebab-case, `IsShow = 1`, `ORDER BY Sort`): 003 writes the
+   four lists as header + members, insert-only; the eight `stg` CTEs and
+   `board/stages.sql` read AppTrak's stage list by header; the fixture seed
+   stands in a `stage` list locally. **One value guessed:** the real stage
+   list's header identifier is assumed `'stage'` (his three examples were
+   `release-kind`, `event-kind`, `work-item-kind`). If it is something else,
+   it is one literal in nine files. Member identifiers stay as ratified
+   (`featureset`, `dependsOn`, …); if his hand-entered members differ, the
+   Kind columns' values differ with them — bring the list.
 
 ## 13. The board — the governance reader's page (ratified 2026-09-14; level 1 built)
 

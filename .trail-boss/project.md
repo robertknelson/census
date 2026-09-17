@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Bring back how the core.SelectItem lists were entered by hand (header identifiers; whether members carry Grouping) so 003 and the fixture mirror the real rows (item 18). Still owed: the missing AppTrak tables as zero-row DDL for board level 2"
+next_step: "Confirm the real stage list's header identifier is 'stage' (one literal in nine files if not). Still owed: the missing AppTrak tables as zero-row DDL for board level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -36,7 +36,9 @@ relates: []
 - `core.SelectItem` is a recursive hierarchy (header `MasterId = -1`, members
   point at it; `Grouping` is dropdown grouping only). 003 had written headers,
   not lists; Robert entered the real rows by hand and everything ran, so no
-  cleanup. 003 and the fixture still owe a rewrite to match (item 18).
+  cleanup. He gave the read query and three header names; 003, the seed and
+  the nine stage lookups now use that shape. Verified: demo clean, all twelve
+  questions return their fixture counts. Stage header assumed `'stage'`.
 - Robert moved the ledger to `moveit.Deployment`; renamed across the repo.
 - Open items 12–17 added. Level 2 still parked on the missing tables.
 

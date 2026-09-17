@@ -24,7 +24,8 @@
 DECLARE @WorkItemId int = NULL;
 
 WITH stg AS (
-    SELECT Identifier AS Stage, Sort FROM core.SelectItem WHERE Grouping = 'Stage'
+    SELECT x.Identifier AS Stage, x.Sort FROM core.SelectItem x
+    JOIN core.SelectItem y ON y.Id = x.MasterId WHERE y.Identifier = 'stage' AND x.IsShow = 1
 ),
 dep AS (   -- every deployment at a stage, observed or asserted; asserted rows have no EndpointId
     SELECT d.ApplicationId, d.EndpointId, ep.Stage, d.Build, d.DetectedAt AS At, d.SupersededAt, 'observed' AS Evidence

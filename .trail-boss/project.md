@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Real side: write the first real manifest(s) outside the repo and run Invoke-AppTrakManifests.ps1 against the real AppTrak (guide Part F), then 01/02. Repo side: board level 3 (release page) on fixtures. Owed: the missing AppTrak tables as zero-row DDL for level 2"
+next_step: "Ratify move-it.md §15 (entry on a History page in the Census module; Census's first database write) and its open items, then build it on fixtures. Owed: the missing AppTrak tables as zero-row DDL for level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,20 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-17, late (pivot: entry is a page, not a file)
+- Robert read the loader's plain-English description and ruled it the wrong
+  front door: he wants to navigate the deployment history recent-first and
+  name what was in the builds he remembers, and set up feature sets for work
+  in progress. "I'm NOT changing the overall design. It's just how to enter
+  and where to enter." §15 drafted for ratification: a History page on the
+  board (the ledger newest first, unnamed builds as the inbox, click a build
+  to name its contents, New release for work in progress), recommended in the
+  Census module, which would be Census's first database write — his to
+  ratify. The loader stays as import/export and the reference write rules.
+- Counsel's note: the file was recommended because it needed no UI; the sense
+  of it had not landed when he ratified. Plain-English readback caught it
+  before any real file was written.
 
 ### 2026-09-17, evening (the manifest loader)
 - Planned what comes next; he ratified: manifest loader first, then level 3

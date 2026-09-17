@@ -896,6 +896,9 @@ pass. Output per file: inserted / updated / unchanged per table, orphans,
 unresolved links; exit 1 if any file had a problem. It never deletes, and it
 never touches `health` or `core`.
 
+*Superseded as the entry path by §15 the same evening; the loader stays as
+import/export and as the reference for the write rules.*
+
 **Where manifests live.** Real ones outside this repository — the hard
 constraint (§6). The repo ships `apptrak/manifests/demo/`: two fabricated
 manifests that exercise insert, no-op, cross-manifest link and a link to a
@@ -923,6 +926,83 @@ read back as `+00:00`.
 - Level 3's release page should show the manifest's contents as loaded; the
   inbox (05) should name the manifest a build is missing from. Both are
   board work, not loader work.
+
+## 15. Entry — how and where, not what (draft 2026-09-17, for ratification)
+
+**What this section does not change.** Robert, on reading §14: *"I'm NOT changing
+the overall design. It's just how to enter and where to enter."* The release is
+the unit (§2), the build string is the join (§3), the ledger is observed
+(§10.1), the questions are the board (§13), and §14's identity rules — never
+delete, never rewrite an event, a title gone is reported — stay. What changes
+is the front door.
+
+**Why the file was wrong.** §14 asks him to author a file per release and run a
+script. His words: *"I cannot do that retroactively … I was hoping that I could
+have a UX that would allow me to navigate history (I would start with recent
+and work backwards) and enter a few feature sets that recently had been
+deployed. I also thought it would be good to set up feature sets for work that
+is currently in progress."* That is §5 — the inbox prompts entry — taken
+literally: the system already holds every build that ever arrived; the human
+names them, on a page, recent first, stopping wherever memory stops.
+
+**The page.** One new screen in the board, working name *History*:
+
+1. **The ledger, newest first.** Every row of `moveit.Deployment`, per
+   application, filterable by application: stage, build, when it was
+   detected, machine, and whether any release claims that build. Unnamed
+   builds are the inbox, drawn in place; question 05 becomes this page's
+   filter rather than a separate list.
+2. **Name a build.** Click a row: pick an existing release for that
+   application or create one (name, feature set or hotfix, target date), then
+   add lines — feature or fix, a title, who built it — with the clicked build
+   filled in as where each first appeared. Save. That is §14's release,
+   work-item and build writes, with the build already known.
+3. **Work in progress.** The same form from a *New release* button, no build.
+   Items show in the *with the developers* lane until a build carrying them
+   is named from the ledger.
+4. **Backwards as far as he likes.** Nothing retroactive is required; the
+   board shows named releases where it can and unnamed builds where it
+   cannot, and the counts strip says how many are unnamed.
+
+Events (approved, verified, hold) are entered from the release page — level 3
+— which this section makes the next screen after History rather than an
+alternative to it.
+
+**Where it runs — recommendation.** In the Census `moveit` module, beside the
+board: same Razor page family, own JS tree, API endpoints that execute the
+statements in `apptrak/sql/manifest/` with parameters, exactly as the loader
+does. Reasons: in the deployed environment Census is hosted inside AppTrakWeb
+(§13), so the write happens in AppTrak's own process; the module is opt-in on
+a connection string and the rest of Census stays file-only; AppTrak's
+repository is not in reach (item 11). The alternative — the form in
+AppTrakWeb itself — is the right long-term home and moves with the rest of
+`apptrak/` when item 11 resolves.
+
+**What it means for Census.** Its first write to a database. Reads arrived
+2026-09-14 with the board; this is the second line crossed, and it is
+Robert's to ratify, not a call.
+
+**The loader after this.** `Invoke-AppTrakManifests.ps1` stays as import and
+export — moving a set of releases between environments, or a backup that
+reads as text — and as the proven reference for the write rules. It is no
+longer how anyone enters anything. §14's *"one script is the only writer"*
+is withdrawn.
+
+**Open items for this section**
+- **Ratify the where.** Census module (recommended) or wait for AppTrakWeb.
+- **Who is `CreatedBy`.** The form needs a name. AppTrak's authentication
+  tables are among those missing from the local copy (item 10); until they
+  arrive, a configured name in the module's settings, and the column is
+  rewritten when real identity is in reach.
+- **Naming a DEV build.** §5 says DEV builds need no manifest; a feature's
+  `IncludedInBuild` is nonetheless usually a DEV build. Draft: any row in the
+  ledger can be named; the inbox filter shows only rows past DEV, as 05 does.
+- **Editing after the fact.** Retitle, pull an item (`RemovedAt`), fix a
+  typo. Draft: from the release page (level 3), under §14's rules — a title
+  change is a new item and an orphan the page shows, a pull is `RemovedAt`
+  with a note.
+- **Level 3 scope moves.** It now includes writing events and editing items,
+  not only reading.
 
 ## Appendix A — questions the data could answer
 

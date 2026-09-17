@@ -1,7 +1,7 @@
 ---
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It's entry path exists: a release is a small file, a script loads it, re-runs change nothing, nothing is ever deleted; his first real manifest is next"
+summary: "Move It's file-based entry was the wrong front door; the owner wants to name builds from a history page — drafted for his ratification, would be Census's first database write"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -67,9 +67,12 @@ board is simply a Census page reading the tracking site's own database.
 
 ## What's next
 
-**His first real manifest.** One application he knows, its latest release,
-written as a file outside the repo and loaded against the live database. That
-is the first real reading of the board.
+**He ratifies the entry page.** Reading the file-based entry in plain English,
+he ruled it the wrong front door: he wants to look at the history of builds
+the system already saw, newest first, and name what was in the ones he
+remembers, plus set up feature sets for work in progress. Drafted as a page
+on the board. Building it means Census writes to the tracking site's database
+for the first time, which is his line to cross, not the agent's.
 
 **Then the board's third screen, ahead of the second.** The release page and
 the work item's trail hang off tables that exist; the second screen still
@@ -94,6 +97,9 @@ on which server, and anything that went out ahead of something it depends on.
   table's own shape and can never update an existing row.
 - **One question takes a minute on real data.** Not one that is on the board,
   so nothing to do yet; noted for when it is.
+- **The file-based entry built today is set aside as the way in.** Not
+  wasted: its write rules and statements carry into the page unchanged, and
+  it remains the way to move releases between environments.
 - **The real environment is now no longer fabricated-only for the SQL side.**
   Census itself is still proven against fabricated data only, and said
   plainly on every artifact.

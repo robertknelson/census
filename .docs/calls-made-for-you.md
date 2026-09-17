@@ -6,13 +6,13 @@ call, the reason. Reverse any of them by saying so.
 
 ## 2026-09-17 — SelectItem lists in AppTrak's shape
 
-**Stage list header assumed `'stage'`.** Robert gave three header identifiers (`release-kind`,
-`event-kind`, `work-item-kind`) and the read query; he did not name the stage list. Options:
+**Stage list header assumed `'stage'`.** Robert gave three header identifiers (`release-kinds`,
+`event-kinds`, `work-item-kinds`) and the read query; he did not name the stage list. Options:
 a `moveit.Stage` table of our own; read AppTrak's list by a guessed header. Call: read the
 list, header `'stage'`, one literal in nine files. Reason: the list exists and he said all
 ran; a table of ours would duplicate it. Wrong guess costs a find-and-replace.
 
-**`link-kind` included though he named three lists.** `WorkItemLink.Kind` needs it. Call:
+**`link-kinds` included though he named three lists.** `WorkItemLink.Kind` needs it. Call:
 003 creates it if missing. Reason: find-or-create is a no-op if he made it, one header and
 two members if not.
 

@@ -48,5 +48,5 @@ UNION ALL SELECT 'moveit.WorkItem',      COUNT(*) FROM moveit.WorkItem
 UNION ALL SELECT 'moveit.ReleaseBuild',  COUNT(*) FROM moveit.ReleaseBuild
 UNION ALL SELECT 'moveit.ReleaseEvent',  COUNT(*) FROM moveit.ReleaseEvent
 UNION ALL SELECT 'moveit.WorkItemLink',  COUNT(*) FROM moveit.WorkItemLink
-UNION ALL SELECT 'core.SelectItem (list members)', COUNT(*) FROM core.SelectItem x JOIN core.SelectItem y ON y.Id = x.MasterId WHERE y.Identifier IN ('stage','release-kind','work-item-kind','link-kind','event-kind');
+UNION ALL SELECT 'core.SelectItem (list members)', COUNT(*) FROM core.SelectItem x JOIN core.SelectItem y ON y.Id = x.MasterId WHERE y.Identifier IN ('stages','release-kinds','work-item-kinds','link-kinds','event-kinds');
 "@

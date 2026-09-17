@@ -84,10 +84,10 @@ Additive and idempotent; safe to re-run if interrupted.
       ```
 
 - [ ] Confirm: `SELECT y.Identifier, COUNT(*) FROM core.SelectItem x JOIN core.SelectItem y
-      ON y.Id = x.MasterId WHERE y.Identifier IN ('stage','release-kind','work-item-kind',
-      'link-kind','event-kind') GROUP BY y.Identifier;` expect release-kind 2, work-item-kind 2,
-      link-kind 2, event-kind 7, and stage = however many stages AppTrak has.
-- [ ] **If AppTrak's stage list is not headed `stage`**, or its members are not exactly
+      ON y.Id = x.MasterId WHERE y.Identifier IN ('stages','release-kinds','work-item-kinds',
+      'link-kinds','event-kinds') GROUP BY y.Identifier;` expect release-kinds 2, work-item-kinds 2,
+      link-kinds 2, event-kinds 7, and stages = however many stages AppTrak has.
+- [ ] **If AppTrak's stage list is not headed `stages`**, or its members are not exactly
       `DEV`, `VAL`, `UAT`, `PROD`, note it for the report: the questions read that list by
       header and join `HealthEndpoint.Stage` to its members.
 - [ ] Backfill:

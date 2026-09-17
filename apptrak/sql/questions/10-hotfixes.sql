@@ -11,7 +11,7 @@
 
 WITH stg AS (
     SELECT x.Identifier AS Stage, x.Sort FROM core.SelectItem x
-    JOIN core.SelectItem y ON y.Id = x.MasterId WHERE y.Identifier = 'stage' AND x.IsShow = 1
+    JOIN core.SelectItem y ON y.Id = x.MasterId WHERE y.Identifier = 'stages' AND x.IsShow = 1
 ),
 prod AS (SELECT MAX(Sort) AS Sort FROM stg),
 dep AS (

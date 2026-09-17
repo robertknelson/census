@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Confirm the real stage list's header identifier is 'stage' (one literal in nine files if not). Still owed: the missing AppTrak tables as zero-row DDL for board level 2"
+next_step: "Confirm the real stage list's header is 'stages' — done. Owed: the missing AppTrak tables as zero-row DDL for board level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -38,7 +38,7 @@ relates: []
   not lists; Robert entered the real rows by hand and everything ran, so no
   cleanup. He gave the read query and three header names; 003, the seed and
   the nine stage lookups now use that shape. Verified: demo clean, all twelve
-  questions return their fixture counts. Stage header assumed `'stage'`.
+  questions return their fixture counts. Stage header is `'stages'` (his word).
 - Robert moved the ledger to `moveit.Deployment`; renamed across the repo.
 - Open items 12–17 added. Level 2 still parked on the missing tables.
 

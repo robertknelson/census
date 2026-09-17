@@ -14,7 +14,7 @@ BEGIN
         Id            int IDENTITY   NOT NULL,
         ApplicationId int            NOT NULL,
         Name          nvarchar(100)  NOT NULL,   -- "Sprint 42", "Q3 mortgage changes"
-        Kind          nvarchar(25)   NOT NULL,   -- SelectItem list release-kind: featureset | hotfix (asserted intent)
+        Kind          nvarchar(25)   NOT NULL,   -- SelectItem list release-kinds: featureset | hotfix (asserted intent)
         TargetDate    date           NULL,       -- planned PROD; actual is moveit.Deployment
         Note          nvarchar(max)  NULL,
         CreatedAt     datetimeoffset NOT NULL CONSTRAINT DF_Release_CreatedAt DEFAULT (sysdatetimeoffset()),
@@ -29,7 +29,7 @@ BEGIN
     CREATE TABLE moveit.WorkItem (
         Id              int IDENTITY   NOT NULL,
         ReleaseId       int            NOT NULL,
-        Kind            nvarchar(25)   NOT NULL,   -- SelectItem list work-item-kind: feature | fix
+        Kind            nvarchar(25)   NOT NULL,   -- SelectItem list work-item-kinds: feature | fix
         Title           nvarchar(200)  NOT NULL,
         Description     nvarchar(max)  NULL,
         BuiltBy         nvarchar(50)   NULL,       -- who built it: provenance, never assignment
@@ -68,7 +68,7 @@ BEGIN
     CREATE TABLE moveit.ReleaseEvent (
         Id        int IDENTITY   NOT NULL,
         ReleaseId int            NOT NULL,
-        Kind      nvarchar(25)   NOT NULL,   -- SelectItem list event-kind
+        Kind      nvarchar(25)   NOT NULL,   -- SelectItem list event-kinds
         Stage     nvarchar(25)   NULL,       -- the stage the event speaks about
         Build     nvarchar(50)   NULL,       -- the build it speaks about, verbatim
         At        datetimeoffset NOT NULL,   -- when the humans did it
@@ -89,7 +89,7 @@ BEGIN
         Id               int IDENTITY   NOT NULL,
         WorkItemId       int            NOT NULL,   -- the dependent side
         LinkedWorkItemId int            NOT NULL,   -- the thing it needs
-        Kind             nvarchar(25)   NOT NULL,   -- SelectItem list link-kind: dependsOn | relatedTo
+        Kind             nvarchar(25)   NOT NULL,   -- SelectItem list link-kinds: dependsOn | relatedTo
         Note             nvarchar(255)  NULL,
         CreatedAt        datetimeoffset NOT NULL CONSTRAINT DF_WorkItemLink_CreatedAt DEFAULT (sysdatetimeoffset()),
         CreatedBy        nvarchar(50)   NOT NULL,

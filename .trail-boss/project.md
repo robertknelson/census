@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Confirm the real stage list's header is 'stages' — done. Owed: the missing AppTrak tables as zero-row DDL for board level 2"
+next_step: "Real side: write the first real manifest(s) outside the repo and run Invoke-AppTrakManifests.ps1 against the real AppTrak (guide Part F), then 01/02. Repo side: board level 3 (release page) on fixtures. Owed: the missing AppTrak tables as zero-row DDL for level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,18 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-17, evening (the manifest loader)
+- Planned what comes next; he ratified: manifest loader first, then level 3
+  before level 2 (registry still owed). Spec §14 written, then built:
+  `Invoke-AppTrakManifests.ps1` + `sql/manifest/*.sql` (parameterised,
+  transaction per file, validates kinds and stages against the SelectItem
+  lists, never deletes, orphans reported), two fabricated manifests under
+  `manifests/demo/`. Verified: first load, no-op re-run, edit with update and
+  orphan, invalid kind rejected, unresolved link reported, UTC timestamps,
+  seed cleanup removes loader rows. Guide Part F rewritten to use it.
+- Earlier the same day: the ledger moved to `moveit.Deployment` (his call);
+  SelectItem lists in AppTrak's own shape with plural headers (his word).
 
 ### 2026-09-17 (the real run, reported from memory)
 - Robert ran the morning guide against the real AppTrak. Nothing leaves that

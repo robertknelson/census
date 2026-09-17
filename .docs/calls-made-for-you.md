@@ -4,6 +4,32 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-17 — the manifest loader (§14)
+
+**Title is the work item's key.** The table has no key column. Options: add `Key` (DDL);
+use `ExternalRef` (Team A only); use `Title`. Call: title, with orphans reported and never
+deleted. Reason: the manifest is the record and the person who wrote it is the one reading
+the report; a renamed title costs one visible line. Open item in §14 if titles churn.
+
+**Events are never updated.** Key (kind, stage, build, at); a corrected event is a new row.
+Reason: events are history; the alternative makes a manifest edit rewrite the past silently.
+
+**JSON timestamps stored as the instant, in UTC, when the parser eats the string.**
+`ConvertFrom-Json` in pwsh 7 turns ISO 8601 strings into local `DateTime`s before the loader
+sees them. Options: require pwsh 7.5's `-DateKind`; convert what arrives. Call: convert —
+a `DateTime` is taken as the instant it names and written `+00:00`. Reason: no version
+floor added for a cosmetic offset; the instant is what every question compares.
+
+**`-By` defaults to the Windows user name.** The manifest carries no authorship. Reason:
+one entrant today; the audit pattern is parked in §10.2 for the day there are two.
+
+**The demo runner does not load the demo manifests.** Reason: the guide quotes question
+counts from the seed alone; the manifests are a separate proven step.
+
+**Two fixture manifests, not the seed's eight releases rewritten as manifests.** Reason: the
+seed's fixed ids are quoted by the guide and the board; migrating them is a slice of its
+own with no new proof in it.
+
 ## 2026-09-17 — SelectItem lists in AppTrak's shape
 
 **Stage list header assumed `'stage'`.** Robert gave three header identifiers (`release-kind`,

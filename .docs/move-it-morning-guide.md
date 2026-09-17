@@ -166,15 +166,19 @@ work if that is cheap; otherwise the same batch the fact-table slicer runs in.
 
 ## Part F — first manual entries (optional, if there is time)
 
+*Rewritten 2026-09-17: the entry path is a manifest file and the loader (`move-it.md` §14),
+not hand-typed INSERTs.*
+
 Pick one app you know, and its most recent release.
 
-- [ ] `INSERT moveit.Release (ApplicationId, Name, Kind, TargetDate, CreatedBy)`; kind
-      `featureset` or `hotfix`.
-- [ ] One `moveit.WorkItem` per feature or fix you remember, `IncludedInBuild` = the build
-      it first appeared in (copy the string from `moveit.Deployment`, verbatim).
-- [ ] `moveit.ReleaseBuild` for the build that was promoted.
-- [ ] `moveit.ReleaseEvent` kind `approved` with the build and the meeting date, if there was
-      one.
+- [ ] Make a folder outside any repository for the real manifests, e.g. `C:\moveit\manifests`.
+- [ ] Copy `apptrak\manifests\demo\widgetcore-sprint-44.json` there, rename it, and replace
+      every value: `application` is the id, `release` the name, one `workItems` entry per
+      feature or fix you remember with `includedInBuild` copied verbatim from
+      `moveit.Deployment`, `builds` for the build that was promoted, an `approved` event with
+      the build and the meeting date if there was one.
+- [ ] `.\Invoke-AppTrakManifests.ps1 -Server REALSERVER -Path C:\moveit\manifests` — it prints
+      what it inserted; run it again and it must print everything unchanged.
 - [ ] `-Only 01` and `-Only 02`. The release should show at the stage you know it is at. If
       it does not, the location rule has met something the fixtures did not; capture the
       rows from 01 and from `moveit.Deployment` for that app and bring them back.

@@ -1,7 +1,7 @@
 ---
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It met the real database: history reads true, 26 deployments found, no surprises; the lookup script now writes lists the way the tracking site reads them"
+summary: "Move It's entry path exists: a release is a small file, a script loads it, re-runs change nothing, nothing is ever deleted; his first real manifest is next"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -26,7 +26,19 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**The real database has been read, and it agrees with the design.** He ran the
+**Releases can now be entered from a file.** Until today the only way to tell
+the board what is in a release was to type database rows by hand. Now a
+release is a small text file: its name, the features and fixes in it, the
+builds that carry them, and what the humans did (approved, verified, on
+hold). One script loads a folder of them. Running it twice changes nothing;
+editing a file and running it again changes only what was edited; it never
+deletes, and it says out loud when the database holds something the file no
+longer mentions. Every value it writes travels as a parameter, and every kind
+and stage is checked against the tracking site's own lists before a single
+row is written. Proven on fabricated files; the real ones live outside the
+repository, as everything real does.
+
+**Earlier today: the real database has been read, and it agrees with the design.** He ran the
 morning guide against the live tracking site: the deployment history the
 design predicted is there and reads as the deployments he remembers, the
 rollbacks it found are ones he knew about, and the new ledger table filled
@@ -55,10 +67,13 @@ board is simply a Census page reading the tracking site's own database.
 
 ## What's next
 
-**He confirms one name.** The lookup script and every stage query now read
-the tracking site's lists the way the site itself does. One list name was
-assumed rather than given, the one for stages; if it is spelled differently
-on the live side it is a one-word change.
+**His first real manifest.** One application he knows, its latest release,
+written as a file outside the repo and loaded against the live database. That
+is the first real reading of the board.
+
+**Then the board's third screen, ahead of the second.** The release page and
+the work item's trail hang off tables that exist; the second screen still
+waits on the registry tables he owes.
 
 **The live half of the ledger is 2–4 weeks out at least.** Until his code
 writes the ledger as pings arrive, the backfill script has to be re-run

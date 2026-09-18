@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Deploy this build of Census inside the real AppTrakWeb; name the first real builds from /moveit/history and record events from /moveit/release/{id}. Owed: the missing AppTrak tables as zero-row DDL for level 2; the read-only sidebar view (board and release page without controls) when the nav exists"
+next_step: "On the real server: create the daily backfill job (sql-create-backfill-job.sql, first run is its verification), then name real builds from /moveit/history PROD-first, newest backwards. Owed: the missing AppTrak tables as zero-row DDL for level 2; the read-only sidebar view when the nav exists; History filter that hides DEV churn (§15 open item)"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,20 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-18 (History on real data; the ledger falls behind)
+- He has History running on real data and asked how to use it before acting.
+  Clarified: *Name it* names the release a build belongs to, not the
+  deployment; one release claims many builds (`ReleaseBuild`), a feature
+  enters once (`IncludedInBuild` set only where null); DEV churn need not be
+  named. Recommended and taken: retrofit PROD builds first, newest backwards.
+- The ledger was already behind after a real day's work. Until Part E (his
+  processor change), keeping it current is one idempotent script,
+  `backfill-deployment.sql`. Added `004-create-backfill-job.sql`: a SQL Agent
+  job, CmdExec over that file, daily 06:00. Created and inspected locally, not
+  executed — his ruling: not on the dev machine; local copy deleted.
+- Flagged for next: the History filter should hide rows at DEV (§15 open
+  item) or the unnamed count overstates the retrofit.
 
 ### 2026-09-17, later (level 3 — the release page, §16)
 - "go" on the release page. Built and browser-verified: `/moveit/release/{id}`

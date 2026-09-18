@@ -1,7 +1,7 @@
 ---
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Move It has its way in and its release page: name builds from history, open a release, record approvals and holds, pull or rename items — all proven on fixtures tonight"
+summary: "History is live on real data; the ledger already lags a day, so a daily job now keeps it current until his processor writes it — retrofit starts at PROD, newest first"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak"
 health: green
 links:
@@ -25,6 +25,23 @@ ignite: start-census.bat
 ---
 
 ## The latest feature added
+
+**The ledger keeps itself current.** The history page is running on the real
+tracking site, and after one real working day it was already behind, because
+nothing yet writes the ledger as pings arrive. Until his own code does that,
+one script catches it up and can be run any number of times without harm.
+That script is now wrapped in a daily server job that runs it every morning
+at six. Once his code writes the ledger live, the same job becomes the daily
+audit: it must report nothing added. The job has been created and checked
+but not yet run, by his ruling that it does not run on the development
+machine; its first run on the real server is its test.
+
+**How to use what was built.** Naming a build names the release it belongs
+to, not the deployment itself; one release can claim several builds, so three
+attempts to land one feature are three builds of one release, and the
+feature is recorded as entering at the first. Builds churning on DEV need no
+naming at all. The recommended order for catching up on history: what is
+live today first, then backwards while memory holds.
 
 **One release in depth, with the human record kept there.** Open any release
 from the board or the history and see what is in it and where each piece is,
@@ -86,7 +103,15 @@ board is simply a Census page reading the tracking site's own database.
 
 ## What's next
 
-**He names the first real builds.** This build of Census goes into the real
+**Create the daily job on the real server, then name the builds.** The job
+script is in the repository; its first run is its verification. Then, from
+the history page, name what is live today and work backwards.
+
+**A small filter change is owed.** The history page counts every unnamed
+build, including the DEV churn that never needs naming, so the backlog
+looks bigger than it is. Hide the DEV rows from that count.
+
+**Earlier: he names the first real builds.** This build of Census goes into the real
 environment; he opens the History page and names the recent builds he
 remembers, sets up what is in progress, and records the approvals he knows
 about on each release's page. That is the first real reading of the board.

@@ -113,6 +113,18 @@ Additive and idempotent; safe to re-run if interrupted.
 
       Expect `Broken = 0` and the third query empty.
 - [ ] Run the backfill a second time. Expect `0 inserted, 0 back-pointers refreshed`.
+- [ ] **Keep it current until Part E ships** (added 2026-09-18, once the ledger fell behind
+      after a real day's work). One SQL Agent job, daily at 06:00, running the same backfill
+      file — never a second copy of the rule:
+
+      ```
+      sqlcmd -S REALSERVER -d AppTrak -E -I -b -i sql-create-backfill-job.sql -v ScriptPath="<path to backfill-deployment.sql on the server>"
+      ```
+
+      CmdExec step, so the file must be readable by the Agent service account and the job
+      owner (you) must be sysadmin. Re-run the script to change the path or time (`-v
+      RunAt=063000`). Until the job exists, the manual equivalent is the backfill line above,
+      whenever the History page should catch up. Not on the dev machine.
 
 ---
 

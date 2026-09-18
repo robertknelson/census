@@ -4,6 +4,23 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-18 — the daily backfill job
+
+**CmdExec over the file, not a T-SQL step with the SQL pasted in.** Options: paste the
+backfill body into the job step (self-contained, nothing to deploy to the server); run
+`sqlcmd -i` over `backfill-deployment.sql` (one copy of the rule, file must be on the box).
+Call: the file. Reason: Part E's two-producer test only means something while there is one
+copy of the rule; a pasted copy drifts the first time the file changes. `-v ScriptPath`
+covers wherever the file lands on the real server.
+
+**Daily at 06:00, owner is whoever runs the script.** Reason: before the working day, and
+CmdExec without a proxy needs a sysadmin owner, which the person running it is.
+
+**Not verified end to end.** The create script ran clean locally and the stored job, step,
+schedule and command were inspected; the job itself was not executed because the local
+Agent service could not be started without elevation and Robert ruled the job must not
+run on the dev machine. The local copy was deleted. First real run is the verification.
+
 ## 2026-09-17 — the release page (§16)
 
 **Rename edits the title in place.** §14 keyed manifests on title and treated a rename as an

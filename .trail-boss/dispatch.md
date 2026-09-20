@@ -133,6 +133,12 @@ on which server, and anything that went out ahead of something it depends on.
 
 ## Anything alarming
 
+- **This project had quietly dropped off the board.** The one line that says
+  what to do next carried a stray invisible character, written there by a
+  tool rather than by hand, and that alone made the whole file unreadable.
+  Found and repaired today; nothing else was touched and no work was lost.
+  Worth knowing because the failure is silent — the project simply stops
+  appearing until someone notices.
 - **The lookup script had misread the tracking site's lookup table** and
   wrote list names where it should have written list members. No harm done:
   he entered the real rows by hand, and the script is rewritten in the

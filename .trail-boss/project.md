@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "On the real server: create the daily backfill job (sql-create-backfill-job.sql, first run is its verification), then name real builds from /moveit/history PROD-first, newest backwards. Owed: the missing AppTrak tables as zero-row DDL for level 2; the read-only sidebar view when the nav exists; History filter that hides DEV churn (§15 open item)"
+next_step: "On the real server: create the daily backfill job (apptrak/sql/004-create-backfill-job.sql, first run is its verification), then name real builds from /moveit/history PROD-first, newest backwards. Owed: the missing AppTrak tables as zero-row DDL for level 2; the read-only sidebar view when the nav exists; History filter that hides DEV churn (§15 open item)"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,15 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-20 (board repair — the frontmatter had stopped parsing)
+- Trail Boss reported `project.md` frontmatter did not parse. Cause: a raw
+  0x04 byte inside `next_step`, where `sql/004-create-backfill-job.sql` had
+  been written as `sql` + backslash + `004-...` and something octal-escaped it. Illegal in a
+  JSON string, so the whole file failed and the project was off the board.
+  Repaired to the real path, `apptrak/sql/004-create-backfill-job.sql`;
+  `tb scan` and `tb ride` now read it whole.
+- No project work this session. `next_step` stands unchanged.
 
 ### 2026-09-18 (History on real data; the ledger falls behind)
 - He has History running on real data and asked how to use it before acting.

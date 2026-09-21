@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "On the real server: create the daily backfill job (apptrak/sql/004-create-backfill-job.sql, first run is its verification), then name real builds from /moveit/history PROD-first, newest backwards. Owed: the missing AppTrak tables as zero-row DDL for level 2; the read-only sidebar view when the nav exists; History filter that hides DEV churn (§15 open item)"
+next_step: "At home on the dev laptop: dotnet run --project Census.Web, review /moveit/division against the fixtures (set MoveIt__ShippedDays=60 to see live rows), adjust, then push; on the real server work through .docs/move-it-round-2026-09-21.md and report back. Still owed: the daily backfill job on the real server; History count that hides DEV churn; registry DDL for level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,28 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-21 (field notes fixed; Division, the executive tab)
+- Four notes from using Move It on real data, all fixed and fixture-verified
+  (spec §17): *Add another* no longer blanks the new release's name; Delete
+  release cascades (stabilization only, the one exception to never-delete);
+  `questions/13-feature-picture.sql` returns one feature's whole picture as
+  JSON with latency, filterable by project and stage; stages are filtered to
+  those seen, in every question as well as the lanes. The filter also fixed
+  a real error: an unused stage above PROD had been read as PROD by 09/10/12.
+- "The board should be the basis for an executive view" → built as release
+  cards on the board (§18), then refined on his fuller brief into **Division**
+  (§19): a new first tab, `/moveit/division`, a step line per release and a
+  thin one per feature, grouped by project; client sign-off is a step derived
+  from verified/approved events; went-live-without-sign-off shows "!";
+  Team A's asserted positions are drawn dashed (a rule-6 gap caught in the
+  assessment). Board back to features-first. Tab bar across Move It.
+- His rulings: everything local, never pushed, by design — he reviews on the
+  laptop at home, adjusts, pushes, then installs on the real server and
+  reports back. He is the only executive until development is complete, so
+  the read-only gate is deferred. Permission prompts removed for this repo.
+- Five commits, `53103a5`..`ca645a9`, local. Real-side checklist:
+  `.docs/move-it-round-2026-09-21.md`.
 
 ### 2026-09-20 (board repair — the frontmatter had stopped parsing)
 - Trail Boss reported `project.md` frontmatter did not parse. Cause: a raw

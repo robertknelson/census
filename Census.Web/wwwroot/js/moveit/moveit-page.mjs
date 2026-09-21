@@ -7,8 +7,8 @@ import { ReleasePanel, renderReleaseDetail } from './release-panel.mjs';
 import { renderTabs } from './tabs.mjs';
 
 // The board (move-it.md §13, §18): the governance reader's page. Read-only. Two views of the
-// same lanes: releases (the executive view, the default) and features and fixes (question 01
-// chip by chip). The counts strip and the application filter serve both; a card or chip
+// same lanes: features and fixes (question 01 chip by chip, the default) and releases
+// (?view=releases). The executive's page is Division (§19). The counts strip and the application filter serve both; a card or chip
 // opens its detail. Every fact on the page is a row from a question file; the page only
 // arranges them.
 
@@ -17,7 +17,7 @@ class MoveItPage {
         this.root = document.getElementById(config.rootId ?? 'moveit-root');
         this.shippedDays = config.shippedDays ?? 14;
         this.app = null;                  // ApplicationId filter, null = all
-        this.view = new URLSearchParams(window.location.search).get('view') === 'items' ? 'items' : 'releases';
+        this.view = new URLSearchParams(window.location.search).get('view') === 'releases' ? 'releases' : 'items';
         this.now = Date.now();
         this.counts = new CountsPanel();
         this.board = new BoardPanel((item) => this.showDetail(item));
@@ -60,7 +60,7 @@ class MoveItPage {
         if (view === this.view) return;
         this.view = view;
         const url = new URL(window.location.href);
-        if (view === 'items') url.searchParams.set('view', 'items'); else url.searchParams.delete('view');
+        if (view === 'releases') url.searchParams.set('view', 'releases'); else url.searchParams.delete('view');
         window.history.replaceState(null, '', url);
         this.closeDetail();
         this.renderToggle();

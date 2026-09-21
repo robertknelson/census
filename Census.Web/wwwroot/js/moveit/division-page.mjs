@@ -151,7 +151,8 @@ class DivisionPage {
     renderRelease(r) {
         const rel = r.release;
         const since = daysAgo(r.shippedAt ?? rel.Since, this.now);
-        const text = r.state === 'live' ? `live since ${shortDate(r.shippedAt ?? rel.Since)}` : `${STATE_TEXT[r.state]}${since != null ? ` · ${days(since)}` : ''}`;
+        const text = (r.state === 'live' ? `live since ${shortDate(r.shippedAt ?? rel.Since)}` : `${STATE_TEXT[r.state]}${since != null ? ` · ${days(since)}` : ''}`)
+            + (rel.Evidence === 'asserted' ? ' · reported, not observed' : '');
         const flags = [];
         if (rel.PastTarget === 1) flags.push(`<span class="mi-flag is-alert">late — target ${escapeHtml(shortDate(rel.TargetDate))}</span>`);
         else if (rel.TargetDate && r.state !== 'live') flags.push(`<span class="dv-muted">target ${escapeHtml(shortDate(rel.TargetDate))}</span>`);
@@ -169,13 +170,13 @@ class DivisionPage {
                         <span class="dv-muted">${contents || 'nothing recorded yet'}</span>
                         ${flags.length ? `<span class="dv-flags">${flags.join(' ')}</span>` : ''}
                     </div>
-                    ${this.renderTrack(r.at, r.state, text, 'is-big', unsigned)}
+                    ${this.renderTrack(r.at, r.state, text, 'is-big', unsigned, rel.Evidence === 'asserted')}
                 </div>
                 <div class="dv-items">
                     ${r.items.map((i) => `
                         <div class="dv-row dv-row-item">
                             <div class="dv-label"><span class="dv-item-title is-${escapeHtml(i.item.Kind)}">${escapeHtml(i.item.Title)}</span> <span class="dv-muted">${escapeHtml(i.item.Kind)}</span></div>
-                            ${this.renderTrack(i.at, i.state, STATE_TEXT[i.state], 'is-small', !rel.ApprovedAt && i.at > this.signoffIndex)}
+                            ${this.renderTrack(i.at, i.state, STATE_TEXT[i.state] + (i.item.Evidence === 'asserted' ? ' · reported, not observed' : ''), 'is-small', !rel.ApprovedAt && i.at > this.signoffIndex, i.item.Evidence === 'asserted')}
                         </div>`).join('') || '<div class="dv-row dv-row-item"><div class="dv-label dv-muted">No features or fixes recorded.</div></div>'}
                 </div>
             </div>`;
@@ -184,13 +185,14 @@ class DivisionPage {
     // One cell per step; each cell draws its half-lines and its node, so the line is solid
     // up to the current step and faint after it.
     // unsigned: past client sign-off with no approval recorded; that step shows "!", not a tick.
-    renderTrack(at, state, text, size, unsigned = false) {
+    // asserted: the position is Team A's word (rule 6), drawn dashed so it never passes as observed.
+    renderTrack(at, state, text, size, unsigned = false, asserted = false) {
         return this.steps.map((s, n) => {
             const skipped = unsigned && n === this.signoffIndex;
             const when = skipped ? 'is-done is-skipped' : n < at ? 'is-done' : n === at ? 'is-current' : 'is-next';
             return `
                 <div class="dv-step ${when} ${size} ${n === 0 ? 'is-first' : ''} ${n === this.steps.length - 1 ? 'is-last' : ''}" style="--hue: ${s.hue}">
-                    <span class="dv-node ${n === at ? `is-${state}` : ''}" title="${escapeHtml(s.label)}${skipped ? ' — no sign-off recorded' : n === at ? ` — ${escapeHtml(text)}` : ''}">${skipped ? '!' : n < at ? '✓' : ''}</span>
+                    <span class="dv-node ${n === at ? `is-${state}${asserted ? ' is-asserted' : ''}` : ''}" title="${escapeHtml(s.label)}${skipped ? ' — no sign-off recorded' : n === at ? ` — ${escapeHtml(text)}` : ''}">${skipped ? '!' : n < at ? '✓' : ''}</span>
                     ${n === at && size === 'is-big' ? `<span class="dv-node-text">${escapeHtml(text)}</span>` : ''}
                 </div>`;
         }).join('');

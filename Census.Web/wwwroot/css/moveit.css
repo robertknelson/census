@@ -387,3 +387,6 @@
 }
 .is-skipped > .dv-node { background: var(--mi-hold-bg); border: 2px solid #c98a00; color: var(--mi-hold); font-size: 13px; }
 .is-small.is-skipped > .dv-node { font-size: 0; border-width: 2px; }
+.dv-node.is-asserted { border-style: dashed; }
+.dv-node.is-live.is-asserted { background: var(--mi-panel); border: 3px dashed var(--hue); }
+.dv-node.is-live.is-asserted::after { color: var(--hue); }

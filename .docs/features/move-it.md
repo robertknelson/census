@@ -1235,6 +1235,75 @@ Application 4 filter shows its two cards.
   before the sidebar link is.
 - **Team** as a second filter still waits on the registry (item 10).
 
+## 19. Division — the executive's tab (2026-09-21; built and browser-verified the same day)
+
+Robert, 2026-09-21: *"The executive view is going to be a new navigational
+tab … very, very easy for an executive to understand where things are in the
+process … a step line approach where each step is a stage. Some strong visual
+that indicates where things are per project and feature within that project
+… make them understand that they know what's going on in their whole
+division."* Supersedes §18 as *the* executive view; §18's release cards stay
+on the board as the governance reader's release view.
+
+**Navigation.** Move It gains a tab bar across its pages — **Division** ·
+Where is it · History (`tabs.mjs`); the release page shows it with no tab
+active. Route `/moveit/division`, view `MoveItDivision.cshtml`, JS
+`division-page.mjs`. Read-only: no write control, and no link to the release
+page (which has them).
+
+**The page.**
+
+1. **Six numbers**, large: releases on the way (and how many features and
+   fixes they carry), went live within the shipped window, waiting on client
+   sign-off, signed off and going live, past target, on hold.
+2. **One set of steps across the top**, numbered, each with a plain-words
+   caption: *In development* (with the developers — §13's first two lanes
+   merged, because an executive does not distinguish them), one step per
+   stage lane before the top (DEV, VAL / UAT), **Client sign-off**, then the
+   top stage (PROD, *live*). Captions are a setting
+   (`MoveIt:StepCaptions`, keyed by stage identifier).
+3. **Per project** (application; named ones first), each release as a thick
+   step line: ticked nodes behind it, a large ringed node where it is, faint
+   nodes ahead, and a caption under the current node — *being built*,
+   *built, not yet on a server*, *in testing · 14 days*, *waiting on the
+   client*, *signed off, going live*, *on hold · 32 days*, *live since Aug
+   4*. Late, on hold with the reason, and hotfix sit beside the name. Under
+   each release, every feature and fix as a thin line on the same columns, so
+   the pieces read straight down under their release. Click a release name
+   to fold its items. In-flight releases first, then recently live ones.
+   Older shipped releases fold into the project header ("earlier: Sprint 42
+   live Aug 4"), using the same `MoveIt:ShippedDays`.
+
+**The sign-off step is derived, never stored** (rule 1 holds). A release at
+the last testing stage sits *at* sign-off when an `approved` event exists
+(signed off) or a `verified` event exists (testing done, waiting on the
+client); with neither it is still *in testing*. This is §2's "ours versus
+theirs" line, drawn. A release that went live with **no approval recorded**
+shows **!** at sign-off instead of a tick, and says so beside its name —
+question 12's finding, where an executive will see it.
+
+Colours: step hues are the stage hues (§13); amber means held, blue means
+waiting on the client, green means live.
+
+**Verified 2026-09-21 in Edge on the fixtures**, at the default 14-day window
+and at 60 days (`MoveIt__ShippedDays=60`) so the live rendering showed:
+Reporting refresh on hold at sign-off, 55 days; WidgetCore Sprint 43 on hold
+at DEV after its rollback, with one fix still at *In development*; Ledger
+cleanup built, not yet on a server; Team A's Q4 releases in testing at
+VAL / UAT; five releases live, WidgetPortal Sprint 42 marked *went live with
+no client sign-off recorded*; unnamed applications last.
+
+**Open items for this section**
+- **Is this the executive's only page?** A sidebar link to it is the
+  standing requirement (§15); Division is the natural first entry.
+- **Team as a grouping above projects** — "their whole division" may mean
+  two teams. Waits on the registry (item 10).
+- **Nothing shipped in 14 days on the fixtures**, so at the default the page
+  shows no live rows. Real data will decide whether 14 is right.
+- **"Verified" moves a release to sign-off.** If the teams never record
+  `verified`, releases sit at *in testing* until approval. Whether to record
+  it is item 5.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

@@ -4,6 +4,7 @@ import { buildLanes } from './lanes.mjs';
 import { CountsPanel } from './counts-panel.mjs';
 import { BoardPanel, renderDetail } from './board-panel.mjs';
 import { ReleasePanel, renderReleaseDetail } from './release-panel.mjs';
+import { renderTabs } from './tabs.mjs';
 
 // The board (move-it.md §13, §18): the governance reader's page. Read-only. Two views of the
 // same lanes: releases (the executive view, the default) and features and fixes (question 01
@@ -29,6 +30,7 @@ class MoveItPage {
         this.root.innerHTML = `
             <header class="mi-header">
                 <div class="mi-masthead">
+                    ${renderTabs('board')}
                     <h1 class="mi-title">Where is it</h1>
                     <p class="mi-tagline" data-ref="tagline"></p>
                 </div>
@@ -38,7 +40,6 @@ class MoveItPage {
                         <button type="button" data-view="releases">Releases</button>
                         <button type="button" data-view="items">Features and fixes</button>
                     </div>
-                    <a class="mi-button is-quiet" href="/moveit/history">History</a>
                 </div>
             </header>
             <div class="mi-strip" data-ref="counts"></div>

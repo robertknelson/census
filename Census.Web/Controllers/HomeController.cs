@@ -45,6 +45,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // Division (move-it.md §19): the executive's page — every project and feature on a step
+    // line from the developers to live. Read-only.
+    [HttpGet("/moveit/division")]
+    public IActionResult MoveItDivision([FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
+        return View();
+    }
+
     // History (move-it.md §15): the ledger newest first, and the one page where anything is
     // entered. The board above stays read-only.
     [HttpGet("/moveit/history")]

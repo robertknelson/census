@@ -2,6 +2,7 @@ import { fetchApplications, fetchEvents, fetchLists, fetchReleaseBuilds, fetchRe
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { stageHue } from './stage-hues.mjs';
 import { EventForm } from './event-form.mjs';
+import { renderTabs } from './tabs.mjs';
 
 // The release page (move-it.md §16, level 3): one release in depth — what is in it and where
 // each item is, the builds it claims and where the ledger says they are now, and its events
@@ -23,7 +24,7 @@ class ReleasePage {
         this.root.innerHTML = `
             <header class="mi-header">
                 <div class="mi-masthead">
-                    <nav class="mi-crumbs"><a href="/moveit">Where is it</a> · <a href="/moveit/history">History</a></nav>
+                    ${renderTabs(null)}
                     <h1 class="mi-title" data-ref="title">Release</h1>
                     <p class="mi-tagline" data-ref="sub"></p>
                 </div>

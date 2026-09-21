@@ -4,6 +4,35 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-21 — Division, the executive's tab (move-it.md §19)
+
+**Name and place: "Division", first tab, `/moveit/division`.** Your word ("their whole
+division"). Tabs across the Move It pages, since Census has no site-wide nav yet.
+
+**Client sign-off is its own step between the last testing stage and PROD.** Reason: it is
+the step executives ask about and the only one that leaves nothing on a server; without it
+the line jumps from "testing" to "live".
+
+**"With the developers" and "built, not seen" merge into one step, "In development".**
+Reason: an executive does not care about that difference; the caption under the node still
+says which.
+
+**A release reaches sign-off on `verified` (waiting on the client) or `approved`.** Reason:
+§2's "done, waiting on the client" versus "still being tested" is the distinction you said
+matters most; `verified` is the only record of the first.
+
+**Live without an approval shows "!" at sign-off**, not a tick. Reason: ticking a step that
+never happened would be the page lying; question 12 already calls it a finding.
+
+**Features expanded by default**, folded by clicking the release. Reason: you asked for per
+feature within project.
+
+**Step captions are a setting** (`MoveIt:StepCaptions`). Reason: your rule for doubtful
+display values; "validation testing" may not be what your teams call VAL.
+
+**The board keeps §18's release view.** Division is for executives; the board's release view
+is still useful to you. Say so if you want the board back to items-first.
+
 ## 2026-09-21 — the executive view (move-it.md §18)
 
 **Improve the board rather than build a separate executive page.** Options: a new page;

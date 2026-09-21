@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Census.Web.Options;
 
 // The board (move-it.md §13) is the first Census code that reads SQL. ConnectionString is
@@ -15,4 +17,14 @@ public class MoveItOptions
     // The board's release view (§18) folds a release into "shipped" once it has been wholly
     // in the top stage this many days.
     public int ShippedDays { get; set; } = 14;
+
+    // Division (§19) puts a plain-words caption under each stage's step, keyed by stage
+    // identifier. A stage with no caption shows its name alone.
+    public Dictionary<string, string> StepCaptions { get; set; } = new()
+    {
+        ["DEV"] = "developer testing",
+        ["VAL"] = "validation testing",
+        ["UAT"] = "user acceptance testing",
+        ["PROD"] = "live",
+    };
 }

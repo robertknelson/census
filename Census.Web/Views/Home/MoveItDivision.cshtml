@@ -1,0 +1,26 @@
+@using System.Text.Json
+@using Census.Web.Options
+@using Microsoft.Extensions.Options
+@inject IOptions<MoveItOptions> MoveItOptions
+@{
+    ViewData["Title"] = "The division at a glance";
+    var config = JsonSerializer.Serialize(new
+    {
+        rootId = "moveit-root",
+        shippedDays = MoveItOptions.Value.ShippedDays,
+        stepCaptions = MoveItOptions.Value.StepCaptions,
+    });
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/moveit.css" asp-append-version="true" />
+}
+
+<div id="moveit-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import divisionPage from '/js/moveit/division-page.mjs';
+        divisionPage.init(@Html.Raw(config));
+    </script>
+}

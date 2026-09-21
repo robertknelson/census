@@ -2,6 +2,7 @@ import { fetchApplications, fetchHistory, fetchLists, fetchReleases, fetchStages
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { stageHue } from './stage-hues.mjs';
 import { NameBuildForm } from './name-build-form.mjs';
+import { renderTabs } from './tabs.mjs';
 
 // History (move-it.md §15): the ledger newest first, and the one place anything is entered.
 // A build nobody has named is the inbox, drawn in place; clicking it opens the form with the
@@ -22,7 +23,7 @@ class HistoryPage {
         this.root.innerHTML = `
             <header class="mi-header">
                 <div class="mi-masthead">
-                    <nav class="mi-crumbs"><a href="/moveit">Where is it</a></nav>
+                    ${renderTabs('history')}
                     <h1 class="mi-title">History</h1>
                     <p class="mi-tagline">Every build the pings saw arrive, newest first. Name what was in the ones you remember.</p>
                 </div>

@@ -4,6 +4,23 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-21 — the executive view (move-it.md §18)
+
+**Improve the board rather than build a separate executive page.** Options: a new page;
+the board with a release view. Call: the board, releases as the default view, the item
+lanes a toggle away. Reason: your words, "it should be the basis"; one page and one set of
+lanes means one thing to maintain and nothing to disagree.
+
+**Release-first is the default.** Reason: executives ask about releases; an item chip
+answers a developer's question. The old view is `?view=items`.
+
+**Shipped releases fold after 14 days, as a setting** (`MoveIt:ShippedDays`). Reason: a
+number you may want to tune, so per your rule it is a setting.
+
+**"Ready for client approval" and "approved, not yet deployed" get their own blue flag.**
+Reason: they are the waiting-on-the-client states §2 says the reader most wants to see;
+red means us, amber means held, blue means the ball is with someone else.
+
 ## 2026-09-21 — field notes (move-it.md §17)
 
 **"Seen" means a registered endpoint or a recorded event names the stage.** Options:

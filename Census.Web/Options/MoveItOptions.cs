@@ -11,4 +11,8 @@ public class MoveItOptions
     public string ConnectionString { get; set; }
     public required string SqlPath { get; set; }
     public string By { get; set; }
+
+    // The board's release view (§18) folds a release into "shipped" once it has been wholly
+    // in the top stage this many days.
+    public int ShippedDays { get; set; } = 14;
 }

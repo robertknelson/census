@@ -1183,6 +1183,58 @@ on one application's ledger rows and put back. Real-data cost unmeasured.
 - **13 on the board.** It is a file to run today; a per-feature page
   (level 3's work-item half, §13) would read it.
 
+## 18. The executive view — the board, release-first (2026-09-21; built and browser-verified the same day)
+
+Robert, 2026-09-21: *"I do like the 'where is it' board. But it needs
+improvement. It should be the basis for executive view."* The board item by
+item answers the governance reader; an executive asks per release: is it
+shipped, is it late, is it stuck, is it waiting on us or on the client.
+
+**What changed.** `/moveit` opens on **Releases**; **Features and fixes**
+(the §13 lanes, unchanged) is one toggle away, and `?view=items` links there.
+Same lanes, same application filter, same read-only rule.
+
+- **One card per release** in the lane of its highest stage (02). The card
+  shows what is in it (features, fixes), how long it has been at that stage,
+  the target date, and — when its items are spread out — a bar of its items
+  by lane (01), so "half in VAL, one fix still with the devs" reads at a
+  glance.
+- **Flags an executive acts on:** late; on hold with the reason (shortened on
+  the card, full in the detail column); *ready for client approval* or
+  *waiting on a dependency* (04, with the blockers); *approved, not yet
+  deployed*; the hotfix contradiction.
+- **Shipped folds away.** A release wholly in the top stage for more than
+  `MoveIt:ShippedDays` (default 14) leaves the lanes and is listed under its
+  application as *Shipped: name, date*, still clickable. Abandoned releases
+  are counted there. Without this the PROD lane grows forever.
+- **The strip** counts releases in flight per lane, then late, on hold,
+  awaiting client approval (how many are ready), approved but not deployed,
+  shipped within the window. The items view keeps its own counts.
+- **Detail column:** the release's flags, stage and since, target, approval,
+  what is waiting on, and every item with its stage. *Open the release*
+  links to level 3.
+
+No new SQL: 01, 02 and 04 already return all of it.
+
+**Verified 2026-09-21 in Edge on the fixtures:** five cards in flight
+(Sprint 43 at DEV after its rollback, on hold, late, approved and not
+deployed; Ledger cleanup built and not seen, late; Q4 statements ready for
+approval; Q4 letters waiting on a dependency; Reporting refresh), five
+releases folded as shipped; strip 0/1/1/3/0 in flight, 3 late, 2 on hold, 2
+awaiting approval with 1 ready, 2 approved but not deployed; the toggle
+switches to the 15 item chips and back, and the URL follows; the
+Application 4 filter shows its two cards.
+
+**Open items for this section**
+- **Is this the executive's page, or does the executive get a page of their
+  own?** Built as the board's default view because Robert called the board the
+  basis. If an executive needs less (no lanes: just the strip and a list of
+  flagged releases), that is a third view over the same data.
+- **The detail column links to the release page, which has write
+  controls.** Same issue as §16's open item; the reader's copy is owed
+  before the sidebar link is.
+- **Team** as a second filter still waits on the registry (item 10).
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

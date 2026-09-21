@@ -257,3 +257,43 @@
 .mi-events li.is-approved .mi-event-what strong { color: #1b6e3a; }
 .mi-release-link { color: var(--mi-ink); }
 .mi-detail-link { margin-top: 1.25rem; }
+
+/* The release view (move-it.md §18): one card per release, same lanes. A card carries its
+   contents, a bar of where its items are, and the flags an executive asks about. */
+.mi-toggle { display: inline-flex; border: 1px solid var(--mi-rule); border-radius: 999px; overflow: hidden; }
+.mi-toggle button { border: 0; background: var(--mi-panel); color: var(--mi-ink); padding: 0.35rem 0.85rem; cursor: pointer; }
+.mi-toggle button + button { border-left: 1px solid var(--mi-rule); }
+.mi-toggle button.is-active { background: var(--mi-ink); color: #fff; }
+
+.mi-card {
+    display: flex; flex-direction: column; gap: 0.3rem;
+    text-align: left;
+    padding: 0.55rem 0.7rem 0.6rem 0.8rem;
+    border: 1px solid var(--mi-rule);
+    border-left: 5px solid var(--lane);
+    border-radius: 5px;
+    background: var(--mi-panel);
+    color: var(--mi-ink);
+    cursor: pointer;
+}
+.mi-card:hover { border-color: var(--mi-ink); border-left-color: var(--lane); }
+.mi-card.is-selected { background: var(--mi-ink); color: #fff; border-color: var(--mi-ink); border-left-color: var(--lane); }
+.mi-card.is-selected .mi-chip-meta { color: rgba(255, 255, 255, 0.72); }
+.mi-card-title { font-weight: 600; font-size: 15px; line-height: 1.25; }
+.mi-card-kind { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mi-muted); }
+.mi-card.is-selected .mi-card-kind { color: rgba(255, 255, 255, 0.72); }
+.mi-card-flags { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.mi-bar { display: flex; gap: 2px; height: 5px; border-radius: 3px; overflow: hidden; }
+.mi-bar-seg { background: var(--lane); }
+
+.mi-flag.is-ask { color: #0b5394; background: #e3eefa; }
+
+.mi-shipped { margin-top: 0.35rem; }
+.mi-shipped-link { border: 0; padding: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; }
+.mi-shipped-link.is-selected { color: var(--mi-ink); font-weight: 600; }
+
+.mi-detail > .mi-card-flags { margin-bottom: 1rem; }
+.mi-detail-items { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.mi-detail-items li { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; }
+.mi-detail-items .mi-stage { white-space: nowrap; }
+.mi-detail-items li.is-removed > span:first-child { text-decoration: line-through; color: var(--mi-muted); }

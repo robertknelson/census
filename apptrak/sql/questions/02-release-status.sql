@@ -10,6 +10,8 @@
 WITH stg AS (
     SELECT x.Identifier AS Stage, x.Sort FROM core.SelectItem x
     JOIN core.SelectItem y ON y.Id = x.MasterId WHERE y.Identifier = 'stages' AND x.IsShow = 1
+      AND (EXISTS (SELECT 1 FROM health.HealthEndpoint he WHERE he.Stage = x.Identifier)      -- only stages seen:
+           OR EXISTS (SELECT 1 FROM moveit.ReleaseEvent re WHERE re.Stage = x.Identifier))  -- registered or asserted
 ),
 dep AS (
     SELECT d.ApplicationId, d.EndpointId, ep.Stage, d.Build, d.DetectedAt AS At, d.SupersededAt, 'observed' AS Evidence

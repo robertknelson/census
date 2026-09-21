@@ -1,4 +1,4 @@
-import { fetchApplications, fetchEvents, fetchLists, fetchReleaseBuilds, fetchReleaseStatus, fetchReleases, fetchStages, fetchWhereIsEverything, postPullItem, postRetitle } from './moveit-api.mjs';
+import { fetchApplications, fetchEvents, fetchLists, fetchReleaseBuilds, fetchReleaseStatus, fetchReleases, fetchStages, fetchWhereIsEverything, postDeleteRelease, postPullItem, postRetitle } from './moveit-api.mjs';
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { stageHue } from './stage-hues.mjs';
 import { EventForm } from './event-form.mjs';
@@ -27,6 +27,7 @@ class ReleasePage {
                     <h1 class="mi-title" data-ref="title">Release</h1>
                     <p class="mi-tagline" data-ref="sub"></p>
                 </div>
+                <div class="mi-header-side" data-ref="delete"></div>
             </header>
             <div class="mi-body">
                 <main class="mi-main" data-ref="main"></main>
@@ -36,6 +37,27 @@ class ReleasePage {
         this.subEl = this.root.querySelector('[data-ref="sub"]');
         this.mainEl = this.root.querySelector('[data-ref="main"]');
         this.entryEl = this.root.querySelector('[data-ref="entry"]');
+        this.deleteEl = this.root.querySelector('[data-ref="delete"]');
+    }
+
+    // Stabilization only (move-it.md §16): the release and everything under it, gone.
+    renderDelete() {
+        this.deleteEl.innerHTML = this.confirmingDelete
+            ? `<span class="mi-inline">
+                   <span class="mi-muted">Delete ${this.items.length} item(s), ${new Set(this.builds.map((b) => b.Build)).size} build claim(s), ${this.events.length} event(s) and any links? No undo.</span>
+                   <button type="button" class="mi-button is-primary" data-ref="delete-yes">Delete</button>
+                   <button type="button" class="mi-button is-quiet" data-ref="delete-no">Cancel</button>
+               </span>`
+            : '<button type="button" class="mi-button is-quiet" data-ref="delete-ask">Delete release</button>';
+        const on = (ref, fn) => this.deleteEl.querySelector(`[data-ref="${ref}"]`)?.addEventListener('click', fn);
+        on('delete-ask', () => { this.confirmingDelete = true; this.renderDelete(); });
+        on('delete-no', () => { this.confirmingDelete = false; this.renderDelete(); });
+        on('delete-yes', async () => {
+            try {
+                await postDeleteRelease({ releaseId: this.releaseId });
+                window.location.href = '/moveit/history';
+            } catch (err) { this.say(err.message); }
+        });
     }
 
     async load() {
@@ -96,6 +118,7 @@ class ReleasePage {
                 ${this.events.length ? this.renderEvents() : '<p class="mi-status">Nothing recorded.</p>'}
             </section>`;
         this.bindItems();
+        this.renderDelete();
         this.eventForm.render(this.entryEl, {
             releaseId: this.releaseId, lists: this.lists, stages: this.stages,
             builds: [...new Set(this.builds.map((b) => b.Build))],

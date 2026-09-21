@@ -14,6 +14,8 @@
 WITH stg AS (
     SELECT x.Identifier AS Stage, x.Sort FROM core.SelectItem x
     JOIN core.SelectItem y ON y.Id = x.MasterId WHERE y.Identifier = 'stages' AND x.IsShow = 1
+      AND (EXISTS (SELECT 1 FROM health.HealthEndpoint he WHERE he.Stage = x.Identifier)      -- only stages seen:
+           OR EXISTS (SELECT 1 FROM moveit.ReleaseEvent re WHERE re.Stage = x.Identifier))  -- registered or asserted
 ),
 prod AS (SELECT MAX(Sort) AS Sort FROM stg),
 seen_obs AS (

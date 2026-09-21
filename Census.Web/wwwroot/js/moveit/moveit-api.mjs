@@ -75,6 +75,10 @@ export function postRetitle(request) {
     return postJson('/api/moveit/retitle', request);
 }
 
+export function postDeleteRelease(request) {
+    return postJson('/api/moveit/delete-release', request);
+}
+
 async function postJson(url, request) {
     let response;
     try {

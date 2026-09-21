@@ -77,6 +77,14 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
         return Ok(new { outcome = await entry.RetitleAsync(request) });
     }
 
+    [HttpPost("delete-release")]
+    public async Task<IActionResult> DeleteRelease([FromBody] ReleaseRequest request)
+    {
+        if (!entry.Enabled) return NotFound();
+        if (request.ReleaseId <= 0) return BadRequest(new { errors = new[] { "A release is required." } });
+        return Ok(await entry.DeleteReleaseAsync(request.ReleaseId));
+    }
+
     private async Task<IActionResult> Run(string file)
     {
         if (!questions.Enabled) return NotFound();

@@ -13,7 +13,8 @@ namespace Census.Web.Services;
 
 // The board's one write (move-it.md §15): name what is in a build, or set up a release for
 // work in progress. Runs the same statement files the manifest loader runs (apptrak/sql/manifest),
-// with every value as a parameter, in one transaction. Never deletes; §14's rules hold.
+// with every value as a parameter, in one transaction. §14's rules hold; the one delete is
+// DeleteReleaseAsync, kept for stabilization.
 public class MoveItEntry
 {
     private readonly string _sqlPath;
@@ -159,6 +160,17 @@ public class MoveItEntry
         return (string)row["Outcome"];
     }
 
+    // Stabilization only (move-it.md §16): the release and everything asserted under it, in one transaction.
+    public async Task<Dictionary<string, object>> DeleteReleaseAsync(int releaseId)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        await using var tx = connection.BeginTransaction();
+        var row = await RunAsync(connection, tx, "release-delete", ("Id", releaseId, SqlDbType.Int));
+        await tx.CommitAsync();
+        return row;
+    }
+
     private async Task<Dictionary<string, string[]>> ListsAsync()
     {
         await using var connection = new SqlConnection(_connectionString);
@@ -243,6 +255,11 @@ public class ItemRequest
     public int WorkItemId { get; set; }
     public string Note { get; set; }
     public string Title { get; set; }
+}
+
+public class ReleaseRequest
+{
+    public int ReleaseId { get; set; }
 }
 
 public class NameBuildResult

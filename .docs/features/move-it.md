@@ -495,7 +495,9 @@ feature | fix; `link-kinds` dependsOn | relatedTo; `event-kinds` approved |
 verified | hold | resumed | note | abandoned | deployed-asserted. The Kind
 columns store the member `Identifier`. **Stages are AppTrak's own `stage`
 list**, read, never written; `Sort` is the sequence (DEV, VAL and UAT peers,
-PROD above). Adding a kind is data, not DDL.
+PROD above). Adding a kind is data, not DDL. *Amended 2026-09-21 (§17):*
+only the list's **seen** stages count — a registered `health.HealthEndpoint`
+or a `ReleaseEvent` names it — in the board and in every question's `stg`.
 
 **Rules.**
 
@@ -589,6 +591,8 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/sql/manifest/workitem-pull.sql` | both | §16: `RemovedAt` + note, once |
 | `apptrak/sql/manifest/workitem-retitle.sql` | both | §16: title in place, by Id |
 | `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |
+| `apptrak/sql/questions/13-feature-picture.sql` | both | §17: everything about a feature as one JSON document, filterable |
+| `apptrak/sql/manifest/release-delete.sql` | both | §17: stabilization only — a release and everything asserted under it |
 | `apptrak/Invoke-AppTrakQuestions.ps1` | both | runs every question; against fixtures it is the proof, against real data it is the first board |
 | `.docs/move-it-morning-guide.md` | real | the step-by-step for the first real-environment run: recon, DDL, backfill, first board, processor rule, report-back |
 | `apptrak/sql/board/stages.sql`, `applications.sql` | both | the board's two lookups (§13); read-only |
@@ -1113,6 +1117,71 @@ The demo reset restores the seed rows and removes the event.
 - **The reader's copy of this page.** Level 3 carries writes; when the
   read-only sidebar view exists (§15), this page needs the same split as
   History: the release in depth without the form and the row controls.
+
+## 17. Field notes from the real environment (2026-09-21; built and fixture-verified the same day)
+
+Robert's four notes from using the board on real data, and what each became.
+
+1. **"Add another" blanked the release name.** Every re-render of the entry
+   form rebuilt it, and only the item lines were read back first; the new
+   release's Name, Kind and Target were lost. The form now reads the whole
+   draft back before any re-render. Line titles were already kept; verified
+   both.
+2. **Remove a release, cascading — at least during stabilization.** *Delete
+   release* on the release page, inline confirm naming what goes (items,
+   build claims, events, links). One transaction, `release-delete.sql`:
+   links touching its items from either side, events, build claims, items,
+   the release. `moveit.Deployment` is observed and never touched. **This
+   is the one exception to §14's "never delete"** and exists for
+   stabilization: a release entered wrong is removed whole rather than
+   pulled item by item. After stabilization, remove it or gate it (open item
+   below).
+3. **The complete picture of any feature, as shaped JSON.**
+   `questions/13-feature-picture.sql`, `FOR JSON PATH`: the item, its
+   application with every payload `project` reported, its release with the
+   latest approval, where it is now (01's status), every stage it ever
+   reached with first arrival, build and machine, the builds that carry it
+   with every ledger row, the release's events, and its links both ways with
+   the other side's status. Latency in days to one decimal: per stage from
+   first sight and from the previous stage, entry lag, first sight to PROD,
+   approval to PROD, days in the current stage. Filters, optional and
+   combined: `@WorkItemId`, `@ReleaseId`, `@ApplicationId`, `@Project` (the
+   application has reported that payload project — verbatim, §9), `@Stage`
+   (its status now, including *with the devs*). Its CTEs are 01's location
+   rule verbatim; change both together. Unlike 01, a stage reached counts
+   the item's own first build even when the release does not claim it —
+   otherwise the first DEV arrival, the start of every latency, goes
+   missing.
+4. **Only the stages seen.** AppTrak's real `stages` list carries stages
+   nobody deploys to. `board/stages.sql` and every question's `stg` CTE now
+   keep a list member only when a registered endpoint or a recorded event
+   names it. Beyond the empty lanes this fixes a real error: 09, 10 and 12
+   take the highest `Sort` as PROD and the next as pre-PROD, so an unused
+   stage above PROD made every PROD answer wrong.
+
+**Verified 2026-09-21 on the fixtures.** The seed's stage list gained LOCAL
+(Sort 5) and TRAIN (Sort 40, above PROD), registered nowhere. With them in
+place the filtered questions return exactly what the old questions returned
+without them; the old questions with them present change answers in 02, 05
+and 09. The board draws no LOCAL or TRAIN lane; UAT stays (Team A's asserted
+events). In Edge: *Name it* → Name, Kind, Target and a title typed → *Add
+another* twice → all kept → saved. *Delete release* on that release → the
+confirm names 2 items and 1 build claim → deleted, back on History, gone.
+Through the API on seeded Sprint 43: 3 items, 1 build claim, 2 events and 3
+links removed (links from other releases included), ledger untouched, a
+repeat reports *unchanged*, id 0 refused. Question 13: 16 items, 0.5 s;
+each filter returns the expected ids; `@Project` tested with a project set
+on one application's ledger rows and put back. Real-data cost unmeasured.
+
+**Open items for this section**
+- **When stabilization ends**, delete release goes away or behind a setting.
+  Robert's call on when.
+- **An event form stage never seen.** The event form's stage list is the
+  seen list, so the first-ever assertion at a stage no endpoint registers
+  (Team A's first UAT) cannot be picked from the page. The server still
+  accepts any list member. Not hit yet; widen the form's list if it is.
+- **13 on the board.** It is a file to run today; a per-feature page
+  (level 3's work-item half, §13) would read it.
 
 ## Appendix A — questions the data could answer
 

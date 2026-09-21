@@ -16,8 +16,13 @@ export class NameBuildForm {
         this.data = data;
         this.onClose = onClose;
         this.releaseId = null;                // null = new release
+        this.draft = this.blankDraft();
         this.lines = [this.blankLine()];
         this.render();
+    }
+
+    blankDraft() {
+        return { name: '', kind: 'featureset', targetDate: '' };
     }
 
     refresh(data) {
@@ -61,10 +66,10 @@ export class NameBuildForm {
                 </label>
                 ${this.releaseId == null ? `
                 <div class="mi-field-row">
-                    <label class="mi-field is-grow"><span>Name</span><input name="name" required placeholder="Sprint 45" /></label>
+                    <label class="mi-field is-grow"><span>Name</span><input name="name" required placeholder="Sprint 45" value="${escapeHtml(this.draft.name)}" /></label>
                     <label class="mi-field"><span>Kind</span>
-                        <select name="kind">${this.members('release-kinds').map((k) => option(k, k, k === 'featureset')).join('')}</select></label>
-                    <label class="mi-field"><span>Target</span><input name="targetDate" type="date" /></label>
+                        <select name="kind">${this.members('release-kinds').map((k) => option(k, k, k === this.draft.kind)).join('')}</select></label>
+                    <label class="mi-field"><span>Target</span><input name="targetDate" type="date" value="${escapeHtml(this.draft.targetDate)}" /></label>
                 </div>` : ''}
                 ${existing.length ? `
                 <h3 class="mi-detail-h3">Already in this release</h3>
@@ -89,23 +94,23 @@ export class NameBuildForm {
 
         this.el.querySelector('[data-ref="close"]').addEventListener('click', () => this.onClose());
         this.el.querySelector('[name="releaseId"]').addEventListener('change', (e) => {
-            this.readLines();
+            this.readDraft();
             this.releaseId = e.target.value === '' ? null : Number(e.target.value);
             this.render();
         });
         this.el.querySelector('[name="applicationId"]')?.addEventListener('change', (e) => {
-            this.readLines();
+            this.readDraft();
             this.context.applicationId = Number(e.target.value) || null;
             this.releaseId = null;
             this.render();
         });
         this.el.querySelector('[data-ref="add"]').addEventListener('click', () => {
-            this.readLines();
+            this.readDraft();
             this.lines.push(this.blankLine());
             this.render();
         });
         this.el.querySelectorAll('[data-remove]').forEach((btn) => btn.addEventListener('click', () => {
-            this.readLines();
+            this.readDraft();
             this.lines.splice(Number(btn.dataset.remove), 1);
             if (this.lines.length === 0) this.lines.push(this.blankLine());
             this.render();
@@ -125,7 +130,12 @@ export class NameBuildForm {
             </div>`;
     }
 
-    readLines() {
+    // Every re-render rebuilds the form, so anything typed is read back first.
+    readDraft() {
+        const form = this.el.querySelector('[data-ref="form"]');
+        if (form.elements.name) {
+            this.draft = { name: form.elements.name.value, kind: form.elements.kind.value, targetDate: form.elements.targetDate.value };
+        }
         this.lines = [...this.el.querySelectorAll('[data-line]')].map((row) => ({
             kind: row.querySelector('[name="lineKind"]').value,
             title: row.querySelector('[name="lineTitle"]').value,
@@ -135,7 +145,7 @@ export class NameBuildForm {
     }
 
     async save() {
-        this.readLines();
+        this.readDraft();
         const form = this.el.querySelector('[data-ref="form"]');
         const statusEl = this.el.querySelector('[data-ref="status"]');
         const chosen = this.releaseId == null ? null : this.data.releases.find((r) => r.ReleaseId === this.releaseId);
@@ -164,6 +174,7 @@ export class NameBuildForm {
             statusEl.textContent = `Saved: ${parts.join(', ')}.`;
             statusEl.className = 'mi-form-status is-ok';
             this.releaseId = result.releaseId;
+            this.draft = this.blankDraft();
             this.lines = [this.blankLine()];
             await this.onSaved();
         } catch (err) {

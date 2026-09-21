@@ -55,6 +55,7 @@ DELETE FROM core.SelectItem WHERE MasterId = -1 AND Grouping IN ('Stage','Releas
 
 -- ---- the stage list, as AppTrak has it in the real database (fixture stands in) ----------
 -- Header 'stages', members DEV / VAL / UAT / PROD; Sort is the sequence, VAL and UAT peers.
+-- LOCAL and TRAIN stand in for the stages the real list carries that nothing deploys to.
 IF NOT EXISTS (SELECT 1 FROM core.SelectItem WHERE MasterId = -1 AND Identifier = 'stages')
     INSERT core.SelectItem (Identifier, Display, Description, Sort, IsShow, MasterId, Grouping)
     VALUES ('stages', 'stages', 'Deployment stages (fixture stand-in for AppTrak''s list)', 0, 1, -1, NULL);
@@ -63,7 +64,10 @@ SELECT v.Identifier, v.Identifier, v.Description, v.Sort, 1, h.Id, NULL
 FROM (VALUES ('DEV',  'Development stage; builds land continuously during a sprint', 10),
              ('VAL',  'Validation stage (Team B)',                                   20),
              ('UAT',  'User acceptance stage (Team A)',                              20),
-             ('PROD', 'Production',                                                  30)) v (Identifier, Description, Sort)
+             ('PROD', 'Production',                                                  30),
+             -- listed but never deployed to: the board and the questions must not see them
+             ('LOCAL', 'Developer workstation; no endpoint registers it',            5),
+             ('TRAIN', 'Training copy above PROD; no endpoint registers it',         40)) v (Identifier, Description, Sort)
 JOIN core.SelectItem h ON h.MasterId = -1 AND h.Identifier = 'stages'
 WHERE NOT EXISTS (SELECT 1 FROM core.SelectItem x WHERE x.MasterId = h.Id AND x.Identifier = v.Identifier);
 

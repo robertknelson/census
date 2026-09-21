@@ -4,6 +4,33 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-21 — field notes (move-it.md §17)
+
+**"Seen" means a registered endpoint or a recorded event names the stage.** Options:
+stages in `moveit.Deployment` only (strictly observed); endpoints registered; endpoints plus
+events. Call: endpoints plus events. Reason: on real data only DEV has deployments today, so
+"observed only" would leave one lane and hide every VAL/UAT/PROD endpoint still waiting on
+its block; events keep Team A's asserted UAT.
+
+**The filter goes into every question's `stg`, not only the board's lanes.** Reason: 09, 10
+and 12 take the highest `Sort` as PROD; an unused stage above PROD broke them silently. One
+rule in ten places, all the same two lines.
+
+**Delete is a hard delete, not a `VoidedAt`.** Reason: you asked for removal during
+stabilization, i.e. undoing entry mistakes; a voided row would still be in every question's
+way. No setting to turn it off yet: when stabilization ends is yours, and it is a two-line
+removal or a gate then.
+
+**Question 13 is a file, not a board endpoint.** You asked for a T-SQL query; putting it on
+a page is §13's level-3 work-item half, not asked for yet. Placed in `questions/` so the
+runner smoke-tests it.
+
+**Latency in days with one decimal, from minutes.** Reason: pings are ten minutes apart, so
+whole days hide same-day promotions and hours overstate precision.
+
+**`@Stage` filters on where the item is now**, not on stages it ever reached. Reason: "show
+me what is in VAL" is the weekly-meeting question; the reached stages are in the document.
+
 ## 2026-09-18 — the daily backfill job
 
 **CmdExec over the file, not a T-SQL step with the SQL pasted in.** Options: paste the

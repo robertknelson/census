@@ -1296,6 +1296,12 @@ no client sign-off recorded*; unnamed applications last.
 **Open items for this section**
 - **Is this the executive's only page?** A sidebar link to it is the
   standing requirement (§15); Division is the natural first entry.
+- **The read-only gate is deferred until development is complete** (Robert,
+  2026-09-21: *"I am the executive until all development is complete so no
+  worries about anybody else seeing anything"*). History, the release page
+  and Delete release stay reachable by URL until then; the gate (a setting,
+  or a role once AppTrak's auth tables are here) is due before anyone else
+  gets a link, not before.
 - **Team as a grouping above projects** — "their whole division" may mean
   two teams. Waits on the registry (item 10).
 - **Nothing shipped in 14 days on the fixtures**, so at the default the page

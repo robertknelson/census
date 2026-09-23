@@ -10,7 +10,7 @@ name: census
 # ── essence: fill in as the idea forms (all optional) ──
 description:
 intent: execute a census of the machines
-value_prop:
+value_prop: "Answers about the estate from evidence, not from asking someone — what is on the machines (Census), what the systems touch (Atlas), where the work is (Move It) — reasoning in .docs/value-proposition.md"
 scope:
 
 # ── state ──

@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "History count fixed; value proposition written; Traffic discovery note (the mainframe file seam), 10 open items"
+summary: "Everything pushed; next is the real-server round; Traffic still waits on the two DMZ facts"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak; Division at /moveit/division"
 health: green
 links:
@@ -26,6 +26,12 @@ ignite: start-census.bat
 
 ## The latest feature added
 
+**Nothing new built this session; the backlog of changes is now published.**
+Twelve changes that had been waiting on the development laptop went up
+today. The hold was deliberate: they were made in a remote session, and
+the rule is that nothing is published until he has looked at it at home.
+That rule is now written down so it is not mistaken for a problem again.
+
 **The history page counts only the builds that need naming.** Builds that
 only ever reached the development server were being counted as unnamed
 work, which made the catch-up look bigger than it is. Now the count covers
@@ -46,8 +52,9 @@ everything else.
 
 ## What's next
 
-**Unchanged: he reviews at home, on the made-up data,** then publishes and
-runs the real-server checklist. The history count change rides along.
+**The real-server round.** The changes are published, so the next move is
+on the real server: pull them, then work through the checklist written
+for it (the executive tab, the history count, the daily catch-up job).
 
 **Traffic waits on facts only he can get:** how many DMZs, what runs on
 them, whether the logs can be read from where the census runs.
@@ -57,8 +64,6 @@ missing registry tables, which the application-level screen still waits on.
 
 ## Anything alarming
 
-- **Nothing is published yet, on purpose.** Seven changes sit on the
-  development laptop until he has looked at them.
 - **Traffic has a naming risk.** If the DMZ transfer software turns out to
   be the product called MOVEit, the existing Move It module shares its name
   and will confuse every conversation with the network owners. Decide before

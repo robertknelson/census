@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "At home on the dev laptop: dotnet run --project Census.Web, review /moveit/division and History (its count now hides DEV churn) against the fixtures, adjust, then push; on the real server work through .docs/move-it-round-2026-09-21.md and report back. Traffic (.docs/features/traffic.md) waits on its open items 1 and 2: how many DMZs and what runs on them. Still owed: the daily backfill job on the real server; registry DDL for level 2"
+next_step: "Pushed 2026-09-23; origin is current. On the real server: pull, work through .docs/move-it-round-2026-09-21.md (Division, History count, daily backfill job) and report back. Traffic (.docs/features/traffic.md) waits on its open items 1 and 2: how many DMZs and what runs on them. Still owed: registry DDL for level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,19 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-23 (pushed; the remote-session push guard named)
+- He asked whether anything was outstanding, then "Push". Twelve local
+  commits (`b8f7d58`..`4aeeef7`) went to origin. The `git push` deny in
+  `.claude/settings.local.json` was his own remote-session guard from
+  09-21, lifted at home on his word; the rule behind it is now written
+  down (memory + collaboration refinement log): in a remote session,
+  commit locally, never push; the push waits for his look at home.
+- Asked whether a personal `/bob-rc` command could start remote control
+  and switch the guard on together. Answer from the docs: not as a slash
+  command; a shell wrapper around `claude --remote-control` plus an
+  env-var-checking PreToolUse hook would do it. He is not sold; parked,
+  not built.
 
 ### 2026-09-22 (History count fixed; the value proposition; Traffic discovery note)
 - History's filter chips now count only unnamed builds past DEV, as question

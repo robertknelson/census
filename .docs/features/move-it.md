@@ -1000,7 +1000,7 @@ exists, is the board and never History.
 
 **As built.** Route `/moveit/history`, view `MoveItHistory.cshtml`, JS
 `history-page.mjs` (the ledger as a table, filter chips counting unnamed
-builds, *Name it* / *Add to* per row, *New release* in the header) and
+builds past DEV, *Name it* / *Add to* per row, *New release* in the header) and
 `name-build-form.mjs` (pick or create the release; the release's existing
 items listed, those with no build offered a *carried by this build?* tick;
 new lines kind / title / built by, each with an *in build* tick; one Save).
@@ -1047,9 +1047,12 @@ is withdrawn.
   tables are among those missing from the local copy (item 10); until they
   arrive, a configured name in the module's settings, and the column is
   rewritten when real identity is in reach.
-- **Naming a DEV build.** §5 says DEV builds need no manifest; a feature's
-  `IncludedInBuild` is nonetheless usually a DEV build. Draft: any row in the
-  ledger can be named; the inbox filter shows only rows past DEV, as 05 does.
+- ~~**Naming a DEV build.**~~ Resolved 2026-09-22: any row in the ledger can
+  be named (a feature's `IncludedInBuild` is usually a DEV build), but the
+  inbox is an unnamed build *past DEV*, as 05 counts it. The filter chips
+  count only those and only those rows carry the inbox highlight; DEV rows
+  keep *Name it* unhighlighted. Before this the count overstated the
+  retrofit (16 on the fixtures, 9 real), which he noticed on real data.
 - **Editing after the fact.** Retitle, pull an item (`RemovedAt`), fix a
   typo. Draft: from the release page (level 3), under §14's rules — a title
   change is a new item and an orphan the page shows, a pull is `RemovedAt`

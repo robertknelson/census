@@ -52,8 +52,16 @@ class HistoryPage {
             this.mainEl.innerHTML = `<p class="mi-status is-error">${escapeHtml(err.message)}</p>`;
             return;
         }
+        this.stageSort = new Map(this.stages.map((s) => [s.Stage.toLowerCase(), s.Sort]));
+        this.devSort = Math.min(...this.stages.map((s) => s.Sort));
         this.renderFilter();
         this.render();
+    }
+
+    // The inbox is an unnamed build past DEV, as 05 counts it: DEV builds need no manifest,
+    // so counting them would overstate the retrofit. Any row can still be named.
+    isInbox(r) {
+        return !r.ReleaseId && this.stageSort.get(r.Stage.toLowerCase()) > this.devSort;
     }
 
     async reload() {
@@ -77,7 +85,7 @@ class HistoryPage {
             <button type="button" class="mi-filter-chip ${this.app === id ? 'is-active' : ''}" data-app="${id ?? ''}">
                 ${escapeHtml(label)}<span class="mi-filter-count">${count}</span>
             </button>`;
-        const unnamed = (rows) => rows.filter((r) => !r.ReleaseId).length;
+        const unnamed = (rows) => rows.filter((r) => this.isInbox(r)).length;
         this.filterEl.innerHTML = [
             chip(null, 'All applications', unnamed(this.history)),
             ...this.applications.map((a) => chip(a.ApplicationId, appLabel(a),
@@ -118,7 +126,7 @@ class HistoryPage {
         const ago = daysAgo(r.DetectedAt, this.now);
         const mismatch = r.ReportedStage && r.Stage && r.ReportedStage.toLowerCase() !== r.Stage.toLowerCase();
         return `
-            <tr class="${r.IsCurrent ? 'is-current' : ''} ${r.ReleaseId ? '' : 'is-unnamed'}">
+            <tr class="${r.IsCurrent ? 'is-current' : ''} ${this.isInbox(r) ? 'is-unnamed' : ''}">
                 <td class="mi-hist-when">
                     <span>${escapeHtml(shortDate(r.DetectedAt))}</span>
                     <span class="mi-muted">${ago == null ? '' : `${days(ago)} ago`}${r.IsCurrent ? ' · on the box now' : ''}</span>

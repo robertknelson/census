@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "At home on the dev laptop: dotnet run --project Census.Web, review /moveit/division against the fixtures (set MoveIt__ShippedDays=60 to see live rows), adjust, then push; on the real server work through .docs/move-it-round-2026-09-21.md and report back. Still owed: the daily backfill job on the real server; History count that hides DEV churn; registry DDL for level 2"
+next_step: "At home on the dev laptop: dotnet run --project Census.Web, review /moveit/division and History (its count now hides DEV churn) against the fixtures, adjust, then push; on the real server work through .docs/move-it-round-2026-09-21.md and report back. Traffic (.docs/features/traffic.md) waits on its open items 1 and 2: how many DMZs and what runs on them. Still owed: the daily backfill job on the real server; registry DDL for level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,23 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-22 (History count fixed; the value proposition; Traffic discovery note)
+- History's filter chips now count only unnamed builds past DEV, as question
+  05 does (fixtures: 9 where 16 were unnamed); DEV rows keep *Name it* but
+  lose the inbox highlight. §15 open item closed. `1f47686`.
+- Brainstormed the value proposition and he ratified the line into
+  `value_prop`: *answers about the estate from evidence, not from asking
+  someone*. He wanted the reasoning kept too: `.docs/value-proposition.md`.
+- He described the seam he cares about: not integrating with the mainframe,
+  but the file traffic between the websites and it, with the DMZs as the
+  observation point ("I will record/monitor the DMZs"). Written as a
+  discovery note in the Move It pattern, `.docs/features/traffic.md`,
+  unratified, ten open items; the first two (how many DMZs, what runs on
+  them) decide the collector. `e09e689`.
+- Personal context from the session went to git-ignored `.docs/local/`, not
+  the repo.
+- Everything still local, unpushed, by his standing rule.
 
 ### 2026-09-21 (field notes fixed; Division, the executive tab)
 - Four notes from using Move It on real data, all fixed and fixture-verified

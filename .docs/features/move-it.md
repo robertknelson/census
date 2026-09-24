@@ -1406,11 +1406,16 @@ a target date moved, rewrites the plan with no trace. With one entrant the
 note carries the story; if a case for a move record ever arrives, the note
 history is where it will come from.
 
-**Built and verified 2026-09-24 on the fixtures, through the API — not the
-browser.** The session was remote and the browser extension was not
-connected, so the pages were fetched (200) and the modules syntax-checked
-under node; the lanes, the chip and the *Coming up* line are unseen. Owed:
-one look in Edge. What was proven: 002 migrated the existing `WorkItem` in
+**Built and verified 2026-09-24 on the fixtures — through the API, then
+seen in headless Edge.** The session was remote and the browser extension
+was not connected, so the writes were exercised over HTTP and the pages
+then rendered with `msedge --headless --screenshot`: the board's items view
+(Coming first, three *no release yet* chips with their days, *4 Coming* in
+the strip, the *Coming up* line above the lanes), History unchanged, and a
+throwaway page that mounted the chip detail (Where *no release*, Heard,
+Note) and the entry form for `20260820.4` on Sprint 43 with *Batch re-rate*
+offered under *Coming, not in any release*. Clicks were not exercised in a
+browser; the same actions were exercised through the API. What was proven: 002 migrated the existing `WorkItem` in
 place (`ApplicationId` filled from the release and made `NOT NULL`,
 `ReleaseId` made nullable, a second run silent); the seed carries three
 heard items (WidgetCore *Batch re-rate* since day 20, WidgetPortal *Session
@@ -1428,9 +1433,6 @@ scheduled, 1 attached* and the item reads DEV under that build; the same
 call again is all *unchanged*. The demo reset restored the seed.
 
 **Open items for this section**
-- **Seen in Edge.** The lanes with *Coming* first, the *no release yet*
-  chip, its detail, the *Coming up* line, and the pick list on History are
-  built and unseen. First thing next session at the laptop.
 - **The board now carries a write.** Gate it with the rest (§19's deferred
   gate) before anyone but Robert has the link. Until then the convention
   from §15 — the board is the reader's page — is weaker by one box.

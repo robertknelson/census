@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "One commit local (Coming, move-it.md §20), built and API-verified but unseen: start-census.bat, open /moveit?view=items in Edge, look at the Coming lane, a no-release chip, the Coming up line, and the pick list on History; then push and run 002 on the real server (it migrates WorkItem in place). Then the real-server round (.docs/move-it-round-2026-09-21.md). Traffic still waits on DMZ facts; registry DDL still owed for level 2"
+next_step: "One commit local (Coming, move-it.md §20), built, API-verified and seen in headless Edge; screenshots were sent in the session. When home: a click-through in Edge if wanted, then push and run apptrak/sql/002 on the real server (it migrates WorkItem in place). Then the real-server round (.docs/move-it-round-2026-09-21.md). Traffic still waits on DMZ facts; registry DDL still owed for level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -39,9 +39,9 @@ relates: []
   application's heard items as a pick list (`workitem-schedule.sql`, plus
   attach when a build is named). Loader passes the application. Seed
   carries three heard items.
-- Verified through the API and node syntax-check only: the browser
-  extension was not connected in this remote session. Rendering is owed
-  one look in Edge — first thing next session.
+- Verified through the API, then rendered in headless Edge (board, History,
+  and a throwaway harness for the chip detail and the pick list) because the
+  extension was not connected. Screenshots sent to him in the session.
 - Remote session: one commit local, not pushed, per his rule.
 
 ### 2026-09-23 (pushed; the remote-session push guard named)

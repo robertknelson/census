@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Coming built: what is heard in meetings sits on the board before any release; API-verified, unseen; 1 commit local"
+summary: "Coming built: what is heard in meetings sits on the board before any release; seen in headless Edge; 1 commit local"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak; Division at /moveit/division; the notebook at /moveit?view=items"
 health: green
 links:
@@ -42,16 +42,16 @@ belong to a release; it belongs to an application, and the release comes
 later. The migration runs in place on the real database and is safe to
 re-run.
 
-**Verified through the API, not the browser.** This was a remote session
-and the browser tools were not connected. Every write was exercised and
-every question re-run against the made-up data; the pages load and the
-scripts parse. The rendering itself has not been looked at.
+**Verified through the API and headless Edge.** This was a remote session
+and the browser tools were not connected. Every write was exercised, every
+question re-run against the made-up data, and the pages were then rendered
+headless and screenshotted. The screenshots were sent to him in the session.
 
 ## What's next
 
-**Look at it.** Open the board in the items view on the laptop and check
-the Coming column, a heard item's detail, the entry line, and the pick
-list on History. Then push, and run the schema script on the real server.
+**Push, then the real server.** A click-through in Edge if he wants one;
+then push, and run the schema script on the real server before deploying
+the new build.
 
 **Then the real-server round** as before: pull, work through the
 checklist (executive tab, History count, daily catch-up job).

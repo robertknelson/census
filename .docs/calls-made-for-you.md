@@ -32,9 +32,11 @@ higher-level view. It is the board's first write; named in §20's open items aga
 **Delete release still takes scheduled notebook items with it.** Left as the cascade was;
 reverting them to *no release* is an open item for when the cascade is gated.
 
-**Verification was API-only.** The browser extension was not connected in this remote
-session. Pages fetched, modules syntax-checked, every write exercised; the rendering is
-owed one look in Edge and is the first open item.
+**Verification: API, then headless Edge.** The browser extension was not connected in
+this remote session. Every write was exercised over HTTP; then, when you said you could
+not look, the pages were rendered with `msedge --headless --screenshot` and a throwaway
+harness page mounted the chip detail and the entry form. Screenshots sent to you in the
+session. Clicks themselves were not exercised in a browser.
 
 ## 2026-09-21 — Division, the executive's tab (move-it.md §19)
 

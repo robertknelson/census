@@ -41,11 +41,16 @@ class ReleasePage {
         this.deleteEl = this.root.querySelector('[data-ref="delete"]');
     }
 
-    // Stabilization only (move-it.md §16): the release and everything under it, gone.
+    // Stabilization only (move-it.md §16): the release and everything under it, gone — except
+    // items recorded before the release existed, which came from the notebook (§20) and go
+    // back to Coming with no release.
     renderDelete() {
+        const releaseAt = Date.parse(this.release?.CreatedAt ?? 0);
+        const reverting = this.items.filter((i) => Date.parse(i.CreatedAt) < releaseAt).length;
+        const going = this.items.length - reverting;
         this.deleteEl.innerHTML = this.confirmingDelete
             ? `<span class="mi-inline">
-                   <span class="mi-muted">Delete ${this.items.length} item(s), ${new Set(this.builds.map((b) => b.Build)).size} build claim(s), ${this.events.length} event(s) and any links? No undo.</span>
+                   <span class="mi-muted">Delete ${going} item(s), ${new Set(this.builds.map((b) => b.Build)).size} build claim(s), ${this.events.length} event(s) and any links${reverting ? `; ${reverting} heard item(s) return to Coming` : ''}? No undo.</span>
                    <button type="button" class="mi-button is-primary" data-ref="delete-yes">Delete</button>
                    <button type="button" class="mi-button is-quiet" data-ref="delete-no">Cancel</button>
                </span>`

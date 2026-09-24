@@ -745,7 +745,12 @@ evidence, "looks correct", in 59 seconds — item 16.
    from 2026-09-17.** Until it does, `moveit.Deployment` stops at the
    backfill's watermark. Re-run `backfill-deployment.sql` before any
    real board reading; it is idempotent and prints what it added. The
-   two-producer test waits on the processor.
+   two-producer test waits on the processor. **2026-09-24: no SQL Agent on
+   the real server for Robert** — he can only run scripts by hand in SSMS,
+   so `004-create-backfill-job.sql` is shelved there. The backfill is a
+   manual step: open the file in SSMS and execute, before reading the board.
+   A gap of any length is caught up in one run. Once the processor ships the
+   manual run is no longer needed.
 18. ~~003 and the fixture should mirror what Robert entered by hand.~~ Done
    2026-09-17 from the query shape he gave (`x.MasterId = y.Id`, header
    `Identifier` in kebab-case, `IsShow = 1`, `ORDER BY Sort`): 003 writes the

@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Coming built and seen; three follow-ups landed (note kept, delete returns heard items, seed pinned); 5 commits local"
+summary: "Coming built and seen; three follow-ups landed; backfill is a manual SSMS run (no Agent); 8 commits local"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak; Division at /moveit/division; the notebook at /moveit?view=items"
 health: green
 links:
@@ -58,8 +58,12 @@ headless and screenshotted. The screenshots were sent to him in the session.
 then push, and run the schema script on the real server before deploying
 the new build.
 
+**Catch the ledger up by hand.** The real server has no scheduler he can
+use, so the deployment catch-up script is run by hand in SSMS before
+looking at the board. It fills any gap in one run.
+
 **Then the real-server round** as before: pull, work through the
-checklist (executive tab, History count, daily catch-up job).
+checklist (executive tab, History count).
 
 **Traffic waits on facts only he can get:** how many DMZs, what runs on
 them, whether the logs can be read from where the census runs.

@@ -1,11 +1,12 @@
 -- One work item, keyed by (ReleaseId, Title). Scalars follow the manifest; the row is
--- never deleted (a title gone from the manifest is reported, not removed).
+-- never deleted (a title gone from the manifest is reported, not removed). ApplicationId is
+-- the release's (move-it.md 20).
 DECLARE @id int = (SELECT Id FROM moveit.WorkItem WHERE ReleaseId = @ReleaseId AND Title = @Title);
 
 IF @id IS NULL
 BEGIN
-    INSERT moveit.WorkItem (ReleaseId, Kind, Title, Description, BuiltBy, ExternalRef, IncludedInBuild, FoundInStage, RemovedAt, RemovedNote, CreatedBy)
-    VALUES (@ReleaseId, @Kind, @Title, @Description, @BuiltBy, @ExternalRef, @IncludedInBuild, @FoundInStage, @RemovedAt, @RemovedNote, @By);
+    INSERT moveit.WorkItem (ApplicationId, ReleaseId, Kind, Title, Description, BuiltBy, ExternalRef, IncludedInBuild, FoundInStage, RemovedAt, RemovedNote, CreatedBy)
+    VALUES (@ApplicationId, @ReleaseId, @Kind, @Title, @Description, @BuiltBy, @ExternalRef, @IncludedInBuild, @FoundInStage, @RemovedAt, @RemovedNote, @By);
     SELECT CAST(SCOPE_IDENTITY() AS int) AS Id, 'inserted' AS Outcome;
 END
 ELSE IF EXISTS (SELECT Kind, Description, BuiltBy, ExternalRef, IncludedInBuild, FoundInStage, RemovedAt, RemovedNote

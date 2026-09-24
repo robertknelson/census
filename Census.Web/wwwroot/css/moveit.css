@@ -390,3 +390,12 @@
 .dv-node.is-asserted { border-style: dashed; }
 .dv-node.is-live.is-asserted { background: var(--mi-panel); border: 3px dashed var(--hue); }
 .dv-node.is-live.is-asserted::after { color: var(--hue); }
+
+/* Coming up (move-it.md §20): the notebook's one line above the item lanes. Quiet, one row,
+   the same controls as the entry form; the only write on the board. */
+.mi-coming-up { padding: 0.75rem 0 0; }
+.mi-coming-form { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding: 0.6rem 0.75rem; border: 1px dashed var(--mi-rule); border-radius: 6px; }
+.mi-coming-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--mi-muted); margin-right: 0.25rem; }
+.mi-coming-form select, .mi-coming-form input { font: inherit; font-size: 13px; padding: 0.3rem 0.45rem; border: 1px solid var(--mi-rule); border-radius: 4px; background: #fff; }
+.mi-coming-form input[name="title"] { flex: 2 1 14rem; }
+.mi-coming-form input[name="note"] { flex: 3 1 18rem; }

@@ -126,6 +126,7 @@ try {
             $wi = @{ inserted = 0; updated = 0; unchanged = 0 }
             foreach ($w in @($m.workItems | Where-Object { $_ })) {
                 $o = (Invoke-Statement $conn $tx 'workitem-upsert' @(
+                    (New-Param 'ApplicationId' ([int]$m.application) Int),
                     (New-Param 'ReleaseId' $releaseId Int),
                     (New-Param 'Kind' ([string]$w.kind) NVarChar),
                     (New-Param 'Title' ([string]$w.title) NVarChar),

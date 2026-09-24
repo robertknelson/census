@@ -24,14 +24,17 @@ BEGIN
     CREATE INDEX IX_Release_Application ON moveit.Release (ApplicationId);
 END;
 
+-- ReleaseId is nullable and ApplicationId is the item's own (move-it.md 20): an item with an
+-- application and no release is the notebook - heard about, not yet scheduled.
 IF OBJECT_ID('moveit.WorkItem', 'U') IS NULL
 BEGIN
     CREATE TABLE moveit.WorkItem (
         Id              int IDENTITY   NOT NULL,
-        ReleaseId       int            NOT NULL,
+        ApplicationId   int            NOT NULL,
+        ReleaseId       int            NULL,       -- NULL = no release yet (20)
         Kind            nvarchar(25)   NOT NULL,   -- SelectItem list work-item-kinds: feature | fix
         Title           nvarchar(200)  NOT NULL,
-        Description     nvarchar(max)  NULL,
+        Description     nvarchar(max)  NULL,       -- for a heard item: where it was heard, from whom
         BuiltBy         nvarchar(50)   NULL,       -- who built it: provenance, never assignment
         ExternalRef     nvarchar(100)  NULL,       -- Team A's task id, verbatim
         IncludedInBuild nvarchar(50)   NULL,       -- first build containing it, verbatim; NULL = with the devs
@@ -43,8 +46,25 @@ BEGIN
         CONSTRAINT PK_WorkItem PRIMARY KEY CLUSTERED (Id)
     );
     CREATE INDEX IX_WorkItem_Release ON moveit.WorkItem (ReleaseId);
+    CREATE INDEX IX_WorkItem_Application ON moveit.WorkItem (ApplicationId);
 END;
+GO
 
+-- Migration for a WorkItem made before 20: add ApplicationId from the release, then let
+-- ReleaseId be null. Each step checks first, so a second run changes nothing.
+IF COL_LENGTH('moveit.WorkItem', 'ApplicationId') IS NULL
+    ALTER TABLE moveit.WorkItem ADD ApplicationId int NULL;
+GO
+UPDATE w SET ApplicationId = r.ApplicationId
+FROM moveit.WorkItem w JOIN moveit.Release r ON r.Id = w.ReleaseId
+WHERE w.ApplicationId IS NULL;
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('moveit.WorkItem') AND name = 'ApplicationId' AND is_nullable = 1)
+    ALTER TABLE moveit.WorkItem ALTER COLUMN ApplicationId int NOT NULL;
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('moveit.WorkItem') AND name = 'ReleaseId' AND is_nullable = 0)
+    ALTER TABLE moveit.WorkItem ALTER COLUMN ReleaseId int NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('moveit.WorkItem') AND name = 'IX_WorkItem_Application')
+    CREATE INDEX IX_WorkItem_Application ON moveit.WorkItem (ApplicationId);
+GO
 -- Assertion: build B belongs to release R. Needed because a hotfix breaks the single-lineage
 -- assumption (a hotfix build lands on PROD while sprint builds keep landing on DEV).
 IF OBJECT_ID('moveit.ReleaseBuild', 'U') IS NULL

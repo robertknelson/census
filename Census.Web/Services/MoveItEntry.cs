@@ -83,6 +83,7 @@ public class MoveItEntry
         foreach (var item in request.Items ?? [])
         {
             var row = await RunAsync(connection, tx, "workitem-upsert",
+                ("ApplicationId", request.ApplicationId, SqlDbType.Int),
                 ("ReleaseId", result.ReleaseId, SqlDbType.Int),
                 ("Kind", item.Kind, SqlDbType.NVarChar),
                 ("Title", item.Title.Trim(), SqlDbType.NVarChar),
@@ -97,7 +98,18 @@ public class MoveItEntry
             result.Items[(string)row["Outcome"]]++;
         }
 
-        foreach (var id in request.Attach ?? [])
+        // Notebook items picked into this release (§20); with a build in context they are
+        // also attached, since naming the build is the moment the heard thing became real.
+        foreach (var id in request.Schedule ?? [])
+        {
+            var row = await RunAsync(connection, tx, "workitem-schedule",
+                ("Id", id, SqlDbType.Int),
+                ("ApplicationId", request.ApplicationId, SqlDbType.Int),
+                ("ReleaseId", result.ReleaseId, SqlDbType.Int));
+            if ((string)row["Outcome"] == "scheduled") result.Scheduled++;
+        }
+
+        foreach (var id in (request.Attach ?? []).Concat(build == null ? [] : request.Schedule ?? []))
         {
             var row = await RunAsync(connection, tx, "workitem-attach",
                 ("Id", id, SqlDbType.Int),
@@ -108,6 +120,30 @@ public class MoveItEntry
 
         await tx.CommitAsync();
         return result;
+    }
+
+    // The notebook's entry (§20): a feature or fix heard about for an application, no release.
+    public async Task<List<string>> ValidateAddItemAsync(AddItemRequest request)
+    {
+        var errors = new List<string>();
+        if (request.ApplicationId <= 0) errors.Add("An application is required.");
+        if (string.IsNullOrWhiteSpace(request.Title)) errors.Add("Say what is coming.");
+        var lists = await ListsAsync();
+        if (!(lists.TryGetValue("work-item-kinds", out var kinds) && kinds.Contains(request.Kind, StringComparer.OrdinalIgnoreCase)))
+            errors.Add($"Kind '{request.Kind}' is not in work-item-kinds.");
+        return errors;
+    }
+
+    public async Task<Dictionary<string, object>> AddItemAsync(AddItemRequest request)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        return await RunAsync(connection, null, "workitem-add",
+            ("ApplicationId", request.ApplicationId, SqlDbType.Int),
+            ("Kind", request.Kind, SqlDbType.NVarChar),
+            ("Title", request.Title.Trim(), SqlDbType.NVarChar),
+            ("Description", Text(request.Note), SqlDbType.NVarChar),
+            ("By", _by, SqlDbType.NVarChar));
     }
 
     public async Task<List<string>> ValidateEventAsync(EventRequest request)
@@ -219,6 +255,15 @@ public class NameBuildRequest
     public ReleaseSpec Release { get; set; }
     public List<NewItem> Items { get; set; }
     public List<int> Attach { get; set; }
+    public List<int> Schedule { get; set; }
+}
+
+public class AddItemRequest
+{
+    public int ApplicationId { get; set; }
+    public string Kind { get; set; }
+    public string Title { get; set; }
+    public string Note { get; set; }
 }
 
 public class ReleaseSpec
@@ -269,4 +314,5 @@ public class NameBuildResult
     public string Build { get; set; }
     public Dictionary<string, int> Items { get; } = new() { ["inserted"] = 0, ["updated"] = 0, ["unchanged"] = 0 };
     public int Attached { get; set; }
+    public int Scheduled { get; set; }
 }

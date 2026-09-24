@@ -1,16 +1,18 @@
-import { fetchApplications, fetchReadyToApprove, fetchReleaseStatus, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
+import { fetchApplications, fetchLists, fetchReadyToApprove, fetchReleaseStatus, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
 import { appLabel, escapeHtml } from './format.mjs';
 import { buildLanes } from './lanes.mjs';
 import { CountsPanel } from './counts-panel.mjs';
 import { BoardPanel, renderDetail } from './board-panel.mjs';
 import { ReleasePanel, renderReleaseDetail } from './release-panel.mjs';
+import { ComingUpForm } from './coming-up-form.mjs';
 import { renderTabs } from './tabs.mjs';
 
-// The board (move-it.md §13, §18): the governance reader's page. Read-only. Two views of the
-// same lanes: features and fixes (question 01 chip by chip, the default) and releases
-// (?view=releases). The executive's page is Division (§19). The counts strip and the application filter serve both; a card or chip
-// opens its detail. Every fact on the page is a row from a question file; the page only
-// arranges them.
+// The board (move-it.md §13, §18): the governance reader's page. Two views of the same
+// lanes: releases (the default) and features and fixes (question 01 chip by chip,
+// ?view=items). The executive's page is Division (§19). The counts strip and the application
+// filter serve both; a card or chip opens its detail. Every fact on the page is a row from a
+// question file; the page only arranges them. The one write is the notebook's line above the
+// item lanes (§20): what was heard is coming, for which application.
 
 class MoveItPage {
     init(config = {}) {
@@ -22,6 +24,7 @@ class MoveItPage {
         this.counts = new CountsPanel();
         this.board = new BoardPanel((item) => this.showDetail(item));
         this.releaseBoard = new ReleasePanel((card) => this.showReleaseDetail(card));
+        this.comingUp = new ComingUpForm(() => this.reloadItems());
         this.renderShell();
         this.load();
     }
@@ -44,11 +47,15 @@ class MoveItPage {
             </header>
             <div class="mi-strip" data-ref="counts"></div>
             <div class="mi-body">
-                <main class="mi-main" data-ref="main"></main>
+                <main class="mi-main">
+                    <div class="mi-coming-up" data-ref="coming" hidden></div>
+                    <div data-ref="main"></div>
+                </main>
                 <aside class="mi-detail" data-ref="detail" hidden></aside>
             </div>`;
         this.filterEl = this.root.querySelector('[data-ref="filter"]');
         this.countsEl = this.root.querySelector('[data-ref="counts"]');
+        this.comingEl = this.root.querySelector('[data-ref="coming"]');
         this.mainEl = this.root.querySelector('[data-ref="main"]');
         this.detailEl = this.root.querySelector('[data-ref="detail"]');
         this.taglineEl = this.root.querySelector('[data-ref="tagline"]');
@@ -77,14 +84,22 @@ class MoveItPage {
     async load() {
         this.mainEl.innerHTML = '<p class="mi-status">Asking the tracking database…</p>';
         try {
-            [this.stages, this.applications, this.items, this.releases, this.candidates] = await Promise.all([
-                fetchStages(), fetchApplications(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchReadyToApprove(),
+            [this.stages, this.applications, this.items, this.releases, this.candidates, this.lists] = await Promise.all([
+                fetchStages(), fetchApplications(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchReadyToApprove(), fetchLists(),
             ]);
         } catch (err) {
             this.mainEl.innerHTML = `<p class="mi-status is-error">${escapeHtml(err.message)}</p>`;
             return;
         }
         this.lanes = buildLanes(this.stages);
+        this.renderFilter();
+        this.render();
+    }
+
+    // After the notebook takes a line (§20): the items and the application list, since a
+    // first item for an application puts it on the board.
+    async reloadItems() {
+        [this.items, this.applications] = await Promise.all([fetchWhereIsEverything(), fetchApplications()]);
         this.renderFilter();
         this.render();
     }
@@ -127,6 +142,8 @@ class MoveItPage {
     render() {
         const data = this.scoped();
         this.counts.render(this.countsEl, data);
+        this.comingEl.hidden = this.view !== 'items';
+        if (this.view === 'items') this.comingUp.render(this.comingEl, { applications: this.applications, lists: this.lists, applicationId: this.app });
         const empty = this.view === 'releases' ? data.releases.length === 0 : data.items.length === 0;
         if (empty) {
             this.mainEl.innerHTML = '<p class="mi-status">Nothing is recorded for this application yet. Releases and their features and fixes are named on the History page; the board fills in from there.</p>';

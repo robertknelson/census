@@ -52,6 +52,16 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
         return Ok(await entry.NameBuildAsync(request));
     }
 
+    // The notebook (§20): the board's one write.
+    [HttpPost("add-item")]
+    public async Task<IActionResult> AddItem([FromBody] AddItemRequest request)
+    {
+        if (!entry.Enabled) return NotFound();
+        var errors = await entry.ValidateAddItemAsync(request);
+        if (errors.Count > 0) return BadRequest(new { errors });
+        return Ok(await entry.AddItemAsync(request));
+    }
+
     [HttpPost("event")]
     public async Task<IActionResult> RecordEvent([FromBody] EventRequest request)
     {

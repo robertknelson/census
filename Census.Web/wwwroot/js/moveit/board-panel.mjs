@@ -71,6 +71,7 @@ export class BoardPanel {
         const since = daysAgo(item.Since, now);
         const meta = [];
         if (item.Release) meta.push(escapeHtml(item.Release));
+        else if (item.Status === 'no release') meta.push('no release yet');
         if (since != null) meta.push(`${days(since)} here`);
         if (item.Evidence === 'asserted') meta.push('asserted');
         if (item.Status === 'not deployed') meta.push('build known, not seen');
@@ -90,20 +91,24 @@ function count(n, singular, plural = `${singular}s`) {
     return `${n} ${n === 1 ? singular : plural}`;
 }
 
-// The drill-in for one work item: what question 01 knows, plus the release row from 02.
+// The drill-in for one work item: what question 01 knows, plus the release row from 02. An
+// item with no release (§20) shows what was heard and where, and no release section.
 export function renderDetail(item, release, app, now) {
     const row = (label, value) => value == null || value === '' ? '' : `<div class="mi-dt">${label}</div><div class="mi-dd">${value}</div>`;
     const since = daysAgo(item.Since, now);
+    const heard = item.Status === 'no release';
     return `
         <h2 class="mi-detail-title">${escapeHtml(item.Title)}</h2>
-        <p class="mi-detail-sub">${escapeHtml(item.Kind)} in ${escapeHtml(item.Release)} for ${escapeHtml(appLabel(app))}</p>
+        <p class="mi-detail-sub">${escapeHtml(item.Kind)} ${item.Release ? `in ${escapeHtml(item.Release)} ` : ''}for ${escapeHtml(appLabel(app))}${heard ? ', not in a release yet' : ''}</p>
         <dl class="mi-detail-grid">
             ${row('Where', `<span class="mi-stage" style="--lane: ${stageHue(item.Status)}">${escapeHtml(item.Status)}</span>${item.Evidence ? ` <span class="mi-muted">${escapeHtml(item.Evidence)}</span>` : ''}`)}
-            ${row('Since', item.Since ? `${shortDate(item.Since)}, ${days(since)}` : null)}
-            ${row('Build', item.IncludedInBuild ? `<code>${escapeHtml(item.IncludedInBuild)}</code>` : 'not built yet')}
+            ${row(heard ? 'Heard' : 'Since', item.Since ? `${shortDate(item.Since)}, ${days(since)}` : null)}
+            ${row('Note', escapeHtml(item.Description))}
+            ${heard ? '' : row('Build', item.IncludedInBuild ? `<code>${escapeHtml(item.IncludedInBuild)}</code>` : 'not built yet')}
             ${row('Built by', escapeHtml(item.BuiltBy))}
             ${row('Reference', escapeHtml(item.ExternalRef))}
         </dl>
+        ${heard ? '<p class="mi-muted">It goes into a release from the History page, when a release is named or a build is.</p>' : `
         <h3 class="mi-detail-h3">The release</h3>
         <dl class="mi-detail-grid">
             ${row('Kind', release ? `${escapeHtml(release.Kind)}, ${escapeHtml(release.Composition)}` : null)}
@@ -114,5 +119,5 @@ export function renderDetail(item, release, app, now) {
             ${row('Approved', release?.ApprovedAt ? `${shortDate(release.ApprovedAt)} for <code>${escapeHtml(release.ApprovedBuild)}</code>` : null)}
             ${row('Contradiction', escapeHtml(release?.Contradiction))}
         </dl>
-        ${release ? `<p class="mi-detail-link"><a class="mi-button is-quiet" href="/moveit/release/${release.ReleaseId}">Open the release</a></p>` : ''}`;
+        ${release ? `<p class="mi-detail-link"><a class="mi-button is-quiet" href="/moveit/release/${release.ReleaseId}">Open the release</a></p>` : ''}`}`;
 }

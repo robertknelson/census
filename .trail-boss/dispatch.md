@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Everything pushed; next is the real-server round; Traffic still waits on the two DMZ facts"
-resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak; Division at /moveit/division"
+summary: "Coming built: what is heard in meetings sits on the board before any release; API-verified, unseen; 1 commit local"
+resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak; Division at /moveit/division; the notebook at /moveit?view=items"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -26,50 +26,52 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Nothing new built this session; the backlog of changes is now published.**
-Twelve changes that had been waiting on the development laptop went up
-today. The hold was deliberate: they were made in a remote session, and
-the rule is that nothing is published until he has looked at it at home.
-That rule is now written down so it is not mistaken for a problem again.
+**A place for what is heard in meetings.** Something said to be coming to
+an application can now be written down the moment it is heard, from the
+board itself: application, feature or fix, what it is, and where it was
+heard. It appears in a new first column called *Coming*, beside work that
+has a release but no build yet, and it says how long it has sat there. When
+a build carrying it is later named on the History page, it moves right on
+its own. The History form now offers those heard items as a pick list when
+a release is named, so the notebook feeds the release. Nothing else about
+Move It changed: no assignees, no estimates, no priorities. His words: not
+Jira.
 
-**The history page counts only the builds that need naming.** Builds that
-only ever reached the development server were being counted as unnamed
-work, which made the catch-up look bigger than it is. Now the count covers
-builds that reached testing or live; development builds can still be named
-but no longer nag. Proven on the made-up data: nine to name where it had
-said sixteen.
+**Under the hood, one small schema change.** A feature no longer has to
+belong to a release; it belongs to an application, and the release comes
+later. The migration runs in place on the real database and is safe to
+re-run.
 
-**Two things written down, not built.** First, the one-line reason the
-whole project exists, with the argument behind it, so it is not re-argued:
-*answers about the estate from evidence, not from asking someone*. Second,
-a discovery note for the next idea, called Traffic for now: the files that
-go back and forth between the websites and the mainframe. The plan is to
-watch them at the one place both sides touch, the transfer servers in the
-DMZ, and never to reach into the mainframe itself. The note is a
-brainstorm, not a plan; ten questions must be answered before anything is
-built, and the first two (how many DMZs, what software runs on them) decide
-everything else.
+**Verified through the API, not the browser.** This was a remote session
+and the browser tools were not connected. Every write was exercised and
+every question re-run against the made-up data; the pages load and the
+scripts parse. The rendering itself has not been looked at.
 
 ## What's next
 
-**The real-server round.** The changes are published, so the next move is
-on the real server: pull them, then work through the checklist written
-for it (the executive tab, the history count, the daily catch-up job).
+**Look at it.** Open the board in the items view on the laptop and check
+the Coming column, a heard item's detail, the entry line, and the pick
+list on History. Then push, and run the schema script on the real server.
+
+**Then the real-server round** as before: pull, work through the
+checklist (executive tab, History count, daily catch-up job).
 
 **Traffic waits on facts only he can get:** how many DMZs, what runs on
 them, whether the logs can be read from where the census runs.
 
-**Still owed from before:** the daily catch-up job on the real server; the
-missing registry tables, which the application-level screen still waits on.
+**Still owed from before:** the missing registry tables, which the
+application-level screen still waits on.
 
 ## Anything alarming
 
+- **The board now has one place to type.** It was the read-only page by
+  convention. Accepted for now, as with the release page: he is the only
+  viewer until development is complete. It must be gated before anyone
+  else gets a link.
+- **Deleting a release still removes heard items that were put in it.**
+  Fine while the delete is a stabilization tool; decide when that tool is
+  retired.
 - **Traffic has a naming risk.** If the DMZ transfer software turns out to
-  be the product called MOVEit, the existing Move It module shares its name
-  and will confuse every conversation with the network owners. Decide before
-  the name hardens.
+  be the product called MOVEit, the existing Move It module shares its name.
 - **The sign-off step depends on a habit.** If test sign-offs are not
   recorded, every release sits at "in testing" until the client approves.
-- **Anyone with the address can edit.** Accepted for now: he is the only
-  viewer until development is complete. It must change before anyone else
-  gets a link.

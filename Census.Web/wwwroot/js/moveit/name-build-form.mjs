@@ -18,6 +18,7 @@ export class NameBuildForm {
         this.releaseId = null;                // null = new release
         this.draft = this.blankDraft();
         this.lines = [this.blankLine()];
+        this.scheduled = new Set();           // notebook items ticked into this release (§20)
         this.render();
     }
 
@@ -44,6 +45,7 @@ export class NameBuildForm {
         const apps = this.data.applications;
         const releases = this.data.releases.filter((r) => r.ApplicationId === applicationId);
         const existing = this.releaseId ? this.data.items.filter((i) => i.ReleaseId === this.releaseId) : [];
+        const coming = applicationId ? this.data.items.filter((i) => i.ApplicationId === applicationId && i.Status === 'no release') : [];
         const option = (v, label, selected) => `<option value="${escapeHtml(v)}" ${selected ? 'selected' : ''}>${escapeHtml(label)}</option>`;
 
         this.el.innerHTML = `
@@ -79,6 +81,15 @@ export class NameBuildForm {
                             ${build && !i.IncludedInBuild && i.Status !== 'removed'
                                 ? `<label><input type="checkbox" name="attach" value="${i.WorkItemId}" /> <span>${escapeHtml(i.Title)}</span> <span class="mi-muted">with the devs — carried by this build?</span></label>`
                                 : `<span>${escapeHtml(i.Title)}</span> <span class="mi-muted">${i.IncludedInBuild ? `first in ${escapeHtml(i.IncludedInBuild)}` : i.Status}</span>`}
+                        </li>`).join('')}
+                </ul>` : ''}
+                ${coming.length ? `
+                <h3 class="mi-detail-h3">Coming, not in any release</h3>
+                <ul class="mi-existing">
+                    ${coming.map((i) => `
+                        <li>
+                            <label><input type="checkbox" name="schedule" value="${i.WorkItemId}" ${this.scheduled.has(i.WorkItemId) ? 'checked' : ''} /> <span>${escapeHtml(i.Title)}</span>
+                                <span class="mi-muted">${build ? 'in this release, carried by this build' : 'in this release'}</span></label>
                         </li>`).join('')}
                 </ul>` : ''}
                 <h3 class="mi-detail-h3">${build ? 'New in this build' : 'Features and fixes'}</h3>
@@ -136,6 +147,7 @@ export class NameBuildForm {
         if (form.elements.name) {
             this.draft = { name: form.elements.name.value, kind: form.elements.kind.value, targetDate: form.elements.targetDate.value };
         }
+        this.scheduled = new Set([...form.querySelectorAll('[name="schedule"]:checked')].map((c) => Number(c.value)));
         this.lines = [...this.el.querySelectorAll('[data-line]')].map((row) => ({
             kind: row.querySelector('[name="lineKind"]').value,
             title: row.querySelector('[name="lineTitle"]').value,
@@ -159,6 +171,7 @@ export class NameBuildForm {
                 kind: l.kind, title: l.title, builtBy: l.builtBy || null, inThisBuild: !!this.context.build && l.inThisBuild,
             })),
             attach: [...form.querySelectorAll('[name="attach"]:checked')].map((c) => Number(c.value)),
+            schedule: [...this.scheduled],
         };
         if (!request.applicationId) { statusEl.textContent = 'Choose an application.'; statusEl.className = 'mi-form-status is-error'; return; }
 
@@ -170,12 +183,14 @@ export class NameBuildForm {
             if (result.build) parts.push(`build ${result.build}`);
             if (result.items.inserted) parts.push(`${result.items.inserted} added`);
             if (result.items.updated) parts.push(`${result.items.updated} updated`);
+            if (result.scheduled) parts.push(`${result.scheduled} scheduled`);
             if (result.attached) parts.push(`${result.attached} attached`);
             statusEl.textContent = `Saved: ${parts.join(', ')}.`;
             statusEl.className = 'mi-form-status is-ok';
             this.releaseId = result.releaseId;
             this.draft = this.blankDraft();
             this.lines = [this.blankLine()];
+            this.scheduled = new Set();
             await this.onSaved();
         } catch (err) {
             statusEl.textContent = err.message;

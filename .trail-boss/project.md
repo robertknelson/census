@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Pushed 2026-09-23; origin is current. On the real server: pull, work through .docs/move-it-round-2026-09-21.md (Division, History count, daily backfill job) and report back. Traffic (.docs/features/traffic.md) waits on its open items 1 and 2: how many DMZs and what runs on them. Still owed: registry DDL for level 2"
+next_step: "One commit local (Coming, move-it.md §20), built and API-verified but unseen: start-census.bat, open /moveit?view=items in Edge, look at the Coming lane, a no-release chip, the Coming up line, and the pick list on History; then push and run 002 on the real server (it migrates WorkItem in place). Then the real-server round (.docs/move-it-round-2026-09-21.md). Traffic still waits on DMZ facts; registry DDL still owed for level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,25 @@ relates: []
 ---
 
 ## notes
+
+### 2026-09-24 (Coming — the notebook of what is heard, §20)
+- He opened as the product owner: a place to keep what he hears in meetings
+  about features coming to apps he does not control, and a view that shows
+  where features are with a way to add what is coming. "Not Jira" — his
+  ruling; a witness log, one entrant, no assignee, estimate or priority.
+- Spec written first (§20), "it's a go", then built. `WorkItem.ReleaseId`
+  nullable, `ApplicationId` added and migrated in place (002 idempotent);
+  01 and 13 gain status `no release`, `Since` = day recorded for pre-build
+  items; the board's first lane is *Coming* (no release + with the devs);
+  a *Coming up* line above the item lanes is the board's first write
+  (`api/moveit/add-item`, `workitem-add.sql`); History's form lists the
+  application's heard items as a pick list (`workitem-schedule.sql`, plus
+  attach when a build is named). Loader passes the application. Seed
+  carries three heard items.
+- Verified through the API and node syntax-check only: the browser
+  extension was not connected in this remote session. Rendering is owed
+  one look in Edge — first thing next session.
+- Remote session: one commit local, not pushed, per his rule.
 
 ### 2026-09-23 (pushed; the remote-session push guard named)
 - He asked whether anything was outstanding, then "Push". Twelve local

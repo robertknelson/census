@@ -1,7 +1,8 @@
 -- Q: Where is every feature and fix right now? (the governance reader's board; move-it.md App. A)
 --
 -- One row per work item: its release, app, kind, and Status:
---   with the devs   - no first build yet
+--   no release      - heard about, not in any release (move-it.md 20); Since = when recorded
+--   with the devs   - no first build yet; Since = when recorded
 --   removed         - pulled from the release
 --   no evidence     - the app reports no deployment block and has no asserted deployments
 --   not deployed    - its build is known but has not been seen at any stage
@@ -70,19 +71,21 @@ best AS (
            ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC, Evidence DESC) AS rn
     FROM at_stage
 )
-SELECT w.Id AS WorkItemId, r.ApplicationId, r.Id AS ReleaseId, r.Name AS [Release], r.Kind AS ReleaseKind,
-       w.Kind, w.Title, w.BuiltBy, w.ExternalRef, w.IncludedInBuild,
+SELECT w.Id AS WorkItemId, w.ApplicationId, r.Id AS ReleaseId, r.Name AS [Release], r.Kind AS ReleaseKind,
+       w.Kind, w.Title, w.Description, w.BuiltBy, w.ExternalRef, w.IncludedInBuild, w.CreatedAt,
        CASE
            WHEN w.RemovedAt IS NOT NULL      THEN 'removed'
+           WHEN w.ReleaseId IS NULL          THEN 'no release'
            WHEN w.IncludedInBuild IS NULL    THEN 'with the devs'
            WHEN b.Stage IS NOT NULL          THEN b.Stage
-           WHEN NOT EXISTS (SELECT 1 FROM dep WHERE dep.ApplicationId = r.ApplicationId) THEN 'no evidence'
+           WHEN NOT EXISTS (SELECT 1 FROM dep WHERE dep.ApplicationId = w.ApplicationId) THEN 'no evidence'
            ELSE 'not deployed'
        END AS Status,
-       b.Evidence, b.Since,
-       DATEDIFF(day, b.Since, sysdatetimeoffset()) AS DaysThere
+       b.Evidence,
+       CASE WHEN w.RemovedAt IS NULL AND w.IncludedInBuild IS NULL THEN w.CreatedAt ELSE b.Since END AS Since,   -- arrival at Coming = when recorded
+       DATEDIFF(day, CASE WHEN w.RemovedAt IS NULL AND w.IncludedInBuild IS NULL THEN w.CreatedAt ELSE b.Since END, sysdatetimeoffset()) AS DaysThere
 FROM moveit.WorkItem w
-JOIN moveit.Release r ON r.Id = w.ReleaseId
+LEFT JOIN moveit.Release r ON r.Id = w.ReleaseId
 LEFT JOIN best b ON b.WorkItemId = w.Id AND b.rn = 1
 WHERE @WorkItemId IS NULL OR w.Id = @WorkItemId
-ORDER BY r.ApplicationId, r.Id, w.Id;
+ORDER BY w.ApplicationId, r.Id, w.Id;

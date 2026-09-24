@@ -212,23 +212,29 @@ INSERT INTO moveit.Release (Id, ApplicationId, Name, Kind, TargetDate, Note, Cre
 SET IDENTITY_INSERT moveit.Release OFF;
 
 SET IDENTITY_INSERT moveit.WorkItem ON;
-INSERT INTO moveit.WorkItem (Id, ReleaseId, Kind, Title, BuiltBy, ExternalRef, IncludedInBuild, FoundInStage, RemovedAt, RemovedNote, CreatedBy) VALUES
- (101, 1, 'feature', 'Underwriting rules v2',            'dev-a', NULL,       '20260706.1', NULL,   NULL, NULL, 'demo-seed'),
- (102, 1, 'feature', 'Rate lookup cache',                'dev-b', NULL,       '20260712.1', NULL,   NULL, NULL, 'demo-seed'),
- (103, 1, 'fix',     'Null ref on empty portfolio',      'dev-a', NULL,       '20260719.1', 'VAL',  NULL, NULL, 'demo-seed'),
- (104, 1, 'feature', 'Bulk export',                      'dev-c', NULL,       '20260715.3', NULL,   (SELECT At FROM @D WHERE Day = 16), 'Pulled after VAL: performance', 'demo-seed'),
- (201, 2, 'fix',     'Login timeout under load',         'dev-b', NULL,       '20260815.1', 'PROD', NULL, NULL, 'demo-seed'),
- (301, 3, 'feature', 'Portfolio API v3',                 'dev-a', NULL,       '20260805.1', NULL,   NULL, NULL, 'demo-seed'),
- (302, 3, 'feature', 'Audit trail',                      'dev-c', NULL,       '20260820.4', NULL,   NULL, NULL, 'demo-seed'),
- (303, 3, 'fix',     'Timezone in scheduled reports',    'dev-b', NULL,       NULL,         'VAL',  NULL, NULL, 'demo-seed'),
- (401, 4, 'feature', 'Portfolio dashboard',              'dev-d', NULL,       '20260718.1', NULL,   NULL, NULL, 'demo-seed'),
- (501, 5, 'feature', 'Audit viewer',                     'dev-d', NULL,       '20260801.1', NULL,   NULL, NULL, 'demo-seed'),
- (601, 6, 'feature', 'Q3 rate tables',                   'dev-e', 'PM-4471',  'J-1187',     NULL,   NULL, NULL, 'demo-seed'),
- (602, 6, 'fix',     'Rounding on blended rates',        'dev-e', 'PM-4502',  'J-1190',     'UAT',  NULL, NULL, 'demo-seed'),
- (701, 7, 'feature', 'Scheduled refresh',                'dev-f', NULL,       '20260720.2', NULL,   NULL, NULL, 'demo-seed'),
- (801, 8, 'feature', 'Ledger archive',                   'dev-g', NULL,       '20260710.1', NULL,   NULL, NULL, 'demo-seed'),
- (901, 9, 'feature', 'Quarterly statement PDF',          'dev-e', 'PM-4610',  'J-1203',     NULL,   NULL, NULL, 'demo-seed'),
- (1001,10,'feature', 'Rate-change letters',              'dev-h', 'PM-4622',  'J-1207',     NULL,   NULL, NULL, 'demo-seed');
+INSERT INTO moveit.WorkItem (Id, ApplicationId, ReleaseId, Kind, Title, BuiltBy, ExternalRef, IncludedInBuild, FoundInStage, RemovedAt, RemovedNote, CreatedBy) VALUES
+  (101, 1, 1,  'feature', 'Underwriting rules v2',            'dev-a', NULL,       '20260706.1', NULL,   NULL, NULL, 'demo-seed'),
+  (102, 1, 1,  'feature', 'Rate lookup cache',                'dev-b', NULL,       '20260712.1', NULL,   NULL, NULL, 'demo-seed'),
+  (103, 1, 1,  'fix',     'Null ref on empty portfolio',      'dev-a', NULL,       '20260719.1', 'VAL',  NULL, NULL, 'demo-seed'),
+  (104, 1, 1,  'feature', 'Bulk export',                      'dev-c', NULL,       '20260715.3', NULL,   (SELECT At FROM @D WHERE Day = 16), 'Pulled after VAL: performance', 'demo-seed'),
+  (201, 1, 2,  'fix',     'Login timeout under load',         'dev-b', NULL,       '20260815.1', 'PROD', NULL, NULL, 'demo-seed'),
+  (301, 1, 3,  'feature', 'Portfolio API v3',                 'dev-a', NULL,       '20260805.1', NULL,   NULL, NULL, 'demo-seed'),
+  (302, 1, 3,  'feature', 'Audit trail',                      'dev-c', NULL,       '20260820.4', NULL,   NULL, NULL, 'demo-seed'),
+  (303, 1, 3,  'fix',     'Timezone in scheduled reports',    'dev-b', NULL,       NULL,         'VAL',  NULL, NULL, 'demo-seed'),
+  (401, 2, 4, 'feature', 'Portfolio dashboard',              'dev-d', NULL,       '20260718.1', NULL,   NULL, NULL, 'demo-seed'),
+  (501, 2, 5, 'feature', 'Audit viewer',                     'dev-d', NULL,       '20260801.1', NULL,   NULL, NULL, 'demo-seed'),
+  (601, 4, 6, 'feature', 'Q3 rate tables',                   'dev-e', 'PM-4471',  'J-1187',     NULL,   NULL, NULL, 'demo-seed'),
+  (602, 4, 6, 'fix',     'Rounding on blended rates',        'dev-e', 'PM-4502',  'J-1190',     'UAT',  NULL, NULL, 'demo-seed'),
+  (701, 5, 7, 'feature', 'Scheduled refresh',                'dev-f', NULL,       '20260720.2', NULL,   NULL, NULL, 'demo-seed'),
+  (801, 3, 8, 'feature', 'Ledger archive',                   'dev-g', NULL,       '20260710.1', NULL,   NULL, NULL, 'demo-seed'),
+  (901, 4, 9, 'feature', 'Quarterly statement PDF',          'dev-e', 'PM-4610',  'J-1203',     NULL,   NULL, NULL, 'demo-seed'),
+  (1001, 4, 10,'feature', 'Rate-change letters',              'dev-h', 'PM-4622',  'J-1207',     NULL,   NULL, NULL, 'demo-seed');
+-- The notebook (move-it.md 20): heard in a meeting, no release yet. CreatedAt is fixed so
+-- "how long it has sat in Coming" is deterministic.
+INSERT INTO moveit.WorkItem (Id, ApplicationId, ReleaseId, Kind, Title, Description, CreatedAt, CreatedBy) VALUES
+  (1101, 1, NULL, 'feature', 'Batch re-rate',            'Tuesday sync, per the WidgetCore lead; Q4 maybe.',          (SELECT At FROM @D WHERE Day = 20), 'demo-seed'),
+  (1102, 2, NULL, 'fix',     'Session drop on tab switch', 'Raised by the client in the monthly review; no owner named.', (SELECT At FROM @D WHERE Day = 62), 'demo-seed'),
+  (1103, 5, NULL, 'feature', 'Scheduled exports to SFTP', 'Reporting stand-up; waits on the DMZ decision.',           (SELECT At FROM @D WHERE Day = 66), 'demo-seed');
 SET IDENTITY_INSERT moveit.WorkItem OFF;
 
 INSERT INTO moveit.ReleaseBuild (ReleaseId, Build, Note, CreatedBy) VALUES
@@ -273,4 +279,4 @@ INSERT INTO moveit.WorkItemLink (WorkItemId, LinkedWorkItemId, Kind, Note, Creat
  (901, 601, 'dependsOn', 'Statements use the Q3 rate tables',       'demo-seed'),
  (1001,303, 'dependsOn', 'Letters need the timezone fix',           'demo-seed');
 
-PRINT 'moveit: 10 releases, 16 work items, 12 attributed builds, 18 events, 5 links';
+PRINT 'moveit: 10 releases, 19 work items (3 with no release), 12 attributed builds, 18 events, 5 links';

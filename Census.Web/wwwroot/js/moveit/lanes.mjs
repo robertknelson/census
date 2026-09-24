@@ -1,8 +1,9 @@
 // The board's columns, derived from the stage sequence (board/stages.sql). Stages that
 // share a Sort are peers (VAL and UAT) and share one lane. Two lanes sit before the first
-// stage for the statuses 01-where-is-everything.sql gives an item that is nowhere yet.
+// stage for the statuses 01-where-is-everything.sql gives an item that is nowhere yet:
+// Coming (no release, or with the devs — move-it.md §20) and built, not seen.
 
-export const WITH_DEVS = 'with the devs';
+export const COMING = 'coming';
 export const NOT_SEEN = 'not seen';
 
 export function buildLanes(stages) {
@@ -15,14 +16,14 @@ export function buildLanes(stages) {
         .sort((a, b) => a[0] - b[0])
         .map(([sort, names]) => ({ id: `stage-${sort}`, label: names.join(' / '), stages: names }));
     return [
-        { id: WITH_DEVS, label: 'With the developers', stages: [] },
+        { id: COMING, label: 'Coming', stages: [] },
         { id: NOT_SEEN, label: 'Built, not seen', stages: [] },
         ...stageLanes,
     ];
 }
 
 export function laneFor(status, lanes) {
-    if (status === 'with the devs') return WITH_DEVS;
+    if (status === 'no release' || status === 'with the devs') return COMING;
     if (status === 'not deployed' || status === 'no evidence') return NOT_SEEN;
     return lanes.find((l) => l.stages.includes(status))?.id ?? NOT_SEEN;
 }

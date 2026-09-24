@@ -1313,6 +1313,138 @@ no client sign-off recorded*; unnamed applications last.
   `verified`, releases sit at *in testing* until approval. Whether to record
   it is item 5.
 
+## 20. Coming — what is heard before it is built (ratified 2026-09-24 "it's a go")
+
+Robert, 2026-09-24, thinking as the product owner over teams he does not
+control: *"instead of keeping a text document somewhere that keeps track of
+numerous upcoming feature and work efforts, I just want a little place to
+keep the knowledge I gain from sitting in meetings and then be able to use
+that as a resource to kind of know what's going on."* And, asked whether
+this makes Move It a work tracker: *"No, we're not becoming Jira."*
+
+**What it is.** A witness log, not a work tracker. One entrant writes what
+was said in a meeting — this feature is coming to that application — and
+the estate confirms or contradicts it later. It is the step before
+`deployed-asserted` (rule 6): declared intent, with provenance in the note,
+never counted as anything until a build carrying it is named from the
+ledger. The text document never finds out it was right; this does.
+
+**What it is not.** No assignee, no estimate, no priority, no status anyone
+must maintain. The item is a statement of intent — application, title,
+feature or fix, a note saying where it was heard — and nothing else. Priority
+will be the first thing asked for; a note carries it fine, and the day it is
+a column the notebook has a chore in it. If a team needs ranking, that is
+their tool. Nor is everything heard in a meeting a feature of an
+application: "that app is being retired" or "the DMZ is moving" is estate
+knowledge and stays out, or this becomes the text document again.
+
+**The shape — two columns, no new table.**
+
+- `moveit.WorkItem.ReleaseId` becomes **nullable**. An item with an
+  application and no release is the notebook; nothing is stored to say so.
+- `moveit.WorkItem.ApplicationId` is **added**, `NOT NULL`, because an item
+  with no release has no other way to know its application. Existing rows
+  take it from their release; 002 does the migration in place and stays
+  idempotent. Every question that read the application through the release
+  now reads it from the item; the ones that inner-join the release (02, 03,
+  04, 09, 10) keep doing so, since an item with no release has no builds,
+  no stage and no events to contribute.
+- The note goes in `Description`, the column §10.2 already had and nothing
+  wrote. *"Tuesday sync, per the WidgetCore lead; Q4 maybe."*
+- **Rough timing is a release with a name and no date.** "Q4 2026" or "after
+  the mainframe freeze" is a valid release name; `TargetDate` was already
+  nullable. No fuzzy-date column.
+
+**Where it shows.** Question 01 gains a status, **`no release`**, ahead of
+*with the devs*. The board's first lane, *With the developers*, becomes
+**Coming** and holds both: heard about, or scheduled and not yet in a build.
+The chip says which — the release name, or *no release yet* — and how long
+it has sat there, because for both pre-build statuses 01 now returns `Since`
+as the day the item was recorded (first arrival at *Coming*; before this it
+was null for *with the devs*). Heard in June and still nothing by December
+is the finding a text document never raises. When a build carrying the item
+is named on History, the chip walks right on its own. Division is untouched:
+it draws releases and their items, and a no-release item belongs to none.
+The release view of the board likewise; the items view is where the
+notebook lives. Question 13 gains the same status and `@Stage = 'no
+release'`; its `release.*` and `events` come back null and empty for such an
+item, which is the honest picture.
+
+**Two ways in.**
+
+1. **On the board, in the items view: *Coming up*.** One line above the
+   lanes — application, feature or fix, title, note — and *Add*. The chip
+   appears in Coming on save. `POST api/moveit/add-item` → `MoveItEntry` →
+   `manifest/workitem-add.sql`, keyed on (application, title) among
+   no-release items: inserted or *unchanged*, never updated. **This is the
+   board's first write control.** §15 ratified the board as the page with
+   none; the standing requirement — a read-only view for the governance
+   reader — is unchanged and now covers this box the same way it covers the
+   release page's forms: behind the deferred gate (§19), not before anyone
+   else has a link. Named as an open item below rather than buried.
+2. **On History, in the entry form: the pick list.** Under the chosen or new
+   release, the application's no-release items are listed — *Coming, not in
+   any release* — each with a tick. Ticked items are scheduled into the
+   release (`manifest/workitem-schedule.sql`: sets `ReleaseId` where it is
+   null, once; *scheduled* or *unchanged*). With a build in context the tick
+   reads *in this release, carried by this build* and the item is also
+   attached (§15's `workitem-attach`), because naming a build is the moment
+   the heard thing became real. This is the "pick list of features" from the
+   conversation: the notebook feeds the release, on the page where releases
+   are named.
+
+**Rules that hold.** Never delete (a heard item that never happens stays,
+and can be pulled with a reason like any other — *the client dropped it*).
+`workitem-upsert` now takes the application so the loader and the form write
+the same row; a manifest still keys on (release, title). Rule 5 is
+untouched: a no-release item holds no build and reaches no stage.
+`release-delete` (§17, stabilization) still removes the release's items
+whole, including ones scheduled into it from the notebook — see open items.
+
+**Slippage is not tracked.** An item moved from one release to another, or
+a target date moved, rewrites the plan with no trace. With one entrant the
+note carries the story; if a case for a move record ever arrives, the note
+history is where it will come from.
+
+**Built and verified 2026-09-24 on the fixtures, through the API — not the
+browser.** The session was remote and the browser extension was not
+connected, so the pages were fetched (200) and the modules syntax-checked
+under node; the lanes, the chip and the *Coming up* line are unseen. Owed:
+one look in Edge. What was proven: 002 migrated the existing `WorkItem` in
+place (`ApplicationId` filled from the release and made `NOT NULL`,
+`ReleaseId` made nullable, a second run silent); the seed carries three
+heard items (WidgetCore *Batch re-rate* since day 20, WidgetPortal *Session
+drop on tab switch*, Reporting *Scheduled exports to SFTP*); 01 returns
+them as `no release` with `Since` the recorded day, and every other
+question runs unchanged (05's inbox, 03's violations, 04's two candidates
+as before); 13 returns them with the note, null `release.*`, empty
+`events`, and `@Stage = 'no release'` works. Through the API: the same
+heard item again is *unchanged*; a new one is *inserted* and reads `no
+release` with its note; a bad kind, an empty title and no application come
+back as named errors; scheduling a heard item into a new dateless release
+*Q4 2026* reports *1 scheduled* and the item reads *with the devs* in that
+release; scheduling one into Sprint 43 while naming `20260820.4` reports *1
+scheduled, 1 attached* and the item reads DEV under that build; the same
+call again is all *unchanged*. The demo reset restored the seed.
+
+**Open items for this section**
+- **Seen in Edge.** The lanes with *Coming* first, the *no release yet*
+  chip, its detail, the *Coming up* line, and the pick list on History are
+  built and unseen. First thing next session at the laptop.
+- **The board now carries a write.** Gate it with the rest (§19's deferred
+  gate) before anyone but Robert has the link. Until then the convention
+  from §15 — the board is the reader's page — is weaker by one box.
+- **Delete release drops scheduled notebook items with it.** Honest for
+  stabilization ("entered wrong, remove whole"); when the cascade is retired
+  or gated, decide whether scheduled items revert to *no release* instead.
+- **Estate-level hearsay** — retirements, moves, freezes — has no home here
+  by design. If it wants one, it is a separate question, not a work item.
+- **Moving an item between releases** is not offered. A pull with a note and
+  a fresh entry is the honest path today; a schedule that changes a non-null
+  `ReleaseId` waits for a case.
+- **Sort of undated releases** on any future time view: dated first, undated
+  in a *someday* column. Not built; the lane board has no time axis.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

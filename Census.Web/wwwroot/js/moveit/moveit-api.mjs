@@ -63,6 +63,11 @@ export function postNameBuild(request) {
     return postJson('/api/moveit/name-build', request);
 }
 
+// The notebook (move-it.md §20): the board's one write.
+export function postAddItem(request) {
+    return postJson('/api/moveit/add-item', request);
+}
+
 export function postEvent(request) {
     return postJson('/api/moveit/event', request);
 }

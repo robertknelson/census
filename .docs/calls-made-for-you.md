@@ -4,6 +4,38 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-24 — Coming, the notebook (move-it.md §20)
+
+**Status word: `no release`.** Options: `heard`, `planned`, `unscheduled`, `no release`.
+Call: `no release`, because 01's statuses are plain states of the row (`with the devs`,
+`not deployed`, `no evidence`) and that is the state; "heard" claims provenance the row
+does not carry. The lane is *Coming*, your word.
+
+**One lane, not two.** *With the developers* renamed *Coming* and holding both no-release
+and with-the-devs items, the chip saying which. Reason: both are "before any build", and a
+third pre-stage lane would push DEV off the first screen for nothing.
+
+**`Since` for pre-build items is the day recorded.** Before, null for *with the devs*.
+Reason: arrival at Coming is when it was written down, and "sat there since June" is the
+finding the feature exists for. Division does not read it for those rows.
+
+**The note lives in `Description`.** The column existed and nothing wrote it. No new column.
+
+**Ticking a heard item while naming a build also attaches it.** Reason: naming the build is
+the moment it became real; two ticks per line would be clutter. Without a build the tick
+only schedules.
+
+**The add line sits on the board, in the items view only.** You asked for it on the
+higher-level view. It is the board's first write; named in §20's open items against §15's
+"board has no write control", behind the same deferred gate as the release page.
+
+**Delete release still takes scheduled notebook items with it.** Left as the cascade was;
+reverting them to *no release* is an open item for when the cascade is gated.
+
+**Verification was API-only.** The browser extension was not connected in this remote
+session. Pages fetched, modules syntax-checked, every write exercised; the rendering is
+owed one look in Edge and is the first open item.
+
 ## 2026-09-21 — Division, the executive's tab (move-it.md §19)
 
 **Name and place: "Division", first tab, `/moveit/division`.** Your word ("their whole

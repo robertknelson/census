@@ -19,7 +19,9 @@
 -- Filters, all optional, combined with AND:
 --   @WorkItemId, @ReleaseId, @ApplicationId
 --   @Project  - the application has reported this payload `project` (moveit.Deployment.Project)
---   @Stage    - its status now: a stage, or 'with the devs' | 'not deployed' | 'no evidence' | 'removed'
+--   @Stage    - its status now: a stage, or 'no release' | 'with the devs' | 'not deployed' | 'no evidence' | 'removed'
+-- An item with no release (move-it.md 20) has null release.* and empty events; its
+-- now.since is when it was recorded, as in 01.
 --
 -- The CTEs through `best` are 01's location rule verbatim (dep adds Machine); change both
 -- together. Read-only.
@@ -78,26 +80,28 @@ best AS (
     FROM at_stage
 ),
 item AS (   -- 01's row, plus when its first build was first seen
-    SELECT w.Id AS WorkItemId, w.ReleaseId, r.ApplicationId, w.Kind, w.Title, w.Description, w.BuiltBy, w.ExternalRef,
+    SELECT w.Id AS WorkItemId, w.ReleaseId, w.ApplicationId, w.Kind, w.Title, w.Description, w.BuiltBy, w.ExternalRef,
            w.IncludedInBuild, w.FoundInStage, w.RemovedAt, w.RemovedNote, w.CreatedAt, w.CreatedBy,
            CASE
                WHEN w.RemovedAt IS NOT NULL      THEN 'removed'
+               WHEN w.ReleaseId IS NULL          THEN 'no release'
                WHEN w.IncludedInBuild IS NULL    THEN 'with the devs'
                WHEN b.Stage IS NOT NULL          THEN b.Stage
-               WHEN NOT EXISTS (SELECT 1 FROM dep WHERE dep.ApplicationId = r.ApplicationId) THEN 'no evidence'
+               WHEN NOT EXISTS (SELECT 1 FROM dep WHERE dep.ApplicationId = w.ApplicationId) THEN 'no evidence'
                ELSE 'not deployed'
            END AS Status,
-           b.Evidence, b.Since, sw.FirstSeen
+           b.Evidence,
+           CASE WHEN w.RemovedAt IS NULL AND w.IncludedInBuild IS NULL THEN w.CreatedAt ELSE b.Since END AS Since,
+           sw.FirstSeen
     FROM moveit.WorkItem w
-    JOIN moveit.Release r ON r.Id = w.ReleaseId
     LEFT JOIN best b ON b.WorkItemId = w.Id AND b.rn = 1
-    LEFT JOIN seen sw ON sw.ApplicationId = r.ApplicationId AND sw.Build = w.IncludedInBuild
+    LEFT JOIN seen sw ON sw.ApplicationId = w.ApplicationId AND sw.Build = w.IncludedInBuild
 ),
 carriers AS (   -- holds, plus the item's own first build when its release does not claim it
     SELECT ApplicationId, Build, WorkItemId FROM holds
     UNION
-    SELECT r.ApplicationId, w.IncludedInBuild, w.Id
-    FROM moveit.WorkItem w JOIN moveit.Release r ON r.Id = w.ReleaseId
+    SELECT w.ApplicationId, w.IncludedInBuild, w.Id
+    FROM moveit.WorkItem w
     WHERE w.RemovedAt IS NULL AND w.IncludedInBuild IS NOT NULL
 ),
 reached AS (   -- first arrival at each stage ever, by a build carrying the item
@@ -199,7 +203,7 @@ SELECT i.WorkItemId            AS [id],
                   orl.Name AS [release], o.Status AS [status], l.Note AS [note]
            FROM moveit.WorkItemLink l
            JOIN item o ON o.WorkItemId = l.LinkedWorkItemId
-           JOIN moveit.Release orl ON orl.Id = o.ReleaseId
+           LEFT JOIN moveit.Release orl ON orl.Id = o.ReleaseId
            WHERE l.WorkItemId = i.WorkItemId
            FOR JSON PATH, INCLUDE_NULL_VALUES), '[]')) AS [links.needs],
        JSON_QUERY(ISNULL((
@@ -207,11 +211,11 @@ SELECT i.WorkItemId            AS [id],
                   orl.Name AS [release], o.Status AS [status], l.Note AS [note]
            FROM moveit.WorkItemLink l
            JOIN item o ON o.WorkItemId = l.WorkItemId
-           JOIN moveit.Release orl ON orl.Id = o.ReleaseId
+           LEFT JOIN moveit.Release orl ON orl.Id = o.ReleaseId
            WHERE l.LinkedWorkItemId = i.WorkItemId
            FOR JSON PATH, INCLUDE_NULL_VALUES), '[]')) AS [links.neededBy]
 FROM item i
-JOIN moveit.Release r ON r.Id = i.ReleaseId
+LEFT JOIN moveit.Release r ON r.Id = i.ReleaseId
 LEFT JOIN reported rp ON rp.ApplicationId = i.ApplicationId AND rp.rn = 1
 LEFT JOIN prod p ON p.WorkItemId = i.WorkItemId
 LEFT JOIN approval ap ON ap.ReleaseId = i.ReleaseId AND ap.rn = 1

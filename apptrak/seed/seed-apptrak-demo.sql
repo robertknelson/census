@@ -229,6 +229,10 @@ INSERT INTO moveit.WorkItem (Id, ApplicationId, ReleaseId, Kind, Title, BuiltBy,
   (801, 3, 8, 'feature', 'Ledger archive',                   'dev-g', NULL,       '20260710.1', NULL,   NULL, NULL, 'demo-seed'),
   (901, 4, 9, 'feature', 'Quarterly statement PDF',          'dev-e', 'PM-4610',  'J-1203',     NULL,   NULL, NULL, 'demo-seed'),
   (1001, 4, 10,'feature', 'Rate-change letters',              'dev-h', 'PM-4622',  'J-1207',     NULL,   NULL, NULL, 'demo-seed');
+-- Every seeded item is recorded on a fixed day, so "days here" in Coming and 13's entryLag
+-- are deterministic: the sprint items on day 5, the one still with the devs (303) on day 50.
+UPDATE moveit.WorkItem SET CreatedAt = (SELECT At FROM @D WHERE Day = CASE WHEN Id = 303 THEN 50 ELSE 5 END) WHERE CreatedBy = 'demo-seed';
+
 -- The notebook (move-it.md 20): heard in a meeting, no release yet. CreatedAt is fixed so
 -- "how long it has sat in Coming" is deterministic.
 INSERT INTO moveit.WorkItem (Id, ApplicationId, ReleaseId, Kind, Title, Description, CreatedAt, CreatedBy) VALUES

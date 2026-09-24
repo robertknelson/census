@@ -1138,7 +1138,12 @@ Robert's four notes from using the board on real data, and what each became.
    is the one exception to §14's "never delete"** and exists for
    stabilization: a release entered wrong is removed whole rather than
    pulled item by item. After stabilization, remove it or gate it (open item
-   below).
+   below). *Amended 2026-09-24 (§20):* items recorded **before the release
+   existed** came in from the notebook, so the delete un-schedules them —
+   back to *no release*, first build cleared, links kept — instead of
+   deleting them; the confirm says how many return to Coming. Items
+   recorded with or after the release were entered through it and go with
+   it. Derived from `CreatedAt` on both rows; nothing new is stored.
 3. **The complete picture of any feature, as shaped JSON.**
    `questions/13-feature-picture.sql`, `FOR JSON PATH`: the item, its
    application with every payload `project` reported, its release with the
@@ -1396,7 +1401,10 @@ item, which is the honest picture.
 **Rules that hold.** Never delete (a heard item that never happens stays,
 and can be pulled with a reason like any other — *the client dropped it*).
 `workitem-upsert` now takes the application so the loader and the form write
-the same row; a manifest still keys on (release, title). Rule 5 is
+the same row; a manifest still keys on (release, title). `build-upsert`
+treats a null note as *leave it alone* (2026-09-24): the form has no note
+field and was erasing a build's note on every *Add to*; a manifest clears a
+note with `''`. Rule 5 is
 untouched: a no-release item holds no build and reaches no stage.
 `release-delete` (§17, stabilization) still removes the release's items
 whole, including ones scheduled into it from the notebook — see open items.
@@ -1430,15 +1438,21 @@ back as named errors; scheduling a heard item into a new dateless release
 *Q4 2026* reports *1 scheduled* and the item reads *with the devs* in that
 release; scheduling one into Sprint 43 while naming `20260820.4` reports *1
 scheduled, 1 attached* and the item reads DEV under that build; the same
-call again is all *unchanged*. The demo reset restored the seed.
+call again is all *unchanged*. The demo reset restored the seed. *Later the
+same day, through the API:* *Add to* on a claimed build with no note
+reports the build *unchanged* and its note stands; a scratch release with
+one heard item scheduled in and one item typed through it, deleted —
+*1 reverted, 1 item, 1 build claim* — and the heard item reads *no release*
+with no build; the seed's recorded days are pinned (the with-the-devs item
+on day 50), so "days here" no longer reads *today*.
 
 **Open items for this section**
 - **The board now carries a write.** Gate it with the rest (§19's deferred
   gate) before anyone but Robert has the link. Until then the convention
   from §15 — the board is the reader's page — is weaker by one box.
-- **Delete release drops scheduled notebook items with it.** Honest for
-  stabilization ("entered wrong, remove whole"); when the cascade is retired
-  or gated, decide whether scheduled items revert to *no release* instead.
+- ~~**Delete release drops scheduled notebook items with it.**~~ Resolved
+  2026-09-24: items older than the release return to Coming (§17 item 2,
+  amended).
 - **Estate-level hearsay** — retirements, moves, freezes — has no home here
   by design. If it wants one, it is a separate question, not a work item.
 - **Moving an item between releases** is not offered. A pull with a note and

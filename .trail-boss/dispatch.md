@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Coming built: what is heard in meetings sits on the board before any release; seen in headless Edge; 1 commit local"
+summary: "Coming built and seen; three follow-ups landed (note kept, delete returns heard items, seed pinned); 5 commits local"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak; Division at /moveit/division; the notebook at /moveit?view=items"
 health: green
 links:
@@ -37,6 +37,11 @@ a release is named, so the notebook feeds the release. Nothing else about
 Move It changed: no assignees, no estimates, no priorities. His words: not
 Jira.
 
+**Three small follow-ups, on his "All three".** Naming a build no longer
+erases the note already on it. Deleting a release entered wrong hands back
+any heard items that had been put in it, rather than losing them. The
+made-up data now has fixed dates, so what it shows does not drift by the day.
+
 **Under the hood, one small schema change.** A feature no longer has to
 belong to a release; it belongs to an application, and the release comes
 later. The migration runs in place on the real database and is safe to
@@ -68,9 +73,9 @@ application-level screen still waits on.
   convention. Accepted for now, as with the release page: he is the only
   viewer until development is complete. It must be gated before anyone
   else gets a link.
-- **Deleting a release still removes heard items that were put in it.**
-  Fine while the delete is a stabilization tool; decide when that tool is
-  retired.
+- **Deleting a release now hands heard items back to Coming** instead of
+  removing them. Items typed through the release still go with it. The
+  delete itself is still a stabilization tool to retire or gate later.
 - **Traffic has a naming risk.** If the DMZ transfer software turns out to
   be the product called MOVEit, the existing Move It module shares its name.
 - **The sign-off step depends on a habit.** If test sign-offs are not

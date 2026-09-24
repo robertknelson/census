@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "One commit local (Coming, move-it.md §20), built, API-verified and seen in headless Edge; screenshots were sent in the session. When home: a click-through in Edge if wanted, then push and run apptrak/sql/002 on the real server (it migrates WorkItem in place). Then the real-server round (.docs/move-it-round-2026-09-21.md). Traffic still waits on DMZ facts; registry DDL still owed for level 2"
+next_step: "Five commits local (Coming §20, then three small slices: null build note kept, delete release returns heard items to Coming, seeded recorded days pinned), all fixture-verified; screenshots of Coming were sent in the session. When home: push, then run apptrak/sql/002 on the real server before deploying (it migrates WorkItem in place). Then the real-server round (.docs/move-it-round-2026-09-21.md). Traffic still waits on DMZ facts; registry DDL still owed for level 2"
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -42,7 +42,11 @@ relates: []
 - Verified through the API, then rendered in headless Edge (board, History,
   and a throwaway harness for the chip detail and the pick list) because the
   extension was not connected. Screenshots sent to him in the session.
-- Remote session: one commit local, not pushed, per his rule.
+- "All three" on the follow-ups offered: a null build note now keeps the
+  stored note; delete release returns items older than the release (the
+  notebook ones) to Coming instead of deleting them; the seed pins every
+  item's recorded day. Each verified through the API, each its own commit.
+- Remote session: five commits local, not pushed, per his rule.
 
 ### 2026-09-23 (pushed; the remote-session push guard named)
 - He asked whether anything was outstanding, then "Push". Twelve local

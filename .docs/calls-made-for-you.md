@@ -4,6 +4,27 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-09-24 (later) — three small slices, "All three"
+
+**A null build note means "leave it".** Options: a note field on the entry form; a separate
+claim-only statement for the form; null = keep in `build-upsert`. Call: null = keep, `''`
+clears. Reason: one file, and the loader is import/export now — a manifest that wants a
+note gone can say so explicitly. Verified: *Add to* on a claimed build reports *unchanged*
+and the note stands.
+
+**Which items survive a deleted release: the ones older than it.** Options: all unbuilt
+items revert; only items scheduled from the notebook revert (needs a flag); items recorded
+before the release existed revert. Call: recorded-before, derived from `CreatedAt` on both
+rows. Reason: an item that predates its release can only have come from the notebook, and
+nothing new is stored. Their first build is cleared (the attach was the release's claim)
+and their links kept. Verified through the API: a scratch release with one heard item
+scheduled in and one typed through it — deleted: 1 reverted to *no release*, 1 gone.
+The confirm text was not seen in a browser.
+
+**Seeded items get fixed recorded days.** Day 5 for the sprint items, day 50 for the one
+still with the devs. Reason: "days here" in Coming and 13's `entryLag` were "today" on
+every reseed.
+
 ## 2026-09-24 — Coming, the notebook (move-it.md §20)
 
 **Status word: `no release`.** Options: `heard`, `planned`, `unscheduled`, `no release`.

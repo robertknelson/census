@@ -153,6 +153,7 @@ class EstatePage {
             else this.selectedClasses.add(cls);
             this.pruneHiddenSelections();
             this.writeHash();
+            this.rescopePanel();
             this.renderAll();
         }));
 
@@ -320,6 +321,7 @@ class EstatePage {
             else this.selectedOwners.add(owner);
             this.pruneHiddenSelections();
             this.writeHash();
+            this.rescopePanel();
             this.renderAll();
         }));
     }
@@ -352,6 +354,8 @@ class EstatePage {
             else this.selectedStages.add(stage);
             this.pruneHiddenSelections();
             this.writeHash();
+            this.rescopePanel();
+            this.fleetPanel?.refresh();
             this.renderStagebar();
             this.renderCanvas();
             this.renderActionbar();
@@ -488,7 +492,16 @@ class EstatePage {
 
     // --- slide-in panel -------------------------------------------------------------------
 
+    // A new choice on the rail, class legend or stage bar is a new scope: the open panel's
+    // local "show fleet" gives way to it (census-web.md §12.2).
+    rescopePanel() {
+        if (this.fleetPanel?.scope) this.fleetPanel.scope.showFleet = false;
+    }
+
+    // The rail, class legend and stage bar stay live above the backdrop (§12.2), so the
+    // board's scope can change while a panel is open and the panel follows it in place.
     openPanel() {
+        this.root.querySelector('.est').classList.add('is-panel-open');
         this.backdropEl.hidden = false;
         this.panelEl.hidden = false;
         requestAnimationFrame(() => this.panelEl.classList.add('is-open'));
@@ -497,6 +510,7 @@ class EstatePage {
     closePanel() {
         this.panel = null;
         this.fleetPanel = null;
+        this.root.querySelector('.est').classList.remove('is-panel-open');
         this.panelEl.classList.remove('is-open');
         this.backdropEl.hidden = true;
         setTimeout(() => { if (!this.panel) this.panelEl.hidden = true; }, 260);

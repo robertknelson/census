@@ -499,6 +499,21 @@ html, body {
     z-index: 40;
 }
 
+/* The scope controls stay live over the backdrop while a panel is open (census-web.md
+   §12.2): a click on them rescopes the panel instead of closing it. */
+.est.is-panel-open .est-rail,
+.est.is-panel-open .est-legend,
+.est.is-panel-open .est-stagebar {
+    position: relative;
+    z-index: 45;
+}
+.est.is-panel-open .est-legend,
+.est.is-panel-open .est-stagebar:not(:empty) {
+    border-radius: 999px;
+    background: var(--est-panel);
+    box-shadow: 0 0 0 4px var(--est-panel);
+}
+
 .est-panel {
     position: fixed;
     top: 0;

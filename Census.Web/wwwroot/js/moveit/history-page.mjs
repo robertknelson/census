@@ -68,6 +68,7 @@ class HistoryPage {
         }
         this.stageSort = new Map(this.stages.map((s) => [s.Stage.toLowerCase(), s.Sort]));
         this.devSort = Math.min(...this.stages.map((s) => s.Sort));
+        this.app = AppRail.remembered(this.applications);
         this.renderFilter();
         this.render();
     }

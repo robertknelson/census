@@ -101,6 +101,7 @@ class MoveItPage {
             return;
         }
         this.lanes = buildLanes(this.stages);
+        this.app = AppRail.remembered(this.applications);
         this.renderFilter();
         this.render();
     }

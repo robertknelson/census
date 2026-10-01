@@ -119,6 +119,7 @@ class CalendarPage {
             return;
         }
         this.appsById = new Map(this.applications.map((a) => [a.ApplicationId, a]));
+        this.app = AppRail.remembered(this.applications);
         this.stageSort = new Map(this.stages.map((s) => [s.Stage, s.Sort]));
         const topSort = Math.max(...this.stages.map((s) => s.Sort));
         this.topStages = this.stages.filter((s) => s.Sort === topSort).map((s) => s.Stage);
@@ -288,11 +289,21 @@ class CalendarPage {
                 <span class="cal-date">${date.getDate()}</span>
                 ${chips.join('')}
                 <span class="cal-more" hidden></span>
-                ${holds.map((h, i) => this.holdBar(h, key, date, i)).join('')}
+                ${holds.length > 1 ? this.holdsBar(holds, key, date) : holds.map((h) => this.holdBar(h, key, date, 0)).join('')}
             </button>`;
     }
 
     // A thin amber band per held release, named where it starts and at the start of each week.
+    // Several releases held on one day share one band (§26.2): stacked bands ate a short
+    // cell's room for chips. The band says how many; its title names each; the day's detail
+    // lists them in full.
+    holdsBar(holds, key, date) {
+        const named = date.getDay() === 1 || holds.some((h) => key === h.fromKey);
+        const since = (h) => new Date(h.from).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+        const title = holds.map((h) => `${appLabel(this.appsById.get(h.ApplicationId) ?? { ApplicationId: h.ApplicationId })} · ${h.Release} on hold since ${since(h)}`).join('\n');
+        return `<span class="cal-hold is-first ${holds.some((h) => key === h.fromKey) ? 'is-start' : ''}" title="${escapeHtml(title)}">${named ? `${holds.length} releases on hold` : ''}</span>`;
+    }
+
     holdBar(h, key, date, i) {
         const named = key === h.fromKey || date.getDay() === 1;
         const app = appLabel(this.appsById.get(h.ApplicationId) ?? { ApplicationId: h.ApplicationId });

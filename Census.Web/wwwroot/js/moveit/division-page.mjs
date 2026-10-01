@@ -104,8 +104,7 @@ class DivisionPage {
                     <div class="dv-head-label"></div>
                     ${this.steps.map((s, n) => `
                         <div class="dv-head-step" style="--hue: ${s.hue}">
-                            <span class="dv-head-num">${n + 1}</span>
-                            <span class="dv-head-name">${escapeHtml(s.label)}</span>
+                            <span class="dv-head-title"><span class="dv-head-num">${n + 1}</span><span class="dv-head-name">${escapeHtml(s.label)}</span></span>
                             <span class="dv-head-caption">${escapeHtml(s.caption)}</span>
                         </div>`).join('')}
                 </div>

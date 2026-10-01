@@ -1793,9 +1793,7 @@ elsewhere; Aug 30 opened the drawer (the ↺ hotfix rollback, 2 servers), Escape
 the collapsed rail was remembered across a reload. Not seen on the real server.
 
 **Open items for this section**
-- **Holds eat short cells.** At 633px tall a day under two hold bands shows *+2 more* and
-  no chip. If it bites on real screens: merge stacked holds into one band, or let holds
-  count against the chips.
+- ~~**Holds eat short cells.**~~ — stacked holds merge into one band, §26.2.
 - ~~**The other four pages** move to the frame next~~ — done, §26.1.
 - **Choosing several applications** ("my applications") — the list stays single-choice.
   Robert does not want several dozen candidates in a cramped multi-select; if several are
@@ -1837,12 +1835,28 @@ no console errors on any page. **Not seen:** the week's print preview, and any p
 real server.
 
 **Open items for this section**
-- **Division's step header** is sticky and ~100px; it could go to one line if the board
-  feels short on a real screen.
-- **The week's section cards** stretch to the tallest in their row, leaving white space
-  under short lists (as before; not part of this pass).
-- **The application choice does not carry between pages.** Each page opens on All; carrying
-  it (URL or per-browser) is a small change if wanted.
+- ~~Division's step header~~, ~~the week's stretched cards~~, ~~the application choice
+  carrying between pages~~ — all §26.2.
+
+### 26.2 The leftovers of §26 (2026-10-01, Robert: "get everything done so i can see it in the wild tomorrow morning")
+
+- **One hold band per day.** Two or more releases held on the same day share one band —
+  *2 releases on hold* where it starts and on Mondays — whose hover title names each; the
+  day's detail lists them in full as before. Stacked bands had left short cells only
+  *+N more*.
+- **The application choice carries between pages.** Calendar, Where is it and History share
+  one remembered choice (per browser, like the rail's collapse); a remembered application
+  that no longer exists falls back to All; × clears it everywhere.
+- **Division's step header** — number and name on one line, the caption small beneath:
+  101px → 65px, and it is sticky, so that is height back for the whole scroll.
+- **The week's cards** take their own height instead of stretching to the tallest in the
+  row.
+
+**Verified 2026-10-01 in Chrome against the local AppTrak (Development profile):** August's
+Aug 31 read *2 releases on hold* in one band, and Aug 29/30 showed two chips each where they
+had shown only *+2 more*; WidgetCore chosen on Calendar opened History and Where is it on
+WidgetCore, and × returned all three to All; Division's step header measured 65px; the week
+ending Aug 31 drew its first cards at 92px, 92px and 296px.
 
 ## Appendix A — questions the data could answer
 

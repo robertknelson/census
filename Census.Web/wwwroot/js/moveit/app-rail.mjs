@@ -2,10 +2,12 @@ import { appLabel, escapeHtml } from './format.mjs';
 
 // The application rail (move-it.md §26): every application down the left at full height, a
 // find box over them, collapsible to a strip. Single choice; the page's header line always
-// names the choice, so a collapsed rail never hides a filter. One remembered collapse for
-// every Move It page — a per-viewer convenience, so without storage the rail simply opens.
+// names the choice, so a collapsed rail never hides a filter. The collapse and the chosen
+// application are remembered per browser and shared by every Move It page (§26.2) — a
+// viewer convenience, so without storage the rail simply opens on All.
 
 const COLLAPSED_KEY = 'moveit.rail.collapsed';
+const APP_KEY = 'moveit.rail.app';
 
 function readCollapsed() {
     try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
@@ -17,7 +19,17 @@ function writeCollapsed(on) {
 
 export class AppRail {
     constructor(onPick) {
-        this.onPick = onPick;
+        this.onPick = (id) => {
+            try { if (id == null) localStorage.removeItem(APP_KEY); else localStorage.setItem(APP_KEY, String(id)); } catch { /* not remembered */ }
+            onPick(id);
+        };
+    }
+
+    /// The application another Move It page last chose, if it still exists here; else null.
+    static remembered(applications) {
+        let id = null;
+        try { id = Number(localStorage.getItem(APP_KEY)) || null; } catch { /* none */ }
+        return applications.some((a) => a.ApplicationId === id) ? id : null;
     }
 
     html() {

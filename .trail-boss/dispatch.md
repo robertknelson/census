@@ -43,6 +43,11 @@ at all. Census now matches it against the sites' own bindings, so the diagram sh
 calls the portal on WEB01, which belongs to Billing", and a server's blast radius
 includes the apps that call it by web address.
 
+**Last touches before morning:** web addresses also match wildcard site names
+(`*.example.com`); a filtered Findings list can be exported as filtered; on Move It, two
+holds on one day share one bar, the chosen application follows you between pages, and the
+Division header is slimmer.
+
 **Atlas is tidier.** Choose grouped or every-entity, starting stages and a name when
 opening a view; the header reads in parts; the inspector can be closed; the selected tab
 is coloured. Stages everywhere read in the real order: dev, val, uat, prod.
@@ -65,6 +70,6 @@ application-level screen.
 - **Speed on real data is still unmeasured** for the Move It pages added last round.
 - **The board still has places to type** and must be gated before anyone but him gets
   a link.
-- **Web-address matching is exact.** A real estate full of aliases may resolve less than
-  the demo did; the Triage list will say how much.
+- **Web-address matching is exact** (plus wildcard site names). A real estate full of DNS
+  aliases may resolve less than the demo did; the Triage list will say how much.
 - **Traffic has a naming risk** (MOVEit, the product, versus Move It).

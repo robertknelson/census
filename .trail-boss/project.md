@@ -42,7 +42,11 @@ relates: []
   recognised: confirmed not his fault; spec'd and built **web addresses resolving
   through IIS bindings** (census-web §13) — Atlas, blast radius, Hosting, Triage.
 - Stage order DEV → VAL → UAT → PROD as one setting (census-web §14).
-- 14 commits pushed on his word. His Atlas demo tabs in config/views.demo.json stay
+- Then "get everything done so i can see it in the wild tomorrow morning": wildcard host
+  headers (census-web §13.6), a scoped Findings export (§12.3), and Move It §26.2 (one
+  hold band per day, the app choice carries between pages, compact Division header,
+  unstretched week cards). Pushed.
+- 14 commits pushed on his word, then the follow-ups above. His Atlas demo tabs in config/views.demo.json stay
   local and uncommitted.
 
 ### 2026-10-01 (Calendar, the backfill stamp, and four gaps closed)

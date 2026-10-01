@@ -880,12 +880,25 @@ demo config was not touched.
 
 ### 13.5 Open items
 
-- **Wildcard host headers** (`*.example.com`, IIS 10+) are not matched — exact only, until a
-  real estate shows one.
+- ~~Wildcard host headers~~ — matched, §13.6.
 - **IP-specific bindings** are matched on scheme, port and host header only; which address
   a name resolves to is DNS, which census does not do.
 - **Non-IIS listeners** (a Windows service on :9001) stay *unobserved*; seeing them needs a
   collector that reads listening ports.
+
+### 13.6 Wildcard host headers (2026-10-01, Robert: "get everything done so i can see it in the wild tomorrow morning")
+
+IIS 10 lets a binding name `*.example.com`. It now answers an http edge **only when no exact
+host-header binding on that scheme and port does**, and among wildcards the **longest suffix
+wins** — IIS's own precedence. `*.example.com` matches `api.example.com` and
+`a.b.example.com`, never `example.com` itself; only a leading `*.` is a wildcard. The detail
+says so: *matched by wildcard *.vendor.example.com on APPSRV01 · intranet-app · /*. A
+declared external identifier a wildcard covers is flagged as a shadow, like an exact one.
+
+**Verified 2026-10-01** on a scratch copy of the demo snapshots with `*.vendor.example.com`
+(https:443) added to APPSRV01's intranet-app: `https://payments.vendor.example.com` (443)
+resolved to it, confirmed; the same host on :8443 stayed unobserved; portal.example.com still
+resolved to WEB01's exact binding. The demo snapshots themselves were not changed.
 
 ## 14. Stages read in their real order (2026-10-01, Robert: "the order is DEV -> VAL -> UAT (if exists) -> PROD")
 

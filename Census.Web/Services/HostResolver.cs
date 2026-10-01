@@ -144,17 +144,28 @@ public static class HostResolver
         var scheme = (edge.Scheme ?? "http").ToLowerInvariant();
         var port = edge.Port ?? (scheme == "https" ? 443 : 80);
 
-        var named = index.Bindings
-            .Where(b => b.Protocol == scheme && b.Port == port && string.Equals(b.HostHeader, edge.Host, StringComparison.OrdinalIgnoreCase))
-            .Select(b => (b.Machine, b.Site))
-            .Distinct(SiteKeyComparer.Instance)
-            .ToList();
+        var onPort = index.Bindings.Where(b => b.Protocol == scheme && b.Port == port).ToList();
+        var named = onPort.Where(b => string.Equals(b.HostHeader, edge.Host, StringComparison.OrdinalIgnoreCase)).ToList();
+        var via = "bound on";
+        // A wildcard host header (IIS 10: *.example.com) answers what no exact binding does,
+        // the longest suffix first — IIS's own precedence, census-web.md §13.6.
+        if (named.Count == 0)
+        {
+            var wild = onPort.Where(b => WildcardMatches(b.HostHeader, edge.Host)).ToList();
+            if (wild.Count > 0)
+            {
+                var longest = wild.Max(b => b.HostHeader.Length);
+                named = wild.Where(b => b.HostHeader.Length == longest).ToList();
+                via = $"matched by wildcard {named[0].HostHeader} on";
+            }
+        }
         if (named.Count > 0)
         {
-            var sites = named.Select(n => (n.Machine, n.Site, AppPathFor(index, n.Machine, n.Site, edge.Path))).ToList();
+            var sites = named.Select(b => (b.Machine, b.Site)).Distinct(SiteKeyComparer.Instance)
+                .Select(n => (n.Machine, n.Site, AppPathFor(index, n.Machine, n.Site, edge.Path))).ToList();
             var where = string.Join(", ", sites.Select(t => $"{t.Machine} · {t.Site} · {t.Item3}"));
             return new HttpTarget("site", sites, null,
-                sites.Count == 1 ? $"bound on {where}" : $"bound on {sites.Count} machines — {where}; a farm may survive one going down");
+                sites.Count == 1 ? $"{via} {where}" : $"{via} {sites.Count} machines — {where}; a farm may survive one going down");
         }
 
         string machine;
@@ -183,6 +194,17 @@ public static class HostResolver
         if (catchAll.Count > 1)
             return new HttpTarget("ambiguous", [], machine, $"{catchAll.Count} sites on {machine} bind {scheme}:{port} with no host name — census cannot tell which answers");
         return new HttpTarget("machine", [], machine, $"no IIS site on {machine} binds {scheme}:{port} — something other than IIS may listen there");
+    }
+
+    /// <summary>
+    /// IIS 10 wildcard host headers: "*.example.com" answers any name ending ".example.com" —
+    /// never "example.com" itself. Only a leading "*." is a wildcard; nothing else is inferred.
+    /// </summary>
+    public static bool WildcardMatches(string hostHeader, string host)
+    {
+        if (string.IsNullOrEmpty(hostHeader) || !hostHeader.StartsWith("*.", StringComparison.Ordinal) || string.IsNullOrEmpty(host)) return false;
+        var suffix = hostHeader[1..];
+        return host.Length > suffix.Length && host.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>IIS application routing: the longest application path that prefixes the URL path at a segment boundary.</summary>

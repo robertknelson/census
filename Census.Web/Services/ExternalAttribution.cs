@@ -75,7 +75,8 @@ public static class ExternalAttribution
                     continue;
                 }
                 // Likewise a host name an estate site binds (§13): the site won already.
-                var bound = index.Bindings.FirstOrDefault(b => string.Equals(b.HostHeader, parsed.Host, StringComparison.OrdinalIgnoreCase));
+                var bound = index.Bindings.FirstOrDefault(b => string.Equals(b.HostHeader, parsed.Host, StringComparison.OrdinalIgnoreCase))
+                    ?? index.Bindings.FirstOrDefault(b => HostResolver.WildcardMatches(b.HostHeader, parsed.Host));
                 if (bound is not null)
                 {
                     matches.Add(new IdentifierMatch(identifier, $"{bound.Machine} · {bound.Site}", []));

@@ -1,4 +1,4 @@
-import { fetchApplications, fetchEvents, fetchReleaseStatus, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
+import { fetchApplications, fetchCoverage, fetchEvents, fetchReleaseStatus, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { NOT_SEEN, buildLanes, laneFor } from './lanes.mjs';
 import { laneHue } from './stage-hues.mjs';
@@ -69,8 +69,8 @@ class DivisionPage {
 
     async load() {
         try {
-            [this.stages, this.applications, this.items, this.releases, this.events] = await Promise.all([
-                fetchStages(), fetchApplications(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchEvents(),
+            [this.stages, this.applications, this.items, this.releases, this.events, this.coverage] = await Promise.all([
+                fetchStages(), fetchApplications(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchEvents(), fetchCoverage(),
             ]);
         } catch (err) {
             this.mainEl.innerHTML = `<p class="mi-status is-error">${escapeHtml(err.message)}</p>`;
@@ -130,7 +130,32 @@ class DivisionPage {
             tile(inFlight.filter((p) => p.state === 'signed').length, 'signed off, going live', 'is-ask'),
             tile(inFlight.filter((p) => p.release.PastTarget === 1).length, 'past their target date', inFlight.some((p) => p.release.PastTarget === 1) ? 'is-alert' : ''),
             tile(inFlight.filter((p) => p.state === 'hold').length, 'on hold', inFlight.some((p) => p.state === 'hold') ? 'is-hold' : ''),
-        ].join('');
+        ].join('') + this.renderCoverage();
+    }
+
+    // What the board can and cannot see (§24), so a calm page is not read as complete: how many
+    // applications the pings watch, which are known only from what people say, and which not
+    // at all. Named, because "3 not visible" invites the question "which?".
+    renderCoverage() {
+        const appsById = new Map(this.applications.map((a) => [a.ApplicationId, a]));
+        const named = (verdicts) => this.coverage.filter((c) => verdicts.includes(c.Verdict)).map((c) => appLabel(appsById.get(c.ApplicationId) ?? { ApplicationId: c.ApplicationId }));
+        const watched = named(['observed']);
+        const said = named(['asserted only']);
+        const dark = named(['pinged, no block', 'nothing']);
+        const part = (list, text) => list.length ? `<span class="dv-cover-part"><strong>${list.length}</strong> ${text} <span class="dv-muted">(${list.map(escapeHtml).join(', ')})</span></span>` : '';
+        return `
+            <p class="dv-cover ${said.length || dark.length ? 'is-partial' : ''}">
+                <span class="dv-cover-part">The pings watch <strong>${watched.length} of ${this.coverage.length}</strong> applications</span>
+                ${part(said, 'known only from what people record')}
+                ${part(dark, 'not visible: no deployment details reach the board')}
+            </p>`;
+    }
+
+    coverageTag(app) {
+        const verdict = this.coverage.find((c) => c.ApplicationId === app.ApplicationId)?.Verdict;
+        if (verdict === 'asserted only') return '<span class="dv-cover-tag">recorded by hand</span>';
+        if (verdict === 'pinged, no block' || verdict === 'nothing') return '<span class="dv-cover-tag is-dark">not visible</span>';
+        return '';
     }
 
     renderProject({ app, releases }) {
@@ -141,6 +166,7 @@ class DivisionPage {
             <section class="dv-project">
                 <header class="dv-project-head">
                     <h2 class="dv-project-name ${app.Name ? '' : 'is-unnamed'}">${escapeHtml(appLabel(app))}</h2>
+                    ${this.coverageTag(app)}
                     <span class="dv-project-meta">${flying ? `${flying} on the way` : 'nothing on the way'}${earlier.length
                         ? ` · earlier: ${earlier.slice(0, 3).map((r) => `${escapeHtml(r.release.Name)} live ${escapeHtml(shortDate(r.shippedAt))}`).join(', ')}` : ''}</span>
                 </header>

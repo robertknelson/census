@@ -134,6 +134,9 @@ Assert-That '10: one hotfix, the login timeout' ($hotfix.Rows.Count -eq 1 -and $
 $coverage = (Invoke-File 'questions\11-regime-coverage.sql')[0]
 $verdicts = $coverage.Rows | ForEach-Object { "$($_.ApplicationId)=$($_.Verdict)" }
 Assert-That '11: three observed, Ledger pinged without a block, Team A asserted only' (Same $verdicts @('1=observed', '2=observed', '5=observed', '3=pinged, no block', '4=asserted only')) ($verdicts -join ', ')
+$cover = (Invoke-File 'board\coverage.sql')[0] | ForEach-Object { $_ }
+$coverVerdicts = $cover | ForEach-Object { "$($_.ApplicationId)=$($_.Verdict)" }
+Assert-That 'Division''s coverage (board\coverage.sql) gives 11''s verdicts without the HealthReport scan' (Same $coverVerdicts $verdicts) ($coverVerdicts -join ', ')
 $approval = (Invoke-File 'questions\12-approval-vs-prod.sql')[0]
 $found = $approval.Rows | ForEach-Object { "$($_.ReleaseId)=$($_.Item)" }
 Assert-That '12: WidgetPortal Sprint 42 reached PROD unapproved; the hotfix deployed before its approval' (Same $found @('1=approved -> PROD', '3=approved -> PROD', '5=approved -> PROD', '6=approved -> PROD', '7=approved -> PROD', '2=deployed before approval', '4=PROD without approval')) ($found -join ', ')

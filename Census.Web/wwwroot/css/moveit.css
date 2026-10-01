@@ -476,3 +476,10 @@
 .mi-needs-what { font-weight: 600; }
 .mi-needs-why { color: var(--mi-hold); }
 @media (max-width: 700px) { .mi-needs-item { grid-template-columns: 1fr; } }
+
+/* Division's coverage line (move-it.md §24): what the board cannot see, stated under the
+   numbers so a calm page is not read as a complete one. */
+.dv-cover { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 0.35rem 1.5rem; margin: 0; padding: 0.55rem 0.9rem; border-radius: 6px; background: var(--mi-paper); font-size: 13px; color: var(--mi-ink); }
+.dv-cover.is-partial { background: var(--mi-hold-bg); }
+.dv-cover-tag { font-size: 11px; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; background: var(--mi-hold-bg); color: var(--mi-hold); white-space: nowrap; }
+.dv-cover-tag.is-dark { background: var(--mi-rule-soft); color: var(--mi-muted); }

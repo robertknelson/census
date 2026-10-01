@@ -1680,6 +1680,31 @@ held releases (WidgetCore Sprint 43, Reporting refresh) are rightly absent.
   built — it costs every page three more queries.
 - **Thresholds per application** if one team's cadence makes 14 days noisy.
 
+## 24. Division says what it cannot see (2026-10-01, Robert: "go"; built and browser-verified the same day)
+
+A tidy Division reads as complete. It is not: Team A's AWS applications move only by
+assertion, and some applications send no deployment block. Division now states it.
+
+- **The coverage line**, under the six numbers: *The pings watch **3 of 5**
+  applications · **1** known only from what people record (Application 4) · **1** not
+  visible: no deployment details reach the board (Application 3)*. Amber when anything
+  is less than watched. Named, because "1 not visible" invites "which?".
+- **A tag on each project header**: *recorded by hand* (asserted only) or *not
+  visible* (pinged with no block, or nothing). Watched projects carry no tag.
+- **Source: `board/coverage.sql`** — question 11's verdict rule verbatim, without 11's
+  last-good-ping lookup over `health.HealthReport`, the part that took 59 s on real
+  data (item 16). The verdict never used it. Change the two together; the fixture
+  check (§22) asserts they agree.
+
+**Verified 2026-10-01 in Chrome on the fixtures:** the line reads 3 of 5, Application 4
+by hand, Application 3 not visible; the tags sit on those two project headers; the
+fixture check passes 26 with the new agreement assertion.
+
+**Open items for this section**
+- **Endpoint-level coverage** — an application observed at PROD but blind at DEV
+  counts as watched. Good enough for the executive; 11's second result set has the
+  detail.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

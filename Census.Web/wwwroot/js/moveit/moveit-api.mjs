@@ -46,6 +46,10 @@ export function fetchHistory() {
     return getJson('/api/moveit/history');
 }
 
+export function fetchCoverage() {
+    return getJson('/api/moveit/coverage');
+}
+
 export function fetchCalendar() {
     return getJson('/api/moveit/calendar');
 }

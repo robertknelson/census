@@ -18,6 +18,11 @@ public class MoveItOptions
     // in the top stage this many days.
     public int ShippedDays { get; set; } = 14;
 
+    // History's "needs a word from you" (§23): a release in flight this many days at its stage
+    // with nothing recorded, and a heard item this many days with no release, are asked about.
+    public int StaleDays { get; set; } = 14;
+    public int ComingDays { get; set; } = 60;
+
     // Division (§19) puts a plain-words caption under each stage's step, keyed by stage
     // identifier. A stage with no caption shows its name alone.
     public Dictionary<string, string> StepCaptions { get; set; } = new()

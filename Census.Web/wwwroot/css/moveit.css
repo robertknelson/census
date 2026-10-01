@@ -463,3 +463,16 @@
     .cal-more { font-size: 10px; padding: 0; }
     .cal-hold { font-size: 0; height: 4px; }
 }
+
+/* Needs a word from you (move-it.md §23): the entrant's own list above the ledger. Amber,
+   because it is about what is missing, not what is wrong. */
+.mi-needs { margin: 1rem 0 1.25rem; padding: 0.75rem 1rem; border: 1px solid #e6cf9a; border-left: 4px solid #d9a441; border-radius: 6px; background: var(--mi-hold-bg); }
+.mi-needs.is-clear { border-color: var(--mi-rule); border-left-color: #1e8e3e; background: var(--mi-panel); }
+.mi-needs-head { font-weight: 600; cursor: pointer; }
+.mi-needs.is-clear .mi-needs-head { cursor: default; color: var(--mi-muted); font-weight: 500; }
+.mi-needs-count { display: inline-block; min-width: 1.4rem; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--mi-hold); color: #fff; font-size: 12px; text-align: center; }
+.mi-needs-list { list-style: none; padding: 0; margin: 0.6rem 0 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.mi-needs-item { display: grid; grid-template-columns: minmax(12rem, 18rem) 1fr; gap: 0.25rem 1rem; }
+.mi-needs-what { font-weight: 600; }
+.mi-needs-why { color: var(--mi-hold); }
+@media (max-width: 700px) { .mi-needs-item { grid-template-columns: 1fr; } }

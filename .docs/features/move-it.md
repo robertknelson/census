@@ -1645,6 +1645,41 @@ passed again once restored.
 - **Run it before every push** — a habit, not a hook, until there is a reason for
   more.
 
+## 23. Needs a word from you — the entrant's list (2026-10-01, Robert: "go"; built and browser-verified the same day)
+
+Everything people record — approved, verified, on hold, the notebook — exists only if
+it is entered. Two weeks away and Division is calm and wrong. This list says what has
+not been said yet. **Derived, never stored**: built in the page (`needs-a-word.mjs`)
+from answers History now loads — 01, 02, the event list, 12, and the ledger's inbox
+rule — so no rule is written twice; a line goes away when the entry it asks for is
+made. No dismiss, because dismissing would be a stored state.
+
+**Where:** the top of **History**, the entrant's page, collapsible, following the
+application filter. Not on Division: the executive sees the board, not the entrant's
+debt.
+
+**The lines, one per release (reasons joined) or item or application:**
+- **past its target with no hold saying why** — 02 `PastTarget`, not on hold.
+- **at *stage* N days with nothing recorded** — in flight (below the top stage, not
+  abandoned, not on hold), at its highest stage longer than `MoveIt:StaleDays`
+  (default 14), and no event on the release within that window.
+- **went live with no approval recorded** — 12's *PROD without approval*.
+- **heard N days ago and still in no release — still coming?** — 01 `no release`
+  older than `MoveIt:ComingDays` (default 60).
+- **N builds past DEV nobody has named** — History's inbox rule (05's), per
+  application, distinct builds.
+
+**Verified 2026-10-01 in Chrome on the fixtures:** 8 lines — WidgetPortal Sprint 42
+live unapproved; Ledger cleanup past target (Aug 15); Q4 statements and Q4 letters
+past target *and* at UAT 25 / 22 days quiet; Batch re-rate heard 67 days ago; one
+unnamed pre-window build each for WidgetCore, WidgetPortal and Reporting. The two
+held releases (WidgetCore Sprint 43, Reporting refresh) are rightly absent.
+
+**Open items for this section**
+- **A count on the tab** (History *(8)*) would pull you to it from any page; not
+  built — it costs every page three more queries.
+- **Thresholds per application** if one team's cadence makes 14 days noisy.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

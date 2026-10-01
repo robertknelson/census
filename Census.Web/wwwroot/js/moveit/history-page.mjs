@@ -1,7 +1,8 @@
-import { fetchApplications, fetchHistory, fetchLists, fetchReleases, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
+import { fetchApplications, fetchApprovalVsProd, fetchEvents, fetchHistory, fetchLists, fetchReleaseStatus, fetchReleases, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { stageHue } from './stage-hues.mjs';
 import { NameBuildForm } from './name-build-form.mjs';
+import { findNeeds, renderNeeds } from './needs-a-word.mjs';
 import { renderTabs } from './tabs.mjs';
 
 // History (move-it.md §15): the ledger newest first, and the one place anything is entered.
@@ -14,6 +15,8 @@ class HistoryPage {
         this.root = document.getElementById(config.rootId ?? 'moveit-root');
         this.app = null;
         this.now = Date.now();
+        this.settings = { staleDays: config.staleDays ?? 14, comingDays: config.comingDays ?? 60 };
+        this.needsOpen = true;
         this.form = new NameBuildForm(() => this.reload());
         this.renderShell();
         this.load();
@@ -45,8 +48,9 @@ class HistoryPage {
     async load() {
         this.mainEl.innerHTML = '<p class="mi-status">Asking the tracking database…</p>';
         try {
-            [this.stages, this.applications, this.lists, this.history, this.releases, this.items] = await Promise.all([
+            [this.stages, this.applications, this.lists, this.history, this.releases, this.items, this.status, this.events, this.approvals] = await Promise.all([
                 fetchStages(), fetchApplications(), fetchLists(), fetchHistory(), fetchReleases(), fetchWhereIsEverything(),
+                fetchReleaseStatus(), fetchEvents(), fetchApprovalVsProd(),
             ]);
         } catch (err) {
             this.mainEl.innerHTML = `<p class="mi-status is-error">${escapeHtml(err.message)}</p>`;
@@ -65,8 +69,9 @@ class HistoryPage {
     }
 
     async reload() {
-        [this.history, this.releases, this.items, this.applications] = await Promise.all([
+        [this.history, this.releases, this.items, this.applications, this.status, this.events, this.approvals] = await Promise.all([
             fetchHistory(), fetchReleases(), fetchWhereIsEverything(), fetchApplications(),
+            fetchReleaseStatus(), fetchEvents(), fetchApprovalVsProd(),
         ]);
         this.renderFilter();
         this.render();
@@ -100,12 +105,19 @@ class HistoryPage {
 
     render() {
         const rows = this.history.filter((r) => this.app == null || r.ApplicationId === this.app);
+        const needs = findNeeds({
+            releases: this.status, items: this.items, events: this.events, approvals: this.approvals,
+            history: this.history, applications: this.applications, stages: this.stages, isInbox: (r) => this.isInbox(r),
+        }, this.settings, this.now).filter((n) => this.app == null || n.applicationId === this.app);
+        const needsHtml = renderNeeds(needs, this.needsOpen);
         if (rows.length === 0) {
-            this.mainEl.innerHTML = '<p class="mi-status">The ledger has no deployments for this application. Either its endpoints send no deployment block yet, or the backfill has not run.</p>';
+            this.mainEl.innerHTML = `${needsHtml}<p class="mi-status">The ledger has no deployments for this application. Either its endpoints send no deployment block yet, or the backfill has not run.</p>`;
+            this.watchNeeds();
             return;
         }
         const appsById = new Map(this.applications.map((a) => [a.ApplicationId, a]));
         this.mainEl.innerHTML = `
+            ${needsHtml}
             <table class="mi-hist">
                 <thead>
                     <tr>
@@ -120,6 +132,11 @@ class HistoryPage {
             const row = this.history.find((r) => r.DeploymentId === Number(btn.dataset.name));
             this.openForm({ applicationId: row.ApplicationId, build: row.Build });
         }));
+        this.watchNeeds();
+    }
+
+    watchNeeds() {
+        this.mainEl.querySelector('details.mi-needs')?.addEventListener('toggle', (e) => { this.needsOpen = e.target.open; });
     }
 
     renderRow(r, app) {

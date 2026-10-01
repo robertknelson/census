@@ -4,6 +4,26 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (night) — the Calendar rail (§26)
+
+**Rail on the Calendar only; the tabs move into it there.** Options: give all five pages
+the rail now; Calendar only. Call: Calendar only, as you asked. Cost: for now the Calendar's
+navigation is a vertical list while the others keep the top bar.
+
+**Application stays single-choice, with a find box.** Options: multi-select "my
+applications"; single, as today. Call: single. Reason: same behaviour, new place; multi is
+an open item.
+
+**One line per chip in the grid** (was up to two). Reason: more entries fit a day; the full
+text is on hover and in the day detail.
+
+**The day detail overlays the grid** instead of narrowing it. Cost: it can cover the
+weekend columns while open; the detail names its day.
+
+**Collapse is remembered per browser.** Reason: a viewer convenience, not shared state.
+
+**A 28rem floor on the grid.** Below it the grid scrolls instead of squashing days.
+
 ## 2026-10-01 (evening) — the four "what are we missing" slices, and the dashboard trend
 
 **Order: fixture check, needs-a-word, coverage, the week** — as recommended and ratified ("yes... go").

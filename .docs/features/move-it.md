@@ -1746,6 +1746,55 @@ print layout was not seen (the print dialog was not opened).
 - **A Monday-to-Sunday week** instead of the last seven days, if the readers think in
   calendar weeks.
 
+## 26. The rail — the Calendar fits the screen (2026-10-01, Robert: "b it is"; built and browser-verified the same day)
+
+**The problem (Robert, from the real server):** every Move It page stacks horizontal bands —
+tabs, title and tagline, the application chips, a second bar, a banner — before its content,
+leaving about a quarter of the screen to scroll in. On the Calendar it was worse than
+chrome: each day had a 7.5rem floor, so six weeks needed ~720px before any header. *"There
+is NO WAY that we should have to vertically scroll on a calendar."* Calendar first, as
+practice; the other four pages follow once the pattern is right.
+
+**Options put to him:** (A) one thin toolbar; (B) a left rail with a full-height grid;
+(C) the grid alone, controls in a drawer. **B ratified.** C was ruled out because a filtered
+month would look like the true one — the page must say what it cannot see.
+
+**The layout:**
+- **The rail** (14rem, left, `mi-rail` — named for reuse): the five tabs stacked; **Stage**
+  as wrapping pills; **Application** as a find box over a list sorted by name that scrolls
+  inside the rail; the **Key**, two columns; the *Recorded through* sentence at the foot,
+  amber only when the backfill stamp is missing. Screens are wider than tall: spend width.
+- **Collapsible** to a thin strip (« / »), remembered per browser (`localStorage`, a
+  convenience; without it the rail opens).
+- **The head** is one line: ‹ month › *This month*, and on the right **Showing
+  *app* · *stage*** with *Show all* when filtered — always visible, so collapsing the rail
+  never hides a filter.
+- **The grid fits:** rows are equal shares of what is left (`repeat(weeks, 1fr)`); a day
+  shows as many chips as its cell holds, one line each (full text on hover and in the
+  detail), and the rest become *+N more*. Re-fitted on resize. Below a 28rem floor the grid
+  scrolls rather than squash a day to nothing.
+- **The day detail** slides over the right of the grid instead of narrowing it; Escape
+  closes it.
+- Title and tagline are gone: the active tab names the page.
+- Under 900px wide the rail sits above the grid and the page scrolls.
+
+**Verified 2026-10-01 in Chrome on the fixtures,** 1366 wide at 768 and at 633 tall,
+August 2026: page, rail and grid overflow all 0 at 768 (at 633 only the rail scrolls).
+*widg* in the find box left All, WidgetCore, WidgetPortal; WidgetCore + PROD read
+*Showing WidgetCore · PROD* with *Show all*; Aug 30 opened the drawer (the ↺ hotfix
+rollback, 2 servers), Escape closed it; the collapsed rail was remembered across a reload.
+Not seen on the real server.
+
+**Open items for this section**
+- **Holds eat short cells.** At 633px tall a day under two hold bands shows *+2 more* and
+  no chip. If it bites on real screens: merge stacked holds into one band, or let holds
+  count against the chips.
+- **The other four pages** (Division, The week, Where is it, History) move to the rail
+  next — their counts strips and *Needs a word* are the candidates for the rail or a
+  collapsible line. Until then the Calendar's navigation differs from theirs.
+- **Choosing several applications** ("my applications") — the list is single-choice, as
+  before.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

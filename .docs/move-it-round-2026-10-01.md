@@ -18,6 +18,7 @@ further — your `HealthReportId` → `ReportId` rename is already folded into `
 | **The week** tab — seven days on one printable page | `/moveit/week` | new; sends nothing |
 | **Needs a word from you** — what has not been recorded yet | top of History | History now runs 9 queries, was 6 |
 | **Coverage line** — what the board cannot see | Division, under the numbers | new `board/coverage.sql` (11 without its slow part) |
+| **Calendar rail** — controls down the left; the month fits the screen | `/moveit/calendar` (§26) | no data change |
 | Hits-per-day trend fits 30+ days | Census classic dashboard | no data change |
 | `tests/Test-MoveItQuestions.ps1` | here only | **never run it against the real server** — it reseeds |
 
@@ -45,6 +46,9 @@ Two new optional settings under `MoveIt` (defaults shown; leave them out to take
          arrivals on that first day (builds already there when watching began are left off).
        - A rollback you remember shows ↺ on the right day.
        - Stage filter PROD + one application: does the month read true?
+       - **The rail (§26):** on your usual screen, does the month fit without scrolling?
+         Find an application by typing; collapse the rail (« ) and check *Showing …* still
+         says what is filtered. Note any day that shows only *+N more*.
 6. [ ] **Needs a word** (History, top): how many lines? Is any line wrong, or any missing
        you would have expected? If it is flooded, note which kind dominates — the 14 / 60
        days are settings.

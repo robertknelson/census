@@ -10,7 +10,7 @@ import { renderTabs } from './tabs.mjs';
 // the release page (Robert, 2026-10-01: "not now").
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const SHOWN = 3;
+const COLLAPSED_KEY = 'moveit.rail.collapsed';
 
 const EVENT_TEXT = {
     approved: 'approved', verified: 'verified', hold: 'on hold', resumed: 'resumed',
@@ -23,6 +23,15 @@ function pad(n) {
 
 function dayKey(date) {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+// A per-viewer convenience: without storage the rail simply opens expanded.
+function readCollapsed() {
+    try { return localStorage.getItem(COLLAPSED_KEY) === '1'; } catch { return false; }
+}
+
+function writeCollapsed(on) {
+    try { localStorage.setItem(COLLAPSED_KEY, on ? '1' : '0'); } catch { /* not remembered */ }
 }
 
 function time(iso) {
@@ -49,42 +58,56 @@ class CalendarPage {
 
     renderShell() {
         this.root.innerHTML = `
-            <header class="mi-header">
-                <div class="mi-masthead">
-                    ${renderTabs('calendar')}
-                    <h1 class="mi-title">Calendar</h1>
-                    <p class="mi-tagline">When builds reached each stage, what people recorded, and when releases were due.</p>
+            <div class="mi-shell" data-ref="shell">
+                <aside class="mi-rail" aria-label="Calendar controls">
+                    <button type="button" class="mi-rail-toggle" data-ref="collapse" aria-expanded="true" title="Hide the side panel">«</button>
+                    <div class="mi-rail-body">
+                        ${renderTabs('calendar')}
+                        <section class="mi-rail-section">
+                            <h2 class="mi-rail-h">Stage</h2>
+                            <nav class="mi-rail-list is-wrap" data-ref="stages" aria-label="Stage"></nav>
+                        </section>
+                        <section class="mi-rail-section is-apps">
+                            <h2 class="mi-rail-h">Application</h2>
+                            <input type="search" class="mi-rail-find" data-ref="find" placeholder="Find an application" aria-label="Find an application" />
+                            <nav class="mi-rail-list is-scroll" data-ref="apps" aria-label="Application"></nav>
+                        </section>
+                        <section class="mi-rail-section">
+                            <h2 class="mi-rail-h">Key</h2>
+                            <ul class="cal-legend">
+                                <li><span class="cal-chip is-observed" style="--lane:#8e96a3"></span>seen by the pings</li>
+                                <li><span class="cal-chip is-event" style="--lane:#8e96a3"></span>recorded by people</li>
+                                <li><span class="cal-flag">⚑</span>due</li>
+                                <li><span class="cal-flag is-missed">⚑</span>due, not live</li>
+                                <li>↺ rolled back</li>
+                                <li><span class="cal-hold-key"></span>on hold</li>
+                                <li><span class="cal-unknown-key"></span>not yet backfilled</li>
+                            </ul>
+                        </section>
+                        <p class="cal-recorded" data-ref="recorded" hidden></p>
+                    </div>
+                </aside>
+                <div class="cal-stage">
+                    <div class="cal-head">
+                        <div class="cal-nav">
+                            <button type="button" class="mi-button" data-ref="prev" aria-label="Previous month">‹</button>
+                            <h1 class="cal-month" data-ref="month"></h1>
+                            <button type="button" class="mi-button" data-ref="next" aria-label="Next month">›</button>
+                            <button type="button" class="mi-button is-quiet" data-ref="today">This month</button>
+                        </div>
+                        <p class="cal-showing" data-ref="showing"></p>
+                    </div>
+                    <main class="cal-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>
+                    <aside class="mi-detail cal-drawer" data-ref="detail" hidden></aside>
                 </div>
-                <div class="mi-header-side">
-                    <nav class="mi-filter" data-ref="apps" aria-label="Application"></nav>
-                </div>
-            </header>
-            <div class="cal-bar">
-                <nav class="mi-filter" data-ref="stages" aria-label="Stage"></nav>
-                <div class="cal-nav">
-                    <button type="button" class="mi-button" data-ref="prev" aria-label="Previous month">‹</button>
-                    <h2 class="cal-month" data-ref="month"></h2>
-                    <button type="button" class="mi-button" data-ref="next" aria-label="Next month">›</button>
-                    <button type="button" class="mi-button" data-ref="today">This month</button>
-                </div>
-                <ul class="cal-legend">
-                    <li><span class="cal-chip is-observed" style="--lane:#8e96a3"></span>seen by the pings</li>
-                    <li><span class="cal-chip is-event" style="--lane:#8e96a3"></span>recorded by people</li>
-                    <li><span class="cal-flag">⚑</span>due</li>
-                    <li><span class="cal-flag is-missed">⚑</span>due, not live</li>
-                    <li>↺ rolled back</li>
-                    <li><span class="cal-hold-key"></span>on hold</li>
-                </ul>
-            </div>
-            <p class="cal-recorded" data-ref="recorded" hidden></p>
-            <div class="mi-body">
-                <main class="cal-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>
-                <aside class="mi-detail" data-ref="detail" hidden></aside>
             </div>`;
         const ref = (name) => this.root.querySelector(`[data-ref="${name}"]`);
+        this.shellEl = ref('shell');
         this.appsEl = ref('apps');
+        this.findEl = ref('find');
         this.stagesEl = ref('stages');
         this.monthEl = ref('month');
+        this.showingEl = ref('showing');
         this.recordedEl = ref('recorded');
         this.mainEl = ref('main');
         this.detailEl = ref('detail');
@@ -95,6 +118,29 @@ class CalendarPage {
             this.month = { y: t.getFullYear(), m: t.getMonth() };
             this.step(0);
         });
+        this.findEl.addEventListener('input', () => this.applyFind());
+        const collapse = ref('collapse');
+        const setCollapsed = (on) => {
+            this.shellEl.classList.toggle('is-collapsed', on);
+            collapse.textContent = on ? '»' : '«';
+            collapse.title = on ? 'Show the side panel' : 'Hide the side panel';
+            collapse.setAttribute('aria-expanded', String(!on));
+        };
+        setCollapsed(readCollapsed());
+        collapse.addEventListener('click', () => {
+            const on = !this.shellEl.classList.contains('is-collapsed');
+            setCollapsed(on);
+            writeCollapsed(on);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.selected) this.closeDetail();
+        });
+        let pending = false;
+        new ResizeObserver(() => {
+            if (pending) return;
+            pending = true;
+            requestAnimationFrame(() => { pending = false; this.fit(); });
+        }).observe(this.mainEl);
     }
 
     async load() {
@@ -143,14 +189,15 @@ class CalendarPage {
 
     renderFilters() {
         const chip = (attr, id, label, active) => `
-            <button type="button" class="mi-filter-chip ${active ? 'is-active' : ''}" data-${attr}="${escapeHtml(id ?? '')}">${escapeHtml(label)}</button>`;
+            <button type="button" class="mi-rail-item ${active ? 'is-active' : ''}" data-${attr}="${escapeHtml(id ?? '')}">${escapeHtml(label)}</button>`;
         this.stagesEl.innerHTML = [
             chip('stage', null, 'All', this.stage == null),
             ...this.stages.map((s) => chip('stage', s.Stage, s.Display ?? s.Stage, this.stage === s.Stage)),
         ].join('');
         this.appsEl.innerHTML = [
             chip('app', null, 'All applications', this.app == null),
-            ...this.applications.map((a) => chip('app', a.ApplicationId, appLabel(a), this.app === a.ApplicationId)),
+            ...[...this.applications].sort((a, b) => appLabel(a).localeCompare(appLabel(b)))
+                .map((a) => chip('app', a.ApplicationId, appLabel(a), this.app === a.ApplicationId)),
         ].join('');
         this.stagesEl.querySelectorAll('[data-stage]').forEach((b) => b.addEventListener('click', () => {
             this.stage = b.dataset.stage === '' ? null : b.dataset.stage;
@@ -160,6 +207,33 @@ class CalendarPage {
             this.app = b.dataset.app === '' ? null : Number(b.dataset.app);
             this.refresh();
         }));
+        this.applyFind();
+        this.renderShowing();
+    }
+
+    // The find box narrows the list, never the calendar. "All" and the chosen application stay
+    // in view so a search cannot hide the current choice.
+    applyFind() {
+        const q = this.findEl.value.trim().toLowerCase();
+        this.appsEl.querySelectorAll('[data-app]').forEach((b) => {
+            b.hidden = q !== '' && b.dataset.app !== '' && !b.classList.contains('is-active')
+                && !b.textContent.toLowerCase().includes(q);
+        });
+    }
+
+    // What the grid is showing, always beside the month: a collapsed rail must not hide a filter.
+    renderShowing() {
+        const stage = this.stage == null ? 'All stages' : (this.stages.find((s) => s.Stage === this.stage)?.Display ?? this.stage);
+        const app = this.app == null ? 'All applications' : appLabel(this.appsById.get(this.app) ?? { ApplicationId: this.app });
+        const filtered = this.stage != null || this.app != null;
+        this.showingEl.classList.toggle('is-filtered', filtered);
+        this.showingEl.innerHTML = `Showing <strong>${escapeHtml(app)}</strong> · <strong>${escapeHtml(stage)}</strong>${filtered
+            ? ' <button type="button" class="cal-clear" data-ref="clear">Show all</button>' : ''}`;
+        this.showingEl.querySelector('[data-ref="clear"]')?.addEventListener('click', () => {
+            this.stage = null;
+            this.app = null;
+            this.refresh();
+        });
     }
 
     refresh() {
@@ -222,22 +296,41 @@ class CalendarPage {
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) cells.push(this.renderDay(new Date(d), m));
 
         this.mainEl.innerHTML = `
-            <div class="cal-grid">
+            <div class="cal-grid" style="--weeks:${cells.length / 7}">
                 ${WEEKDAYS.map((w) => `<div class="cal-weekday">${w}</div>`).join('')}
                 ${cells.join('')}
             </div>`;
         this.mainEl.querySelectorAll('[data-day]').forEach((b) => b.addEventListener('click', () => this.openDetail(b.dataset.day)));
+        this.fit();
+    }
+
+    // The month fits the screen (§26): each week row gets an equal share of the height, and a
+    // day shows as many chips as its cell holds; the rest become "+N more". chips() orders them
+    // most important first, so the ones dropped are the least.
+    fit() {
+        for (const cell of this.mainEl.querySelectorAll('.cal-day')) {
+            const chips = [...cell.querySelectorAll('.cal-chip')];
+            const more = cell.querySelector('.cal-more');
+            chips.forEach((c) => { c.hidden = false; });
+            more.hidden = true;
+            let shown = chips.length;
+            while (shown > 0 && cell.scrollHeight > cell.clientHeight) {
+                chips[--shown].hidden = true;
+                more.hidden = false;
+                more.textContent = `+${chips.length - shown} more`;
+            }
+        }
     }
 
     renderRecorded() {
+        this.recordedEl.hidden = false;
+        this.recordedEl.classList.toggle('is-warning', this.recordedKey == null || this.recorded.Source !== 'backfill');
         if (!this.recordedKey) {
-            this.recordedEl.hidden = false;
             this.recordedEl.innerHTML = 'The ledger is empty: the backfill has not run, or no endpoint sends a deployment block yet.';
             return;
         }
         const date = (iso) => new Date(iso).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
         const r = this.recorded;
-        this.recordedEl.hidden = false;
         this.recordedEl.innerHTML = r.Source === 'backfill'
             ? `<strong>Recorded through ${escapeHtml(date(r.At))}.</strong>
                 The backfill last ran ${escapeHtml(date(r.RanAt))} at ${time(r.RanAt)} (${escapeHtml(r.By)}); hatched days after it are not yet backfilled. An empty day before it was quiet.`
@@ -263,8 +356,8 @@ class CalendarPage {
         return `
             <button type="button" class="${cls}" data-day="${key}" aria-label="${escapeHtml(`${label}: ${entries.length} entries`)}">
                 <span class="cal-date">${date.getDate()}</span>
-                ${chips.slice(0, SHOWN).join('')}
-                ${chips.length > SHOWN ? `<span class="cal-more">+${chips.length - SHOWN} more</span>` : ''}
+                ${chips.join('')}
+                <span class="cal-more" hidden></span>
                 ${holds.map((h, i) => this.holdBar(h, key, date, i)).join('')}
             </button>`;
     }

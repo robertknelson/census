@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Calendar, The week, a to-do of what is unrecorded and a coverage line built and pushed; next: the real-server round"
+summary: "Pages fit the screen, filters reach every Estate tab, config web addresses find their system; pushed"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; Move It at /moveit/division, /moveit/week, /moveit/calendar"
 health: green
 links:
@@ -26,52 +26,45 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**A calendar, and a one-page summary of the week.** Move It now shows
-*when* things happened, not only where they are: a month grid with each
-build reaching a stage, every approval and hold, each release's target
-date (red when missed), rollbacks, and holds drawn across the days they
-lasted. A second new page, *The week*, puts seven days on one printable
-sheet — what went live, what moved, what went wrong, what is due — for
-people who will never open the board. It sends nothing; he decides who
-sees it.
+**Every Move It page now fits the screen.** Feedback from the real server: the pages
+were good but buried under stacked header bands, leaving a quarter of the screen for the
+content. Each page now has one thin row of page names across the top, one header line of
+its own controls, and the list of applications down the left side where it can show
+dozens. Secondary things (the key, "needs a word", what the board cannot see, the
+"coming up" form) open on click instead of taking a band. The calendar never scrolls.
 
-**The board now admits what it does not know.** The catch-up script
-stamps each run, so the calendar can say "recorded through Sep 13" and an
-empty day before that genuinely means nothing happened. The executive page
-says how many applications the board can actually see, and names the ones
-it cannot. The History page lists what nobody has recorded yet: releases
-past their date with no reason given, releases that went quiet, things
-heard months ago and never scheduled.
+**Census remembers your filter across its tabs.** Picking a team or a machine type now
+narrows Triage and Findings too, as it already did Changes, Software, Hosting and
+Certificates, and the filter can be changed while a tab is open.
 
-**A safety net under all of it.** One test script rebuilds the made-up data
-and checks every question's answer against what it should be, so a change
-that quietly breaks a rule is caught. Proven by breaking one on purpose.
+**A web address in a config file now finds the system it belongs to.** Before, an
+address pointing at another of your own sites was either shown as unknown or not shown
+at all. Census now matches it against the sites' own bindings, so the diagram shows "this
+calls the portal on WEB01, which belongs to Billing", and a server's blast radius
+includes the apps that call it by web address.
 
-**Census, too:** the dashboard's daily chart no longer falls apart past 30
-days — it has 30 / 90 / All, fits any range, and shows how many machines
-were collected each day so a thin day does not look like an improvement.
+**Atlas is tidier.** Choose grouped or every-entity, starting stages and a name when
+opening a view; the header reads in parts; the inspector can be closed; the selected tab
+is coloured. Stages everywhere read in the real order: dev, val, uat, prod.
 
 ## What's next
 
-**The real-server round** — `.docs/move-it-round-2026-10-01.md`: run the
-schema script first (it adds the stamp table), then the catch-up, deploy,
-and time every page. Speed on real data is the open question: one of the
-older questions took a minute there.
+**Pull and restart on the real server** — code only, no scripts or settings to change.
+Then the Move It round (`.docs/move-it-round-2026-10-01.md`), which now also asks
+whether the new layout fits your usual screen.
 
-**Traffic waits on facts only he can get:** how many DMZs, what runs on
-them, whether the logs can be read from where the census runs.
+**In Census, look at Triage's unresolved addresses.** Any that are really your own
+sites show the next gap: names the sites' bindings do not carry (aliases, load
+balancers) or wildcard bindings.
 
-**Still owed from before:** the missing registry tables, which the
-application-level screen still waits on.
+**Still owed:** Traffic waits on the DMZ facts; the registry tables for the
+application-level screen.
 
 ## Anything alarming
 
-- **Speed is unmeasured on real data.** History now asks the database nine
-  questions per load instead of six; the calendar and the week have never
-  run there.
-- **The board still has places to type** and must be gated before anyone
-  but him gets a link.
-- **The deployment catch-up is still by hand** until the live processor
-  ships; when it does, it must stamp the same table or the calendar's
-  "recorded through" line goes stale.
+- **Speed on real data is still unmeasured** for the Move It pages added last round.
+- **The board still has places to type** and must be gated before anyone but him gets
+  a link.
+- **Web-address matching is exact.** A real estate full of aliases may resolve less than
+  the demo did; the Triage list will say how much.
 - **Traffic has a naming risk** (MOVEit, the product, versus Move It).

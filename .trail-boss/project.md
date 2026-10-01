@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'On the real server, work through .docs/move-it-round-2026-10-01.md: re-run 001 (creates BackfillRun), run the backfill by hand in SSMS, deploy, then time each Move It page and check Calendar, The week, needs-a-word and the coverage line. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Pull and restart on the real server, then work through .docs/move-it-round-2026-10-01.md (now with steps 5 and 7b for the new page layout); in Census, check Triage for unresolved addresses that are really your own sites and note the names they use (aliases and wildcards are the next gap). Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,26 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-01 (evening — feedback from the wild: screen space, scope, Atlas, web addresses)
+- Move It feedback: Calendar, Division, The week, Where is it and History "very very
+  good" but "somewhat unusable" — he had me guess why; the answer was screen real
+  estate (stacked header bands). Three options put; **B (a left rail) ratified**;
+  Calendar first as practice (§26), then his redirect (tabs to a thin top bar, stage in
+  the month header, key as a float-over), then the same frame on every page (§26.1).
+- Estate: asked whether the team/class filter should reach the tabs — it already did
+  for four (built 08-28); spec'd and built Triage and Findings joining it (§12.1), then
+  "make the rail stay clickable with a panel open" (§12.2).
+- Atlas: builder offers grouped / every entity where canonical names exist (§9),
+  starting stages and a name (§10), stronger stage focus, toolbar in parts and centred,
+  closable inspector, boxed key, coloured current tab, a four-dot mark for every-entity
+  tabs (§11–14).
+- His report that a config endpoint pointing at another system's site was never
+  recognised: confirmed not his fault; spec'd and built **web addresses resolving
+  through IIS bindings** (census-web §13) — Atlas, blast radius, Hosting, Triage.
+- Stage order DEV → VAL → UAT → PROD as one setting (census-web §14).
+- 14 commits pushed on his word. His Atlas demo tabs in config/views.demo.json stay
+  local and uncommitted.
 
 ### 2026-10-01 (Calendar, the backfill stamp, and four gaps closed)
 - He ran 002 on the real server (01 had failed on the missing column) and

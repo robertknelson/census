@@ -6,9 +6,13 @@ call, the reason. Reverse any of them by saying so.
 
 ## 2026-10-01 (night) — the Calendar rail (§26)
 
-**Rail on the Calendar only; the tabs move into it there.** Options: give all five pages
-the rail now; Calendar only. Call: Calendar only, as you asked. Cost: for now the Calendar's
-navigation is a vertical list while the others keep the top bar.
+**Rail and uber header on the Calendar only.** Options: give all five pages the new frame
+now; Calendar only. Call: Calendar only, as you asked. Cost: for now the Calendar's page
+bar (thin, dark, across the top) differs from the others' tabs.
+
+**Second pass (your redirect): the rail holds only the applications.** Tabs to a thin
+uber header, stage to quiet words in the month header, the key behind a button that floats
+it. "Showing" now names only the application (stage reads next to it), × clears it.
 
 **Application stays single-choice, with a find box.** Options: multi-select "my
 applications"; single, as today. Call: single. Reason: same behaviour, new place; multi is

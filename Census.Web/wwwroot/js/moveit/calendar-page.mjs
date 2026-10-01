@@ -58,32 +58,14 @@ class CalendarPage {
 
     renderShell() {
         this.root.innerHTML = `
+            <header class="mi-uber">${renderTabs('calendar')}</header>
             <div class="mi-shell" data-ref="shell">
-                <aside class="mi-rail" aria-label="Calendar controls">
-                    <button type="button" class="mi-rail-toggle" data-ref="collapse" aria-expanded="true" title="Hide the side panel">«</button>
+                <aside class="mi-rail" aria-label="Applications">
+                    <button type="button" class="mi-rail-toggle" data-ref="collapse" aria-expanded="true" title="Hide the applications">«</button>
                     <div class="mi-rail-body">
-                        ${renderTabs('calendar')}
-                        <section class="mi-rail-section">
-                            <h2 class="mi-rail-h">Stage</h2>
-                            <nav class="mi-rail-list is-wrap" data-ref="stages" aria-label="Stage"></nav>
-                        </section>
-                        <section class="mi-rail-section is-apps">
-                            <h2 class="mi-rail-h">Application</h2>
-                            <input type="search" class="mi-rail-find" data-ref="find" placeholder="Find an application" aria-label="Find an application" />
-                            <nav class="mi-rail-list is-scroll" data-ref="apps" aria-label="Application"></nav>
-                        </section>
-                        <section class="mi-rail-section">
-                            <h2 class="mi-rail-h">Key</h2>
-                            <ul class="cal-legend">
-                                <li><span class="cal-chip is-observed" style="--lane:#8e96a3"></span>seen by the pings</li>
-                                <li><span class="cal-chip is-event" style="--lane:#8e96a3"></span>recorded by people</li>
-                                <li><span class="cal-flag">⚑</span>due</li>
-                                <li><span class="cal-flag is-missed">⚑</span>due, not live</li>
-                                <li>↺ rolled back</li>
-                                <li><span class="cal-hold-key"></span>on hold</li>
-                                <li><span class="cal-unknown-key"></span>not yet backfilled</li>
-                            </ul>
-                        </section>
+                        <h2 class="mi-rail-h">Application</h2>
+                        <input type="search" class="mi-rail-find" data-ref="find" placeholder="Find an application" aria-label="Find an application" />
+                        <nav class="mi-rail-list is-scroll" data-ref="apps" aria-label="Application"></nav>
                         <p class="cal-recorded" data-ref="recorded" hidden></p>
                     </div>
                 </aside>
@@ -95,7 +77,22 @@ class CalendarPage {
                             <button type="button" class="mi-button" data-ref="next" aria-label="Next month">›</button>
                             <button type="button" class="mi-button is-quiet" data-ref="today">This month</button>
                         </div>
+                        <nav class="cal-stages" data-ref="stages" aria-label="Stage"></nav>
                         <p class="cal-showing" data-ref="showing"></p>
+                        <div class="cal-key">
+                            <button type="button" class="cal-key-button" data-ref="key" aria-expanded="false" aria-controls="cal-key-panel">Key</button>
+                            <div class="cal-key-panel" id="cal-key-panel" data-ref="keyPanel" hidden>
+                                <ul class="cal-legend">
+                                    <li><span class="cal-chip is-observed" style="--lane:#8e96a3"></span>seen by the pings</li>
+                                    <li><span class="cal-chip is-event" style="--lane:#8e96a3"></span>recorded by people</li>
+                                    <li><span class="cal-flag">⚑</span>due</li>
+                                    <li><span class="cal-flag is-missed">⚑</span>due, not live</li>
+                                    <li>↺ rolled back</li>
+                                    <li><span class="cal-hold-key"></span>on hold</li>
+                                    <li><span class="cal-unknown-key"></span>not yet backfilled</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     <main class="cal-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>
                     <aside class="mi-detail cal-drawer" data-ref="detail" hidden></aside>
@@ -119,11 +116,21 @@ class CalendarPage {
             this.step(0);
         });
         this.findEl.addEventListener('input', () => this.applyFind());
+        const keyButton = ref('key');
+        const keyPanel = ref('keyPanel');
+        const showKey = (on) => {
+            keyPanel.hidden = !on;
+            keyButton.setAttribute('aria-expanded', String(on));
+        };
+        keyButton.addEventListener('click', () => showKey(keyPanel.hidden));
+        document.addEventListener('click', (e) => {
+            if (!keyPanel.hidden && !e.target.closest('.cal-key')) showKey(false);
+        });
         const collapse = ref('collapse');
         const setCollapsed = (on) => {
             this.shellEl.classList.toggle('is-collapsed', on);
             collapse.textContent = on ? '»' : '«';
-            collapse.title = on ? 'Show the side panel' : 'Hide the side panel';
+            collapse.title = on ? 'Show the applications' : 'Hide the applications';
             collapse.setAttribute('aria-expanded', String(!on));
         };
         setCollapsed(readCollapsed());
@@ -133,7 +140,9 @@ class CalendarPage {
             writeCollapsed(on);
         });
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.selected) this.closeDetail();
+            if (e.key !== 'Escape') return;
+            if (!keyPanel.hidden) showKey(false);
+            else if (this.selected) this.closeDetail();
         });
         let pending = false;
         new ResizeObserver(() => {
@@ -189,7 +198,7 @@ class CalendarPage {
 
     renderFilters() {
         const chip = (attr, id, label, active) => `
-            <button type="button" class="mi-rail-item ${active ? 'is-active' : ''}" data-${attr}="${escapeHtml(id ?? '')}">${escapeHtml(label)}</button>`;
+            <button type="button" class="${attr === 'stage' ? 'cal-stage-pick' : 'mi-rail-item'} ${active ? 'is-active' : ''}" data-${attr}="${escapeHtml(id ?? '')}"${active ? ' aria-pressed="true"' : ''}>${escapeHtml(label)}</button>`;
         this.stagesEl.innerHTML = [
             chip('stage', null, 'All', this.stage == null),
             ...this.stages.map((s) => chip('stage', s.Stage, s.Display ?? s.Stage, this.stage === s.Stage)),
@@ -221,16 +230,16 @@ class CalendarPage {
         });
     }
 
-    // What the grid is showing, always beside the month: a collapsed rail must not hide a filter.
+    // Which application the grid is showing, beside the stages: a collapsed rail must not hide
+    // a filter.
     renderShowing() {
-        const stage = this.stage == null ? 'All stages' : (this.stages.find((s) => s.Stage === this.stage)?.Display ?? this.stage);
-        const app = this.app == null ? 'All applications' : appLabel(this.appsById.get(this.app) ?? { ApplicationId: this.app });
-        const filtered = this.stage != null || this.app != null;
+        const filtered = this.app != null;
         this.showingEl.classList.toggle('is-filtered', filtered);
-        this.showingEl.innerHTML = `Showing <strong>${escapeHtml(app)}</strong> · <strong>${escapeHtml(stage)}</strong>${filtered
-            ? ' <button type="button" class="cal-clear" data-ref="clear">Show all</button>' : ''}`;
+        this.showingEl.innerHTML = filtered
+            ? `<strong>${escapeHtml(appLabel(this.appsById.get(this.app) ?? { ApplicationId: this.app }))}</strong>
+                <button type="button" class="cal-clear" data-ref="clear" title="Show all applications" aria-label="Show all applications">×</button>`
+            : 'All applications';
         this.showingEl.querySelector('[data-ref="clear"]')?.addEventListener('click', () => {
-            this.stage = null;
             this.app = null;
             this.refresh();
         });

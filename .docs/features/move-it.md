@@ -1759,31 +1759,38 @@ practice; the other four pages follow once the pattern is right.
 (C) the grid alone, controls in a drawer. **B ratified.** C was ruled out because a filtered
 month would look like the true one — the page must say what it cannot see.
 
-**The layout:**
-- **The rail** (14rem, left, `mi-rail` — named for reuse): the five tabs stacked; **Stage**
-  as wrapping pills; **Application** as a find box over a list sorted by name that scrolls
-  inside the rail; the **Key**, two columns; the *Recorded through* sentence at the foot,
-  amber only when the backfill stamp is missing. Screens are wider than tall: spend width.
-- **Collapsible** to a thin strip (« / »), remembered per browser (`localStorage`, a
+**The layout** (first cut built the same evening; Robert's second pass, same night: *"those
+selectors SHOULD be in a thin 'uber header'"*, stage *"discreet, unobtrusive"* in the month
+header, the key *"a 'float over'"* behind *"a discrete control in the calendar header"*, and
+no application list that shows only three at a time):
+- **The uber header** — one thin dark line across the top holding the five pages
+  (`mi-uber`, 34px). The pages are navigation, not a control of this view.
+- **The month header** — one line: ‹ month › *This month*; the stages as quiet underlined
+  words (*All DEV VAL UAT PROD*); the application being shown (*All applications*, or its
+  name with × to clear); and a small **Key** button that floats the legend over the grid.
+  The key closes on Escape or a click elsewhere. The filter is never hidden: both stage and
+  application read in this line even with the rail collapsed.
+- **The rail** (14rem, left, `mi-rail` — named for reuse) holds **only the applications**:
+  a find box over a list sorted by name that takes the rail's full height (about a dozen
+  names at 633px tall, more on a real screen), and the *Recorded through* sentence at the
+  foot, amber only when the backfill stamp is missing. Screens are wider than tall: spend
+  width. Collapsible to a thin strip (« / »), remembered per browser (`localStorage`, a
   convenience; without it the rail opens).
-- **The head** is one line: ‹ month › *This month*, and on the right **Showing
-  *app* · *stage*** with *Show all* when filtered — always visible, so collapsing the rail
-  never hides a filter.
 - **The grid fits:** rows are equal shares of what is left (`repeat(weeks, 1fr)`); a day
   shows as many chips as its cell holds, one line each (full text on hover and in the
   detail), and the rest become *+N more*. Re-fitted on resize. Below a 28rem floor the grid
   scrolls rather than squash a day to nothing.
 - **The day detail** slides over the right of the grid instead of narrowing it; Escape
   closes it.
-- Title and tagline are gone: the active tab names the page.
+- Title and tagline are gone: the active page names itself in the uber header.
 - Under 900px wide the rail sits above the grid and the page scrolls.
 
 **Verified 2026-10-01 in Chrome on the fixtures,** 1366 wide at 768 and at 633 tall,
-August 2026: page, rail and grid overflow all 0 at 768 (at 633 only the rail scrolls).
-*widg* in the find box left All, WidgetCore, WidgetPortal; WidgetCore + PROD read
-*Showing WidgetCore · PROD* with *Show all*; Aug 30 opened the drawer (the ↺ hotfix
-rollback, 2 servers), Escape closed it; the collapsed rail was remembered across a reload.
-Not seen on the real server.
+August 2026: page and grid overflow 0 at both; uber header 34px, month header 52px, the
+application list 349px at 633. *widg* in the find box left All, WidgetCore, WidgetPortal;
+PROD + WidgetCore read in the header; the key floated over the grid and closed on a click
+elsewhere; Aug 30 opened the drawer (the ↺ hotfix rollback, 2 servers), Escape closed it;
+the collapsed rail was remembered across a reload. Not seen on the real server.
 
 **Open items for this section**
 - **Holds eat short cells.** At 633px tall a day under two hold bands shows *+2 more* and
@@ -1792,8 +1799,9 @@ Not seen on the real server.
 - **The other four pages** (Division, The week, Where is it, History) move to the rail
   next — their counts strips and *Needs a word* are the candidates for the rail or a
   collapsible line. Until then the Calendar's navigation differs from theirs.
-- **Choosing several applications** ("my applications") — the list is single-choice, as
-  before.
+- **Choosing several applications** ("my applications") — the list stays single-choice.
+  Robert does not want several dozen candidates in a cramped multi-select; if several are
+  ever wanted, it is a saved set, not ticking boxes.
 
 ## Appendix A — questions the data could answer
 

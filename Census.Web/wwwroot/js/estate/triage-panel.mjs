@@ -1,4 +1,5 @@
 import { fetchTriage, fetchEntityTagsConfig, saveEntityTags, fetchDeclaredEntities, saveDeclaredEntities } from './estate-api.mjs';
+import { PanelScope } from './panel-scope.mjs';
 
 // The Tuesday screen (triage-workbench.md): the unclassified pile, worked in bulk. Every
 // apply persists the whole config immediately — config/entity-tags.json stays the artifact,
@@ -55,8 +56,9 @@ function upgradeLeaf(leaf) {
 }
 
 export class TriagePanel {
-    constructor(onChanged, openDetails, openExternalBlast) {
+    constructor(onChanged, openDetails, openExternalBlast, getScope) {
         this.onChanged = onChanged;
+        this.scope = new PanelScope(getScope);
         this.openDetails = openDetails;
         this.openExternalBlast = openExternalBlast;
         this.query = '';
@@ -87,11 +89,18 @@ export class TriagePanel {
         this.render();
     }
 
-    async refresh() {
-        this.data = await fetchTriage();
+    // The board's scope moved (census-web.md §12.1): re-render, and drop selected rows that
+    // left the screen so an apply only ever touches what the user can see.
+    refresh() {
+        if (!this.data) return;
         const known = new Set(this.visibleRows().map((r) => r.key));
         [...this.selected].filter((k) => !known.has(k)).forEach((k) => this.selected.delete(k));
         this.render();
+    }
+
+    async reload() {
+        this.data = await fetchTriage();
+        this.refresh();
     }
 
     // One flat list of workable rows across strata - the substrate for filter and select-all.
@@ -157,7 +166,7 @@ export class TriagePanel {
         return this.data.machines
             .flatMap((m) => this.machineRows(m))
             .concat(this.externalRows())
-            .filter((r) => this.shown(r) && this.matches(r));
+            .filter((r) => this.scope.has(r.machine) && this.shown(r) && this.matches(r));
     }
 
     selectable(row) {
@@ -180,21 +189,27 @@ export class TriagePanel {
         const unknownMatches = (m) => !this.query
             || `${m.machine} ${m.unknown.map((u) => u.container ?? '').join(' ')}`.toLowerCase().includes(this.query);
         const machines = this.data.machines
-            .filter((m) => byMachine.has(m.machine) || (m.unknown.length > 0 && unknownMatches(m)))
+            .filter((m) => byMachine.has(m.machine) || (m.unknown.length > 0 && this.scope.has(m.machine) && unknownMatches(m)))
             .map((m) => this.renderMachine(m, byMachine.get(m.machine) ?? []))
             .join('');
 
+        const scoped = this.scope.active();
+        const inScope = scoped ? this.data.machines.filter((m) => scoped.machines.has(m.machine))
+            .reduce((n, m) => n + m.unclassifiedCount, 0) : null;
         this.container.innerHTML = `
+            ${this.scope.lineHtml()}
             <div class="est-triage">
                 <div class="est-triage-controls">
                     <input class="est-filter" type="search" placeholder="Filter machines, instances, sites, names…" value="${escapeHtml(this.query)}" data-ref="filter">
                     <label class="est-check"><input type="checkbox" data-ref="show-classified" ${this.showClassified ? 'checked' : ''}> show classified</label>
                     <button class="est-btn est-btn-sm" data-act="declare-toggle">${this.declaring ? 'Cancel declare' : 'Declare entity…'}</button>
-                    <span class="est-muted">${this.data.unclassifiedTotal} unclassified fleet-wide</span>
+                    <span class="est-muted">${this.data.unclassifiedTotal} unclassified fleet-wide${inScope === null ? '' : ` · <strong>${inScope}</strong> in scope`}</span>
                 </div>
                 ${this.renderDeclareForm()}
                 <div data-ref="error">${this.error ? `<p class="est-status est-error">${escapeHtml(this.error)}</p>` : ''}</div>
-                ${machines || '<p class="est-status">Nothing to triage — everything observed is classified. The pile is empty.</p>'}
+                ${machines || (scoped
+                    ? '<p class="est-status">Nothing to triage on the machines in scope.</p>'
+                    : '<p class="est-status">Nothing to triage — everything observed is classified. The pile is empty.</p>')}
                 ${this.renderExternalCard()}
                 ${this.renderUnresolvedCard()}
                 ${this.renderBar()}
@@ -205,6 +220,11 @@ export class TriagePanel {
     renderExternalCard() {
         const rows = this.externalRows().filter((r) => this.shown(r) && this.matches(r));
         if (rows.length === 0) return '';
+        // External entities sit on no machine, so they are not on the board: out of a scoped
+        // view, but counted, never silently absent.
+        if (this.scope.active()) {
+            return `<p class="est-status">${rows.length} external entit${rows.length === 1 ? 'y' : 'ies'} — on no machine, so outside this scope. <em>show fleet</em> lists them.</p>`;
+        }
         return `
             <div class="est-subcard">
                 <div class="est-subcard-head">
@@ -246,7 +266,11 @@ export class TriagePanel {
     // renders inline beside it — the person is working at the bottom of a long panel, and
     // a message anywhere else is a message they will not see.
     renderUnresolvedCard() {
-        const groups = (this.data.unresolvedEndpoints ?? []).filter((u) => !this.query
+        // Cut on the edge's source machine, as Hosting cuts a dependency (§12.1).
+        const groups = (this.data.unresolvedEndpoints ?? [])
+            .map((u) => ({ ...u, edges: u.edges.filter((e) => this.scope.has(e.machine)) }))
+            .filter((u) => u.edges.length > 0)
+            .filter((u) => !this.query
             || `${u.target} ${u.edges.map((e) => `${e.machine} ${e.name ?? ''}`).join(' ')}`.toLowerCase().includes(this.query));
         if (groups.length === 0) return '';
         return `
@@ -491,6 +515,7 @@ export class TriagePanel {
     }
 
     bind() {
+        this.scope.bind(this.container, () => this.refresh());
         const filter = this.container.querySelector('[data-ref="filter"]');
         filter.addEventListener('input', () => {
             this.query = filter.value.trim().toLowerCase();
@@ -838,7 +863,7 @@ export class TriagePanel {
             mutate(config);
             if (touched.tags) await saveEntityTags(config.tags);
             if (touched.declared) await saveDeclaredEntities(config.declared);
-            await this.refresh();
+            await this.reload();
             this.onChanged();
         } catch (err) {
             this.error = err.message;

@@ -1,5 +1,8 @@
+import { PanelScope } from './panel-scope.mjs';
+
 // The dev-ops working queue: every finding in the fleet, worst first, filterable by
-// severity and owner. A panel, not a destination (census-web-v2-ux.md §5.1) — machine
+// severity, scoped by the board's team/class/stage like the other fleet panels
+// (census-web.md §12.1). A panel, not a destination (census-web-v2-ux.md §5.1) — machine
 // names pivot straight into dossiers. Raw truth, no lifecycle: rows exist exactly as
 // long as the condition does.
 
@@ -19,19 +22,28 @@ export function severityDotClass(severity) {
 
 export class FindingsQueue {
     /**
-     * @param machines  canvas machine dtos (findings ride along, facets attached)
-     * @param ownership {key,label} or null
-     * @param state     persisted filter state: { severities:Set, owners:Set, query:string }
-     * @param onMachine called with a machine name to pivot to its dossier
+     * @param getMachines () => canvas machine dtos (findings ride along, facets attached)
+     * @param getScope    the board's scope thunk (panel-scope.mjs)
+     * @param state       persisted filter state: { severities:Set, query:string }
+     * @param onMachine   called with a machine name to pivot to its dossier
      */
-    constructor(machines, ownership, state, onMachine, asOf = null) {
-        this.ownership = ownership;
+    constructor(getMachines, getScope, state, onMachine, asOf = null) {
+        this.getMachines = getMachines;
+        this.scope = new PanelScope(getScope);
         this.state = state;
         this.onMachine = onMachine;
         this.asOf = asOf;
+    }
 
-        this.findings = machines
+    // Re-read from the current canvas: the page calls this on every rail click and reload.
+    refresh() {
+        if (this.container) this.render();
+    }
+
+    scopedFindings() {
+        return this.getMachines()
             .flatMap((m) => m.findings)
+            .filter((f) => this.scope.has(f.machine))
             .sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)
                 || a.machine.localeCompare(b.machine));
     }
@@ -44,7 +56,6 @@ export class FindingsQueue {
         const q = this.state.query.trim().toLowerCase();
         return this.findings.filter((f) => {
             if (this.state.severities.size > 0 && !this.state.severities.has(f.severity)) return false;
-            if (this.state.owners.size > 0 && !this.ownersOf(f).some((o) => this.state.owners.has(o))) return false;
             if (q !== '' && !`${f.title} ${f.detail ?? ''} ${f.machine} ${f.kind}`.toLowerCase().includes(q)) return false;
             return true;
         });
@@ -56,11 +67,10 @@ export class FindingsQueue {
     }
 
     render() {
+        this.findings = this.scopedFindings();
         const severityCounts = {};
-        const ownerCounts = {};
         for (const f of this.findings) {
             severityCounts[f.severity] = (severityCounts[f.severity] ?? 0) + 1;
-            for (const o of this.ownersOf(f)) ownerCounts[o] = (ownerCounts[o] ?? 0) + 1;
         }
 
         const severityChips = SEVERITY_ORDER
@@ -70,24 +80,14 @@ export class FindingsQueue {
                     ${escapeHtml(s)} <span class="est-chip-count">${severityCounts[s]}</span>
                 </button>`).join('');
 
-        const ownerChips = Object.keys(ownerCounts)
-            .sort((a, b) => (a === 'Unassigned') - (b === 'Unassigned') || a.localeCompare(b))
-            .map((o) => `
-                <button class="est-chip ${this.state.owners.has(o) ? 'is-active' : ''}" data-owner-chip="${escapeHtml(o)}">
-                    ${escapeHtml(o)} <span class="est-chip-count">${ownerCounts[o]}</span>
-                </button>`).join('');
-
         this.container.innerHTML = `
+            ${this.scope.lineHtml()}
             <div class="est-q-filters">
                 <div class="est-q-filter-row">${severityChips}</div>
-                <div class="est-q-filter-row">
-                    <span class="est-stagebar-label">${escapeHtml(this.ownership?.label ?? 'owner')}</span>
-                    ${ownerChips}
-                </div>
                 <div class="est-q-filter-row est-q-export-row">
                     <input class="est-filter" type="search" placeholder="Filter findings…"
                            value="${escapeHtml(this.state.query)}" data-ref="query">
-                    <a class="est-btn est-btn-sm" href="/api/export/compliance.csv${this.asOf ? `?asOf=${encodeURIComponent(this.asOf)}` : ''}" download title="Full compliance state, one row per machine-finding — audit evidence${this.asOf ? ` as of ${escapeHtml(this.asOf)}` : ''}">Export CSV</a>
+                    <a class="est-btn est-btn-sm" href="/api/export/compliance.csv${this.asOf ? `?asOf=${encodeURIComponent(this.asOf)}` : ''}" download title="Full compliance state, one row per machine-finding — audit evidence${this.asOf ? ` as of ${escapeHtml(this.asOf)}` : ''}">Export CSV (whole fleet)</a>
                 </div>
             </div>
             <ul class="est-queue" data-ref="list"></ul>`;
@@ -99,12 +99,7 @@ export class FindingsQueue {
             this.render();
         }));
 
-        this.container.querySelectorAll('[data-owner-chip]').forEach((btn) => btn.addEventListener('click', () => {
-            const o = btn.dataset.ownerChip;
-            if (this.state.owners.has(o)) this.state.owners.delete(o);
-            else this.state.owners.add(o);
-            this.render();
-        }));
+        this.scope.bind(this.container, () => this.render());
 
         this.container.querySelector('[data-ref="query"]').addEventListener('input', (e) => {
             this.state.query = e.target.value;
@@ -120,7 +115,7 @@ export class FindingsQueue {
 
         if (rows.length === 0) {
             listEl.innerHTML = this.findings.length === 0
-                ? '<li class="est-q-empty">The queue is clear — nothing to effect.</li>'
+                ? `<li class="est-q-empty">${this.scope.active() ? 'Nothing on the machines in scope.' : 'The queue is clear — nothing to effect.'}</li>`
                 : '<li class="est-q-empty">No findings match these filters.</li>';
             return;
         }

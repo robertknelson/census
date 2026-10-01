@@ -721,3 +721,56 @@ place — no refetch, no reopen.
 [show fleet]` — so a short list never reads as a small fleet. `show fleet` is a
 panel-local escape (the board does not change); it resets when the panel reopens.
 Deliberately no per-panel scope editor: the rail is the one place scope is chosen.
+
+### 12.1 Triage and Findings join the scope (2026-10-01, Robert: "spec triage and findings, go")
+
+He asked for the board's team/class filter on the tabs "to make the work more manageable".
+Changes, Software, Hosting and Certificates already had it (§12); Triage and Findings did
+not, and Findings carried its own owner chips — a second place to choose scope, which §12
+ruled out. Same rule, same scope line, same `show fleet` escape.
+
+**Triage — where the knife goes:**
+- **Machine cards** — only machines in scope, including a card pinned there only by an
+  unknown collection (unknown-never-hidden governs strata, not scope).
+- **Unresolved endpoints** — cut on the edge's **source** machine, as Hosting cuts a
+  dependency: "what are my machines pointing at that nobody has named?" A group whose
+  edges all fall out goes.
+- **External declared entities** have no machine, so they are not on the board: hidden
+  while scoped, with a line saying how many and that `show fleet` shows them — never
+  silently absent.
+- **Selection follows the screen.** A rescope drops selected rows that left it, so *Apply
+  to N* only ever touches rows the user can see.
+- **The count** reads *38 unclassified fleet-wide · 6 in scope*. The toolbar's Triage
+  button stays fleet-wide, like the Certificates button.
+- The Declare form's machine list stays the whole fleet: declaring is not filtering.
+- `refresh()` re-renders against the scope (the page calls it from `renderAll()`, e.g.
+  after an apply re-reads the canvas); re-reading the pile itself is `reload()`.
+
+**Findings:**
+- Cut on the finding's machine. Severity chips count what is in scope.
+- **The owner chips are removed** — the rail is the one place scope is chosen (§12). Owner
+  badges stay on each row.
+- The toolbar's *Findings · 22 (4 critical)* stays fleet-wide: the alarm does not shrink
+  because a team is picked.
+- **Export CSV stays the whole fleet** (it is audit evidence, `/api/export/compliance.csv`)
+  and says so on the button.
+- It becomes the page's `fleetPanel`; `refresh()` re-reads findings from the current
+  canvas.
+
+**Found while verifying (true of every fleet panel, unchanged):** the panel's backdrop
+covers the rail, so a rail click closes the panel rather than rescoping it in place — the
+scope is the board's at the moment the panel opens, and inside it only `show fleet`
+changes it. §12's "a rail click re-scopes the open panel" never happened by mouse.
+
+**Verified 2026-10-01 in Chrome on the demo fleet,** board *Unassigned · Web server*
+(5 machines): Triage listed DEVWEBBOX, PRODWEBBOX, VALWEBBOX, WEB01, WEB02 and read
+*38 unclassified fleet-wide · 13 in scope*; *show fleet* gave 10 cards; with APPSRV01 and
+WEB01 ticked (*Apply to 9*), scoping back left *Apply to 4*; the 2 external entities were
+counted as outside the scope. Findings showed 6 rows on WEB01/WEB02 (critical 2, medium 3,
+low 1) against 22 fleet-wide; no owner chips; *Export CSV (whole fleet)*. Not seen on the
+real estate.
+
+**Open items**
+- Whether Export CSV should offer a scoped export too (a query parameter on the endpoint).
+- Whether the rail should stay clickable with a panel open (rescope in place) instead of
+  closing it — the §12 intent; today the backdrop wins.

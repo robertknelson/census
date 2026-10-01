@@ -4,6 +4,24 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (latest) — Triage and Findings follow the board's scope (census-web §12.1)
+
+**Findings' owner chips removed.** Options: keep them beside the board scope; remove.
+Call: remove. Reason: §12 ruled the rail the one place scope is chosen; two filters that
+can disagree is the confusion §12 avoided. Owner badges stay on each row.
+
+**Triage hides external entities while scoped, and counts them.** Options: always show
+them; hide silently; hide and say how many. Call: hide and count. Reason: they sit on no
+machine, so they are not on the board, but a scoped pile must not read as the whole pile.
+
+**Unresolved endpoints cut on the source machine**, as Hosting cuts dependencies.
+
+**Selection is pruned to the screen on every rescope.** Reason: *Apply to N* writes
+config; it must never touch a row the user cannot see.
+
+**The toolbar badges and Export CSV stay fleet-wide.** Reason: the alarm and the audit
+evidence should not shrink because a team is picked.
+
 ## 2026-10-01 (late night) — the frame on every page (§26.1)
 
 **All five pages in one pass, and the release page with them.** It uses the same tab bar,

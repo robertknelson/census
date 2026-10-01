@@ -36,7 +36,7 @@ class EstatePage {
         this.selectedMachines = new Set();
         this.panel = null;
         this.asOf = null;                    // null = current; else a collected yyyy-MM-dd
-        this.queueState = { severities: new Set(), owners: new Set(), query: '' };
+        this.queueState = { severities: new Set(), query: '' };
 
         this.readHash();
         this.renderSkeleton();
@@ -620,12 +620,12 @@ class EstatePage {
             '<div data-ref="triage"></div>');
         this.openPanel();
 
-        new TriagePanel(async () => {
+        this.fleetPanel = new TriagePanel(async () => {
             // Tags moved: rollups, chips, the pile count and findings all shift with them.
             this.data = await fetchCanvas(this.asOf);
             this.renderAll();
-        }, (machine) => this.openDetails(machine), (name) => this.openExternalBlastRadius(name))
-            .mount(this.panelEl.querySelector('[data-ref="triage"]'));
+        }, (machine) => this.openDetails(machine), (name) => this.openExternalBlastRadius(name), () => this.panelScope());
+        this.fleetPanel.mount(this.panelEl.querySelector('[data-ref="triage"]'));
     }
 
     openExternalBlastRadius(name) {
@@ -660,13 +660,14 @@ class EstatePage {
             '<div data-ref="queue"></div>');
         this.openPanel();
 
-        new FindingsQueue(
-            this.data.machines,
-            this.data.ownership,
+        this.fleetPanel = new FindingsQueue(
+            () => this.data.machines,
+            () => this.panelScope(),
             this.queueState,
             (machine) => this.openDetails(machine),
             this.asOf,
-        ).mount(this.panelEl.querySelector('[data-ref="queue"]'));
+        );
+        this.fleetPanel.mount(this.panelEl.querySelector('[data-ref="queue"]'));
     }
 
     async openDetails(machineName) {

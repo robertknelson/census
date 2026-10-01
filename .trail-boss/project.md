@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: "Eight commits local (Coming §20 plus three follow-ups), fixture-verified; Coming screenshots sent in the session. When home: push. On the real server: run apptrak/sql/backfill-deployment.sql by hand in SSMS (no SQL Agent available; catches up any gap), run 002 before deploying the new build, then the round in .docs/move-it-round-2026-09-21.md. Traffic waits on DMZ facts; registry DDL owed for level 2"
+next_step: 'On the real server, work through .docs/move-it-round-2026-10-01.md: re-run 001 (creates BackfillRun), run the backfill by hand in SSMS, deploy, then time each Move It page and check Calendar, The week, needs-a-word and the coverage line. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,26 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-01 (Calendar, the backfill stamp, and four gaps closed)
+- He ran 002 on the real server (01 had failed on the missing column) and
+  renamed `HealthReportId` to `ReportId` there; 001, the seed and the docs
+  follow.
+- Asked for a calendar view after clicking through the tabs; spec'd (§21),
+  two questions ruled ("not machines, not teams"; no release link "not
+  now"), built: arrivals, events, targets, rollbacks on a month grid.
+- "Do the backfill run stamp … go with your lean": `moveit.BackfillRun`
+  (§21.1), so the calendar says *recorded through* and an empty day before
+  it was quiet; holds drawn as spans; the rest of §21's open items ruled
+  on the lean.
+- Asked "what are we missing?"; ratified the recommended order: fixture
+  check (§22, 26 asserts), needs-a-word on History (§23), Division's
+  coverage line (§24), The week, a printable seven-day page (§25).
+- Mid-stream: the Census classic dashboard trend did not handle 30+ days;
+  rebuilt on a calendar axis with 30 / 90 / All and a machines-collected
+  strip.
+- New round checklist `.docs/move-it-round-2026-10-01.md`; pushed on his
+  word.
 
 ### 2026-09-24 (Coming — the notebook of what is heard, §20)
 - He opened as the product owner: a place to keep what he hears in meetings

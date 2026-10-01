@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Coming built and seen; three follow-ups landed; backfill is a manual SSMS run (no Agent); 8 commits local"
-resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 then apptrak/Invoke-AppTrakQuestions.ps1 for Move It against the local AppTrak; Division at /moveit/division; the notebook at /moveit?view=items"
+summary: "Calendar, The week, a to-do of what is unrecorded and a coverage line built and pushed; next: the real-server round"
+resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; Move It at /moveit/division, /moveit/week, /moveit/calendar"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -26,44 +26,37 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**A place for what is heard in meetings.** Something said to be coming to
-an application can now be written down the moment it is heard, from the
-board itself: application, feature or fix, what it is, and where it was
-heard. It appears in a new first column called *Coming*, beside work that
-has a release but no build yet, and it says how long it has sat there. When
-a build carrying it is later named on the History page, it moves right on
-its own. The History form now offers those heard items as a pick list when
-a release is named, so the notebook feeds the release. Nothing else about
-Move It changed: no assignees, no estimates, no priorities. His words: not
-Jira.
+**A calendar, and a one-page summary of the week.** Move It now shows
+*when* things happened, not only where they are: a month grid with each
+build reaching a stage, every approval and hold, each release's target
+date (red when missed), rollbacks, and holds drawn across the days they
+lasted. A second new page, *The week*, puts seven days on one printable
+sheet — what went live, what moved, what went wrong, what is due — for
+people who will never open the board. It sends nothing; he decides who
+sees it.
 
-**Three small follow-ups, on his "All three".** Naming a build no longer
-erases the note already on it. Deleting a release entered wrong hands back
-any heard items that had been put in it, rather than losing them. The
-made-up data now has fixed dates, so what it shows does not drift by the day.
+**The board now admits what it does not know.** The catch-up script
+stamps each run, so the calendar can say "recorded through Sep 13" and an
+empty day before that genuinely means nothing happened. The executive page
+says how many applications the board can actually see, and names the ones
+it cannot. The History page lists what nobody has recorded yet: releases
+past their date with no reason given, releases that went quiet, things
+heard months ago and never scheduled.
 
-**Under the hood, one small schema change.** A feature no longer has to
-belong to a release; it belongs to an application, and the release comes
-later. The migration runs in place on the real database and is safe to
-re-run.
+**A safety net under all of it.** One test script rebuilds the made-up data
+and checks every question's answer against what it should be, so a change
+that quietly breaks a rule is caught. Proven by breaking one on purpose.
 
-**Verified through the API and headless Edge.** This was a remote session
-and the browser tools were not connected. Every write was exercised, every
-question re-run against the made-up data, and the pages were then rendered
-headless and screenshotted. The screenshots were sent to him in the session.
+**Census, too:** the dashboard's daily chart no longer falls apart past 30
+days — it has 30 / 90 / All, fits any range, and shows how many machines
+were collected each day so a thin day does not look like an improvement.
 
 ## What's next
 
-**Push, then the real server.** A click-through in Edge if he wants one;
-then push, and run the schema script on the real server before deploying
-the new build.
-
-**Catch the ledger up by hand.** The real server has no scheduler he can
-use, so the deployment catch-up script is run by hand in SSMS before
-looking at the board. It fills any gap in one run.
-
-**Then the real-server round** as before: pull, work through the
-checklist (executive tab, History count).
+**The real-server round** — `.docs/move-it-round-2026-10-01.md`: run the
+schema script first (it adds the stamp table), then the catch-up, deploy,
+and time every page. Speed on real data is the open question: one of the
+older questions took a minute there.
 
 **Traffic waits on facts only he can get:** how many DMZs, what runs on
 them, whether the logs can be read from where the census runs.
@@ -73,14 +66,12 @@ application-level screen still waits on.
 
 ## Anything alarming
 
-- **The board now has one place to type.** It was the read-only page by
-  convention. Accepted for now, as with the release page: he is the only
-  viewer until development is complete. It must be gated before anyone
-  else gets a link.
-- **Deleting a release now hands heard items back to Coming** instead of
-  removing them. Items typed through the release still go with it. The
-  delete itself is still a stabilization tool to retire or gate later.
-- **Traffic has a naming risk.** If the DMZ transfer software turns out to
-  be the product called MOVEit, the existing Move It module shares its name.
-- **The sign-off step depends on a habit.** If test sign-offs are not
-  recorded, every release sits at "in testing" until the client approves.
+- **Speed is unmeasured on real data.** History now asks the database nine
+  questions per load instead of six; the calendar and the week have never
+  run there.
+- **The board still has places to type** and must be gated before anyone
+  but him gets a link.
+- **The deployment catch-up is still by hand** until the live processor
+  ships; when it does, it must stamp the same table or the calendar's
+  "recorded through" line goes stale.
+- **Traffic has a naming risk** (MOVEit, the product, versus Move It).

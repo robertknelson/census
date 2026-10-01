@@ -1,7 +1,7 @@
 ---
-trail_boss_contract: 7
+trail_boss_contract: 8
 ---
-<!-- trail-boss agent contract v7 — app-generated, regenerated on enlist / `tb refit`. Do not hand-edit; the report you own is dispatch.md. -->
+<!-- trail-boss agent contract v8 — app-generated, regenerated on enlist / `tb refit`. Do not hand-edit; the report you own is dispatch.md. -->
 
 # Trail Boss agent contract
 
@@ -26,10 +26,12 @@ working in this repo, follow these rules **before ending your session**:
    `dispatch.md` (`discovery`|`planning`|`execution`|`monitoring`|`closure`).
    That is a recommendation the human ratifies on the board — it **never**
    changes `phase` in `project.md`.
-5. **Validate before you leave: run `tb check-dispatch`.** A dispatch that
-   does not parse drops this project off the owner's board silently. The
-   check is the safety net under the syntax rules below — a *break* means fix
-   it now; a *hole* is a nudge (usually: the headline has stopped being terse).
+5. **Validate before you leave: run `tb check`.** It re-reads both files
+   exactly as the board will. A `project.md` that does not parse shows as a
+   broken card; a dispatch that does not parse drops this project's report off
+   the board. The check is the safety net under the syntax rules below — a
+   *break* means fix it now; a *hole* is a nudge (a Windows path in double
+   quotes, or a headline that has stopped being terse).
 6. **This is the project's voice on the owner's board.** Anything this
    project exposes in `dispatch.md` becomes visible at the next scan.
    Exposure is invited and entirely this project's choice: Trail Boss only
@@ -79,6 +81,18 @@ next_step: Run the review — two parts: UX pass and security pass
 next_step: "Run the review — two parts: UX pass and security pass"
 ```
 
+**Windows paths go in single quotes.** Inside "double quotes" a backslash
+starts an escape: `\d` breaks the whole file, and `\t` or `\n` silently turn
+into a tab or a newline — the value is wrong and nothing warns you.
+
+```yaml
+# BROKEN, or silently WRONG:
+next_step: "open C:\data\thing"
+
+# CORRECT (inside single quotes, write a literal ' as ''):
+next_step: 'open C:\data\thing'
+```
+
 **Keep frontmatter values on one line.** Long is fine; multiline block
 scalars are not worth the risk here.
 
@@ -105,7 +119,7 @@ the frontmatter), newest first:
 headings, bullets, bold all render on the owner's board. No rules
 beyond the frontmatter's.
 
-**After writing, run `tb check-dispatch`** — it re-reads exactly what
+**After writing, run `tb check`** — it re-reads exactly what
 the scan will and names any break (a value that needs quoting, a
 mistyped floor field) before it costs you the board. That one command
 is the difference between reporting in and disappearing.

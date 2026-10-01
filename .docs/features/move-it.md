@@ -1617,6 +1617,34 @@ leaving the stage: **drawn once**, no fourth marker.
 - **Already there when watching began** — if an endpoint is registered the
   day its app first deploys, that real arrival is lost. Not hit yet.
 
+## 22. The fixture check — every rule pinned to its answer (2026-10-01, Robert: "go")
+
+Each question carries a rule argued for and verified once by hand; an edit can
+change an answer without an error. `tests/Test-MoveItQuestions.ps1` rebuilds the
+local demo database through `Invoke-AppTrakDemo.ps1` (or reuses it with
+`-SkipRebuild`) and asserts what the seed was built to produce, each assertion
+named by the rule it proves: the backfill's second run inserts nothing and stamps
+its run through the last seeded ping; only seen stages; 01's location rule item by
+item (rollbacks move Sprint 43 to DEV and Reporting refresh to VAL, asserted moves
+stay asserted, heard items read *no release*); 02's stage and hold per release;
+03's violations by title (link ids change on every reseed); 04 ready and blocked;
+05's inbox by kind; 06's lying endpoint; 07 current and historical; 08's rollbacks
+and variants; 09–12; 13 parses as one JSON document of every item; the calendar's
+first-ping rule, rollback rows, no notes, and its stamp. Pass/fail in the style
+of the collector tests, exit 1 on any failure. **Never against the real server**:
+the rebuild deletes and reseeds demo rows.
+
+Nothing time-relative is asserted (days ago, days in stage); `PastTarget` is
+stable because every seeded target is now past.
+
+**Verified 2026-10-01:** 25 passed after a full rebuild. With 08's `<` changed to
+`<=` the rollback assertion failed — a machine move counted as a rollback — and
+passed again once restored.
+
+**Open items for this section**
+- **Run it before every push** — a habit, not a hook, until there is a reason for
+  more.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

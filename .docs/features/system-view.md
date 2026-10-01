@@ -188,3 +188,27 @@ register-an-unregistered gesture.
 > window focus and drifts for minutes, which is the jiggle the ratification
 > forbids. A 4px threshold separates click from drag. The v1/v2 ux-switch is
 > suppressed on /atlas (it compares the two Estate UIs; Atlas is neither).
+
+## 9. Grouped or every entity, chosen when the view is built (2026-10-01, Robert: "go")
+
+The canonical/observed grouping (canonical-names.md) was a per-tab toggle only. The builder
+now offers it up front — **but only where it changes the drawing**:
+
+- `GET /api/systems/overview` carries `canonicalNameCount` (distinct canonical names claimed
+  within the system) and `namedMemberCount` (members carrying one), derived per read like
+  the member count.
+- A system card with canonical names says so (*4 canonical names over 9 members*) and has
+  two buttons, **Open grouped** and **Open every entity**. A system without any keeps the
+  single click-the-card open: the two drawings would be identical.
+- **Tab names say which.** Grouped keeps the plain system name (the default); every-entity
+  is *System · every entity*, so two tabs of one system read apart. Flipping the toolbar
+  toggle renames a tab whose name the builder gave; a name someone typed is left alone.
+- The toolbar toggle stays — the choice is a starting point, not a lock.
+- The builder's note no longer says views "persist in this browser": since §3's promotion
+  they are saved for everyone in `config/views.json`.
+
+**Verified 2026-10-01 in Chrome on the demo profile:** MyWeb (4 over 9) and YourWeb (2 over
+3) showed both buttons; Payroll, BillingSvc, OrderPortal, Reporting one. *Open every
+entity* on YourWeb opened *YourWeb · every entity* with 20 nodes; the toolbar's
+*canonical* renamed it *YourWeb* and drew 19.
+

@@ -22,6 +22,10 @@ public record SystemOverviewDto
     public int MemberCount { get; init; }
     public List<string> StagesInUse { get; init; } = [];
 
+    /// <summary>Distinct canonical names claimed within this system, and how many member entities carry one (canonical-names.md; system-view.md §9) — the builder offers grouped-or-not only when this is non-zero.</summary>
+    public int CanonicalNameCount { get; init; }
+    public int NamedMemberCount { get; init; }
+
     /// <summary>Expected-stage drift (systems-registry.md §3): asserted-but-unserved, and served-but-unexpected.</summary>
     public List<string> MissingExpectedStages { get; init; } = [];
     public List<string> UnexpectedStages { get; init; } = [];
@@ -77,7 +81,7 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
         foreach (var (name, record) in registry.Systems)
         {
             var found = inUse.TryGetValue(name, out var usage);
-            var stagesInUse = found ? usage.Stages : new List<string>();
+            var stagesInUse = found ? usage.Stages : [];
             var expected = record.ExpectedStages ?? [];
             rows.Add(new SystemOverviewDto
             {
@@ -90,6 +94,8 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 AssertedAt = record.AssertedAt,
                 MemberCount = found ? usage.Members : 0,
                 StagesInUse = stagesInUse,
+                CanonicalNameCount = found ? usage.CanonicalNames.Count : 0,
+                NamedMemberCount = found ? usage.Named : 0,
                 MissingExpectedStages = expected.Where(e => !stagesInUse.Contains(e, StringComparer.OrdinalIgnoreCase)).ToList(),
                 UnexpectedStages = record.ExpectedStages is null ? []
                     : stagesInUse.Where(s => !expected.Contains(s, StringComparer.OrdinalIgnoreCase)).ToList(),
@@ -103,6 +109,8 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 Registered = false,
                 MemberCount = usage.Members,
                 StagesInUse = usage.Stages,
+                CanonicalNameCount = usage.CanonicalNames.Count,
+                NamedMemberCount = usage.Named,
             });
         }
 
@@ -112,7 +120,15 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
             .ToList());
     }
 
-    private Dictionary<string, (int Members, List<string> Stages)> CollectInUse()
+    private sealed class Usage
+    {
+        public int Members;
+        public int Named;
+        public List<string> Stages = [];
+        public HashSet<string> CanonicalNames = new(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private Dictionary<string, Usage> CollectInUse()
     {
         var tags = entityTagsStore.Load();
         var declared = declaredEntitiesStore.Load();
@@ -126,23 +142,27 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
             .Concat(declared.External.Values
                 .Select(e => Associations.Of(e.Serves, e.System, e.Stage, e.AssertedBy, e.AssertedAt)));
 
-        var result = new Dictionary<string, (int Members, List<string> Stages)>(StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, Usage>(StringComparer.OrdinalIgnoreCase);
         foreach (var serves in perEntity)
         {
             foreach (var assoc in serves.Where(a => !string.IsNullOrEmpty(a.System)))
             {
-                if (!result.TryGetValue(assoc.System, out var entry)) entry = (0, new List<string>());
+                if (!result.TryGetValue(assoc.System, out var entry)) result[assoc.System] = entry = new Usage();
                 entry.Members += 1;
+                if (!string.IsNullOrWhiteSpace(assoc.CanonicalName))
+                {
+                    entry.Named += 1;
+                    entry.CanonicalNames.Add(assoc.CanonicalName.Trim());
+                }
                 foreach (var stage in assoc.Stages ?? [])
                 {
                     if (!entry.Stages.Contains(stage, StringComparer.OrdinalIgnoreCase)) entry.Stages.Add(stage);
                 }
-                result[assoc.System] = entry;
             }
         }
-        foreach (var key in result.Keys.ToList())
+        foreach (var entry in result.Values)
         {
-            result[key] = (result[key].Members, result[key].Stages.OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList());
+            entry.Stages = entry.Stages.OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList();
         }
         return result;
     }

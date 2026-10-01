@@ -70,6 +70,8 @@
 .atl-builder { max-width: 46rem; margin: 2rem auto; display: flex; flex-direction: column; gap: 0.5rem; }
 .atl-card-pick { text-align: left; cursor: pointer; display: flex; gap: 0.75rem; align-items: baseline; font: inherit; flex-wrap: wrap; }
 .atl-card-pick:hover { border-color: var(--atl-accent); }
+.atl-card-split { cursor: default; }
+.atl-card-actions { margin-left: auto; display: inline-flex; gap: 0.4rem; }
 
 .atl-card {
     background: var(--atl-panel);

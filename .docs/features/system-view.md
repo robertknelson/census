@@ -212,3 +212,31 @@ now offers it up front — **but only where it changes the drawing**:
 entity* on YourWeb opened *YourWeb · every entity* with 20 nodes; the toolbar's
 *canonical* renamed it *YourWeb* and drew 19.
 
+## 10. Starting stages, a name of your own, and a stronger focus (2026-10-01, Robert: "1 & 2 … and something else")
+
+**The builder card is a small form.** Under each system's facts: its stages in use as
+toggle chips (**start at** — none ticked means all), an optional **name** box, and the open
+button(s) from §9. Ticked stages become the tab's starting stage filter — a starting point
+like the grouping, changed later from the toolbar as before. The name box's placeholder
+shows the name the tab will get if left empty.
+
+**Builder-given names** are the system, then what differs from the default:
+*MyWeb · every entity · prod/val*. The toolbar's stage chips and grouping toggle keep a
+builder-given name in step; a typed name is never rewritten.
+
+**Focus under a stage filter** (his ask: dim the rest more, lift the rest a little):
+- Faded further — a node outside the stages and an edge with both ends outside go from
+  0.22 to **0.14**; the cross-stage bleed (one end outside) from 0.45 to **0.32**, still
+  clearly present, because the bleed is the point.
+- What is in focus steps forward — outline 1.6 → **2.6** (canonical +1), **bold label**,
+  edge 2 → **2.8** — only while something is actually faded, so an unfiltered view is
+  unchanged.
+- All four are CSS settings on `.atl-svg` (`--atl-ghost-opacity`, `--atl-bleed-opacity`,
+  `--atl-focus-stroke`, `--atl-focus-edge`), and the key's swatches read the same ones.
+
+**Verified 2026-10-01 in Chrome on the demo profile,** with the browser's view saves stubbed
+so the live `config/views.demo.json` (in use at the time) was never written: MyWeb with
+*prod* ticked showed the placeholder *MyWeb · prod*, opened as tab *MyWeb · prod* with the
+prod chip active, 6 nodes in focus at a 2.6 outline and 3 faded at 0.14; the key's bleed,
+ghost-edge and ghost-node swatches read 0.32 / 0.14 / 0.14.
+

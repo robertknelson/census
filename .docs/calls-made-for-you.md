@@ -4,6 +4,23 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (night, Atlas) — builder form and stage focus (system-view §9–10)
+
+**Builder cards stopped being one big button.** Options: keep click-the-card and add a
+separate form; make the card the form. Call: the card is the form (stage chips, name, open).
+Cost: a system with no canonical names now takes a click on *Open*, not anywhere on the card.
+
+**Starting stages go into the default tab name** (*MyWeb · prod*), and the toolbar keeps a
+builder-given name in step. Reason: two tabs of one system at different stages must read
+apart; a typed name is left alone.
+
+**Fade 0.22 → 0.14, bleed 0.45 → 0.32; focus outline 2.6, bold labels, edges 2.8.**
+"A bit more" read as about a third more fade; the bleed stays clearly visible because
+cross-stage lines are what the filter is for. All four are CSS settings.
+
+**Emphasis only when something is faded.** Reason: an unfiltered view should look exactly as
+it did.
+
 ## 2026-10-01 (last) — the rail stays live with a panel open (census-web §12.2)
 
 **The class legend and stage bar stay live too, not only the team rail.** Reason: all three

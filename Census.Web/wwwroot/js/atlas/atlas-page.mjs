@@ -16,10 +16,12 @@ const STRATEGIES = {
     physics: { label: 'Physics graph', make: (onSelect, onPositions) => new PhysicsView(onSelect, onPositions) },
 };
 
-// Grouped is the default and keeps the plain name; the other says so, so two tabs of one
-// system read apart.
-function tabName(system, grouping) {
-    return grouping === 'observed' ? `${system} · every entity` : system;
+// The name the builder gives (system-view.md §9–10): the system, then what differs from the
+// default — every entity rather than grouped, and the starting stages — so two tabs of one
+// system read apart. A name someone typed is never rewritten.
+function tabName(system, grouping, stages = []) {
+    return [system, grouping === 'observed' ? 'every entity' : null, stages.length ? stages.join('/') : null]
+        .filter(Boolean).join(' · ');
 }
 
 function escapeHtml(value) {
@@ -158,45 +160,60 @@ class AtlasPage {
             this.mainEl.innerHTML = `<p class="atl-status atl-error">${escapeHtml(err.message)}</p>`;
             return;
         }
-        // Grouped-or-not is offered only where it changes the drawing (system-view.md §9): a
-        // system with no canonical names draws the same either way, so it gets one button.
-        const facts = (r) => `
-            <span class="atl-mono">${escapeHtml(r.name)}</span>
-            ${r.registered ? '' : '<span class="atl-muted">(unregistered)</span>'}
-            <span class="atl-muted">${r.memberCount} member${r.memberCount === 1 ? '' : 's'} · ${r.stagesInUse.map(escapeHtml).join(', ') || 'no stages'}</span>
-            ${r.canonicalNameCount ? `<span class="atl-muted">${r.canonicalNameCount} canonical name${r.canonicalNameCount === 1 ? '' : 's'} over ${r.namedMemberCount} member${r.namedMemberCount === 1 ? '' : 's'}</span>` : ''}
-            ${r.description ? `<span class="atl-muted">${escapeHtml(r.description)}</span>` : ''}`;
-        const options = overview.map((r) => r.canonicalNameCount
-            ? `<div class="atl-card atl-card-pick atl-card-split">
-                   ${facts(r)}
-                   <span class="atl-card-actions">
-                       <button class="atl-btn" data-pick="${escapeHtml(r.name)}" data-grouping="canonical" title="Members sharing a canonical name collapse into one node">Open grouped</button>
-                       <button class="atl-btn" data-pick="${escapeHtml(r.name)}" data-grouping="observed" title="Every observed entity stays its own node">Open every entity</button>
-                   </span>
-               </div>`
-            : `<button class="atl-card atl-card-pick" data-pick="${escapeHtml(r.name)}" data-grouping="canonical">${facts(r)}</button>`).join('');
+        // Each card is a small form (system-view.md §9–10): starting stages to tick (none = all),
+        // an optional name, then open. Grouped-or-not is offered only where it changes the
+        // drawing — a system with no canonical names draws the same either way.
+        const card = (r) => `
+            <div class="atl-card atl-card-build" data-system="${escapeHtml(r.name)}">
+                <span class="atl-mono">${escapeHtml(r.name)}</span>
+                ${r.registered ? '' : '<span class="atl-muted">(unregistered)</span>'}
+                <span class="atl-muted">${r.memberCount} member${r.memberCount === 1 ? '' : 's'}${r.stagesInUse.length ? '' : ' · no stages'}${r.canonicalNameCount
+                    ? ` · ${r.canonicalNameCount} canonical name${r.canonicalNameCount === 1 ? '' : 's'} over ${r.namedMemberCount} member${r.namedMemberCount === 1 ? '' : 's'}` : ''}</span>
+                ${r.description ? `<span class="atl-muted">${escapeHtml(r.description)}</span>` : ''}
+                <span class="atl-card-row">
+                    ${r.stagesInUse.length ? `<span class="atl-key">start at</span>
+                        ${r.stagesInUse.map((st) => `<button class="atl-chip" data-start-stage="${escapeHtml(st)}" title="Open with ${escapeHtml(st)} in focus; the rest stay drawn, faded"><span class="atl-chip-dot" style="background:${stageColor(st)}"></span>${escapeHtml(st)}</button>`).join('')}` : ''}
+                    <input class="atl-card-name" data-ref="name" placeholder="${escapeHtml(tabName(r.name, 'canonical'))}" aria-label="Tab name (optional)" title="Tab name — leave empty to name it for you">
+                    <span class="atl-card-actions">
+                        ${r.canonicalNameCount
+                            ? `<button class="atl-btn" data-grouping="canonical" title="Members sharing a canonical name collapse into one node">Open grouped</button>
+                               <button class="atl-btn" data-grouping="observed" title="Every observed entity stays its own node">Open every entity</button>`
+                            : '<button class="atl-btn" data-grouping="canonical">Open</button>'}
+                    </span>
+                </span>
+            </div>`;
+        const options = overview.map(card).join('');
         this.mainEl.innerHTML = `
             <div class="atl-builder">
                 <h2>Build a view</h2>
                 <p class="atl-status">Pick a system — its dependency graph opens as a new tab. Stage filters, grouping and layout live on the tab and are saved for everyone (config/views.json).</p>
                 ${options || '<p class="atl-status">No system has any members yet — classify entities in the Estate\'s Triage first.</p>'}
             </div>`;
-        this.mainEl.querySelectorAll('[data-pick]').forEach((btn) => btn.addEventListener('click', () => {
-            const system = btn.dataset.pick;
-            const grouping = btn.dataset.grouping;
-            const tab = {
-                id: `t${(this.tabs.length + 1)}-${system.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-                name: tabName(system, grouping),
-                system,
-                stages: [],           // empty = all stages
-                strategy: 'physics',
-                grouping,             // 'canonical' collapses variants sharing a canonical name; 'observed' keeps every entity
-                positions: {},
-            };
-            this.tabs.push(tab);
-            this.persistViews();
-            this.open(tab.id);
-        }));
+        this.mainEl.querySelectorAll('.atl-card-build').forEach((el) => {
+            const system = el.dataset.system;
+            const nameEl = el.querySelector('[data-ref="name"]');
+            const picked = () => [...el.querySelectorAll('[data-start-stage].is-active')].map((b) => b.dataset.startStage);
+            el.querySelectorAll('[data-start-stage]').forEach((chip) => chip.addEventListener('click', () => {
+                chip.classList.toggle('is-active');
+                nameEl.placeholder = tabName(system, 'canonical', picked());
+            }));
+            el.querySelectorAll('[data-grouping]').forEach((btn) => btn.addEventListener('click', () => {
+                const grouping = btn.dataset.grouping;
+                const stages = picked();
+                const tab = {
+                    id: `t${(this.tabs.length + 1)}-${system.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                    name: nameEl.value.trim() || tabName(system, grouping, stages),
+                    system,
+                    stages,               // empty = all stages
+                    strategy: 'physics',
+                    grouping,             // 'canonical' collapses variants sharing a canonical name; 'observed' keeps every entity
+                    positions: {},
+                };
+                this.tabs.push(tab);
+                this.persistViews();
+                this.open(tab.id);
+            }));
+        });
     }
 
     // --- the registry ----------------------------------------------------------------------
@@ -336,16 +353,19 @@ class AtlasPage {
             </span>`;
         this.toolbarEl.querySelectorAll('[data-stage]').forEach((chip) => chip.addEventListener('click', () => {
             const stage = chip.dataset.stage;
+            const auto = tab.name === tabName(tab.system, tab.grouping ?? 'canonical', tab.stages);
             if (stage === '') tab.stages = [];
             else if (tab.stages.some((x) => x.toLowerCase() === stage.toLowerCase())) tab.stages = tab.stages.filter((x) => x.toLowerCase() !== stage.toLowerCase());
             else tab.stages.push(stage);
+            if (auto) tab.name = tabName(tab.system, tab.grouping ?? 'canonical', tab.stages);
+            this.renderTabs();
             this.persistViews();
             this.openView();
         }));
         this.toolbarEl.querySelectorAll('[data-grouping]').forEach((chip) => chip.addEventListener('click', () => {
             if ((tab.grouping ?? 'canonical') === chip.dataset.grouping) return;
             // A name the builder gave follows the flip; a name someone typed is theirs.
-            if (tab.name === tabName(tab.system, tab.grouping ?? 'canonical')) tab.name = tabName(tab.system, chip.dataset.grouping);
+            if (tab.name === tabName(tab.system, tab.grouping ?? 'canonical', tab.stages)) tab.name = tabName(tab.system, chip.dataset.grouping, tab.stages);
             tab.grouping = chip.dataset.grouping;
             this.renderTabs();
             this.graphs.delete(tab.id);

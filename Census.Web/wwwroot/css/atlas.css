@@ -68,9 +68,9 @@
 .atl-svg { width: 100%; height: 100%; display: block; }
 
 .atl-builder { max-width: 46rem; margin: 2rem auto; display: flex; flex-direction: column; gap: 0.5rem; }
-.atl-card-pick { text-align: left; cursor: pointer; display: flex; gap: 0.75rem; align-items: baseline; font: inherit; flex-wrap: wrap; }
-.atl-card-pick:hover { border-color: var(--atl-accent); }
-.atl-card-split { cursor: default; }
+.atl-card-build { cursor: default; }
+.atl-card-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.25rem; }
+.atl-card-name { font: inherit; font-size: 0.85rem; padding: 0.2rem 0.5rem; border: 1px solid var(--atl-line); border-radius: 6px; min-width: 12rem; flex: 1 1 12rem; }
 .atl-card-actions { margin-left: auto; display: inline-flex; gap: 0.4rem; }
 
 .atl-card {
@@ -162,9 +162,22 @@
 .atl-edge-declared { stroke: var(--atl-accent); stroke-dasharray: 6 4; }
 .atl-edge-unresolved { stroke: var(--atl-warn); stroke-dasharray: 2 4; }
 /* Three-level fade under a stage filter: mid = exactly one endpoint receded (the
-   cross-stage bleed, kept clearly present), ghost = both receded. Never hidden. */
-.atl-edge-bleed { opacity: 0.45; }
-.atl-edge-ghost { opacity: 0.22; }
+   cross-stage bleed, kept clearly present), ghost = both receded. Never hidden. The
+   levels and the in-focus emphasis are settings (system-view.md §10). */
+.atl-svg, .atl-key-swatch {
+    --atl-ghost-opacity: 0.14;
+    --atl-bleed-opacity: 0.32;
+    --atl-focus-stroke: 2.6;
+    --atl-focus-edge: 2.8;
+}
+.atl-edge-bleed { opacity: var(--atl-bleed-opacity); }
+.atl-edge-ghost { opacity: var(--atl-ghost-opacity); }
+/* Under a stage filter what is in focus steps forward a little: heavier outline, bolder
+   label, thicker line — so the contrast is carried by both sides, not by fading alone. */
+.atl-svg.is-filtered .atl-node:not(.atl-ghost) .atl-shape { stroke-width: var(--atl-focus-stroke); }
+.atl-svg.is-filtered .atl-node.atl-canonical:not(.atl-ghost) .atl-shape { stroke-width: calc(var(--atl-focus-stroke) + 1); }
+.atl-svg.is-filtered .atl-node:not(.atl-ghost) .atl-label { font-weight: 700; }
+.atl-svg.is-filtered .atl-edge:not(.atl-edge-bleed):not(.atl-edge-ghost) { stroke-width: var(--atl-focus-edge); }
 .atl-edge-hit { stroke: transparent; stroke-width: 14; cursor: pointer; }
 
 .atl-node { cursor: pointer; }
@@ -195,7 +208,7 @@ line.atl-selected { stroke-width: 4; }
 .atl-phantom .atl-shape { stroke: var(--atl-bad); stroke-dasharray: 2 3; fill: transparent; }
 .atl-phantom .atl-detail { stroke: var(--atl-bad); }
 .atl-canonical .atl-shape { stroke-width: 3; }
-.atl-ghost { opacity: 0.22; }
+.atl-ghost { opacity: var(--atl-ghost-opacity); }
 
 .atl-label {
     font-size: 13px;

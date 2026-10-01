@@ -220,7 +220,7 @@ export class PhysicsView {
         }).join('');
 
         this.host.innerHTML = `
-            <svg class="atl-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+            <svg class="atl-svg ${this.state.focus.size ? 'is-filtered' : ''}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
                 <g>${edgeSvg}</g>
                 <g>${edgeHitSvg}</g>
                 <g>${nodeSvg}</g>

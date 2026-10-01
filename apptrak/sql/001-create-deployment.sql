@@ -29,7 +29,7 @@ BEGIN
         Branch          nvarchar(50)    NULL,
         Deploymentat    datetimeoffset  NOT NULL,   -- pipeline's claim
         DetectedAt      datetimeoffset  NOT NULL,   -- StartAt of the detecting ping
-        HealthReportId  bigint          NOT NULL,   -- the raw evidence row
+        ReportId        bigint          NOT NULL,   -- the raw evidence row: health.HealthReport.Id
         PreviousId      bigint          NULL,       -- prior row for this endpoint
         SupersededAt    datetimeoffset  NULL,       -- set when the next row lands
         CreatedAt       datetimeoffset  NOT NULL CONSTRAINT DF_Deployment_CreatedAt DEFAULT (sysdatetimeoffset()),
@@ -37,5 +37,11 @@ BEGIN
     );
 
     CREATE INDEX IX_Deployment_Endpoint ON moveit.Deployment (EndpointId, DetectedAt DESC);
-    CREATE UNIQUE INDEX UX_Deployment_HealthReport ON moveit.Deployment (HealthReportId);
+    CREATE UNIQUE INDEX UX_Deployment_HealthReport ON moveit.Deployment (ReportId);
 END;
+GO
+
+-- Renamed HealthReportId -> ReportId (Robert, 2026-10-01). A table made before the rename
+-- is renamed in place; the unique index follows the column.
+IF COL_LENGTH('moveit.Deployment', 'HealthReportId') IS NOT NULL AND COL_LENGTH('moveit.Deployment', 'ReportId') IS NULL
+    EXEC sp_rename 'moveit.Deployment.HealthReportId', 'ReportId', 'COLUMN';

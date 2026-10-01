@@ -42,7 +42,7 @@ SET QUOTED_IDENTIFIER ON;   -- HealthReport carries indexes that refuse writes w
 -- ---------------------------------------------------------------------------------------
 
 -- ---- clean previous demo rows ----------------------------------------------------------
-DELETE FROM moveit.Deployment    WHERE HealthReportId IN (SELECT Id FROM health.HealthReport WHERE SessionId = 'demo-seed');
+DELETE FROM moveit.Deployment    WHERE ReportId IN (SELECT Id FROM health.HealthReport WHERE SessionId = 'demo-seed');
 DELETE FROM health.HealthReport  WHERE SessionId = 'demo-seed';
 DELETE FROM health.HealthEndpoint WHERE Tags = 'demo';
 IF OBJECT_ID('moveit.WorkItemLink', 'U') IS NOT NULL DELETE FROM moveit.WorkItemLink WHERE CreatedBy IN ('demo-seed', 'demo-manifest', 'demo-board');

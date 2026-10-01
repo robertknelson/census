@@ -19,7 +19,7 @@
 -- Project is NULL from backfill: HealthReport has no such column today. The live processor
 -- reads it from the payload.
 --
--- Idempotent: rows are keyed on HealthReportId (unique index), so re-running inserts nothing
+-- Idempotent: rows are keyed on ReportId (unique index), so re-running inserts nothing
 -- already present and only refreshes the back-pointers.
 
 SET NOCOUNT ON;
@@ -39,7 +39,7 @@ SET QUOTED_IDENTIFIER ON;
 )
 INSERT INTO moveit.Deployment
     (ApplicationId, EndpointId, Application, ReportedStage, Machine, Project, Version,
-     Build, BuildId, SourceVersion, Branch, Deploymentat, DetectedAt, HealthReportId)
+     Build, BuildId, SourceVersion, Branch, Deploymentat, DetectedAt, ReportId)
 SELECT q.ApplicationId, q.EndpointId, q.Application, q.Stage, q.Machine, NULL, q.Version,
        q.Build, q.BuildId, q.SourceVersion, NULLIF(q.Branch, ''), q.Deploymentat, q.StartAt, q.Id
 FROM q
@@ -50,7 +50,7 @@ WHERE (   q.pBuild IS NULL
        OR q.Deploymentat              <> q.pDeploymentat
        OR q.Machine                   <> q.pMachine
        OR ISNULL(q.Branch, '')        <> ISNULL(q.pBranch, ''))
-  AND NOT EXISTS (SELECT 1 FROM moveit.Deployment d WHERE d.HealthReportId = q.Id);
+  AND NOT EXISTS (SELECT 1 FROM moveit.Deployment d WHERE d.ReportId = q.Id);
 
 DECLARE @inserted int = @@ROWCOUNT;
 

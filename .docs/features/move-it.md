@@ -342,7 +342,7 @@ Observed evidence stays in `health`; assertions go in a new `moveit` schema —
 the observed/asserted line, drawn in SQL. *Amended 2026-09-17, Robert's call:*
 the ledger is `moveit.Deployment`, not `health.Deployment`. It is derived from
 `HealthReport` and owned by Move It, so it sits with Move It's other tables;
-observed-versus-asserted is the row's provenance (`HealthReportId`), not the
+observed-versus-asserted is the row's provenance (`ReportId`), not the
 schema it lives in. `health` stays untouched by this work.
 
 ### 10.1 First slice — `moveit.Deployment`, written by the report processor
@@ -385,7 +385,7 @@ CREATE TABLE moveit.Deployment (
     Branch          nvarchar(50)   NULL,
     Deploymentat    datetimeoffset NOT NULL,   -- pipeline's claim
     DetectedAt      datetimeoffset NOT NULL,   -- StartAt of the detecting ping
-    HealthReportId  bigint         NOT NULL,   -- the raw evidence row
+    ReportId        bigint         NOT NULL,   -- the raw evidence row (HealthReport.Id; renamed from HealthReportId 2026-10-01)
     PreviousId      bigint         NULL,       -- prior row for this endpoint
     SupersededAt    datetimeoffset NULL,       -- set when the next row lands
     CreatedAt       datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
@@ -395,14 +395,14 @@ CREATE INDEX IX_Deployment_Endpoint ON moveit.Deployment (EndpointId, DetectedAt
 ```
 
 `PreviousId` makes rollback a self-join (same Build as an earlier row for the
-endpoint). `HealthReportId` is the raw-evidence reference — the one Gemini
+endpoint). `ReportId` is the raw-evidence reference — the one Gemini
 column kept by name. `Project` is stored only because the payload is being
 opened anyway, and only verbatim. No `IsRollback` or any stored judgment:
 facts stored, judgments derived.
 
 **Backfill uses the same comparison.** A `LAG` over `HealthReport`
 partitioned by EndpointId, ordered by StartAt, yields identical rows from
-history, HealthReportId included. Two producers, one rule — simplest guarantee
+history, ReportId included. Two producers, one rule — simplest guarantee
 is running the live code path over history rather than writing the rule twice.
 
 **Resolved on real data 2026-09-17** (open item 1's history query): the rollback
@@ -573,7 +573,7 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 
 | File | For | Notes |
 |---|---|---|
-| `apptrak/sql/001-create-deployment.sql` | both | §10.1 table; unique on HealthReportId |
+| `apptrak/sql/001-create-deployment.sql` | both | §10.1 table; unique on ReportId |
 | `apptrak/sql/002-create-moveit-schema.sql` | both | §10.2 tables; no FKs, matching AppTrak |
 | `apptrak/sql/003-lookups.sql` | both | the four `core.SelectItem` lists (header + members), insert-only; the stage list is AppTrak's |
 | `apptrak/sql/backfill-deployment.sql` | both | **the rule**, in SQL; the live processor implements exactly this |

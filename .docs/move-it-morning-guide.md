@@ -160,7 +160,7 @@ arrives. From `sql/backfill-deployment.sql`'s header:
 3. Compare the whole tuple: `Build`, `BuildId`, `SourceVersion`, `Deploymentat`, `Machine`,
    `Branch`. Null-safe on the nullable ones.
 4. Any difference, or no previous row: insert a new row with `DetectedAt = StartAt` of the
-   report, `HealthReportId = the report's Id`, `PreviousId = the previous row's Id`, and set
+   report, `ReportId = the report's Id`, `PreviousId = the previous row's Id`, and set
    `SupersededAt = DetectedAt` on the previous row. Also write `Project` from the payload —
    the only field the backfill cannot supply.
 5. No difference: do nothing.

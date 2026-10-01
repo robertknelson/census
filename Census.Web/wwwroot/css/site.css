@@ -236,43 +236,6 @@ details summary {
     font-size: 0.85rem;
 }
 
-.census-trend {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.5rem;
-    height: 9rem;
-    padding-top: 0.5rem;
-}
-
-.census-trend-bar-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    height: 100%;
-    width: 2.5rem;
-}
-
-.census-trend-bar {
-    width: 100%;
-    background: #4a7ac2;
-    border-radius: 0.2rem 0.2rem 0 0;
-    min-height: 2px;
-}
-
-.census-trend-label {
-    margin-top: 0.3rem;
-    font-size: 0.75rem;
-    color: #888;
-}
-
-.census-trend-value {
-    margin-bottom: 0.15rem;
-    font-size: 0.7rem;
-    color: #aaa;
-    font-variant-numeric: tabular-nums;
-}
-
 .census-compare-controls {
     background: #fff;
     border: 1px solid #eee;
@@ -420,3 +383,34 @@ details summary {
     font-size: 0.85rem;
     padding: 0.15rem 0.3rem;
 }
+
+/* Prohibited hits per collected day, on a real calendar axis: columns shrink to fit any
+   range, capped at 24px; hatched slots are days nobody was collected; the grey strip under
+   the bars is how many machines were collected that day. */
+.census-trend2-host { position: relative; padding-top: 0.5rem; }
+.census-trend2-head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.census-trend2-ranges { display: inline-flex; border: 1px solid #d8dce3; border-radius: 0.4rem; overflow: hidden; }
+.census-trend2-range { border: 0; border-right: 1px solid #d8dce3; background: #fff; padding: 0.25rem 0.7rem; font: inherit; font-size: 0.85rem; cursor: pointer; color: #444; }
+.census-trend2-range:last-child { border-right: 0; }
+.census-trend2-range.is-active { background: #2b3a55; color: #fff; }
+.census-trend2 { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); row-gap: 0.3rem; }
+.census-trend2-axis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding-right: 0.5rem; font-size: 0.7rem; color: #999; font-variant-numeric: tabular-nums; }
+.census-trend2-axis.is-cov { justify-content: center; }
+.census-trend2-plot, .census-trend2-covs, .census-trend2-ticks { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); column-gap: 2px; }
+.census-trend2-plot { height: 9rem; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #ddd; }
+.census-trend2.is-dense .census-trend2-plot, .census-trend2.is-dense .census-trend2-covs { column-gap: 0; }
+.census-trend2-col { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 0; }
+.census-trend2-col.is-empty { background: repeating-linear-gradient(135deg, transparent 0 3px, #f1f1f1 3px 6px); }
+.census-trend2-col.is-hover { background-color: rgba(74, 122, 194, 0.1); }
+.census-trend2-bar { width: min(100%, 24px); background: #4a7ac2; border-radius: 4px 4px 0 0; }
+.census-trend2-col.is-hover .census-trend2-bar { background: #2f5ea8; }
+.census-trend2-zero { width: min(100%, 24px); height: 2px; background: #b8c7dd; }
+.census-trend2-value { position: absolute; top: -1.15rem; font-size: 0.7rem; color: #555; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.census-trend2-covs { height: 1.1rem; }
+.census-trend2-cov { display: flex; align-items: flex-end; justify-content: center; }
+.census-trend2-cov span { width: min(100%, 24px); background: #c9ced6; border-radius: 2px 2px 0 0; }
+.census-trend2-ticks { font-size: 0.7rem; color: #888; }
+.census-trend2-tick { white-space: nowrap; min-width: 0; }
+.census-trend2-tip { position: absolute; transform: translate(-50%, -100%); padding: 0.4rem 0.6rem; background: #1f2633; color: #fff; font-size: 0.78rem; line-height: 1.35; border-radius: 0.35rem; pointer-events: none; white-space: nowrap; z-index: 5; }
+.census-trend2-table { margin-top: 0.9rem; font-size: 0.85rem; }
+.census-trend2-table summary { cursor: pointer; color: #666; }

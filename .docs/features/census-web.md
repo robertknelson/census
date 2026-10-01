@@ -44,6 +44,30 @@ Not a machine list. The first thing anyone sees is: how many machines have a bla
 right now, broken out by severity, plus a trend line (hit count per day, last N days) so
 "are we getting better or worse" doesn't require squinting at a table.
 
+**The trend at 30+ days (2026-10-01, Robert: the old chart "doesn't really handle 30+
+days").** It drew a fixed 2.5rem column per collected day with a number and a date under
+every bar, so a month overflowed the panel. Now:
+- **A real calendar axis.** Every day in the range has a slot; a day nobody was collected
+  on is a hatched empty slot, never a zero (the controller's rule: no data is not zero
+  hits). Columns share the width and cap at 24px; past 150 days the 2px gaps drop.
+- **Range: 30 days (default) · 90 days · All**, ending today, so a stall in collection
+  shows as empty slots at the right edge.
+- **Labels only where they earn it:** the value at the peak and the latest day; date ticks
+  every day up to two weeks, Mondays up to two months, every other Monday up to four, then
+  month starts. Everything else is on hover (date, hits, machines with hits, machines
+  collected of total) and in **Show as a table**.
+- **Machines collected per day** as a grey strip under the bars (a second small chart on
+  the same x-axis, not a second y-axis). Total hits rises and falls with how many machines
+  reported that day; the strip keeps a low bar on a two-machine day from reading as an
+  improvement.
+- Verified in Chrome with 80 generated collected days over 121 (the demo tree has three):
+  30 days, 90 days and All fit the panel; tooltip and table read correctly.
+
+Open items: **per-machine rate** (hits ÷ machines collected) may be the better y-axis once
+real collection is uneven — the strip shows whether it is; **a weekly rollup** past about
+a year, where even gapless daily columns get under 2px wide; the trend still re-evaluates
+every snapshot on each load (fine at today's size).
+
 ### 3.2 Browse machines — latest snapshot
 
 A sortable/filterable list of every machine in `config/machines.json`, each row showing its

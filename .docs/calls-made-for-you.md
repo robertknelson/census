@@ -4,6 +4,14 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (last) — the rail stays live with a panel open (census-web §12.2)
+
+**The class legend and stage bar stay live too, not only the team rail.** Reason: all three
+make the board's scope; lifting one would make the other two close the panel.
+
+**A new scope choice clears the panel's "show fleet".** Reason: picking a team asks for
+that team; the escape belonged to the scope before.
+
 ## 2026-10-01 (latest) — Triage and Findings follow the board's scope (census-web §12.1)
 
 **Findings' owner chips removed.** Options: keep them beside the board scope; remove.

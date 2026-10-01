@@ -772,5 +772,24 @@ real estate.
 
 **Open items**
 - Whether Export CSV should offer a scoped export too (a query parameter on the endpoint).
-- Whether the rail should stay clickable with a panel open (rescope in place) instead of
-  closing it — the §12 intent; today the backdrop wins.
+- ~~Whether the rail should stay clickable with a panel open~~ — yes, §12.2.
+
+### 12.2 The scope controls stay live while a panel is open (2026-10-01, Robert: "make the rail stay clickable with a panel open")
+
+§12 meant a rail click to rescope the open panel; the backdrop covered the rail and closed
+the panel instead. Now, while a panel is open, the **team rail, the class legend and the
+stage bar sit above the backdrop** (undimmed, so they read as live) and a click on them
+rescopes the open fleet panel in place. Everything else under the backdrop still closes
+the panel on click.
+
+- **A new scope choice clears the panel's `show fleet`.** Picking a team is asking for that
+  team; the escape was for the previous scope.
+- The stage bar now refreshes the open panel too (it re-rendered only the canvas before).
+- Panels that are not fleet panels (a dossier, blast radius, baselines, prohibited) stay
+  open while the board changes underneath them.
+
+**Verified 2026-10-01 in Chrome on the demo fleet,** Findings open on *Unassigned · Web
+server*: *prod* → *Unassigned · WebServer · prod · 3 machines*, panel still open; Web
+server off and team-a on → *Unassigned · team-a · prod · 11 machines*; *show fleet*, then
+Unassigned off → *team-a · prod · 1 machine* (the escape cleared); a click on the dimmed
+board still closed the panel.

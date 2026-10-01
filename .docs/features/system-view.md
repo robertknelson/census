@@ -280,3 +280,13 @@ centre group both centred at 736 px; × hid the inspector and unlit its button; 
 MyWeb node reopened it on MyWeb; the Inspector button closed and reopened it; the key showed
 four boxed groups.
 
+## 13. The open view has a colour (2026-10-01, Robert: "subtly color the selected tab and synchronize the color with the Header title")
+
+One setting, `--atl-current` (#1d4fb5, a deeper shade of the accent so it does not read
+as an active filter chip): the selected tab takes it as text colour, a 2px top edge and a 7%
+tint; the toolbar's system name takes the same colour. Every other tab and the *+* stay
+neutral.
+
+**Verified 2026-10-01 in Chrome on the demo profile:** the selected tab's text and the
+toolbar title both computed to rgb(29, 79, 181); the *+* tab stayed black.
+

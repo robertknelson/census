@@ -311,6 +311,7 @@ class AtlasPage {
             </div>`;
         this.keycardEl.querySelector('[data-ref="key-close"]').addEventListener('click', () => {
             this.keyOpen = false;
+            this.toolbarEl.querySelector('[data-ref="key-toggle"]')?.classList.remove('is-on');
             this.saveLocal();
             this.renderKey();
         });
@@ -338,18 +339,30 @@ class AtlasPage {
         const tab = this.tab();
         const chips = graph.stages.map((s) => `
             <button class="atl-chip ${tab.stages.some((x) => x.toLowerCase() === s.toLowerCase()) ? 'is-active' : ''}" data-stage="${escapeHtml(s)}"><span class="atl-chip-dot" style="background:${stageColor(s)}"></span>${escapeHtml(s)}</button>`).join('');
+        // Four groups, each saying what it is (system-view.md §11): the system and its counts,
+        // the stage filter, the grouping switch, then the tab's tools. The "click opens
+        // details · drag pins" hint lives in the inspector's empty state.
+        const grouping = tab.grouping ?? 'canonical';
         this.toolbarEl.innerHTML = `
-            <span class="atl-mono">${escapeHtml(tab.system)}</span>
-            <span class="atl-key">stages</span>
-            <button class="atl-chip ${tab.stages.length === 0 ? 'is-active' : ''}" data-stage="">all</button>
-            ${chips}
-            <span class="atl-key">grouping</span>
-            <button class="atl-chip ${(tab.grouping ?? 'canonical') === 'canonical' ? 'is-active' : ''}" data-grouping="canonical" title="Variants sharing a canonical name collapse into one node">canonical</button>
-            <button class="atl-chip ${tab.grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" title="Every observed entity stays its own node">observed</button>
+            <div class="atl-tb-title">
+                <span class="atl-tb-system">${escapeHtml(tab.system)}</span>
+                <span class="atl-tb-stats">${graph.nodes.filter((n) => n.member).length} members · ${graph.edges.length} edges</span>
+            </div>
+            <div class="atl-tb-group" role="group" aria-label="Stages">
+                <span class="atl-tb-label">Stages</span>
+                <button class="atl-chip ${tab.stages.length === 0 ? 'is-active' : ''}" data-stage="">all</button>
+                ${chips}
+            </div>
+            <div class="atl-tb-group" role="group" aria-label="Grouping">
+                <span class="atl-tb-label">Grouping</span>
+                <span class="atl-seg">
+                    <button class="${grouping === 'canonical' ? 'is-active' : ''}" data-grouping="canonical" title="Members sharing a canonical name collapse into one node">Grouped</button>
+                    <button class="${grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" title="Every observed entity stays its own node">Every entity</button>
+                </span>
+            </div>
             <span class="atl-toolbar-right">
-                <button class="atl-btn" data-ref="key-toggle" title="Show or hide the key">Key</button>
+                <button class="atl-btn ${this.keyOpen ? 'is-on' : ''}" data-ref="key-toggle" title="Show or hide the key">Key</button>
                 <button class="atl-btn" data-ref="refetch" title="Re-read the graph">Refresh</button>
-                <span class="atl-muted">${graph.nodes.filter((n) => n.member).length} members · ${graph.edges.length} edges · click opens details · drag pins</span>
             </span>`;
         this.toolbarEl.querySelectorAll('[data-stage]').forEach((chip) => chip.addEventListener('click', () => {
             const stage = chip.dataset.stage;
@@ -376,8 +389,9 @@ class AtlasPage {
             this.graphs.delete(tab.id);
             this.openView();
         });
-        this.toolbarEl.querySelector('[data-ref="key-toggle"]').addEventListener('click', () => {
+        this.toolbarEl.querySelector('[data-ref="key-toggle"]').addEventListener('click', (e) => {
             this.keyOpen = !this.keyOpen;
+            e.currentTarget.classList.toggle('is-on', this.keyOpen);
             this.saveLocal();
             this.renderKey();
         });

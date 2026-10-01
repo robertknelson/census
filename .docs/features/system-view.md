@@ -240,3 +240,24 @@ so the live `config/views.demo.json` (in use at the time) was never written: MyW
 prod chip active, 6 nodes in focus at a 2.6 outline and 3 faded at 0.14; the key's bleed,
 ghost-edge and ghost-node swatches read 0.32 / 0.14 / 0.14.
 
+## 11. The toolbar reads in parts (2026-10-01, Robert: "right now it's kind of like a runon sentence")
+
+The row under the tabs was one line of equal-weight words — system, STAGES, chips, GROUPING,
+chips, Key, Refresh, counts, a usage hint. Now four parts:
+
+- **Title** — the system name, with *N members · N edges* small beneath it.
+- **Stages** — a labelled capsule holding *all* and the stage chips.
+- **Grouping** — a labelled capsule holding a two-way switch, **Grouped | Every entity**
+  (the builder's words, §9; the tab-name suffix matches).
+- **Key** and **Refresh** at the right; Key shows whether the key is open, and stays in
+  step when the key's own × closes it.
+
+The *click opens details · drag pins* hint is gone from the toolbar; the inspector's empty
+state already says it.
+
+**Verified 2026-10-01 in Chrome on the demo profile** (view saves stubbed; the live views
+file was in use): MyWeb at val read *MyWeb · 6 members · 7 edges*, *Stages* with val
+active, *Grouping* with Grouped active; *Every entity* redrew to 11 members · 9 edges and
+renamed the tab *MyWeb · every entity · val*; Key's state followed both the button and the
+key's ×.
+

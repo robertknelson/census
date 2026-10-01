@@ -4,6 +4,33 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (evening) — the four "what are we missing" slices, and the dashboard trend
+
+**Order: fixture check, needs-a-word, coverage, the week** — as recommended and ratified ("yes... go").
+
+**Fixture check is a PowerShell test like the collector tests, not xUnit.** Reason: the rules
+live in SQL files run verbatim; the house harness for live checks is `tests/Test-*.ps1`.
+It rebuilds the local demo database by default. Assertions name the rule they prove; link
+ids are matched by title because they change on every reseed.
+
+**Needs-a-word is derived in the page, not a new query.** Options: a question 14 in SQL; derive
+from 01/02/12/events in JS. Call: derive. Reason: every rule it uses already lives in a
+question; writing them again in SQL would make two places to change. Cost: the fixture check
+cannot see it. Thresholds are settings (`MoveIt:StaleDays` 14, `MoveIt:ComingDays` 60).
+It sits on History (the entrant's page), not Division.
+
+**Division's coverage gets its own cheap query.** 11 took 59 s on real data because of the
+last-good-ping scan, which the verdict never uses. `board/coverage.sql` is 11's rule without
+it; the fixture check asserts the two agree.
+
+**The week is the last seven days, prints, and sends nothing.** Options: Monday–Sunday;
+rolling seven days. Call: rolling, ending today. Reason: always current when opened.
+Mailing is yours to decide (open item).
+
+**Dashboard trend (your interjection): calendar axis, 30 / 90 / All, labels at peak and latest
+only, a machines-collected strip.** Reason in census-web.md §3.1. The y-axis stays total hits
+(the chart's name); a per-machine rate is an open item for when collection is uneven.
+
 ## 2026-10-01 (latest) — backfill run stamp, hold spans, and the §21 leans
 
 **Stamp in a table, a row per run.** Options: a column on `Deployment` (only changes have

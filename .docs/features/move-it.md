@@ -1705,6 +1705,47 @@ fixture check passes 26 with the new agreement assertion.
   counts as watched. Good enough for the executive; 11's second result set has the
   detail.
 
+## 25. The week — seven days of change on one printable page (2026-10-01, Robert: "go"; built and browser-verified the same day)
+
+The audience (§19) will not open the board. This page is what gets handed to them:
+`/moveit/week`, a tab after Division, read-only. **Nothing is sent from here** — it
+prints; who sees it is Robert's call.
+
+**The window:** the seven days ending today, *‹ Earlier* / *Later ›* by a week, never
+past today (`?end=YYYY-MM-DD` keeps a past week linkable).
+
+**What is on it,** each from rows the board already has (no new SQL):
+- **Six numbers:** releases that went live, moves to a new stage, rollbacks, holds and
+  abandonments, targets missed this week, targets due next week.
+- **Went live** — a release's *first* arrival at the top stage (any build it claims,
+  or `deployed-asserted`, marked *as recorded*); if it has since fallen back, it says
+  *since rolled back, now DEV*. Redeploys are not news; only firsts count.
+- **Moved forward** — first arrival at any lower stage.
+- **Went wrong** — rollbacks (the release that was pulled, the build replaced and the
+  older build put back), holds with their reason, abandonments; in date order.
+- **Signed off or resumed** — approved, verified, resumed.
+- **Targets** — missed this week (still not live, with where it is now) and due next.
+- **Newly heard** — Coming items recorded this week, with their note.
+- **The ledger line** when the week runs past the last backfill (*recorded through
+  Sun, Sep 13: anything after is not in this page yet*), and the coverage sentence
+  (§24) at the foot.
+
+**Print:** tabs and buttons drop, the lists run two to a row, sections do not split.
+
+**Verified 2026-10-01 in Chrome on the fixtures.** Week ending Aug 31: Sprint 43 went
+live Aug 29, *since rolled back, now DEV*; Q4 statements reached DEV (as recorded);
+went wrong in order — Reporting refresh rolled back Aug 26 (20260720.2 replaced by
+20260701.1), Reporting refresh on hold Aug 27, Sprint 43 rolled back Aug 30, Sprint 43
+on hold Aug 31; Sprint 43 signed off Aug 29; Sprint 43 due Sep 1. This week (Sep 25 –
+Oct 1): the ledger line, Q4 letters missed Sep 29 (now UAT), *Later* disabled. The
+print layout was not seen (the print dialog was not opened).
+
+**Open items for this section**
+- **Mailing it.** The page prints; a scheduled email is a write to the outside world
+  and Robert's call, not built.
+- **A Monday-to-Sunday week** instead of the last seven days, if the readers think in
+  calendar weeks.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

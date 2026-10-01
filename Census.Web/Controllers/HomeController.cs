@@ -63,6 +63,14 @@ public class HomeController : Controller
         return View();
     }
 
+    // The week (move-it.md §25): seven days of change on one printable page. Read-only.
+    [HttpGet("/moveit/week")]
+    public IActionResult MoveItWeek([FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
+        return View();
+    }
+
     // Calendar (move-it.md §21): when builds reached each stage, what people recorded, and
     // when releases were due, on a month grid. Read-only.
     [HttpGet("/moveit/calendar")]

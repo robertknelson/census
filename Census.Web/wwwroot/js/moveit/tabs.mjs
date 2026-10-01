@@ -3,6 +3,7 @@
 // all of it on dates.
 const TABS = [
     { id: 'division', label: 'Division', href: '/moveit/division' },
+    { id: 'week', label: 'The week', href: '/moveit/week' },
     { id: 'board', label: 'Where is it', href: '/moveit' },
     { id: 'history', label: 'History', href: '/moveit/history' },
     { id: 'calendar', label: 'Calendar', href: '/moveit/calendar' },

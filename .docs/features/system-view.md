@@ -290,3 +290,22 @@ neutral.
 **Verified 2026-10-01 in Chrome on the demo profile:** the selected tab's text and the
 toolbar title both computed to rgb(29, 79, 181); the *+* tab stayed black.
 
+## 14. Every entity is a mark, not words (2026-10-01, Robert: "come up with an SVG to represent EVERY ENTITY, because the tab could become too long")
+
+Supersedes the name suffix of §9–10. A tab drawn every-entity carries a **four-dot mark**
+(four separate dots — each observed thing its own node) before its name, with a hover title;
+grouped tabs carry none, grouped being the default. The same mark leads the builder's
+*Open every entity* button and the toolbar switch's *Every entity*, so it is learned where
+it is chosen.
+
+- Builder-given names are now the system and starting stages only (*MyWeb · prod/val*);
+  flipping the grouping no longer renames a tab — the mark changes instead.
+- A saved name in the old form (*MyWeb · every entity · val*) is still the builder's: it is
+  read as automatic and shortened to *MyWeb · val* when the views load, and saved in that
+  form the next time anything is saved.
+
+**Verified 2026-10-01 in Chrome on the demo profile** (view saves stubbed): the saved tab
+*MyWeb · every entity* showed as the mark + *MyWeb*; flipping to Grouped removed the mark
+and kept the name; flipping back restored it; the builder's *Open every entity* carried
+the mark.
+

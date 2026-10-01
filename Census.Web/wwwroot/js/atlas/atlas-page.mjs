@@ -16,13 +16,23 @@ const STRATEGIES = {
     physics: { label: 'Physics graph', make: (onSelect, onPositions) => new PhysicsView(onSelect, onPositions) },
 };
 
-// The name the builder gives (system-view.md §9–10): the system, then what differs from the
-// default — every entity rather than grouped, and the starting stages — so two tabs of one
-// system read apart. A name someone typed is never rewritten.
-function tabName(system, grouping, stages = []) {
-    return [system, grouping === 'observed' ? 'every entity' : null, stages.length ? stages.join('/') : null]
-        .filter(Boolean).join(' · ');
+// The name the builder gives (system-view.md §9–10, §14): the system, then the starting
+// stages. Every-entity grouping is shown by EVERY_ICON on the tab, not spelled into the name,
+// so tabs stay short. A name someone typed is never rewritten.
+function tabName(system, stages = []) {
+    return [system, stages.length ? stages.join('/') : null].filter(Boolean).join(' · ');
 }
+
+// The §9 names spelled the grouping out (*MyWeb · every entity · val*). Such a saved name is
+// still the builder's, so it is read as automatic and shortened when the views load.
+function legacyTabName(system, stages = []) {
+    return [system, 'every entity', stages.length ? stages.join('/') : null].filter(Boolean).join(' · ');
+}
+
+// Every entity, ungrouped: four separate dots — each observed thing its own node (§14).
+const EVERY_ICON = `<svg class="atl-every" viewBox="0 0 16 16" aria-hidden="true">
+    <circle cx="4.5" cy="4.5" r="2.3"></circle><circle cx="11.5" cy="4.5" r="2.3"></circle>
+    <circle cx="4.5" cy="11.5" r="2.3"></circle><circle cx="11.5" cy="11.5" r="2.3"></circle></svg>`;
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -53,7 +63,8 @@ class AtlasPage {
                 views = stored.tabs;
                 await saveViews({ version: 1, views });
             }
-            this.tabs = views;
+            this.tabs = views.map((t) => t.grouping === 'observed' && t.name === legacyTabName(t.system, t.stages)
+                ? { ...t, name: tabName(t.system, t.stages) } : t);
         } catch (err) {
             this.mainEl.innerHTML = `<p class="atl-status atl-error">${escapeHtml(err.message)}</p>`;
             return;
@@ -114,8 +125,8 @@ class AtlasPage {
     renderTabs() {
         this.tabsEl.innerHTML = [
             ...this.tabs.map((t) => `
-                <button class="atl-tab ${this.active === t.id ? 'is-active' : ''}" data-tab="${escapeHtml(t.id)}">
-                    ${escapeHtml(t.name)}
+                <button class="atl-tab ${this.active === t.id ? 'is-active' : ''}" data-tab="${escapeHtml(t.id)}"${t.grouping === 'observed' ? ' title="Every entity — nothing grouped by canonical name"' : ''}>
+                    ${t.grouping === 'observed' ? EVERY_ICON : ''}${escapeHtml(t.name)}
                     <span class="atl-tab-x" data-close="${escapeHtml(t.id)}" title="Close this view">×</span>
                 </button>`),
             `<button class="atl-tab ${this.active === 'builder' ? 'is-active' : ''}" data-tab="builder" title="Build a new view">+</button>`,
@@ -174,11 +185,11 @@ class AtlasPage {
                 <span class="atl-card-row">
                     ${r.stagesInUse.length ? `<span class="atl-key">start at</span>
                         ${r.stagesInUse.map((st) => `<button class="atl-chip" data-start-stage="${escapeHtml(st)}" title="Open with ${escapeHtml(st)} in focus; the rest stay drawn, faded"><span class="atl-chip-dot" style="background:${stageColor(st)}"></span>${escapeHtml(st)}</button>`).join('')}` : ''}
-                    <input class="atl-card-name" data-ref="name" placeholder="${escapeHtml(tabName(r.name, 'canonical'))}" aria-label="Tab name (optional)" title="Tab name — leave empty to name it for you">
+                    <input class="atl-card-name" data-ref="name" placeholder="${escapeHtml(tabName(r.name))}" aria-label="Tab name (optional)" title="Tab name — leave empty to name it for you">
                     <span class="atl-card-actions">
                         ${r.canonicalNameCount
                             ? `<button class="atl-btn" data-grouping="canonical" title="Members sharing a canonical name collapse into one node">Open grouped</button>
-                               <button class="atl-btn" data-grouping="observed" title="Every observed entity stays its own node">Open every entity</button>`
+                               <button class="atl-btn" data-grouping="observed" title="Every observed entity stays its own node">${EVERY_ICON}Open every entity</button>`
                             : '<button class="atl-btn" data-grouping="canonical">Open</button>'}
                     </span>
                 </span>
@@ -196,14 +207,14 @@ class AtlasPage {
             const picked = () => [...el.querySelectorAll('[data-start-stage].is-active')].map((b) => b.dataset.startStage);
             el.querySelectorAll('[data-start-stage]').forEach((chip) => chip.addEventListener('click', () => {
                 chip.classList.toggle('is-active');
-                nameEl.placeholder = tabName(system, 'canonical', picked());
+                nameEl.placeholder = tabName(system, picked());
             }));
             el.querySelectorAll('[data-grouping]').forEach((btn) => btn.addEventListener('click', () => {
                 const grouping = btn.dataset.grouping;
                 const stages = picked();
                 const tab = {
                     id: `t${(this.tabs.length + 1)}-${system.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-                    name: nameEl.value.trim() || tabName(system, grouping, stages),
+                    name: nameEl.value.trim() || tabName(system, stages),
                     system,
                     stages,               // empty = all stages
                     strategy: 'physics',
@@ -360,7 +371,7 @@ class AtlasPage {
                 <span class="atl-tb-label">Grouping</span>
                 <span class="atl-seg">
                     <button class="${grouping === 'canonical' ? 'is-active' : ''}" data-grouping="canonical" title="Members sharing a canonical name collapse into one node">Grouped</button>
-                    <button class="${grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" title="Every observed entity stays its own node">Every entity</button>
+                    <button class="${grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" title="Every observed entity stays its own node">${EVERY_ICON}Every entity</button>
                 </span>
             </div>
             </div>
@@ -371,19 +382,18 @@ class AtlasPage {
             </span>`;
         this.toolbarEl.querySelectorAll('[data-stage]').forEach((chip) => chip.addEventListener('click', () => {
             const stage = chip.dataset.stage;
-            const auto = tab.name === tabName(tab.system, tab.grouping ?? 'canonical', tab.stages);
+            const auto = tab.name === tabName(tab.system, tab.stages);
             if (stage === '') tab.stages = [];
             else if (tab.stages.some((x) => x.toLowerCase() === stage.toLowerCase())) tab.stages = tab.stages.filter((x) => x.toLowerCase() !== stage.toLowerCase());
             else tab.stages.push(stage);
-            if (auto) tab.name = tabName(tab.system, tab.grouping ?? 'canonical', tab.stages);
+            if (auto) tab.name = tabName(tab.system, tab.stages);
             this.renderTabs();
             this.persistViews();
             this.openView();
         }));
         this.toolbarEl.querySelectorAll('[data-grouping]').forEach((chip) => chip.addEventListener('click', () => {
             if ((tab.grouping ?? 'canonical') === chip.dataset.grouping) return;
-            // A name the builder gave follows the flip; a name someone typed is theirs.
-            if (tab.name === tabName(tab.system, tab.grouping ?? 'canonical', tab.stages)) tab.name = tabName(tab.system, chip.dataset.grouping, tab.stages);
+            // The name does not change: the tab's icon shows the grouping (§14).
             tab.grouping = chip.dataset.grouping;
             this.renderTabs();
             this.graphs.delete(tab.id);

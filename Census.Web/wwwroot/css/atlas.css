@@ -57,6 +57,8 @@
     font-weight: 600;
 }
 .atl-tab-x { margin-left: 0.4rem; color: var(--atl-muted); }
+/* The every-entity mark (system-view.md §14): on a tab, the builder button and the switch. */
+.atl-every { width: 0.85em; height: 0.85em; margin-right: 0.35em; vertical-align: -0.08em; fill: currentColor; opacity: 0.75; }
 .atl-tab-x:hover { color: var(--atl-bad); }
 
 /* Three columns (system-view.md §12): the title left, the view's controls centred across the

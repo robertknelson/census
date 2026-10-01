@@ -261,3 +261,22 @@ active, *Grouping* with Grouped active; *Every entity* redrew to 11 members · 9
 renamed the tab *MyWeb · every entity · val*; Key's state followed both the button and the
 key's ×.
 
+## 12. Centred controls, a closable inspector, a grouped key (2026-10-01, Robert)
+
+- **The toolbar is three columns** — title left, *Stages* and *Grouping* centred across the
+  page together, tools right. The side columns share the leftover width equally, so the
+  centre stays centred whatever the system name's length. On the builder and registry the
+  empty toolbar strip no longer shows.
+- **The inspector has a ×** in both its empty and filled states; it closes the panel (and
+  clears the selection). A toolbar **Inspector** button beside *Key* reopens it, and
+  **selecting a node or edge reopens it** — a click must always show its details, which
+  keeps the 2026-08-25 call ("visibility must not depend on discovering the click").
+  Open/closed is remembered per browser, like the key.
+- **The key's four parts are boxed** — kind, stages, state, connections each in a labelled
+  box, the toolbar's capsules turned on end.
+
+**Verified 2026-10-01 in Chrome on the demo profile** (view saves stubbed): toolbar and
+centre group both centred at 736 px; × hid the inspector and unlit its button; clicking the
+MyWeb node reopened it on MyWeb; the Inspector button closed and reopened it; the key showed
+four boxed groups.
+

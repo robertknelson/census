@@ -4,6 +4,15 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (night, Atlas 2) — closable inspector (system-view §12)
+
+**Selecting reopens a closed inspector.** Options: stay closed until the Inspector button;
+reopen on selection. Call: reopen. Reason: your 08-25 call — a click must show its details
+without discovering anything first. Closing is for clearing the canvas, not muting clicks.
+
+**One × for both states.** It closes the panel and clears the selection; there is no
+separate "clear selection" any more. Reason: two × with different meanings in one panel.
+
 ## 2026-10-01 (night, Atlas) — builder form and stage focus (system-view §9–10)
 
 **Builder cards stopped being one big button.** Options: keep click-the-card and add a

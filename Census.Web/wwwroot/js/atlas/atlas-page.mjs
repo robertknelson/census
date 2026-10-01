@@ -42,6 +42,7 @@ class AtlasPage {
 
     async bootstrap(stored) {
         this.keyOpen = stored.keyOpen ?? true;
+        this.inspectorOpen = stored.inspectorOpen ?? true;
         this.mainEl.innerHTML = '<p class="atl-status">Reading the views…</p>';
         try {
             let views = (await fetchViews()).views ?? [];
@@ -62,7 +63,7 @@ class AtlasPage {
     }
 
     saveLocal() {
-        localStorage.setItem(LOCAL_KEY, JSON.stringify({ active: this.active, keyOpen: this.keyOpen }));
+        localStorage.setItem(LOCAL_KEY, JSON.stringify({ active: this.active, keyOpen: this.keyOpen, inspectorOpen: this.inspectorOpen }));
     }
 
     async persistViews() {
@@ -244,7 +245,8 @@ class AtlasPage {
         this.mainEl.innerHTML = '<div class="atl-canvas" data-ref="canvas"></div>';
         const strategy = STRATEGIES[tab.strategy] ?? STRATEGIES.physics;
         this.view = strategy.make(
-            (selection) => { this.selection = selection; this.renderInspector(); },
+            // Selecting reopens a closed inspector: a click must always show its details.
+            (selection) => { this.selection = selection; if (selection) this.inspectorOpen = true; this.renderInspector(); },
             // Merge, never replace: canonical and observed nodes have disjoint ids, so one
             // map holds both modes' layouts and shared neighbors keep their spots across a flip.
             (positions) => { tab.positions = { ...tab.positions, ...positions }; this.persistViews(); },
@@ -348,6 +350,7 @@ class AtlasPage {
                 <span class="atl-tb-system">${escapeHtml(tab.system)}</span>
                 <span class="atl-tb-stats">${graph.nodes.filter((n) => n.member).length} members · ${graph.edges.length} edges</span>
             </div>
+            <div class="atl-tb-center">
             <div class="atl-tb-group" role="group" aria-label="Stages">
                 <span class="atl-tb-label">Stages</span>
                 <button class="atl-chip ${tab.stages.length === 0 ? 'is-active' : ''}" data-stage="">all</button>
@@ -360,8 +363,10 @@ class AtlasPage {
                     <button class="${grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" title="Every observed entity stays its own node">Every entity</button>
                 </span>
             </div>
+            </div>
             <span class="atl-toolbar-right">
                 <button class="atl-btn ${this.keyOpen ? 'is-on' : ''}" data-ref="key-toggle" title="Show or hide the key">Key</button>
+                <button class="atl-btn ${this.inspectorOpen ? 'is-on' : ''}" data-ref="inspector-toggle" title="Show or hide the inspector">Inspector</button>
                 <button class="atl-btn" data-ref="refetch" title="Re-read the graph">Refresh</button>
             </span>`;
         this.toolbarEl.querySelectorAll('[data-stage]').forEach((chip) => chip.addEventListener('click', () => {
@@ -389,6 +394,12 @@ class AtlasPage {
             this.graphs.delete(tab.id);
             this.openView();
         });
+        this.toolbarEl.querySelector('[data-ref="inspector-toggle"]').addEventListener('click', () => {
+            if (this.inspectorOpen) return this.closeInspector();
+            this.inspectorOpen = true;
+            this.saveLocal();
+            this.renderInspector();
+        });
         this.toolbarEl.querySelector('[data-ref="key-toggle"]').addEventListener('click', (e) => {
             this.keyOpen = !this.keyOpen;
             e.currentTarget.classList.toggle('is-on', this.keyOpen);
@@ -399,16 +410,19 @@ class AtlasPage {
 
     // --- the inspector ---------------------------------------------------------------------
 
-    /// Persistent while a view is open (his 2026-08-25 field call — visibility must not
-    /// depend on discovering the click): empty state until a selection fills it.
+    /// Open while a view is open (his 2026-08-25 field call — visibility must not depend on
+    /// discovering the click), empty until a selection fills it. Its × closes it (2026-10-01,
+    /// system-view.md §12); the toolbar's Inspector button or any selection brings it back.
     renderInspector() {
         const viewOpen = this.active !== 'builder' && this.active !== 'registry' && !!this.tab();
-        this.inspectorEl.hidden = !viewOpen;
-        if (!viewOpen) return;
+        this.inspectorEl.hidden = !viewOpen || !this.inspectorOpen;
+        this.toolbarEl.querySelector('[data-ref="inspector-toggle"]')?.classList.toggle('is-on', this.inspectorOpen);
+        if (this.inspectorEl.hidden) return;
         if (!this.selection) {
             this.inspectorEl.innerHTML = `
-                <div class="atl-card-head"><span class="atl-key">inspector</span></div>
+                <div class="atl-card-head"><span class="atl-key">inspector</span><button class="atl-btn" data-ref="close" title="Close the inspector">×</button></div>
                 <p class="atl-muted">Nothing selected — click a node or edge for its details. Dragging pins instead of selecting.</p>`;
+            this.bindInspectorClose();
             return;
         }
         const { type, item } = this.selection;
@@ -434,7 +448,7 @@ class AtlasPage {
             this.inspectorEl.innerHTML = `
                 <div class="atl-card-head">
                     <span class="atl-mono">${escapeHtml(item.name)}</span>
-                    <button class="atl-btn" data-ref="close">×</button>
+                    <button class="atl-btn" data-ref="close" title="Close the inspector">×</button>
                 </div>
                 <div class="atl-row"><span class="atl-badge ${item.declared ? 'atl-badge-declared' : ''}">${escapeHtml(item.kind)}</span>
                     ${item.canonical ? `<span class="atl-badge">canonical · ${item.variants.length} variant${item.variants.length === 1 ? '' : 's'}</span>` : ''}
@@ -458,7 +472,7 @@ class AtlasPage {
             this.inspectorEl.innerHTML = `
                 <div class="atl-card-head">
                     <span class="atl-mono">${escapeHtml(item.name ?? 'edge')}</span>
-                    <button class="atl-btn" data-ref="close">×</button>
+                    <button class="atl-btn" data-ref="close" title="Close the inspector">×</button>
                 </div>
                 <div class="atl-row"><span class="atl-badge">${escapeHtml(item.verdict)}</span><span class="atl-muted">${escapeHtml(item.kind)} edge</span></div>
                 <div class="atl-row atl-kv"><span class="atl-key">from</span><span class="atl-mono">${escapeHtml(end(item.sourceId))}</span></div>
@@ -466,11 +480,19 @@ class AtlasPage {
                 ${item.sourceFile ? `<div class="atl-row atl-kv"><span class="atl-key">seen in</span><span class="atl-mono">${escapeHtml(item.sourceFile)}</span></div>` : ''}
                 ${item.detail ? `<div class="atl-muted">${escapeHtml(item.detail)}</div>` : ''}`;
         }
-        this.inspectorEl.querySelector('[data-ref="close"]')?.addEventListener('click', () => {
-            this.selection = null;
-            this.view?.setSelected?.(null);
-            this.renderInspector();
-        });
+        this.bindInspectorClose();
+    }
+
+    bindInspectorClose() {
+        this.inspectorEl.querySelector('[data-ref="close"]').addEventListener('click', () => this.closeInspector());
+    }
+
+    closeInspector() {
+        this.selection = null;
+        this.view?.setSelected?.(null);
+        this.inspectorOpen = false;
+        this.saveLocal();
+        this.renderInspector();
     }
 }
 

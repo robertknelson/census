@@ -50,17 +50,23 @@
 .atl-tab-x { margin-left: 0.4rem; color: var(--atl-muted); }
 .atl-tab-x:hover { color: var(--atl-bad); }
 
+/* Three columns (system-view.md §12): the title left, the view's controls centred across the
+   page, the tab's tools right — the side columns share the leftover width equally, so the
+   centre stays centred whatever the title's length. */
 .atl-toolbar {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: 0.5rem 0.75rem;
     padding: 0.45rem 1rem;
     border-bottom: 1px solid var(--atl-line);
     background: var(--atl-panel);
     min-height: 2.4rem;
-    flex-wrap: wrap;
 }
-.atl-toolbar-right { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; }
+.atl-toolbar:empty { display: none; }
+.atl-toolbar-right { justify-self: end; display: flex; gap: 0.5rem; align-items: center; }
+.atl-tb-center { display: flex; gap: 0.75rem; align-items: center; justify-content: center; flex-wrap: wrap; }
+.atl-tb-title { justify-self: start; }
 
 /* The toolbar's groups (system-view.md §11): a title, then each control in its own
    labelled capsule, so the row reads as parts rather than one run-on line. */
@@ -261,9 +267,15 @@ line.atl-selected { stroke-width: 4; }
 .atl-key-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 /* Vertical (his 2026-08-25 call): browsers are wide, the graph wants the width —
    a tall narrow card on the left costs the least canvas. */
-.atl-key-groups { display: flex; flex-direction: column; gap: 0.6rem; }
-.atl-key-groups > div { display: flex; flex-direction: column; gap: 0.15rem; }
-.atl-key-ghead { color: var(--atl-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.1rem; }
+/* Each part of the key sits in its own labelled box, the toolbar's capsules turned on end
+   (system-view.md §12): kind, stages, state, connections read as four groups. */
+.atl-key-groups { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.4rem; }
+.atl-key-groups > div {
+    display: flex; flex-direction: column; gap: 0.15rem;
+    padding: 0.45rem 0.6rem 0.5rem;
+    border: 1px solid var(--atl-line); border-radius: 8px; background: var(--atl-bg);
+}
+.atl-key-ghead { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--atl-muted); margin-bottom: 0.15rem; }
 .atl-key-row { display: flex; align-items: center; gap: 0.45rem; }
 .atl-key-swatch { width: 26px; height: 22px; flex: 0 0 auto; }
 .atl-key-mark { width: 26px; text-align: center; flex: 0 0 auto; font-size: 0.78rem; }

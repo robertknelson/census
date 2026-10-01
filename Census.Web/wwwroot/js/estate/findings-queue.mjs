@@ -87,7 +87,7 @@ export class FindingsQueue {
                 <div class="est-q-filter-row est-q-export-row">
                     <input class="est-filter" type="search" placeholder="Filter findings…"
                            value="${escapeHtml(this.state.query)}" data-ref="query">
-                    <a class="est-btn est-btn-sm" href="/api/export/compliance.csv${this.asOf ? `?asOf=${encodeURIComponent(this.asOf)}` : ''}" download title="Full compliance state, one row per machine-finding — audit evidence${this.asOf ? ` as of ${escapeHtml(this.asOf)}` : ''}">Export CSV (whole fleet)</a>
+                    ${this.exportLinks()}
                 </div>
             </div>
             <ul class="est-queue" data-ref="list"></ul>`;
@@ -107,6 +107,23 @@ export class FindingsQueue {
         });
 
         this.renderList();
+    }
+
+    // Whole fleet always (it is audit evidence); the scope too while one is active
+    // (census-web.md §12.3), so the export can match what the panel shows.
+    exportLinks() {
+        const link = (machines, label, title) => {
+            const params = new URLSearchParams();
+            if (this.asOf) params.set('asOf', this.asOf);
+            if (machines) params.set('machines', [...machines].join(','));
+            const query = params.toString();
+            return `<a class="est-btn est-btn-sm" href="/api/export/compliance.csv${query ? `?${query}` : ''}" download title="${escapeHtml(title)}${this.asOf ? ` as of ${escapeHtml(this.asOf)}` : ''}">${escapeHtml(label)}</a>`;
+        };
+        const scope = this.scope.active();
+        return [
+            scope ? link(scope.machines, `Export CSV (${scope.label})`, `Compliance state for the ${scope.machines.size} machines in scope, one row per machine-finding`) : '',
+            link(null, 'Export CSV (whole fleet)', 'Full compliance state, one row per machine-finding — audit evidence'),
+        ].join('');
     }
 
     renderList() {

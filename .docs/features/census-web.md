@@ -771,7 +771,7 @@ low 1) against 22 fleet-wide; no owner chips; *Export CSV (whole fleet)*. Not se
 real estate.
 
 **Open items**
-- Whether Export CSV should offer a scoped export too (a query parameter on the endpoint).
+- ~~Whether Export CSV should offer a scoped export too~~ — yes, §12.3.
 - ~~Whether the rail should stay clickable with a panel open~~ — yes, §12.2.
 
 ### 12.2 The scope controls stay live while a panel is open (2026-10-01, Robert: "make the rail stay clickable with a panel open")
@@ -793,6 +793,18 @@ server*: *prod* → *Unassigned · WebServer · prod · 3 machines*, panel still
 server off and team-a on → *Unassigned · team-a · prod · 11 machines*; *show fleet*, then
 Unassigned off → *team-a · prod · 1 machine* (the escape cleared); a click on the dimmed
 board still closed the panel.
+
+### 12.3 The export follows the scope too (2026-10-01, Robert: "get everything done")
+
+While the Findings panel is scoped, a second button sits beside the fleet export:
+**Export CSV (*scope label*)** — `/api/export/compliance.csv?machines=A,B,…`, the same CSV
+cut to the machines in scope. **Export CSV (whole fleet)** stays, unchanged, because it is
+the audit evidence; `show fleet` leaves only it. The endpoint without `machines` behaves
+exactly as before.
+
+**Verified 2026-10-01 on the demo profile:** the fleet CSV had 41 rows over 17 machines;
+`?machines=WEB01,WEB02` had 7 rows over those two; Findings scoped to Web server offered
+*Export CSV (WebServer)* (six machines) and *Export CSV (whole fleet)*.
 
 ## 13. Web addresses resolve through IIS bindings (2026-10-01, Robert: "spec it, go")
 

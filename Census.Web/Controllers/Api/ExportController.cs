@@ -17,8 +17,13 @@ namespace Census.Web.Controllers.Api;
 public class ExportController(CensusStore censusStore, AssetsStore assetsStore, FindingsEngine findingsEngine, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator) : ControllerBase
 {
     [HttpGet("compliance.csv")]
-    public IActionResult GetComplianceCsv([FromQuery] string asOf)
+    public IActionResult GetComplianceCsv([FromQuery] string asOf, [FromQuery] string machines)
     {
+        // The board's scope, when the Findings panel is scoped (census-web.md §12.3): a
+        // comma-separated machine list; absent means the whole fleet, as before.
+        var only = string.IsNullOrWhiteSpace(machines) ? null
+            : new HashSet<string>(machines.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries), StringComparer.OrdinalIgnoreCase);
+
         DateOnly? asOfDate = null;
         if (asOf is not null)
         {
@@ -38,6 +43,7 @@ public class ExportController(CensusStore censusStore, AssetsStore assetsStore, 
             .Concat(censusStore.GetMachinesConfig().Names)
             .Concat(assets.Assets.Keys)
             .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(m => only is null || only.Contains(m))
             .OrderBy(m => m, StringComparer.OrdinalIgnoreCase)
             .ToList();
 

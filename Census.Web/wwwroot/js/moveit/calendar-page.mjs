@@ -73,6 +73,7 @@ class CalendarPage {
                     <li><span class="cal-flag">⚑</span>due</li>
                     <li><span class="cal-flag is-missed">⚑</span>due, not live</li>
                     <li>↺ rolled back</li>
+                    <li><span class="cal-hold-key"></span>on hold</li>
                 </ul>
             </div>
             <p class="cal-recorded" data-ref="recorded" hidden></p>
@@ -113,7 +114,8 @@ class CalendarPage {
 
         const recorded = rows.find((r) => r.Kind === 'recorded-through');
         this.recordedKey = recorded?.At ? dayKey(new Date(recorded.At)) : null;
-        this.recordedAt = recorded?.At ?? null;
+        this.recorded = recorded ?? null;
+        this.holds = this.holdSpans(rows.filter((r) => r.Kind === 'event'));
 
         // A target is the planned PROD date (002), so it shows under All and the top stage.
         // An abandoned release is not due anywhere.
@@ -166,6 +168,31 @@ class CalendarPage {
         if (this.selected) this.openDetail(this.selected);
     }
 
+    // A hold runs from its day until the release's next resume or abandon; one never lifted
+    // runs through today (02's on-hold rule). A second hold while held changes nothing.
+    holdSpans(events) {
+        const spans = [];
+        const open = new Map();
+        for (const e of [...events].sort((a, b) => a.At.localeCompare(b.At))) {
+            const held = open.get(e.ReleaseId);
+            if (e.EventKind === 'hold' && !held) {
+                const span = { ApplicationId: e.ApplicationId, Stage: e.Stage, Release: e.Release, from: e.At, to: null, reason: e.Note };
+                open.set(e.ReleaseId, span);
+                spans.push(span);
+            } else if ((e.EventKind === 'resumed' || e.EventKind === 'abandoned') && held) {
+                held.to = e.At;
+                held.ended = e.EventKind;
+                open.delete(e.ReleaseId);
+            }
+        }
+        return spans.map((h) => ({ ...h, fromKey: dayKey(new Date(h.from)), toKey: h.to ? dayKey(new Date(h.to)) : null }));
+    }
+
+    holdsOn(key) {
+        return this.holds.filter((h) => key >= h.fromKey && (h.toKey ? key < h.toKey : key <= this.todayKey)
+            && this.passes({ ...h, Kind: 'event' }));
+    }
+
     // Unstaged events (a hold, a resume) belong to the release, not a stage: All only.
     passes(e) {
         if (this.app != null && e.ApplicationId !== this.app) return false;
@@ -208,16 +235,21 @@ class CalendarPage {
             this.recordedEl.innerHTML = 'The ledger is empty: the backfill has not run, or no endpoint sends a deployment block yet.';
             return;
         }
-        const when = new Date(this.recordedAt).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        const date = (iso) => new Date(iso).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        const r = this.recorded;
         this.recordedEl.hidden = false;
-        this.recordedEl.innerHTML = `<strong>Last change recorded ${escapeHtml(when)}.</strong>
-            The ledger is filled by running the backfill by hand, so the shaded days after it are either quiet or not yet backfilled.`;
+        this.recordedEl.innerHTML = r.Source === 'backfill'
+            ? `<strong>Recorded through ${escapeHtml(date(r.At))}.</strong>
+                The backfill last ran ${escapeHtml(date(r.RanAt))} at ${time(r.RanAt)} (${escapeHtml(r.By)}); hatched days after it are not yet backfilled. An empty day before it was quiet.`
+            : `<strong>Last change recorded ${escapeHtml(date(r.At))}.</strong>
+                The backfill has not stamped a run yet, so the hatched days after it are either quiet or not yet backfilled.`;
     }
 
     renderDay(date, month) {
         const key = dayKey(date);
         const entries = this.byDay.get(key) ?? [];
         const chips = this.chips(entries);
+        const holds = this.holdsOn(key);
         const unknown = this.recordedKey && key > this.recordedKey && key <= this.todayKey;
         const cls = [
             'cal-day',
@@ -225,7 +257,7 @@ class CalendarPage {
             key === this.todayKey ? 'is-today' : '',
             unknown ? 'is-unknown' : '',
             key === this.selected ? 'is-selected' : '',
-            chips.length === 0 ? 'is-empty' : '',
+            chips.length === 0 && holds.length === 0 ? 'is-empty' : '',
         ].filter(Boolean).join(' ');
         const label = date.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
         return `
@@ -233,7 +265,16 @@ class CalendarPage {
                 <span class="cal-date">${date.getDate()}</span>
                 ${chips.slice(0, SHOWN).join('')}
                 ${chips.length > SHOWN ? `<span class="cal-more">+${chips.length - SHOWN} more</span>` : ''}
+                ${holds.map((h, i) => this.holdBar(h, key, date, i)).join('')}
             </button>`;
+    }
+
+    // A thin amber band per held release, named where it starts and at the start of each week.
+    holdBar(h, key, date, i) {
+        const named = key === h.fromKey || date.getDay() === 1;
+        const app = appLabel(this.appsById.get(h.ApplicationId) ?? { ApplicationId: h.ApplicationId });
+        const title = `${app} · ${h.Release} on hold since ${new Date(h.from).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`;
+        return `<span class="cal-hold ${i === 0 ? 'is-first' : ''} ${key === h.fromKey ? 'is-start' : ''}" title="${escapeHtml(title)}">${named ? `${escapeHtml(app)} · ${escapeHtml(h.Release)} on hold` : ''}</span>`;
     }
 
     // Targets first (a missed one is the news), then rollbacks, then arrivals from the top
@@ -299,18 +340,28 @@ class CalendarPage {
             .sort((a, b) => (this.stageSort.get(b.Stage) ?? 0) - (this.stageSort.get(a.Stage) ?? 0) || a.At.localeCompare(b.At));
         const events = entries.filter((e) => e.Kind === 'event').sort((a, b) => a.At.localeCompare(b.At));
         const unknown = this.recordedKey && key > this.recordedKey && key <= this.todayKey;
-        const count = planned.length + observed.length + events.length;
+        const holds = this.holdsOn(key);
+        const count = planned.length + observed.length + events.length + holds.length;
 
         const section = (heading, list) => list.length ? `<h3 class="mi-detail-h3">${heading}</h3><ul class="cal-list">${list.join('')}</ul>` : '';
         this.detailEl.hidden = false;
         this.detailEl.innerHTML = `
             <button type="button" class="mi-detail-close" data-ref="close" aria-label="Close">×</button>
             <h2 class="mi-detail-title">${escapeHtml(title)}</h2>
-            <p class="mi-detail-sub">${count === 0 ? (unknown ? 'Nothing recorded. This day is after the last recorded change: quiet, or not yet backfilled.' : 'Nothing on this day.') : `${count} ${count === 1 ? 'entry' : 'entries'}`}</p>
+            <p class="mi-detail-sub">${count === 0 ? (unknown ? (this.recorded.Source === 'backfill' ? 'Nothing known yet: the backfill has not reached this day.' : 'Nothing recorded. This day is after the last recorded change: quiet, or not yet backfilled.') : 'Nothing on this day.') : `${count} ${count === 1 ? 'entry' : 'entries'}`}</p>
             ${section('Due', planned.map((p) => `
                 <li><strong>${escapeHtml(p.Release)}</strong> · ${app(p.ApplicationId)}
                     ${p.Missed ? '<span class="mi-flag is-alert">past target</span>' : ''}
                     <div class="mi-muted">now: ${escapeHtml(p.Now)}</div></li>`))}
+            ${section('On hold', holds.map((h) => {
+                const held = Math.max(1, Math.round(((h.to ? Date.parse(h.to) : Date.now()) - Date.parse(h.from)) / 86_400_000));
+                const since = new Date(h.from).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+                const span = h.to ? `from ${since} for ${held} ${held === 1 ? 'day' : 'days'}, then ${h.ended}` : `since ${since}, ${held} days so far`;
+                return `
+                <li>${stageTag(h.Stage)} ${app(h.ApplicationId)} · <strong>${escapeHtml(h.Release)}</strong>
+                    <div class="mi-muted">${escapeHtml(span)}</div>
+                    ${h.reason ? `<div class="cal-note">${escapeHtml(h.reason)}</div>` : ''}</li>`;
+            }))}
             ${section('Seen by the pings', observed.map((e) => `
                 <li>${stageTag(e.Stage)} ${app(e.ApplicationId)} · ${release(e)}
                     <div class="mi-muted">${e.Kind === 'returned'

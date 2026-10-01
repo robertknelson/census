@@ -45,3 +45,18 @@ GO
 -- is renamed in place; the unique index follows the column.
 IF COL_LENGTH('moveit.Deployment', 'HealthReportId') IS NOT NULL AND COL_LENGTH('moveit.Deployment', 'ReportId') IS NULL
     EXEC sp_rename 'moveit.Deployment.HealthReportId', 'ReportId', 'COLUMN';
+GO
+
+-- One row per backfill run (move-it.md §21): how far the ledger has looked. The ledger stores
+-- changes only, so without this a quiet week and an un-run backfill look the same.
+IF OBJECT_ID('moveit.BackfillRun', 'U') IS NULL
+BEGIN
+    CREATE TABLE moveit.BackfillRun (
+        Id         int IDENTITY   NOT NULL,
+        RanAt      datetimeoffset NOT NULL CONSTRAINT DF_BackfillRun_RanAt DEFAULT (sysdatetimeoffset()),
+        RanBy      nvarchar(128)  NOT NULL CONSTRAINT DF_BackfillRun_RanBy DEFAULT (suser_sname()),
+        ThroughAt  datetimeoffset NULL,       -- StartAt of the latest ping the run considered
+        Inserted   int            NOT NULL,
+        CONSTRAINT PK_BackfillRun PRIMARY KEY CLUSTERED (Id)
+    );
+END;

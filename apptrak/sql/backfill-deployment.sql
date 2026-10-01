@@ -25,6 +25,12 @@
 SET NOCOUNT ON;
 SET QUOTED_IDENTIFIER ON;
 
+-- The run looks at pings up to the latest one present when it starts, and records that in
+-- moveit.BackfillRun (when 001 has made it), so the board can say how far the ledger has looked.
+-- Pings landing during the run are left for the next one.
+DECLARE @through datetimeoffset =
+    (SELECT MAX(StartAt) FROM health.HealthReport WHERE IsSuccess = 1 AND HasContent = 1 AND Build IS NOT NULL);
+
 ;WITH q AS (
     SELECT r.Id, r.ApplicationId, r.EndpointId, r.Application, r.Stage, r.Machine, r.Version,
            r.Build, r.BuildId, r.SourceVersion, r.Branch, r.Deploymentat, r.StartAt,
@@ -35,7 +41,7 @@ SET QUOTED_IDENTIFIER ON;
            LAG(r.Machine)       OVER (PARTITION BY r.EndpointId ORDER BY r.StartAt, r.Id) AS pMachine,
            LAG(r.Branch)        OVER (PARTITION BY r.EndpointId ORDER BY r.StartAt, r.Id) AS pBranch
     FROM health.HealthReport r
-    WHERE r.IsSuccess = 1 AND r.HasContent = 1 AND r.Build IS NOT NULL
+    WHERE r.IsSuccess = 1 AND r.HasContent = 1 AND r.Build IS NOT NULL AND r.StartAt <= @through
 )
 INSERT INTO moveit.Deployment
     (ApplicationId, EndpointId, Application, ReportedStage, Machine, Project, Version,
@@ -68,4 +74,9 @@ JOIN o ON o.Id = d.Id
 WHERE ISNULL(d.PreviousId, -1) <> ISNULL(o.PrevId, -1)
    OR ISNULL(d.SupersededAt, '0001-01-01') <> ISNULL(o.NextAt, '0001-01-01');
 
-PRINT CONCAT('moveit.Deployment: ', @inserted, ' inserted, ', @@ROWCOUNT, ' back-pointers refreshed');
+DECLARE @refreshed int = @@ROWCOUNT;
+
+IF OBJECT_ID('moveit.BackfillRun', 'U') IS NOT NULL
+    INSERT INTO moveit.BackfillRun (ThroughAt, Inserted) VALUES (@through, @inserted);
+
+PRINT CONCAT('moveit.Deployment: ', @inserted, ' inserted, ', @refreshed, ' back-pointers refreshed; looked through ', CONVERT(nvarchar(30), @through, 120));

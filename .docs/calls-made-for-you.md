@@ -4,6 +4,29 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (latest) — backfill run stamp, hold spans, and the §21 leans
+
+**Stamp in a table, a row per run.** Options: a column on `Deployment` (only changes have
+rows, so it says nothing about quiet runs); a one-row watermark (loses history); a row per run.
+Call: `moveit.BackfillRun`, in `001`. Reason: it answers when the backfill ran and who ran it,
+the one question the calendar could not.
+
+**The run closes its window first.** `@through` is fixed before reading; only pings up to it
+are considered. Reason: the stamp then means exactly what it says; later pings wait for the
+next run, which is idempotent.
+
+**The backfill and the calendar still work without the table.** Reason: you run scripts by
+hand; forgetting to re-run 001 first should not be a trap.
+
+**Holds are bands at the foot of the cell, outside the three-chip limit.** Options: a chip on
+each held day (crowds out arrivals); a bar across the week row (a second grid layer); a band
+per cell, named where it starts and on Mondays. Call: the band. Reason: reads as a span and
+costs the cell nothing.
+
+**Your "go with your lean" on the rest of §21:** deferred views stay deferred, the release
+link waits for the gate, first-ping builds stay off, redeploys draw once. Recorded as rulings
+in §21.1.
+
 ## 2026-10-01 (later) — Calendar built, "go"
 
 **No `@From` / `@To`: one fetch, months paged in the browser.** Options: parameters (the

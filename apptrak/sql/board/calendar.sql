@@ -6,10 +6,17 @@
 --                     (not when that first sight was the endpoint's first ping)
 --   returned          an older build put back at a stage, by 08's rule (a rollback) - observed
 --   event             a human event, every kind but 'note'                           - asserted
---   recorded-through  one row: the latest DetectedAt in the ledger. The ledger is filled by a
---                     manual backfill (no SQL Agent), so after this nothing is known.
+--   recorded-through  one row: how far the ledger has looked. The latest backfill run's
+--                     ThroughAt when moveit.BackfillRun has rows (Source 'backfill', with RanAt
+--                     and By); otherwise the latest DetectedAt (Source 'last change'), which
+--                     cannot tell a quiet week from an un-run backfill.
 --
 -- Planned dates (Release.TargetDate, PastTarget) come from 02, which the page already reads.
+
+DECLARE @through datetimeoffset, @ranAt datetimeoffset, @ranBy nvarchar(128);
+IF OBJECT_ID('moveit.BackfillRun', 'U') IS NOT NULL
+    SELECT TOP 1 @through = ThroughAt, @ranAt = RanAt, @ranBy = RanBy
+    FROM moveit.BackfillRun WHERE ThroughAt IS NOT NULL ORDER BY Id DESC;
 
 WITH seen AS (
     SELECT ApplicationId, Build, MIN(DetectedAt) AS FirstSeen FROM moveit.Deployment GROUP BY ApplicationId, Build
@@ -39,15 +46,16 @@ obs AS (
     WHERE sd.FirstSeen < sp.FirstSeen
 )
 SELECT o.Kind, o.At, o.ApplicationId, o.Stage, o.Build, o.ReplacedBuild,
-       c.ReleaseId, c.Release, NULL AS EventKind, NULL AS [By], NULL AS Note
+       c.ReleaseId, c.Release, NULL AS EventKind, NULL AS [By], NULL AS Note, NULL AS Source, NULL AS RanAt
 FROM obs o
 LEFT JOIN claim c ON c.ApplicationId = o.ApplicationId AND c.Build = o.Build AND c.rn = 1
 UNION ALL
 SELECT 'event', e.At, r.ApplicationId, e.Stage, e.Build, NULL,
-       r.Id, r.Name, e.Kind, e.[By], e.Note
+       r.Id, r.Name, e.Kind, e.[By], e.Note, NULL, NULL
 FROM moveit.ReleaseEvent e JOIN moveit.Release r ON r.Id = e.ReleaseId
 WHERE e.Kind <> 'note'
 UNION ALL
-SELECT 'recorded-through', MAX(DetectedAt), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+SELECT 'recorded-through', ISNULL(@through, MAX(DetectedAt)), NULL, NULL, NULL, NULL, NULL, NULL, NULL, @ranBy, NULL,
+       CASE WHEN @through IS NULL THEN 'last change' ELSE 'backfill' END, @ranAt
 FROM moveit.Deployment
 ORDER BY At;

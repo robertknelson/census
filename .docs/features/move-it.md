@@ -573,7 +573,7 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 
 | File | For | Notes |
 |---|---|---|
-| `apptrak/sql/001-create-deployment.sql` | both | §10.1 table; unique on ReportId |
+| `apptrak/sql/001-create-deployment.sql` | both | §10.1 table; unique on ReportId; `moveit.BackfillRun` (§21.1) |
 | `apptrak/sql/002-create-moveit-schema.sql` | both | §10.2 tables; no FKs, matching AppTrak |
 | `apptrak/sql/003-lookups.sql` | both | the four `core.SelectItem` lists (header + members), insert-only; the stage list is AppTrak's |
 | `apptrak/sql/backfill-deployment.sql` | both | **the rule**, in SQL; the live processor implements exactly this |
@@ -1565,22 +1565,57 @@ Aug 29 (arrival and approval), Aug 30 (rollback), Aug 31 (on hold), Sep 1
 October, Oct 1 marked today, Q4 letters *due* red on Sep 29, Sep 28 – Oct 1
 hatched, scroll back at the top. Not seen: the narrow-screen layout.
 
+### 21.1 The backfill stamps its run, and holds become spans (Robert, 2026-10-01: "do the backfill run stamp … just go with your lean"; built and browser-verified the same day)
+
+**`moveit.BackfillRun`** (in `001`, idempotent): one row per backfill run —
+`RanAt`, `RanBy` (`suser_sname()`), `ThroughAt`, `Inserted`. The backfill
+fixes `@through` = the latest qualifying ping's `StartAt` **before** it
+reads, considers only pings up to it (later ones wait for the next run,
+which picks them up — the rule is unchanged, the window is closed), and
+writes the row at the end only when the table exists, so a backfill run
+before the new `001` still works. Its printed line now ends *looked through
+…*. The calendar reads the latest run: banner **Recorded through *date***,
+*the backfill last ran … (who)*; hatched days are *not yet backfilled*, and
+an empty day before the line **was quiet** — the ambiguity is gone. With no
+run recorded (or no table) it falls back to *Last change recorded* and the
+old wording. `calendar.sql` guards the table with `OBJECT_ID`, so the page
+works on a server where 001 has not been re-run. When the live processor
+(Part E) writes rows as pings arrive, it should stamp the same table, or the
+banner goes stale.
+
+**Hold spans.** A hold runs from its day to the release's next `resumed` or
+`abandoned`; one never lifted runs through today (02's on-hold rule). Each
+held day carries a thin amber band at the foot of the cell, not counted
+against the three chips, named (*Reporting · Reporting refresh on hold*)
+where it starts and on each Monday; the stage filter treats it like its
+hold event. The day column gains an **On hold** section: *since Aug 27, 35
+days so far* or *from Jul 22 for 6 days, then resumed*, with the reason.
+
+**Verified 2026-10-01 in Chrome on the fixtures.** Demo rebuilt: 001 made
+`BackfillRun`, the backfill inserted 39 and stamped through Sep 13 23:50
+UTC; a second run inserted 0 and stamped again. Every question and board
+file runs. `calendar.sql` run before the table existed: same 43 rows, the
+*last change* fallback. September: *Recorded through Sun, Sep 13 … backfill
+last ran Thu, Oct 1 (…)*; Sep 2 – 13 no longer hatched, Sep 14 onward
+hatched; Reporting refresh and WidgetCore Sprint 43 bands from Aug 27 and
+Aug 31 running through the month, named on Mondays; Sep 5's column lists
+both with reasons and day counts. A scratch hold (Jul 22) and resume (Jul
+28) on WidgetPortal Sprint 42: band Jul 22 – 27, column *from Jul 22 for 6
+days, then resumed*; then removed (18 events, as seeded).
+
+**Rulings taken on Robert's word "go with your lean" (2026-10-01).** Week
+view, agenda list for narrow screens, several stages at once: **deferred**
+until the month grid has been used on real data. Link from the day column
+to the release page: **after the gate**. Builds already there at an
+endpoint's first ping: **not drawn**. A redeploy of the same build without
+leaving the stage: **drawn once**, no fourth marker.
+
 **Open items for this section**
-- **Hold spans.** A bar from hold to resume across weeks is the honest
-  drawing; v1 marks the two days and the side column states the length.
-- **A week view, an agenda list for narrow screens, several stages at
-  once.** Deferred until the month grid has been used on real data.
-- **Link to the release page** from the side column — after the gate.
-- **When did the backfill last look?** The hatch cannot tell a quiet week
-  from an un-run backfill. The fix is the backfill stamping its own run (a
-  one-row table, or a column) — a schema change, so it waits for a ruling.
-  Goes away when the live processor (Part E) writes rows as pings arrive.
-- **Already there when watching began** is not drawn. On the real server
-  that is each endpoint's first ping; if an endpoint is registered the day
-  its app first deploys, that real arrival is lost too. Not hit yet.
-- **First arrival vs every arrival.** A build redeployed to the same stage
-  without leaving it (rollback variant A's fresh `Deploymentat`) draws once.
-  If redeploys matter on the calendar, they are a fourth marker.
+- **The live processor (Part E) stamps `BackfillRun`** — or the calendar
+  reads its own watermark — when it lands.
+- **Revisit the deferred views** after a few weeks of real use.
+- **Already there when watching began** — if an endpoint is registered the
+  day its app first deploys, that real arrival is lost. Not hit yet.
 
 ## Appendix A — questions the data could answer
 

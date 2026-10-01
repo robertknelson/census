@@ -443,6 +443,10 @@
 .cal-flag { margin-right: 0.25rem; color: var(--mi-muted); }
 .cal-flag.is-missed { color: var(--mi-alert); }
 .cal-more { font-size: 11px; color: var(--mi-muted); padding-left: 0.35rem; }
+.cal-hold { display: block; height: 0.95rem; box-sizing: content-box; margin: 0 -0.4rem; padding: 0 0.4rem; font-size: 10.5px; line-height: 1.3; font-weight: 600; color: var(--mi-hold); background: var(--mi-hold-bg); border-top: 2px solid #d9a441; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-hold.is-first { margin-top: auto; }
+.cal-hold-key { display: inline-block; width: 1.4rem; height: 0.6rem; background: var(--mi-hold-bg); border-top: 2px solid #d9a441; }
+.cal-hold.is-start { margin-left: 0; border-top-left-radius: 3px; }
 
 .cal-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.7rem; }
 .cal-list .mi-muted { font-size: 12.5px; margin-top: 0.1rem; }
@@ -457,4 +461,5 @@
     .cal-chip.is-planned.is-missed { background: var(--mi-alert); }
     .cal-chip .cal-flag, .cal-chip .cal-tag { display: none; }
     .cal-more { font-size: 10px; padding: 0; }
+    .cal-hold { font-size: 0; height: 4px; }
 }

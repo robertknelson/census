@@ -6,13 +6,16 @@ import { BoardPanel, renderDetail } from './board-panel.mjs';
 import { ReleasePanel, renderReleaseDetail } from './release-panel.mjs';
 import { ComingUpForm } from './coming-up-form.mjs';
 import { renderTabs } from './tabs.mjs';
+import { AppRail } from './app-rail.mjs';
+import { PopOver } from './pop-over.mjs';
 
 // The board (move-it.md §13, §18): the governance reader's page. Two views of the same
 // lanes: releases (the default) and features and fixes (question 01 chip by chip,
 // ?view=items). The executive's page is Division (§19). The counts strip and the application
-// filter serve both; a card or chip opens its detail. Every fact on the page is a row from a
+// rail serve both; a card or chip opens its detail. Every fact on the page is a row from a
 // question file; the page only arranges them. The one write is the notebook's line above the
-// item lanes (§20): what was heard is coming, for which application.
+// item lanes (§20), behind *Coming up* in the header (§26): what was heard is coming, for
+// which application.
 
 class MoveItPage {
     init(config = {}) {
@@ -30,35 +33,41 @@ class MoveItPage {
     }
 
     renderShell() {
+        this.rail = new AppRail((id) => {
+            this.app = id;
+            this.closeDetail();
+            this.renderFilter();
+            this.render();
+        });
+        this.coming = new PopOver({ id: 'mi-coming', align: 'right', wide: true });
         this.root.innerHTML = `
-            <header class="mi-header">
-                <div class="mi-masthead">
-                    ${renderTabs('board')}
-                    <h1 class="mi-title">Where is it</h1>
-                    <p class="mi-tagline" data-ref="tagline"></p>
-                </div>
-                <div class="mi-header-side">
-                    <nav class="mi-filter" data-ref="filter" aria-label="Application"></nav>
-                    <div class="mi-toggle" role="group" aria-label="View" data-ref="view">
-                        <button type="button" data-view="releases">Releases</button>
-                        <button type="button" data-view="items">Features and fixes</button>
+            ${renderTabs('board')}
+            <div class="mi-shell" data-ref="shell">
+                ${this.rail.html()}
+                <div class="mi-pane">
+                    <div class="mi-head">
+                        <nav class="mi-picks" data-ref="view" aria-label="View">
+                            <button type="button" class="mi-pick" data-view="releases" title="Every release in flight, the stage the evidence puts it at, and what it is waiting on.">Releases</button>
+                            <button type="button" class="mi-pick" data-view="items" title="Every feature and fix, and the stage the evidence puts it at.">Features and fixes</button>
+                        </nav>
+                        <div class="mi-head-numbers" data-ref="counts"></div>
+                        <p class="mi-showing" data-ref="showing"></p>
+                        ${this.coming.html()}
+                    </div>
+                    <div class="mi-body">
+                        <main class="mi-main" data-ref="main"></main>
+                        <aside class="mi-detail" data-ref="detail" hidden></aside>
                     </div>
                 </div>
-            </header>
-            <div class="mi-strip" data-ref="counts"></div>
-            <div class="mi-body">
-                <main class="mi-main">
-                    <div class="mi-coming-up" data-ref="coming" hidden></div>
-                    <div data-ref="main"></div>
-                </main>
-                <aside class="mi-detail" data-ref="detail" hidden></aside>
             </div>`;
-        this.filterEl = this.root.querySelector('[data-ref="filter"]');
-        this.countsEl = this.root.querySelector('[data-ref="counts"]');
-        this.comingEl = this.root.querySelector('[data-ref="coming"]');
-        this.mainEl = this.root.querySelector('[data-ref="main"]');
-        this.detailEl = this.root.querySelector('[data-ref="detail"]');
-        this.taglineEl = this.root.querySelector('[data-ref="tagline"]');
+        const ref = (name) => this.root.querySelector(`[data-ref="${name}"]`);
+        this.countsEl = ref('counts');
+        this.mainEl = ref('main');
+        this.detailEl = ref('detail');
+        this.rail.mount(ref('shell'), ref('showing'));
+        this.coming.mount(this.root);
+        this.coming.setButton('+ Coming up');
+        this.comingEl = this.coming.panel;
         this.root.querySelectorAll('[data-view]').forEach((btn) => btn.addEventListener('click', () => this.setView(btn.dataset.view)));
         this.renderToggle();
     }
@@ -75,10 +84,10 @@ class MoveItPage {
     }
 
     renderToggle() {
-        this.root.querySelectorAll('[data-view]').forEach((btn) => btn.classList.toggle('is-active', btn.dataset.view === this.view));
-        this.taglineEl.textContent = this.view === 'releases'
-            ? 'Every release in flight, the stage the evidence puts it at, and what it is waiting on.'
-            : 'Every feature and fix, and the stage the evidence puts it at.';
+        this.root.querySelectorAll('[data-view]').forEach((btn) => {
+            btn.classList.toggle('is-active', btn.dataset.view === this.view);
+            btn.setAttribute('aria-pressed', String(btn.dataset.view === this.view));
+        });
     }
 
     async load() {
@@ -105,24 +114,11 @@ class MoveItPage {
     }
 
     renderFilter() {
-        const chip = (id, label, count) => `
-            <button type="button" class="mi-filter-chip ${this.app === id ? 'is-active' : ''}" data-app="${id ?? ''}">
-                ${escapeHtml(label)}<span class="mi-filter-count">${count}</span>
-            </button>`;
         const counted = this.view === 'releases'
             ? this.releases.filter((r) => r.HighestStage !== 'abandoned')
             : this.items.filter((i) => i.Status !== 'removed');
-        this.filterEl.innerHTML = [
-            chip(null, 'All applications', counted.length),
-            ...this.applications.map((a) => chip(a.ApplicationId, appLabel(a),
-                counted.filter((row) => row.ApplicationId === a.ApplicationId).length)),
-        ].join('');
-        this.filterEl.querySelectorAll('[data-app]').forEach((btn) => btn.addEventListener('click', () => {
-            this.app = btn.dataset.app === '' ? null : Number(btn.dataset.app);
-            this.closeDetail();
-            this.renderFilter();
-            this.render();
-        }));
+        this.rail.render(this.applications, this.app,
+            (id) => (id == null ? counted : counted.filter((row) => row.ApplicationId === id)).length);
     }
 
     scoped() {
@@ -141,8 +137,9 @@ class MoveItPage {
 
     render() {
         const data = this.scoped();
+        data.laneCounts = this.counts.laneCounts(data);
         this.counts.render(this.countsEl, data);
-        this.comingEl.hidden = this.view !== 'items';
+        this.coming.hide(this.view !== 'items');
         if (this.view === 'items') this.comingUp.render(this.comingEl, { applications: this.applications, lists: this.lists, applicationId: this.app });
         const empty = this.view === 'releases' ? data.releases.length === 0 : data.items.length === 0;
         if (empty) {

@@ -32,7 +32,7 @@ export class ReleasePanel {
 
     render(el, data) {
         this.el = el;
-        const { lanes, applications, candidates, now } = data;
+        const { lanes, applications, candidates, now, laneCounts } = data;
         const cards = classifyReleases(data);
         const candidateById = new Map(candidates.map((c) => [c.ReleaseId, c]));
         const rows = applications.map((app) => {
@@ -49,7 +49,7 @@ export class ReleasePanel {
             <div class="mi-board" style="--lanes: ${lanes.length}">
                 <div class="mi-board-head">
                     <div class="mi-corner"></div>
-                    ${lanes.map((l) => `<div class="mi-lane-head" style="--lane: ${laneHue(l)}">${escapeHtml(l.label)}</div>`).join('')}
+                    ${lanes.map((l) => `<div class="mi-lane-head" style="--lane: ${laneHue(l)}">${escapeHtml(l.label)}${laneCounts ? `<span class="mi-lane-n">${laneCounts.get(l.id) ?? 0}</span>` : ''}</div>`).join('')}
                 </div>
                 ${rows.map((row) => this.renderRow(row, lanes, candidateById, now)).join('')}
             </div>`;

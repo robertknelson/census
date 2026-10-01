@@ -4,6 +4,8 @@ import { stageHue } from './stage-hues.mjs';
 import { NameBuildForm } from './name-build-form.mjs';
 import { findNeeds, renderNeeds } from './needs-a-word.mjs';
 import { renderTabs } from './tabs.mjs';
+import { AppRail } from './app-rail.mjs';
+import { PopOver } from './pop-over.mjs';
 
 // History (move-it.md §15): the ledger newest first, and the one place anything is entered.
 // A build nobody has named is the inbox, drawn in place; clicking it opens the form with the
@@ -16,33 +18,41 @@ class HistoryPage {
         this.app = null;
         this.now = Date.now();
         this.settings = { staleDays: config.staleDays ?? 14, comingDays: config.comingDays ?? 60 };
-        this.needsOpen = true;
         this.form = new NameBuildForm(() => this.reload());
         this.renderShell();
         this.load();
     }
 
     renderShell() {
+        this.rail = new AppRail((id) => {
+            this.app = id;
+            this.renderFilter();
+            this.render();
+        });
+        this.needs = new PopOver({ id: 'mi-needs', wide: true });
         this.root.innerHTML = `
-            <header class="mi-header">
-                <div class="mi-masthead">
-                    ${renderTabs('history')}
-                    <h1 class="mi-title">History</h1>
-                    <p class="mi-tagline">Every build the pings saw arrive, newest first. Name what was in the ones you remember.</p>
+            ${renderTabs('history')}
+            <div class="mi-shell" data-ref="shell">
+                ${this.rail.html()}
+                <div class="mi-pane">
+                    <div class="mi-head">
+                        <h1 class="mi-head-title" title="Every build the pings saw arrive, newest first. Name what was in the ones you remember.">Every build seen, newest first</h1>
+                        <p class="mi-showing" data-ref="showing"></p>
+                        ${this.needs.html()}
+                        <button type="button" class="mi-button is-primary" data-ref="new">New release</button>
+                    </div>
+                    <div class="mi-body">
+                        <main class="mi-main" data-ref="main"></main>
+                        <aside class="mi-detail mi-entry" data-ref="entry" hidden></aside>
+                    </div>
                 </div>
-                <div class="mi-header-side">
-                    <nav class="mi-filter" data-ref="filter" aria-label="Application"></nav>
-                    <button type="button" class="mi-button is-primary" data-ref="new">New release</button>
-                </div>
-            </header>
-            <div class="mi-body">
-                <main class="mi-main" data-ref="main"></main>
-                <aside class="mi-detail mi-entry" data-ref="entry" hidden></aside>
             </div>`;
-        this.filterEl = this.root.querySelector('[data-ref="filter"]');
-        this.mainEl = this.root.querySelector('[data-ref="main"]');
-        this.entryEl = this.root.querySelector('[data-ref="entry"]');
-        this.root.querySelector('[data-ref="new"]').addEventListener('click', () => this.openForm({ applicationId: this.app, build: null }));
+        const ref = (name) => this.root.querySelector(`[data-ref="${name}"]`);
+        this.mainEl = ref('main');
+        this.entryEl = ref('entry');
+        this.rail.mount(ref('shell'), ref('showing'));
+        this.needs.mount(this.root);
+        ref('new').addEventListener('click', () => this.openForm({ applicationId: this.app, build: null }));
     }
 
     async load() {
@@ -85,22 +95,11 @@ class HistoryPage {
         };
     }
 
+    // The rail counts the inbox: unnamed builds past DEV, per application.
     renderFilter() {
-        const chip = (id, label, count) => `
-            <button type="button" class="mi-filter-chip ${this.app === id ? 'is-active' : ''}" data-app="${id ?? ''}">
-                ${escapeHtml(label)}<span class="mi-filter-count">${count}</span>
-            </button>`;
-        const unnamed = (rows) => rows.filter((r) => this.isInbox(r)).length;
-        this.filterEl.innerHTML = [
-            chip(null, 'All applications', unnamed(this.history)),
-            ...this.applications.map((a) => chip(a.ApplicationId, appLabel(a),
-                unnamed(this.history.filter((r) => r.ApplicationId === a.ApplicationId)))),
-        ].join('');
-        this.filterEl.querySelectorAll('[data-app]').forEach((btn) => btn.addEventListener('click', () => {
-            this.app = btn.dataset.app === '' ? null : Number(btn.dataset.app);
-            this.renderFilter();
-            this.render();
-        }));
+        const unnamed = this.history.filter((r) => this.isInbox(r));
+        this.rail.render(this.applications, this.app,
+            (id) => (id == null ? unnamed : unnamed.filter((r) => r.ApplicationId === id)).length);
     }
 
     render() {
@@ -109,15 +108,14 @@ class HistoryPage {
             releases: this.status, items: this.items, events: this.events, approvals: this.approvals,
             history: this.history, applications: this.applications, stages: this.stages, isInbox: (r) => this.isInbox(r),
         }, this.settings, this.now).filter((n) => this.app == null || n.applicationId === this.app);
-        const needsHtml = renderNeeds(needs, this.needsOpen);
+        this.needs.setButton(needs.length ? `Needs a word <span class="mi-pop-count">${needs.length}</span>` : 'Nothing needs a word', needs.length ? 'is-warn' : '');
+        this.needs.setBody(renderNeeds(needs));
         if (rows.length === 0) {
-            this.mainEl.innerHTML = `${needsHtml}<p class="mi-status">The ledger has no deployments for this application. Either its endpoints send no deployment block yet, or the backfill has not run.</p>`;
-            this.watchNeeds();
+            this.mainEl.innerHTML = `<p class="mi-status">The ledger has no deployments for this application. Either its endpoints send no deployment block yet, or the backfill has not run.</p>`;
             return;
         }
         const appsById = new Map(this.applications.map((a) => [a.ApplicationId, a]));
         this.mainEl.innerHTML = `
-            ${needsHtml}
             <table class="mi-hist">
                 <thead>
                     <tr>
@@ -132,11 +130,6 @@ class HistoryPage {
             const row = this.history.find((r) => r.DeploymentId === Number(btn.dataset.name));
             this.openForm({ applicationId: row.ApplicationId, build: row.Build });
         }));
-        this.watchNeeds();
-    }
-
-    watchNeeds() {
-        this.mainEl.querySelector('details.mi-needs')?.addEventListener('toggle', (e) => { this.needsOpen = e.target.open; });
     }
 
     renderRow(r, app) {

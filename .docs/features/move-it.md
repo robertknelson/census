@@ -1796,12 +1796,53 @@ the collapsed rail was remembered across a reload. Not seen on the real server.
 - **Holds eat short cells.** At 633px tall a day under two hold bands shows *+2 more* and
   no chip. If it bites on real screens: merge stacked holds into one band, or let holds
   count against the chips.
-- **The other four pages** (Division, The week, Where is it, History) move to the rail
-  next — their counts strips and *Needs a word* are the candidates for the rail or a
-  collapsible line. Until then the Calendar's navigation differs from theirs.
+- ~~**The other four pages** move to the frame next~~ — done, §26.1.
 - **Choosing several applications** ("my applications") — the list stays single-choice.
   Robert does not want several dozen candidates in a cramped multi-select; if several are
   ever wanted, it is a saved set, not ticking boxes.
+
+### 26.1 The frame on every page (2026-10-01, Robert: "now let's take the lessons we've learned and apply them to the other tabs" … "go"; built and browser-verified the same night)
+
+The Calendar's lessons as one frame for all six pages (the five tabs and the release page):
+
+- **The uber header** on every page (`renderTabs` now emits it). Titles and taglines are gone;
+  a tagline that explained something survives as the hover text of the control it explains.
+- **One header line per page** (`mi-head`, ~54px) holding only that page's controls, quiet:
+  view choices as underlined words (`mi-picks`), numbers as one line of counts coloured only
+  when they are news (`mi-numbers`), *Showing* pushed right, and anything secondary behind a
+  small button that floats it over (`PopOver`, `pop-over.mjs`) — closes on Escape or a click
+  elsewhere, and the button carries the one fact worth seeing while closed.
+- **The application rail** (`AppRail`, `app-rail.mjs`) wherever a page filters by
+  application — Calendar, Where is it, History — with the count each page already showed
+  beside each name. One remembered collapse for all of them.
+- **Lists may scroll; the frame may not grow.** A list page's content is the list; the gain
+  is that its column titles now sit directly under the header line.
+
+| Page | Was | Now |
+|---|---|---|
+| Division | title, tagline, six tiles, coverage sentence | six numbers in the header; **Pings watch N of M** button, amber while any application is unseen, floats the named coverage (§24) |
+| Where is it | title, tagline, application chips, view toggle, counts strip, *Coming up* line | rail (counts per view); *Releases / Features and fixes* as words; **per-lane counts head the board's own lane columns**; release numbers in the header; **+ Coming up** floats the notebook's form (items view only) |
+| History | title, tagline, application chips, *Needs a word* box | rail (unnamed builds past DEV per app); **Needs a word N** button, amber, floats the list (§23); *New release* stays |
+| The week | title, tagline, buttons, tiles in two rows | *‹ Earlier · The week: range · Later ›* and *Print* in one line; the six tiles in one row; print drops the uber header |
+| Calendar | §26 | moved onto the shared `AppRail` and `PopOver`; unchanged to the eye |
+| Release page | title, tagline, delete | name, the release's facts and *Delete release* in one header line |
+
+**Verified 2026-10-01 in Chrome on the fixtures,** 1366 × 632: every header line 54px;
+Division's coverage float-over named Application 4 (recorded only) and Application 3 (not
+visible) and closed on Escape; Where is it in one line, the Releases view with WidgetCore
+read *DEV 1* in the lane head, *+ Coming up* floated the form; History's column titles at
+88px from the top, *Needs a word 8* floated the eight lines and closed on a click elsewhere;
+The week ending Aug 31 with six tiles in one row; the Calendar still fits with no scroll;
+no console errors on any page. **Not seen:** the week's print preview, and any page on the
+real server.
+
+**Open items for this section**
+- **Division's step header** is sticky and ~100px; it could go to one line if the board
+  feels short on a real screen.
+- **The week's section cards** stretch to the tallest in their row, leaving white space
+  under short lists (as before; not part of this pass).
+- **The application choice does not carry between pages.** Each page opens on All; carrying
+  it (URL or per-browser) is a small change if wanted.
 
 ## Appendix A — questions the data could answer
 

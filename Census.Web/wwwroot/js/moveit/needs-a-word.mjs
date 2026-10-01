@@ -2,7 +2,8 @@ import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 
 // Needs a word from you (move-it.md §23): what people have not said yet, derived from the
 // answers the board already has (01, 02, 05's rule, 12) — nothing stored, nothing dismissed.
-// A line goes away when the entry it asks for is made. The thresholds are settings.
+// A line goes away when the entry it asks for is made. The thresholds are settings. It floats
+// over History behind a button in the header (§26) that says how many.
 
 export function findNeeds({ releases, items, events, approvals, history, applications, stages, isInbox }, { staleDays, comingDays }, now = Date.now()) {
     const topSort = Math.max(...stages.map((s) => s.Sort));
@@ -46,8 +47,8 @@ export function findNeeds({ releases, items, events, approvals, history, applica
     return needs.map((n) => ({ ...n, app: appLabel(appsById.get(n.applicationId) ?? { ApplicationId: n.applicationId }) }));
 }
 
-export function renderNeeds(needs, open) {
-    if (needs.length === 0) return '<section class="mi-needs is-clear"><p class="mi-needs-head">Nothing needs a word from you.</p></section>';
+export function renderNeeds(needs) {
+    if (needs.length === 0) return '<p class="mi-needs-clear">Nothing needs a word from you.</p>';
     const line = (n) => `
         <li class="mi-needs-item">
             <span class="mi-needs-what">${escapeHtml(n.app)} · ${n.kind === 'release'
@@ -56,8 +57,6 @@ export function renderNeeds(needs, open) {
             <span class="mi-needs-why">${n.reasons.map(escapeHtml).join('; ')}</span>
         </li>`;
     return `
-        <details class="mi-needs" ${open ? 'open' : ''}>
-            <summary class="mi-needs-head">Needs a word from you <span class="mi-needs-count">${needs.length}</span></summary>
-            <ul class="mi-needs-list">${needs.map(line).join('')}</ul>
-        </details>`;
+        <h2 class="mi-needs-head">Needs a word from you</h2>
+        <ul class="mi-needs-list">${needs.map(line).join('')}</ul>`;
 }

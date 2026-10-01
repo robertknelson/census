@@ -22,14 +22,12 @@ class ReleasePage {
 
     renderShell() {
         this.root.innerHTML = `
-            <header class="mi-header">
-                <div class="mi-masthead">
-                    ${renderTabs(null)}
-                    <h1 class="mi-title" data-ref="title">Release</h1>
-                    <p class="mi-tagline" data-ref="sub"></p>
-                </div>
-                <div class="mi-header-side" data-ref="delete"></div>
-            </header>
+            ${renderTabs(null)}
+            <div class="mi-head">
+                <h1 class="mi-head-title" data-ref="title">Release</h1>
+                <p class="mi-head-sub" data-ref="sub"></p>
+                <div class="mi-head-end" data-ref="delete"></div>
+            </div>
             <div class="mi-body">
                 <main class="mi-main" data-ref="main"></main>
                 <aside class="mi-detail mi-entry" data-ref="entry"></aside>

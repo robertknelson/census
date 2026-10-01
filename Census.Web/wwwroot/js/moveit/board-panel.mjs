@@ -12,7 +12,7 @@ export class BoardPanel {
         this.selectedId = null;
     }
 
-    render(el, { lanes, items, applications, releases, now }) {
+    render(el, { lanes, items, applications, releases, now, laneCounts }) {
         this.el = el;
         const releasesById = new Map(releases.map((r) => [r.ReleaseId, r]));
         const rows = applications.map((app) => {
@@ -30,7 +30,7 @@ export class BoardPanel {
             <div class="mi-board" style="--lanes: ${lanes.length}">
                 <div class="mi-board-head">
                     <div class="mi-corner"></div>
-                    ${lanes.map((l) => `<div class="mi-lane-head" style="--lane: ${laneHue(l)}">${escapeHtml(l.label)}</div>`).join('')}
+                    ${lanes.map((l) => `<div class="mi-lane-head" style="--lane: ${laneHue(l)}">${escapeHtml(l.label)}${laneCounts ? `<span class="mi-lane-n">${laneCounts.get(l.id) ?? 0}</span>` : ''}</div>`).join('')}
                 </div>
                 ${rows.map((row) => this.renderRow(row, lanes, releasesById, now)).join('')}
             </div>`;

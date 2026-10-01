@@ -19,6 +19,7 @@ further — your `HealthReportId` → `ReportId` rename is already folded into `
 | **Needs a word from you** — what has not been recorded yet | top of History | History now runs 9 queries, was 6 |
 | **Coverage line** — what the board cannot see | Division, under the numbers | new `board/coverage.sql` (11 without its slow part) |
 | **Calendar rail** — controls down the left; the month fits the screen | `/moveit/calendar` (§26) | no data change |
+| **The frame on every page** — thin page bar, one header line, applications in the rail, secondary things float over | all Move It pages (§26.1) | no data change |
 | Hits-per-day trend fits 30+ days | Census classic dashboard | no data change |
 | `tests/Test-MoveItQuestions.ps1` | here only | **never run it against the real server** — it reseeds |
 
@@ -54,6 +55,9 @@ Two new optional settings under `MoveIt` (defaults shown; leave them out to take
        days are settings.
 7. [ ] **Division coverage line:** does *the pings watch N of M* match the apps you know
        are blind? Are the named ones right?
+7b. [ ] **The frame (§26.1)** on your usual screen: is each page's header one line? Do
+       *Needs a word* (History) and *Pings watch N of M* (Division) say enough while closed?
+       Where is it: are the lane-head counts where you would look?
 8. [ ] **The week** (`/moveit/week`): read last week's page as if you were handing it to
        someone. Anything missing, misleading, or that you would not want them to see? Try
        *Print* once (preview is enough).

@@ -9,7 +9,9 @@ const TABS = [
     { id: 'calendar', label: 'Calendar', href: '/moveit/calendar' },
 ];
 
+// The pages ride in one thin line across the top of every page (§26): navigation, not a
+// control of the view below it.
 export function renderTabs(active) {
-    return `<nav class="mi-tabs" aria-label="Move It">${TABS.map((t) =>
-        `<a class="mi-tab ${t.id === active ? 'is-active' : ''}" href="${t.href}"${t.id === active ? ' aria-current="page"' : ''}>${t.label}</a>`).join('')}</nav>`;
+    return `<header class="mi-uber"><nav class="mi-tabs" aria-label="Move It">${TABS.map((t) =>
+        `<a class="mi-tab ${t.id === active ? 'is-active' : ''}" href="${t.href}"${t.id === active ? ' aria-current="page"' : ''}>${t.label}</a>`).join('')}</nav></header>`;
 }

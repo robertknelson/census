@@ -32,52 +32,64 @@
 #moveit-root code { font: 12px/1 var(--mi-mono); background: var(--mi-rule-soft); padding: 0.1rem 0.3rem; border-radius: 3px; }
 #moveit-root :focus-visible { outline: 2px solid var(--mi-ink); outline-offset: 2px; }
 
-/* Header: the name of the question, then the applications as the one filter. */
-.mi-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 2rem;
-    padding: 1.6rem 2rem 1rem;
-    background: var(--mi-panel);
-    border-bottom: 1px solid var(--mi-rule);
-    flex-wrap: wrap;
-}
-.mi-title { font: 600 26px/1.1 var(--mi-display); letter-spacing: -0.01em; }
-.mi-tagline { color: var(--mi-muted); margin-top: 0.35rem; max-width: 40rem; }
+/* The frame (move-it.md §26): the pages in a thin line across the top, then one header line
+   per page holding that page's own controls, quiet; anything secondary floats over behind a
+   small button. Every band of height goes to the content. */
+.mi-uber { flex: none; display: flex; align-items: center; padding: 0 1.25rem; background: var(--mi-ink); }
+.mi-tabs { display: flex; gap: 0.25rem; font-size: 12.5px; }
+.mi-tab { padding: 0.45rem 0.7rem; color: rgba(255, 255, 255, 0.62); text-decoration: none; border-bottom: 2px solid transparent; }
+.mi-tab:hover { color: #fff; }
+.mi-tab.is-active { color: #fff; font-weight: 600; border-bottom-color: #fff; }
 
-.mi-filter { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-.mi-filter-chip {
-    display: inline-flex; align-items: baseline; gap: 0.45rem;
-    padding: 0.35rem 0.75rem;
-    border: 1px solid var(--mi-rule);
-    border-radius: 999px;
-    background: var(--mi-panel);
-    color: var(--mi-ink);
-    cursor: pointer;
+.mi-head {
+    flex: none; position: relative; z-index: 4;
+    display: flex; align-items: center; gap: 0.5rem 1.25rem; flex-wrap: wrap;
+    min-height: 2.25rem; padding: 0.55rem 1.25rem;
+    background: var(--mi-panel); border-bottom: 1px solid var(--mi-rule);
 }
-.mi-filter-chip:hover { border-color: var(--mi-ink); }
-.mi-filter-chip.is-active { background: var(--mi-ink); color: #fff; border-color: var(--mi-ink); }
-.mi-filter-count { font-size: 12px; color: var(--mi-muted); font-variant-numeric: tabular-nums; }
-.mi-filter-chip.is-active .mi-filter-count { color: rgba(255, 255, 255, 0.7); }
+.mi-head-title { font: 600 16px/1.2 var(--mi-display); }
+.mi-head-sub { color: var(--mi-muted); font-size: 13px; }
+.mi-head-end { margin-left: auto; }
+.mi-pane { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-/* The counts strip: work items per lane, then the four release numbers. */
-.mi-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem 4rem;
-    padding: 1rem 2rem;
-    background: var(--mi-panel);
-    border-bottom: 1px solid var(--mi-rule);
+/* Quiet underlined words for a choice of view: stages, releases or items. */
+.mi-picks { display: flex; gap: 0.1rem; }
+.mi-pick { padding: 0.15rem 0.5rem; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--mi-muted); font-size: 12.5px; cursor: pointer; }
+.mi-pick:hover { color: var(--mi-ink); }
+.mi-pick.is-active { color: var(--mi-ink); font-weight: 600; border-bottom-color: var(--mi-ink); }
+
+/* What the page is showing; pushed right so the page's own controls lead. */
+#moveit-root .mi-showing { margin-left: auto; }
+.mi-showing { font-size: 13px; color: var(--mi-muted); white-space: nowrap; }
+.mi-showing strong { font-weight: 600; color: var(--mi-ink); }
+.mi-clear { margin-left: 0.3rem; width: 1.3rem; height: 1.3rem; padding: 0; border: 1px solid var(--mi-rule); border-radius: 50%; background: var(--mi-panel); color: var(--mi-muted); font-size: 13px; line-height: 1; cursor: pointer; }
+.mi-clear:hover { border-color: var(--mi-ink); color: var(--mi-ink); }
+
+/* A float-over behind a small button (pop-over.mjs). */
+.mi-pop { position: relative; }
+.mi-pop-button { padding: 0.2rem 0.65rem; border: 1px solid var(--mi-rule); border-radius: 999px; background: var(--mi-panel); color: var(--mi-muted); font-size: 12px; white-space: nowrap; cursor: pointer; }
+.mi-pop-button:hover, .mi-pop-button[aria-expanded="true"] { border-color: var(--mi-ink); color: var(--mi-ink); }
+.mi-pop-button.is-warn { border-color: #e6cf9a; background: var(--mi-hold-bg); color: var(--mi-hold); font-weight: 600; }
+.mi-pop-button.is-warn:hover, .mi-pop-button.is-warn[aria-expanded="true"] { border-color: var(--mi-hold); }
+.mi-pop-count { display: inline-block; min-width: 1.2rem; margin-left: 0.2rem; padding: 0 0.35rem; border-radius: 999px; background: var(--mi-hold); color: #fff; font-size: 11px; text-align: center; }
+.mi-pop-panel {
+    position: absolute; right: 0; top: calc(100% + 0.4rem); z-index: 6;
+    width: 17rem; max-height: 70vh; overflow: auto; padding: 0.8rem 0.9rem;
+    background: var(--mi-panel); border: 1px solid var(--mi-rule); border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(26, 33, 44, 0.16);
 }
-.mi-counts-title { font: 600 12px/1 var(--mi-font); color: var(--mi-muted); margin-bottom: 0.6rem; }
-.mi-lane-counts, .mi-release-counts { display: flex; gap: 1.75rem; list-style: none; padding: 0; flex-wrap: wrap; }
-.mi-lane-count, .mi-release-counts li { display: flex; flex-direction: column; gap: 0.1rem; min-width: 5rem; }
-.mi-lane-count { border-left: 3px solid var(--lane); padding-left: 0.6rem; }
-.mi-num { font: 500 30px/1 var(--mi-display); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.mi-num-label { font-size: 12px; color: var(--mi-muted); }
-.mi-release-counts li.is-alert .mi-num { color: var(--mi-alert); }
-.mi-release-counts li.is-hold .mi-num { color: var(--mi-hold); }
+.mi-pop-panel.is-left { left: 0; right: auto; }
+.mi-pop-panel.is-wide { width: min(40rem, 80vw); }
+
+/* Numbers in a line: one count and a few words each, coloured only when they are news. */
+.mi-head-numbers { min-width: 0; }
+.mi-numbers { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; list-style: none; padding: 0; margin: 0; font-size: 12.5px; color: var(--mi-muted); }
+.mi-numbers li { white-space: nowrap; }
+.mi-num { font: 600 15px/1 var(--mi-display); font-variant-numeric: tabular-nums; color: var(--mi-ink); }
+.mi-numbers .is-alert .mi-num { color: var(--mi-alert); }
+.mi-numbers .is-hold .mi-num { color: var(--mi-hold); }
+.mi-numbers .is-good .mi-num { color: #1e7e34; }
+.mi-numbers .is-ask .mi-num { color: #0b5394; }
 
 /* Body: the board, with the detail column when a chip is open. */
 .mi-body { flex: 1; display: flex; min-height: 0; }
@@ -111,6 +123,7 @@
     font-weight: 600;
     box-shadow: inset 0 -3px 0 var(--lane);
 }
+.mi-lane-n { margin-left: 0.45rem; font: 600 13px/1 var(--mi-display); font-variant-numeric: tabular-nums; color: var(--mi-muted); }
 .mi-app, .mi-lane { padding: 0.75rem; border-bottom: 1px solid var(--mi-rule-soft); }
 .mi-board-row:last-child .mi-app, .mi-board-row:last-child .mi-lane { border-bottom: 0; }
 .mi-app { display: flex; flex-direction: column; gap: 0.15rem; position: sticky; left: 0; background: var(--mi-panel); border-right: 1px solid var(--mi-rule-soft); }
@@ -171,14 +184,10 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .mi-chip, .mi-filter-chip { transition: background-color 0.12s ease, border-color 0.12s ease; }
+    .mi-chip, .mi-rail-item { transition: background-color 0.12s ease, border-color 0.12s ease; }
 }
 
 /* History (move-it.md §15): the ledger as a table, and the entry form in the detail column. */
-.mi-crumbs { font-size: 12px; margin-bottom: 0.4rem; }
-.mi-crumbs a { color: var(--mi-muted); text-decoration: none; }
-.mi-crumbs a:hover { color: var(--mi-ink); text-decoration: underline; }
-.mi-header-side { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 
 .mi-button {
     padding: 0.35rem 0.8rem;
@@ -238,7 +247,7 @@
 
 /* The release page (move-it.md §16): three sections in the main column, the event form beside. */
 .mi-section { margin-top: 1.5rem; }
-.mi-section:first-child { margin-top: 0; }
+.mi-section:first-child { margin-top: 0; padding-top: 1rem; }
 .mi-section-title { font: 600 13px/1 var(--mi-font); color: var(--mi-muted); margin: 1.25rem 0 0.6rem; }
 .mi-section .mi-hist { border-top: 1px solid var(--mi-rule); border-radius: 6px; }
 .mi-items tr.is-pulled td { color: var(--mi-muted); text-decoration: line-through; }
@@ -260,10 +269,6 @@
 
 /* The release view (move-it.md §18): one card per release, same lanes. A card carries its
    contents, a bar of where its items are, and the flags an executive asks about. */
-.mi-toggle { display: inline-flex; border: 1px solid var(--mi-rule); border-radius: 999px; overflow: hidden; }
-.mi-toggle button { border: 0; background: var(--mi-panel); color: var(--mi-ink); padding: 0.35rem 0.85rem; cursor: pointer; }
-.mi-toggle button + button { border-left: 1px solid var(--mi-rule); }
-.mi-toggle button.is-active { background: var(--mi-ink); color: #fff; }
 
 .mi-card {
     display: flex; flex-direction: column; gap: 0.3rem;
@@ -298,15 +303,9 @@
 .mi-detail-items .mi-stage { white-space: nowrap; }
 .mi-detail-items li.is-removed > span:first-child { text-decoration: line-through; color: var(--mi-muted); }
 
-/* Move It's tabs (move-it.md §19). */
-.mi-tabs { display: flex; gap: 1.25rem; margin-bottom: 0.9rem; font-size: 13px; }
-.mi-tab { color: var(--mi-muted); text-decoration: none; padding-bottom: 0.3rem; border-bottom: 2px solid transparent; }
-.mi-tab:hover { color: var(--mi-ink); }
-.mi-tab.is-active { color: var(--mi-ink); font-weight: 600; border-bottom-color: var(--mi-ink); }
 
 /* Division (move-it.md §19): the executive's page. Big numbers, then one step line per
    release and a lighter one per feature, all on the same columns so they read down. */
-.dv-summary { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1.25rem 2rem; background: var(--mi-panel); border-bottom: 1px solid var(--mi-rule); }
 .dv-tile { flex: 1 1 11rem; display: flex; flex-direction: column; gap: 0.3rem; padding: 0.9rem 1rem; border-radius: 8px; background: var(--mi-paper); border-top: 4px solid var(--mi-rule); }
 .dv-tile-num { font: 600 38px/1 var(--mi-display); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .dv-tile-label { font-size: 13px; color: var(--mi-muted); line-height: 1.3; }
@@ -325,7 +324,7 @@
 .dv-head-label, .dv-head-step {
     position: sticky; top: 0; z-index: 2;
     background: var(--mi-paper);
-    padding: 1.1rem 0.5rem 0.8rem;
+    padding: 0.6rem 0.5rem 0.6rem;
     border-bottom: 1px solid var(--mi-rule);
 }
 .dv-head-step { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.15rem; box-shadow: inset 0 -4px 0 var(--hue); }
@@ -393,19 +392,11 @@
 
 /* Coming up (move-it.md §20): the notebook's one line above the item lanes. Quiet, one row,
    the same controls as the entry form; the only write on the board. */
-.mi-coming-up { padding: 0.75rem 0 0; }
-.mi-coming-form { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; padding: 0.6rem 0.75rem; border: 1px dashed var(--mi-rule); border-radius: 6px; }
+.mi-coming-form { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .mi-coming-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--mi-muted); margin-right: 0.25rem; }
 .mi-coming-form select, .mi-coming-form input { font: inherit; font-size: 13px; padding: 0.3rem 0.45rem; border: 1px solid var(--mi-rule); border-radius: 4px; background: #fff; }
 .mi-coming-form input[name="title"] { flex: 2 1 14rem; }
 .mi-coming-form input[name="note"] { flex: 3 1 18rem; }
-
-/* The uber header (move-it.md §26): the pages, one thin line across the top. */
-.mi-uber { flex: none; display: flex; align-items: center; padding: 0 1.25rem; background: var(--mi-ink); }
-.mi-uber .mi-tabs { margin: 0; gap: 0.25rem; font-size: 12.5px; }
-.mi-uber .mi-tab { padding: 0.45rem 0.7rem; color: rgba(255, 255, 255, 0.62); border-bottom: 2px solid transparent; }
-.mi-uber .mi-tab:hover { color: #fff; }
-.mi-uber .mi-tab.is-active { color: #fff; border-bottom-color: #fff; }
 
 /* The rail (move-it.md §26): the applications down the left, at full height, so the content
    gets the screen's height. Screens are wider than tall; spend width, not height. */
@@ -426,13 +417,16 @@
 .mi-shell.is-collapsed .mi-rail { width: 2.8rem; }
 .mi-shell.is-collapsed .mi-rail-body { display: none; }
 .mi-rail-h { font: 600 11px/1 var(--mi-font); letter-spacing: 0.05em; text-transform: uppercase; color: var(--mi-muted); }
-.mi-rail-list { display: flex; flex-direction: column; gap: 1px; }
-.mi-rail-list.is-scroll { flex: 1; min-height: 0; overflow: auto; }
+.mi-rail-list { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 1px; }
 .mi-rail-item {
-    flex: none; padding: 0.25rem 0.5rem; border: 0; border-radius: 4px; text-align: left;
-    background: none; color: var(--mi-ink); cursor: pointer;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex: none; display: flex; align-items: baseline; gap: 0.5rem;
+    padding: 0.25rem 0.5rem; border: 0; border-radius: 4px; text-align: left;
+    background: none; color: var(--mi-ink); cursor: pointer; white-space: nowrap;
 }
+.mi-rail-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.mi-rail-count { font-size: 12px; color: var(--mi-muted); font-variant-numeric: tabular-nums; }
+.mi-rail-item.is-active .mi-rail-count { color: rgba(255, 255, 255, 0.7); }
+.mi-rail-item[hidden] { display: none; }
 .mi-rail-item:hover { background: var(--mi-rule-soft); }
 .mi-rail-item.is-active { background: var(--mi-ink); color: #fff; }
 .mi-rail-find { font: inherit; font-size: 13px; padding: 0.3rem 0.45rem; border: 1px solid var(--mi-rule); border-radius: 4px; background: #fff; }
@@ -440,32 +434,18 @@
 /* Calendar (move-it.md §21, §26): a month grid that fits the screen. Observed chips are solid
    in the stage hue, human events outlined in it, targets flagged; days after the last
    recorded change are hatched. */
-.cal-stage { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem 1.5rem; flex-wrap: wrap; padding: 0.6rem 1.25rem; background: var(--mi-panel); border-bottom: 1px solid var(--mi-rule); }
 .cal-nav { display: flex; align-items: center; gap: 0.5rem; }
 .cal-month { font: 600 18px/1 var(--mi-display); min-width: 10rem; text-align: center; }
-.cal-showing { margin-left: auto; font-size: 13px; color: var(--mi-muted); }
-.cal-stages { display: flex; gap: 0.1rem; }
-.cal-stage-pick { padding: 0.15rem 0.5rem; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--mi-muted); font-size: 12.5px; cursor: pointer; }
-.cal-stage-pick:hover { color: var(--mi-ink); }
-.cal-stage-pick.is-active { color: var(--mi-ink); font-weight: 600; border-bottom-color: var(--mi-ink); }
-.cal-key { position: relative; }
-.cal-key-button { width: auto; padding: 0.2rem 0.6rem; border: 1px solid var(--mi-rule); border-radius: 999px; background: var(--mi-panel); color: var(--mi-muted); font-size: 12px; cursor: pointer; }
-.cal-key-button:hover, .cal-key-button[aria-expanded="true"] { border-color: var(--mi-ink); color: var(--mi-ink); }
-.cal-key-panel { position: absolute; right: 0; top: calc(100% + 0.4rem); z-index: 5; width: 17rem; padding: 0.8rem 0.9rem; background: var(--mi-panel); border: 1px solid var(--mi-rule); border-radius: 6px; box-shadow: 0 8px 24px rgba(26, 33, 44, 0.16); }
-.cal-showing strong { font-weight: 600; color: var(--mi-ink); }
-.cal-showing.is-filtered { color: var(--mi-ink); }
-.cal-clear { margin-left: 0.4rem; padding: 0.15rem 0.55rem; border: 1px solid var(--mi-rule); border-radius: 999px; background: var(--mi-panel); color: var(--mi-ink); font-size: 12px; cursor: pointer; }
-.cal-clear:hover { border-color: var(--mi-ink); }
 .cal-legend { display: grid; grid-template-columns: 1fr; gap: 0.4rem; list-style: none; padding: 0; margin: 0; font-size: 12px; color: var(--mi-muted); }
 .cal-legend li { display: flex; align-items: center; gap: 0.5rem; font-size: 12px; line-height: 1.2; }
 .cal-legend .cal-chip, .cal-legend .cal-hold-key, .cal-legend .cal-unknown-key { flex: none; width: 1.1rem; }
 .cal-legend .cal-chip { width: 1.4rem; height: 0.8rem; padding: 0; }
 .cal-unknown-key { display: inline-block; width: 1.4rem; height: 0.8rem; border: 1px solid var(--mi-rule); background-image: repeating-linear-gradient(135deg, transparent 0 4px, rgba(138, 90, 0, 0.18) 4px 7px); }
-.cal-recorded { flex: none; margin-top: 0.4rem; padding: 0.6rem 0.7rem; font-size: 12px; line-height: 1.4; color: var(--mi-muted); border-top: 1px solid var(--mi-rule-soft); }
-.cal-recorded strong { color: var(--mi-ink); }
-.cal-recorded.is-warning { color: var(--mi-hold); background: var(--mi-hold-bg); border: 1px solid #e6cf9a; border-radius: 4px; }
-.cal-recorded.is-warning strong { color: var(--mi-hold); }
+.mi-rail-foot { flex: none; margin-top: 0.4rem; padding: 0.6rem 0.7rem 0; font-size: 12px; line-height: 1.4; color: var(--mi-muted); border-top: 1px solid var(--mi-rule-soft); }
+.mi-rail-foot:empty { display: none; }
+.mi-rail-foot strong { color: var(--mi-ink); }
+.mi-rail-foot.is-warning { padding-bottom: 0.6rem; color: var(--mi-hold); background: var(--mi-hold-bg); border: 1px solid #e6cf9a; border-radius: 4px; }
+.mi-rail-foot.is-warning strong { color: var(--mi-hold); }
 
 /* The grid takes what is left and splits it into the month's weeks; below a floor the page
    scrolls rather than squash a day to nothing. */
@@ -517,19 +497,19 @@
 .cal-note { font-size: 12.5px; margin-top: 0.25rem; padding-left: 0.5rem; border-left: 2px solid var(--mi-rule); }
 
 /* The day's detail slides over the right of the grid instead of narrowing it. */
-.cal-drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 3; box-shadow: -8px 0 24px rgba(26, 33, 44, 0.12); }
+.mi-drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 3; box-shadow: -8px 0 24px rgba(26, 33, 44, 0.12); }
 
 @media (max-width: 900px) {
     .mi-shell { flex-direction: column; overflow: auto; }
     .mi-rail, .mi-shell.is-collapsed .mi-rail { width: auto; border-right: 0; border-bottom: 1px solid var(--mi-rule); }
-    .mi-rail-list.is-scroll { max-height: 10rem; }
-    .cal-stage { flex: none; }
+    .mi-rail-list { max-height: 10rem; }
+    .mi-pane { flex: none; }
     .cal-main { overflow: visible; }
-    .cal-drawer { position: fixed; left: 0; top: auto; max-height: 70vh; box-shadow: 0 -8px 24px rgba(26, 33, 44, 0.16); }
+    .mi-drawer { position: fixed; left: 0; top: auto; max-height: 70vh; box-shadow: 0 -8px 24px rgba(26, 33, 44, 0.16); }
 }
 
 @media (max-width: 700px) {
-    .cal-head { padding-left: 1rem; padding-right: 1rem; }
+    .mi-head { padding-left: 1rem; padding-right: 1rem; }
     .cal-main { padding: 0.75rem 1rem 2rem; }
     .cal-day { min-height: 4rem; padding: 0.25rem; }
     .cal-chip { font-size: 0; height: 5px; padding: 0; }
@@ -540,32 +520,32 @@
     .cal-hold { font-size: 0; height: 4px; }
 }
 
-/* Needs a word from you (move-it.md §23): the entrant's own list above the ledger. Amber,
-   because it is about what is missing, not what is wrong. */
-.mi-needs { margin: 1rem 0 1.25rem; padding: 0.75rem 1rem; border: 1px solid #e6cf9a; border-left: 4px solid #d9a441; border-radius: 6px; background: var(--mi-hold-bg); }
-.mi-needs.is-clear { border-color: var(--mi-rule); border-left-color: #1e8e3e; background: var(--mi-panel); }
-.mi-needs-head { font-weight: 600; cursor: pointer; }
-.mi-needs.is-clear .mi-needs-head { cursor: default; color: var(--mi-muted); font-weight: 500; }
-.mi-needs-count { display: inline-block; min-width: 1.4rem; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--mi-hold); color: #fff; font-size: 12px; text-align: center; }
-.mi-needs-list { list-style: none; padding: 0; margin: 0.6rem 0 0; display: flex; flex-direction: column; gap: 0.4rem; }
-.mi-needs-item { display: grid; grid-template-columns: minmax(12rem, 18rem) 1fr; gap: 0.25rem 1rem; }
+/* Needs a word from you (move-it.md §23, §26): the entrant's own list, floating over History
+   behind an amber button. Amber, because it is about what is missing, not what is wrong. */
+.mi-needs-head { font: 600 13px/1.2 var(--mi-font); margin-bottom: 0.6rem; }
+.mi-needs-clear { color: var(--mi-muted); }
+.mi-needs-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.mi-needs-item { display: grid; grid-template-columns: minmax(10rem, 15rem) 1fr; gap: 0.2rem 1rem; font-size: 13px; }
 .mi-needs-what { font-weight: 600; }
 .mi-needs-why { color: var(--mi-hold); }
 @media (max-width: 700px) { .mi-needs-item { grid-template-columns: 1fr; } }
 
-/* Division's coverage line (move-it.md §24): what the board cannot see, stated under the
-   numbers so a calm page is not read as a complete one. */
-.dv-cover { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 0.35rem 1.5rem; margin: 0; padding: 0.55rem 0.9rem; border-radius: 6px; background: var(--mi-paper); font-size: 13px; color: var(--mi-ink); }
-.dv-cover.is-partial { background: var(--mi-hold-bg); }
+/* Division's coverage (move-it.md §24, §26): what the board cannot see, behind a button in
+   the header that stays amber while anything is unseen, so a calm page is not read as a
+   complete one. */
+.dv-cover { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.45rem; font-size: 13px; }
 .dv-cover-tag { font-size: 11px; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; background: var(--mi-hold-bg); color: var(--mi-hold); white-space: nowrap; }
 .dv-cover-tag.is-dark { background: var(--mi-rule-soft); color: var(--mi-muted); }
 
 /* The week (move-it.md §25): one printable page. Division's tiles, then six short lists in
    two columns; on paper the controls and tabs go and the lists run in one column. */
-.wk-controls .mi-button:disabled { opacity: 0.4; cursor: default; }
+.wk-controls:disabled { opacity: 0.4; cursor: default; }
+.wk-print { margin-left: auto; }
 .wk-main { flex: 1; overflow: auto; padding: 1.25rem 2rem 3rem; }
 .wk-note { margin-bottom: 1rem; padding: 0.55rem 0.9rem; border-radius: 6px; background: var(--mi-hold-bg); color: var(--mi-hold); font-size: 13px; }
-.wk-tiles { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.wk-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
+.wk-tiles .dv-tile { padding: 0.7rem 0.85rem; }
+.wk-tiles .dv-tile-num { font-size: 30px; }
 .wk-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); gap: 1.25rem 2rem; }
 .wk-section { background: var(--mi-panel); border: 1px solid var(--mi-rule); border-radius: 8px; padding: 1rem 1.2rem; break-inside: avoid; }
 .wk-h { font: 600 15px/1.2 var(--mi-display); margin-bottom: 0.6rem; }
@@ -583,8 +563,8 @@
 }
 @media print {
     #moveit-root { height: auto; background: #fff; }
-    .mi-tabs, .wk-controls, header.navbar, footer { display: none !important; }
-    .mi-header { padding: 0 0 0.5rem; border: 0; }
+    .mi-uber, .wk-controls, header.navbar, footer { display: none !important; }
+    .mi-head { padding: 0 0 0.5rem; border: 0; }
     .wk-main { overflow: visible; padding: 0; }
     .wk-cols { grid-template-columns: 1fr 1fr; gap: 0.75rem 1.25rem; }
     .wk-section { border-color: #ccc; }

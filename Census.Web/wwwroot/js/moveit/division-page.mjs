@@ -4,6 +4,7 @@ import { NOT_SEEN, buildLanes, laneFor } from './lanes.mjs';
 import { laneHue } from './stage-hues.mjs';
 import { classifyReleases } from './release-panel.mjs';
 import { renderTabs } from './tabs.mjs';
+import { PopOver } from './pop-over.mjs';
 
 // Division (move-it.md §19): the executive's page. Every project, every release in flight,
 // every feature and fix, drawn as a step line from the developers' desks to live. One step
@@ -52,18 +53,18 @@ class DivisionPage {
         this.shippedDays = config.shippedDays ?? 14;
         this.captions = config.stepCaptions ?? {};
         this.now = Date.now();
+        this.cover = new PopOver({ id: 'dv-cover', wide: true });
         this.root.innerHTML = `
-            <header class="mi-header">
-                <div class="mi-masthead">
-                    ${renderTabs('division')}
-                    <h1 class="mi-title">The division at a glance</h1>
-                    <p class="mi-tagline">Every project, every release, every feature and fix — and how far each has come on the way to live.</p>
-                </div>
-            </header>
-            <div class="dv-summary" data-ref="summary"></div>
+            ${renderTabs('division')}
+            <div class="mi-head">
+                <div class="mi-head-numbers" data-ref="summary"></div>
+                ${this.cover.html()}
+            </div>
             <main class="dv-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>`;
         this.summaryEl = this.root.querySelector('[data-ref="summary"]');
         this.mainEl = this.root.querySelector('[data-ref="main"]');
+        this.cover.mount(this.root);
+        this.cover.hide(true);
         this.load();
     }
 
@@ -118,37 +119,47 @@ class DivisionPage {
         }));
     }
 
+    // The six numbers as one line in the header (§26), coloured as the tiles were: green for
+    // went live, blue for the client's move, red for late, amber for held.
     renderSummary(placed) {
         const inFlight = placed.filter((p) => !p.folded && p.state !== 'live');
         const pieces = inFlight.reduce((n, p) => n + p.items.length, 0);
         const recent = placed.filter((p) => p.shippedAt && !p.folded);
-        const tile = (n, label, tone = '') => `<div class="dv-tile ${tone}"><span class="dv-tile-num">${n}</span><span class="dv-tile-label">${label}</span></div>`;
-        this.summaryEl.innerHTML = [
-            tile(inFlight.length, `release${inFlight.length === 1 ? '' : 's'} on the way, carrying ${pieces} feature${pieces === 1 ? '' : 's'} and fixes`),
-            tile(recent.length, `went live in the last ${this.shippedDays} days`, recent.length ? 'is-good' : ''),
-            tile(inFlight.filter((p) => p.state === 'waiting').length, 'waiting on client sign-off', 'is-ask'),
-            tile(inFlight.filter((p) => p.state === 'signed').length, 'signed off, going live', 'is-ask'),
-            tile(inFlight.filter((p) => p.release.PastTarget === 1).length, 'past their target date', inFlight.some((p) => p.release.PastTarget === 1) ? 'is-alert' : ''),
-            tile(inFlight.filter((p) => p.state === 'hold').length, 'on hold', inFlight.some((p) => p.state === 'hold') ? 'is-hold' : ''),
-        ].join('') + this.renderCoverage();
+        const n = (count, label, tone = '') => `<li class="${count ? tone : ''}"><span class="mi-num">${count}</span> ${label}</li>`;
+        this.summaryEl.innerHTML = `
+            <ul class="mi-numbers" aria-label="The division">
+                ${n(inFlight.length, `on the way <span class="mi-muted">(${pieces} feature${pieces === 1 ? '' : 's'} and fixes)</span>`)}
+                ${n(recent.length, `live in ${this.shippedDays} days`, 'is-good')}
+                ${n(inFlight.filter((p) => p.state === 'waiting').length, 'waiting on sign-off', 'is-ask')}
+                ${n(inFlight.filter((p) => p.state === 'signed').length, 'signed off, going live', 'is-ask')}
+                ${n(inFlight.filter((p) => p.release.PastTarget === 1).length, 'past target', 'is-alert')}
+                ${n(inFlight.filter((p) => p.state === 'hold').length, 'on hold', 'is-hold')}
+            </ul>`;
+        this.renderCoverage();
     }
 
     // What the board can and cannot see (§24), so a calm page is not read as complete: how many
     // applications the pings watch, which are known only from what people say, and which not
-    // at all. Named, because "3 not visible" invites the question "which?".
+    // at all. Named, because "3 not visible" invites the question "which?". The button says
+    // how many it cannot see, amber, so the warning stays on screen with the sentence folded.
     renderCoverage() {
         const appsById = new Map(this.applications.map((a) => [a.ApplicationId, a]));
         const named = (verdicts) => this.coverage.filter((c) => verdicts.includes(c.Verdict)).map((c) => appLabel(appsById.get(c.ApplicationId) ?? { ApplicationId: c.ApplicationId }));
         const watched = named(['observed']);
         const said = named(['asserted only']);
         const dark = named(['pinged, no block', 'nothing']);
-        const part = (list, text) => list.length ? `<span class="dv-cover-part"><strong>${list.length}</strong> ${text} <span class="dv-muted">(${list.map(escapeHtml).join(', ')})</span></span>` : '';
-        return `
-            <p class="dv-cover ${said.length || dark.length ? 'is-partial' : ''}">
-                <span class="dv-cover-part">The pings watch <strong>${watched.length} of ${this.coverage.length}</strong> applications</span>
+        const blind = said.length + dark.length;
+        const part = (list, text) => list.length ? `<li><strong>${list.length}</strong> ${text} <span class="dv-muted">(${list.map(escapeHtml).join(', ')})</span></li>` : '';
+        this.cover.hide(false);
+        this.cover.setButton(blind
+            ? `Pings watch ${watched.length} of ${this.coverage.length}`
+            : `Pings watch all ${this.coverage.length}`, blind ? 'is-warn' : '');
+        this.cover.setBody(`
+            <ul class="dv-cover">
+                <li>The pings watch <strong>${watched.length} of ${this.coverage.length}</strong> applications.</li>
                 ${part(said, 'known only from what people record')}
                 ${part(dark, 'not visible: no deployment details reach the board')}
-            </p>`;
+            </ul>`);
     }
 
     coverageTag(app) {

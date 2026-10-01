@@ -40,18 +40,13 @@ class WeekPage {
 
     renderShell() {
         this.root.innerHTML = `
-            <header class="mi-header wk-header">
-                <div class="mi-masthead">
-                    ${renderTabs('week')}
-                    <h1 class="mi-title" data-ref="title">The week</h1>
-                    <p class="mi-tagline">What went live, what moved, what went wrong and what is due — seven days on one page.</p>
-                </div>
-                <div class="mi-header-side wk-controls">
-                    <button type="button" class="mi-button" data-ref="prev" aria-label="Previous week">‹ Earlier</button>
-                    <button type="button" class="mi-button" data-ref="next" aria-label="Next week">Later ›</button>
-                    <button type="button" class="mi-button is-primary" data-ref="print">Print</button>
-                </div>
-            </header>
+            ${renderTabs('week')}
+            <div class="mi-head wk-head">
+                <button type="button" class="mi-button wk-controls" data-ref="prev" aria-label="Previous week">‹ Earlier</button>
+                <h1 class="mi-head-title" data-ref="title" title="What went live, what moved, what went wrong and what is due — seven days on one page.">The week</h1>
+                <button type="button" class="mi-button wk-controls" data-ref="next" aria-label="Next week">Later ›</button>
+                <button type="button" class="mi-button is-primary wk-controls wk-print" data-ref="print">Print</button>
+            </div>
             <main class="wk-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>`;
         const ref = (n) => this.root.querySelector(`[data-ref="${n}"]`);
         this.titleEl = ref('title');

@@ -4,6 +4,33 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (late night) — the frame on every page (§26.1)
+
+**All five pages in one pass, and the release page with them.** It uses the same tab bar,
+so leaving it in the old frame would have been the odd one out.
+
+**Where is it: per-lane counts moved into the board's lane headers.** Options: a numbers line
+in the header (too long with the release numbers beside it); the lane heads. Call: lane heads.
+Reason: they already name the lanes, so the count sits where the eye already is.
+
+**Short labels in the numbers lines** (*approved, not out*, *to PROD, 7d*), with the full
+wording on hover. Reason: at 1366 wide the long labels pushed *+ Coming up* to a second line.
+
+**Coming up became a float-over**, shown only in the items view, as before.
+
+**History keeps a short title** (*Every build seen, newest first*). Reason: it is the
+entrant's page, and the line says what the table is; the old tagline is its hover text.
+
+**Division's coverage button counts what the pings watch** (*Pings watch 3 of 5*), amber
+when any application is unseen. Reason: §24's point is that a calm page is not a complete
+one; the number keeps that on screen with the sentence folded.
+
+**The week's tiles: one row**, smaller numbers. Reason: two rows of tiles were the same
+waste of height the pass is removing; the page still prints as before.
+
+**One commit for the pass, not one per page.** The pages share one stylesheet and the
+new rail/float-over modules, so per-page commits would not have reverted cleanly.
+
 ## 2026-10-01 (night) — the Calendar rail (§26)
 
 **Rail and uber header on the Calendar only.** Options: give all five pages the new frame

@@ -1468,7 +1468,7 @@ on day 50), so "days here" no longer reads *today*.
   *§21's calendar is the first time view:* an undated release simply draws
   no flag there; its arrivals and events still show.
 
-## 21. Calendar — when things moved, and when they were due (spec 2026-10-01; not built)
+## 21. Calendar — when things moved, and when they were due (spec 2026-10-01 "go"; built and browser-verified the same day)
 
 Robert, 2026-10-01, after clicking through Division, Where is it and History
 on real data: *"a Calendar view might be very useful. one where we can
@@ -1517,25 +1517,53 @@ stage, build, who and when for assertions, the reason for a hold. Hues from
 link to the release page** (Robert, 2026-10-01: *"not now"* — same reason as
 Division, §19; revisit with the gate).
 
-**"Recorded through."** There is no SQL Agent on the real server (item 17);
-the ledger knows only as far as the last manual backfill. An empty day
-before that line means nothing moved; an empty day after it means nothing
-is known yet. The page states **Recorded through *date*** (the latest
-`DetectedAt` in the ledger) and shades the days after it up to today.
-Without this the grid reads complete when it is not.
+**"Last change recorded."** There is no SQL Agent on the real server (item 17);
+the ledger knows only as far as the last manual backfill. The page states
+**Last change recorded *date*** (the latest `DetectedAt`) and hatches the
+days after it up to today, saying they are *either quiet or not yet
+backfilled*. It cannot say which: the ledger records changes, not when the
+backfill last looked (open item below). Without the line the grid reads
+complete when it is not.
 
-**The query.** `board/calendar.sql`, `@From` / `@To` (dates, inclusive of
-`@From`, exclusive of `@To`), one result set with a `Kind` column
-(`observed` | `asserted` | `planned`) plus the recorded-through date.
-Observed rows come from first arrival per application, stage and build
-(`MIN(DetectedAt)` over the stage's endpoints), so a build first seen at a
-stage before `@From` draws nothing in this month. Real-data cost
-unmeasured.
+**The query, as built.** `board/calendar.sql`, no parameters — every
+dated row once, and the page pages by month in the browser (the other board
+files run verbatim the same way; the spec's `@From` / `@To` was dropped for
+that). One result set, `Kind` = `arrived` | `returned` | `event` |
+`recorded-through`:
+- **arrived** — a build's first row at a stage (any endpoint there). **Not
+  drawn when that first row is the endpoint's first ping** (`PreviousId` is
+  null): the build was already there when watching began, so it did not
+  arrive that day. Without this the window's first day is crowded with
+  arrivals that never happened.
+- **returned** — 08's rollback rule, one row per server; the page collapses
+  servers into one chip and one line (*· 2 servers*).
+- **event** — every `ReleaseEvent` but `note`, with the release.
+- **recorded-through** — one row, `MAX(DetectedAt)`.
+
+Planned flags come from 02 (`TargetDate`, `PastTarget`, `HighestStage`),
+which the page already reads; an abandoned release draws none. Endpoint
+`GET api/moveit/calendar`; page `calendar-page.mjs`, view
+`MoveItCalendar.cshtml`. Days are the **reader's** local day (the browser's
+clock); weeks start Monday. Real-data cost unmeasured.
 
 **Calls (logged in `calls-made-for-you.md`, 2026-10-01).** `DetectedAt`,
 not `Deploymentat` — ours over the pipeline's claim (§10.1); the lag of one
-ping interval vanishes at day grain. Days are the server's local date, not
-UTC. Holds are points, not spans.
+ping interval vanishes at day grain. Days are the reader's local date, not
+UTC. Holds are points, not spans. Chip order in a day: targets (missed
+first), rollbacks, arrivals from the top stage down, then events; three
+shown, then *+N more*.
+
+**Verified 2026-10-01 in Chrome on the fixtures** (the seed runs Jul 6 –
+Sep 14 UTC, read in US Eastern, so midnight-UTC arrivals land the evening
+before). August, All: Reporting refresh *due* red on Aug 24 with its PROD
+arrival the same day and ↺ *back to 20260701.1* on Aug 26; WidgetCore ↺
+*back to 20260815.1* on Aug 30; Q3 rate changes *due* grey on Aug 25 (live
+by assertion); WidgetCore Sprint 43 *due* red on Sep 1; days from Sep 2
+hatched under *Last change recorded Tue, Sep 1*. PROD + WidgetCore: only
+Aug 29 (arrival and approval), Aug 30 (rollback), Aug 31 (on hold), Sep 1
+(due). Aug 30's column: one rollback line, *2 servers*. *This month*:
+October, Oct 1 marked today, Q4 letters *due* red on Sep 29, Sep 28 – Oct 1
+hatched, scroll back at the top. Not seen: the narrow-screen layout.
 
 **Open items for this section**
 - **Hold spans.** A bar from hold to resume across weeks is the honest
@@ -1543,6 +1571,13 @@ UTC. Holds are points, not spans.
 - **A week view, an agenda list for narrow screens, several stages at
   once.** Deferred until the month grid has been used on real data.
 - **Link to the release page** from the side column — after the gate.
+- **When did the backfill last look?** The hatch cannot tell a quiet week
+  from an un-run backfill. The fix is the backfill stamping its own run (a
+  one-row table, or a column) — a schema change, so it waits for a ruling.
+  Goes away when the live processor (Part E) writes rows as pings arrive.
+- **Already there when watching began** is not drawn. On the real server
+  that is each endpoint's first ping; if an endpoint is registered the day
+  its app first deploys, that real arrival is lost too. Not hit yet.
 - **First arrival vs every arrival.** A build redeployed to the same stage
   without leaving it (rollback variant A's fresh `Deploymentat`) draws once.
   If redeploys matter on the calendar, they are a fourth marker.

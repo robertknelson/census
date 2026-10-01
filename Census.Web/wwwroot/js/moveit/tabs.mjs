@@ -1,9 +1,11 @@
 // Move It's navigation (move-it.md §19): one tab bar across its pages. Division is the
-// executive's page and comes first; History is the entrant's and comes last.
+// executive's page and comes first; History is the entrant's; Calendar (§21) puts
+// all of it on dates.
 const TABS = [
     { id: 'division', label: 'Division', href: '/moveit/division' },
     { id: 'board', label: 'Where is it', href: '/moveit' },
     { id: 'history', label: 'History', href: '/moveit/history' },
+    { id: 'calendar', label: 'Calendar', href: '/moveit/calendar' },
 ];
 
 export function renderTabs(active) {

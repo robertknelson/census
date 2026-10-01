@@ -28,6 +28,9 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
     [HttpGet("release-builds")]
     public Task<IActionResult> ReleaseBuilds() => Run("board/release-builds.sql");
 
+    [HttpGet("calendar")]
+    public Task<IActionResult> Calendar() => Run("board/calendar.sql");
+
     [HttpGet("lists")]
     public Task<IActionResult> Lists() => Run("manifest/lists.sql");
 

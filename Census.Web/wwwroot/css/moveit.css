@@ -399,3 +399,62 @@
 .mi-coming-form select, .mi-coming-form input { font: inherit; font-size: 13px; padding: 0.3rem 0.45rem; border: 1px solid var(--mi-rule); border-radius: 4px; background: #fff; }
 .mi-coming-form input[name="title"] { flex: 2 1 14rem; }
 .mi-coming-form input[name="note"] { flex: 3 1 18rem; }
+
+/* Calendar (move-it.md §21): a month grid. Observed chips are solid in the stage hue, human
+   events outlined in it, targets flagged; days after the last recorded change are hatched. */
+.cal-bar { display: flex; align-items: center; gap: 1rem 2rem; flex-wrap: wrap; padding: 0.8rem 2rem; background: var(--mi-panel); border-bottom: 1px solid var(--mi-rule); }
+.cal-nav { display: flex; align-items: center; gap: 0.5rem; }
+.cal-month { font: 600 18px/1 var(--mi-display); min-width: 10rem; text-align: center; }
+.cal-legend { display: flex; gap: 1rem; flex-wrap: wrap; list-style: none; padding: 0; margin: 0; font-size: 12px; color: var(--mi-muted); }
+.cal-legend li { display: flex; align-items: center; gap: 0.35rem; }
+.cal-legend .cal-chip { width: 1.4rem; height: 0.8rem; padding: 0; }
+.cal-recorded { padding: 0.55rem 2rem; font-size: 13px; color: var(--mi-hold); background: var(--mi-hold-bg); border-bottom: 1px solid var(--mi-rule); }
+
+.cal-main { flex: 1; overflow: auto; padding: 1rem 2rem 3rem; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: var(--mi-rule); gap: 1px; border: 1px solid var(--mi-rule); }
+.cal-weekday { background: var(--mi-panel); padding: 0.35rem 0.5rem; font-size: 12px; font-weight: 600; color: var(--mi-muted); }
+.cal-day {
+    display: flex; flex-direction: column; align-items: stretch; gap: 0.2rem;
+    min-height: 7.5rem; min-width: 0; padding: 0.35rem 0.4rem 0.45rem;
+    border: 0; background: var(--mi-panel); color: var(--mi-ink); text-align: left; cursor: pointer;
+}
+.cal-day:hover { background: #fafbfc; }
+.cal-day.is-other { background: var(--mi-paper); }
+.cal-day.is-other .cal-date { color: #a3abb7; }
+.cal-day.is-unknown { background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgba(138, 90, 0, 0.07) 6px 12px); }
+.cal-day.is-selected { box-shadow: inset 0 0 0 2px var(--mi-ink); }
+.cal-date { font-size: 12px; font-weight: 600; color: var(--mi-muted); font-variant-numeric: tabular-nums; }
+.cal-day.is-today .cal-date { align-self: flex-start; color: #fff; background: var(--mi-ink); border-radius: 999px; padding: 0 0.4rem; }
+
+.cal-chip {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; min-width: 0; overflow: hidden; overflow-wrap: break-word;
+    font-size: 11.5px; line-height: 1.35; padding: 0.1rem 0.35rem; border-radius: 3px;
+}
+.cal-chip.is-observed { background: var(--lane); color: #fff; }
+.cal-chip.is-observed.is-unnamed { opacity: 0.55; }
+.cal-chip.is-observed.is-returned { background: #fff; color: var(--mi-alert); box-shadow: inset 0 0 0 1.5px var(--mi-alert); font-weight: 600; }
+.cal-chip.is-event { color: var(--mi-ink); box-shadow: inset 0 0 0 1.5px var(--lane); background: #fff; }
+.cal-chip.is-planned { color: var(--mi-ink); background: var(--mi-rule-soft); }
+.cal-chip.is-planned.is-missed { color: var(--mi-alert); background: var(--mi-alert-bg); font-weight: 600; }
+.cal-chip .cal-tag { margin-right: 0.3rem; }
+.cal-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
+.cal-chip.is-observed .cal-tag { opacity: 0.8; }
+.cal-chip.is-event .cal-tag, .cal-list .cal-tag { color: var(--lane); }
+.cal-flag { margin-right: 0.25rem; color: var(--mi-muted); }
+.cal-flag.is-missed { color: var(--mi-alert); }
+.cal-more { font-size: 11px; color: var(--mi-muted); padding-left: 0.35rem; }
+
+.cal-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.7rem; }
+.cal-list .mi-muted { font-size: 12.5px; margin-top: 0.1rem; }
+.cal-note { font-size: 12.5px; margin-top: 0.25rem; padding-left: 0.5rem; border-left: 2px solid var(--mi-rule); }
+
+@media (max-width: 700px) {
+    .cal-bar, .cal-recorded { padding-left: 1rem; padding-right: 1rem; }
+    .cal-main { padding: 0.75rem 1rem 2rem; }
+    .cal-day { min-height: 4rem; padding: 0.25rem; }
+    .cal-chip { font-size: 0; height: 5px; padding: 0; }
+    .cal-chip.is-planned { height: 5px; background: var(--mi-muted); }
+    .cal-chip.is-planned.is-missed { background: var(--mi-alert); }
+    .cal-chip .cal-flag, .cal-chip .cal-tag { display: none; }
+    .cal-more { font-size: 10px; padding: 0; }
+}

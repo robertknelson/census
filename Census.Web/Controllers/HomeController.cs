@@ -63,6 +63,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // Calendar (move-it.md §21): when builds reached each stage, what people recorded, and
+    // when releases were due, on a month grid. Read-only.
+    [HttpGet("/moveit/calendar")]
+    public IActionResult MoveItCalendar([FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
+        return View();
+    }
+
     // The release page (move-it.md §16): one release in depth, with its events and edits.
     [HttpGet("/moveit/release/{id:int}")]
     public IActionResult MoveItRelease(int id, [FromServices] MoveItQuestions questions)

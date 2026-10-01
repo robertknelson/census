@@ -1,0 +1,18 @@
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Calendar";
+    var config = JsonSerializer.Serialize(new { rootId = "moveit-root" });
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/moveit.css" asp-append-version="true" />
+}
+
+<div id="moveit-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import calendarPage from '/js/moveit/calendar-page.mjs';
+        calendarPage.init(@Html.Raw(config));
+    </script>
+}

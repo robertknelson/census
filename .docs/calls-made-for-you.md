@@ -4,6 +4,26 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (later) — Calendar built, "go"
+
+**No `@From` / `@To`: one fetch, months paged in the browser.** Options: parameters (the
+query runner has none today); a date window in the file; everything once. Call: everything
+once. Reason: every board file runs verbatim with no parameters, and the calendar's rows are
+fewer than History's, which already loads the whole ledger.
+
+**Days are the reader's clock, not the server's.** Changed from the spec: the browser buckets
+by local day, so nothing in SQL has to know a time zone. Same day in practice for you.
+
+**A build already there at an endpoint's first ping did not "arrive".** Options: draw it on
+day one; drop it. Call: drop. Reason: on the fixtures it put nine false arrivals on Jul 6, and
+on real data every endpoint's first ping would do the same.
+
+**Weeks start Monday.** Reason: work weeks read as one row.
+
+**"Last change recorded", not "recorded through".** The ledger stores changes, not when the
+backfill ran, so the line says what it knows and the hatch says *quiet or not yet
+backfilled*. The honest fix (the backfill stamps its run) is a schema change: open item.
+
 ## 2026-10-01 — Calendar (move-it.md §21), spec only
 
 **Observed date is `DetectedAt`.** Options: `DetectedAt` (our ping saw it), `Deploymentat`
@@ -14,7 +34,7 @@ ping interval, invisible at day grain.
 one per application/stage/day. Call: the last, naming the release or counting builds.
 Reason: rows are per machine, and DEV would drown *All*.
 
-**Days are server local time.** Reason: the reader's day, not UTC's.
+**Days are server local time.** Reason: the reader's day, not UTC's. *(Built as the reader's browser clock — see above.)*
 
 **Holds are points, not spans; `note` events and Coming items are not drawn.** Reason: spans
 in a month grid are real work for v1; notes are noise; Coming has no dates by design (§20).

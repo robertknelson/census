@@ -1465,6 +1465,87 @@ on day 50), so "days here" no longer reads *today*.
   `ReleaseId` waits for a case.
 - **Sort of undated releases** on any future time view: dated first, undated
   in a *someday* column. Not built; the lane board has no time axis.
+  *§21's calendar is the first time view:* an undated release simply draws
+  no flag there; its arrivals and events still show.
+
+## 21. Calendar — when things moved, and when they were due (spec 2026-10-01; not built)
+
+Robert, 2026-10-01, after clicking through Division, Where is it and History
+on real data: *"a Calendar view might be very useful. one where we can
+select [All] followed by stages, and then another filter of the systems."*
+Systems are applications — *"not machines, not teams."*
+
+**The question it answers.** Division says where each release is, Where is
+it says what is at each stage, History is the ledger. None says **when** —
+what landed this week, what is due next week, whether things land when they
+were meant to. The calendar is the first view with time across the page,
+and it holds the past (observed, asserted) and the future (planned) on one
+grid.
+
+**Three kinds of date, drawn three ways.** Rule 1 holds: what the estate
+saw and what people said are never drawn alike.
+
+| Kind | Source | Drawn |
+|---|---|---|
+| Observed — a build first reached a stage | `moveit.Deployment.DetectedAt` | solid chip, stage hue |
+| Asserted — approved, verified, hold, resumed, abandoned, deployed-asserted | `moveit.ReleaseEvent.At` | outlined chip |
+| Planned — a release's target | `moveit.Release.TargetDate` | hollow flag; red when the day has passed and the release is not in the top stage |
+
+Not drawn: `note` events (noise) and Coming items (§20 — the notebook
+carries no dates, and giving it some is the road to Jira). An undated
+release draws no flag.
+
+**The unit is one chip per application, stage and day.** A `Deployment`
+row is per machine, and under *All* DEV would bury the rest. A chip is the
+first arrival of a build at a stage, collapsed per application, stage and
+day: *WidgetCore → VAL · Sprint 43*, or *→ DEV · 3 builds* when several
+landed. A build no release claims reads *unnamed build*, greyed. A build
+returning to a stage it had left is marked ↺, by 08's rule.
+
+**Filters.** Stage: **[All]** then one button per stage from
+`board/stages.sql` (seen stages only, §17 item 4), one at a time. Events
+with no stage (hold, resumed, abandoned when unstaged) show under *All*
+only. Systems: the board's application filter. Both filter in the browser
+over a month fetched once, so switching is instant.
+
+**The page.** A fourth tab — Division · Where is it · History ·
+**Calendar** — route `/moveit/calendar`. Month grid, prev/next month, today
+marked. A day shows up to three chips then *+N more*. Clicking a day opens a
+side column with every entry: application, release (or build string),
+stage, build, who and when for assertions, the reason for a hold. Hues from
+`stage-hues.mjs`, so a chip matches its Division step. **Read-only, and no
+link to the release page** (Robert, 2026-10-01: *"not now"* — same reason as
+Division, §19; revisit with the gate).
+
+**"Recorded through."** There is no SQL Agent on the real server (item 17);
+the ledger knows only as far as the last manual backfill. An empty day
+before that line means nothing moved; an empty day after it means nothing
+is known yet. The page states **Recorded through *date*** (the latest
+`DetectedAt` in the ledger) and shades the days after it up to today.
+Without this the grid reads complete when it is not.
+
+**The query.** `board/calendar.sql`, `@From` / `@To` (dates, inclusive of
+`@From`, exclusive of `@To`), one result set with a `Kind` column
+(`observed` | `asserted` | `planned`) plus the recorded-through date.
+Observed rows come from first arrival per application, stage and build
+(`MIN(DetectedAt)` over the stage's endpoints), so a build first seen at a
+stage before `@From` draws nothing in this month. Real-data cost
+unmeasured.
+
+**Calls (logged in `calls-made-for-you.md`, 2026-10-01).** `DetectedAt`,
+not `Deploymentat` — ours over the pipeline's claim (§10.1); the lag of one
+ping interval vanishes at day grain. Days are the server's local date, not
+UTC. Holds are points, not spans.
+
+**Open items for this section**
+- **Hold spans.** A bar from hold to resume across weeks is the honest
+  drawing; v1 marks the two days and the side column states the length.
+- **A week view, an agenda list for narrow screens, several stages at
+  once.** Deferred until the month grid has been used on real data.
+- **Link to the release page** from the side column — after the gate.
+- **First arrival vs every arrival.** A build redeployed to the same stage
+  without leaving it (rollback variant A's fresh `Deploymentat`) draws once.
+  If redeploys matter on the calendar, they are a fourth marker.
 
 ## Appendix A — questions the data could answer
 

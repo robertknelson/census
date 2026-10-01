@@ -4,6 +4,23 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 — Calendar (move-it.md §21), spec only
+
+**Observed date is `DetectedAt`.** Options: `DetectedAt` (our ping saw it), `Deploymentat`
+(the pipeline's claim). Call: `DetectedAt`. Reason: §10.1 — ours over theirs; the lag is one
+ping interval, invisible at day grain.
+
+**One chip per application, stage and day.** Options: one per deployment row; one per build;
+one per application/stage/day. Call: the last, naming the release or counting builds.
+Reason: rows are per machine, and DEV would drown *All*.
+
+**Days are server local time.** Reason: the reader's day, not UTC's.
+
+**Holds are points, not spans; `note` events and Coming items are not drawn.** Reason: spans
+in a month grid are real work for v1; notes are noise; Coming has no dates by design (§20).
+
+**Stage filter is one at a time.** Your shape — [All] then stages. Multi-select deferred.
+
 ## 2026-09-24 (later) — three small slices, "All three"
 
 **A null build note means "leave it".** Options: a note field on the entry form; a separate

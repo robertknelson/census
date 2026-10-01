@@ -215,6 +215,54 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
             }
         }
 
+        // Web addresses resolved through IIS bindings (census-web.md §13): to the application
+        // that answers, which carries its own serves — another system's site reads as
+        // off-system. A known machine with no answering site ends at an endpoint on it.
+        foreach (var (machine, envelope) in snapshots)
+        {
+            if (envelope.Iis?.Status != "ok") continue;
+            foreach (var edge in envelope.Iis.Data?.Dependencies ?? [])
+            {
+                if (edge.Kind != "http") continue;
+                var sourceId = NodeId("application", machine, edge.SiteName ?? "", edge.AppPath ?? "");
+                if (!nodes.ContainsKey(sourceId)) continue;
+                var http = HostResolver.ResolveHttp(edge, machine, index);
+                if (!http.InEstate) continue;
+
+                if (http.Status == "site")
+                {
+                    foreach (var (tm, site, appPath) in http.Sites)
+                    {
+                        var targetId = NodeId("application", tm, site ?? "", appPath ?? "");
+                        if (!nodes.ContainsKey(targetId))
+                        {
+                            var leaf = EntityTagsEvaluator.AssertionFor(tags.Applications, tm, site, appPath);
+                            EntityNode(targetId, "application", $"{site}{appPath}", site, tm, false, false, ServesOf(leaf), phantom: true);
+                        }
+                        if (targetId == sourceId) continue;
+                        edges.Add(new SystemGraphEdgeDto
+                        {
+                            SourceId = sourceId, TargetId = targetId, Name = edge.Name, Kind = "http",
+                            Verdict = "confirmed", Detail = http.Detail, SourceFile = edge.SourceFile,
+                        });
+                    }
+                    continue;
+                }
+
+                var label = $"{edge.Scheme}://{edge.Host}{(edge.Port is null ? "" : ":" + edge.Port)}";
+                var endpointId = NodeId("endpoint", http.Machine ?? "", label);
+                AddNode(new SystemGraphNodeDto
+                {
+                    Id = endpointId, Kind = "endpoint", Name = label, Machine = http.Machine, Note = http.Detail,
+                });
+                edges.Add(new SystemGraphEdgeDto
+                {
+                    SourceId = sourceId, TargetId = endpointId, Name = edge.Name, Kind = "http",
+                    Verdict = "unobserved", Detail = http.Detail, SourceFile = edge.SourceFile,
+                });
+            }
+        }
+
         // Attributed edges into external entities — declared targets, never corroborated.
         foreach (var entity in attribution.Entities)
         {

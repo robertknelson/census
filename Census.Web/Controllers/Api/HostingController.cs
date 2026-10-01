@@ -175,7 +175,9 @@ public class HostingController(CensusStore censusStore) : ControllerBase
             .Select(g =>
             {
                 var edge = g.First().Edge;
-                var (verdict, detail) = HostResolver.Corroborate(edge, index);
+                var (verdict, detail) = edge.Kind == "http"
+                    ? HostResolver.CorroborateHttp(edge, g.First().Source.Machine, index)
+                    : HostResolver.Corroborate(edge, index);
                 return new DependencyTargetDto
                 {
                     Target = g.Key,

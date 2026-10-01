@@ -64,6 +64,8 @@ public record BlastEdgeDto
     public string Name { get; init; }
     public string Database { get; init; }
     public string Instance { get; init; }
+    /// <summary>An http edge's address (census-web.md §13); null for database edges.</summary>
+    public string Url { get; init; }
     public string SourceFile { get; init; }
     public required string Verdict { get; init; }
     public string Detail { get; init; }

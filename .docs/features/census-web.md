@@ -793,3 +793,97 @@ server*: *prod* → *Unassigned · WebServer · prod · 3 machines*, panel still
 server off and team-a on → *Unassigned · team-a · prod · 11 machines*; *show fleet*, then
 Unassigned off → *team-a · prod · 1 machine* (the escape cleared); a click on the dimmed
 board still closed the panel.
+
+## 13. Web addresses resolve through IIS bindings (2026-10-01, Robert: "spec it, go")
+
+> The §11.7 deferral, picked up. His report from Atlas: an endpoint in an appsettings or
+> web.config that was really another system's site never read as that system. It could
+> not: only database edges were ever matched to the estate.
+
+### 13.1 What was wrong
+
+An observed `http(s)://` edge went one of two ways, and neither knew the estate:
+
+1. **Its host was an estate machine's name** (`http://appsrv01:9001/…`). "Estate machines
+   win" kept it out of external attribution — but only database edges were drawn to
+   machines, so **the edge vanished** from Atlas, blast radius and Triage alike. Observed
+   and never shown, against the never-hide rule.
+2. **Its host was a site's host name** (`https://portal.example.com/…`) — not a machine
+   name, so an *unresolved endpoint*, and Triage's only gesture was "attribute to an
+   external entity". There was no way to say "this is the portal on WEB01".
+
+### 13.2 The rule — IIS's own routing, nothing guessed
+
+Census already collects every site's bindings (protocol, IP, port, host header). An http
+edge is matched against them the way IIS itself picks a site:
+
+- **Scheme and port first.** `https` matches an `https` binding, `http` an `http` one; the
+  port is the URL's, or 80/443 by protocol (a protocol fact, already the rule in §11 and
+  `ExternalAttribution`).
+- **A host-header binding that names the URL's host exactly** (case-insensitive) wins.
+  Every site so bound is a target — a host name bound on two machines is a farm, and the
+  edge reaches both, said so in its detail. No suffix match, no wildcard, no DNS.
+- **Otherwise, a URL host that is an estate machine** (the existing `HostIndex`: machine
+  name, FQDN, IPv4; `localhost` means the calling machine) is matched to that machine's
+  site with a **blank host header** on that scheme and port — IIS's catch-all.
+  - one such site → that site;
+  - more than one (different IPs) → **ambiguous**, said so, not picked (H-5's rule);
+  - none → the machine is known but **no IIS site answers that port**: the edge points at
+    the machine, verdict *unobserved* — "something other than IIS may listen there".
+  - the machine's IIS collector not `ok` → unknown, never "no site".
+- **Anything else** is what it was: a candidate for external attribution, or unresolved.
+- **The application** within the site is the one whose path is the longest
+  segment-boundary prefix of the URL path (`/api/v1` → `/api` if that application exists,
+  else `/`) — IIS's application routing.
+
+**Verdict:** a binding match is **confirmed** — census saw that site bind that name and
+port; the detail names it (*bound on WEB01 · portal.example.com · /api*). It does not claim
+the path exists. A machine with no answering site is **unobserved**, never contradicted: a
+non-IIS listener is possible and census cannot see it.
+
+One resolver, `HostResolver.ResolveHttp`, so every view gets the same answer (the W-3
+argument again).
+
+### 13.3 What each view does with it
+
+- **Atlas** — a resolved edge runs from the calling application to the target
+  application's node, which carries its own *serves*: another system's site reads as
+  *serves other systems only* with its +n mark, an unclassified one as unclassified. A
+  machine-with-no-site edge ends at an endpoint node on that machine.
+- **Blast radius** — an application calling a site on the subject machine is a dependent,
+  like a database caller. A farm target says *also bound on …* — the subject going down may
+  not break it.
+- **Hosting · Dependencies** — http targets get the verdict and detail instead of a blanket
+  *unobserved*.
+- **Triage** — resolved edges leave the unresolved pile (the estate wins, as for machines).
+  A declared external identifier naming a bound host header is flagged like one naming a
+  machine: *shadows WEB01 · portal.example.com — the estate wins*.
+
+### 13.4 Verified 2026-10-01 on the demo estate
+
+Against the demo snapshots (as-is), the live demo profile:
+- **Hosting:** `https://portal.example.com/api/v1` (from WEB02's svc.example.com) —
+  *confirmed, bound on WEB01 · portal.example.com · /api*. It is bound on APPSRV01 too, but
+  for http:80 only, so https:443 picks WEB01 alone. `http://appsrv01:9001/directory`
+  (APPSRV01's intranet app, a local call) — *unobserved, no IIS site on APPSRV01 binds
+  http:9001*; before, it appeared nowhere. Every other http target unchanged.
+- **Triage:** portal.example.com left the unresolved pile; the rest stayed.
+- **Blast radius of WEB01:** WEB02 svc.example.com/ is now a dependent through that edge.
+
+The demo classifies neither application, so for Atlas a scratch server (port 5293) ran on
+a copy of the demo config with three fixture assertions — WEB02 svc.example.com/ and
+APPSRV01 intranet-app/ serve OrderPortal, WEB01 portal.example.com/api serves BillingSvc.
+OrderPortal then drew svc.example.com → portal.example.com/api as *serves other systems
+only* (+1, BillingSvc), confirmed, and intranet-app → an endpoint `http://appsrv01:9001` on
+APPSRV01, unobserved; BillingSvc drew the same edge arriving at its own member. The live
+demo config was not touched.
+
+### 13.5 Open items
+
+- **Wildcard host headers** (`*.example.com`, IIS 10+) are not matched — exact only, until a
+  real estate shows one.
+- **IP-specific bindings** are matched on scheme, port and host header only; which address
+  a name resolves to is DNS, which census does not do.
+- **Non-IIS listeners** (a Windows service on :9001) stay *unobserved*; seeing them needs a
+  collector that reads listening ports.
+

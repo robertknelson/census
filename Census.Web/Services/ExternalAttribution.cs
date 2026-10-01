@@ -8,8 +8,8 @@ namespace Census.Web.Services;
 
 /// <summary>
 /// The exact-match join between observed edge targets and declared endpoint identifiers
-/// (declared-entities.md §4). Estate machines always win: only edges resolving to no
-/// machine are candidates. No substring match, no wildcard, no DNS — an identifier is a
+/// (declared-entities.md §4). The estate always wins: only edges resolving to no machine
+/// and no IIS binding (census-web.md §13) are candidates. No substring match, no wildcard, no DNS — an identifier is a
 /// human assertion and is matched exactly or not at all. Default http/https ports are
 /// protocol facts, not conventions, so 80/443 normalize; nothing else is inferred.
 /// </summary>
@@ -42,6 +42,7 @@ public static class ExternalAttribution
                 if (edge.Host is null || edge.IsLocal) continue;
                 if (edge.Kind != "database" && edge.Kind != "http") continue;
                 if (index.ByName.ContainsKey(edge.Host) || index.Ambiguous.Contains(edge.Host)) continue;
+                if (HostResolver.ResolveHttp(edge, machine, index).InEstate) continue;
 
                 var scheme = edge.Kind == "http" ? (edge.Scheme ?? "http").ToLowerInvariant() : null;
                 var port = edge.Kind == "http" ? NormalizeHttpPort(scheme, edge.Port) : edge.Port;
@@ -71,6 +72,13 @@ public static class ExternalAttribution
                 if (index.Ambiguous.Contains(parsed.Host))
                 {
                     matches.Add(new IdentifierMatch(identifier, "(ambiguous name)", []));
+                    continue;
+                }
+                // Likewise a host name an estate site binds (§13): the site won already.
+                var bound = index.Bindings.FirstOrDefault(b => string.Equals(b.HostHeader, parsed.Host, StringComparison.OrdinalIgnoreCase));
+                if (bound is not null)
+                {
+                    matches.Add(new IdentifierMatch(identifier, $"{bound.Machine} · {bound.Site}", []));
                     continue;
                 }
 

@@ -258,6 +258,26 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
 
             foreach (var edge in envelope.Iis.Data?.Dependencies ?? [])
             {
+                // A web address landing on the subject (census-web.md §13): a site it binds, or
+                // the machine itself with no site answering — either way it dies with it.
+                if (edge.Kind == "http")
+                {
+                    var http = HostResolver.ResolveHttp(edge, machine, index);
+                    var onSubject = http.Sites.Any(t => string.Equals(t.Machine, subject, StringComparison.OrdinalIgnoreCase))
+                        || string.Equals(http.Machine, subject, StringComparison.OrdinalIgnoreCase);
+                    if (!onSubject) continue;
+                    var httpKey = (machine, edge.SiteName ?? "", edge.AppPath ?? "");
+                    if (!byApp.TryGetValue(httpKey, out var httpEdges)) byApp[httpKey] = httpEdges = [];
+                    httpEdges.Add(new BlastEdgeDto
+                    {
+                        Name = edge.Name,
+                        Url = $"{edge.Scheme}://{edge.Host}{(edge.Port is null ? "" : ":" + edge.Port)}{edge.Path}",
+                        SourceFile = edge.SourceFile,
+                        Verdict = http.Status == "site" ? "confirmed" : "unobserved",
+                        Detail = http.Detail,
+                    });
+                    continue;
+                }
                 if (edge.Kind != "database" || edge.Host is null) continue;
                 // An ambiguous name cannot be attributed to the subject — dropping only
                 // understates, per H-5.

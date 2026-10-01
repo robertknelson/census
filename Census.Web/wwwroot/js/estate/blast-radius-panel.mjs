@@ -133,7 +133,7 @@ export class BlastRadiusPanel {
                 <div class="est-blast-edges">${app.edges.map((e) => {
                     // A database edge with no parsed database is "?" on purpose; an edge to
                     // a declared target has no database slot at all, so nothing renders.
-                    const database = e.database ?? (e.verdict === 'declared' ? null : '?');
+                    const database = e.url ?? e.database ?? (e.verdict === 'declared' ? null : '?');
                     return `
                     <div class="est-blast-edge" ${e.detail ? `title="${escapeHtml(e.detail)}"` : ''}>
                         <span class="est-mono">${escapeHtml(e.name)}</span>

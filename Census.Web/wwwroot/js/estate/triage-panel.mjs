@@ -242,7 +242,7 @@ export class TriagePanel {
         // Per-identifier attribution state: a zero-match identifier is a config smell shown
         // next to where the mistake was made, a shadow says the estate machine won.
         const endpoints = (entity?.endpoints ?? []).map((p) => {
-            const state = p.shadowsMachine ? `<span class="est-catfail">shadows ${escapeHtml(p.shadowsMachine)} — the machine wins</span>`
+            const state = p.shadowsMachine ? `<span class="est-catfail">shadows ${escapeHtml(p.shadowsMachine)} — the estate wins</span>`
                 : p.matchedEdges === 0 ? '<span class="est-catwarn">matched by 0 edges</span>'
                 : `<span class="est-muted">${p.matchedEdges} edge${p.matchedEdges === 1 ? '' : 's'}</span>`;
             return `<div class="est-triage-unknown"><span class="est-mono">${escapeHtml(p.identifier)}</span> · ${state}</div>`;

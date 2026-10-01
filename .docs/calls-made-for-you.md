@@ -4,6 +4,23 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-01 (night, Census) — web addresses resolve through IIS bindings (census-web §13)
+
+**A host name bound on several machines reaches all of them.** Options: treat it as
+ambiguous and drop it (H-5's rule for machine names); fan out. Call: fan out, with *a farm
+may survive one going down* in the detail. Reason: H-5 drops a name two *machines* claim
+because one name cannot be two computers; a host header on two machines is a load-balanced
+site, which is a fact, not a conflict.
+
+**localhost means the calling machine.** Reason: exact, not inferred — and it is what made
+APPSRV01's :9001 call visible at all.
+
+**No IIS site on the port is *unobserved*, never contradicted.** Reason: a Windows service or
+Kestrel listener census cannot see may answer.
+
+**A declared external identifier naming a bound host is flagged as a shadow,** like one
+naming a machine; Triage now says *the estate wins* instead of *the machine wins*.
+
 ## 2026-10-01 (night, Atlas 2) — closable inspector (system-view §12)
 
 **Selecting reopens a closed inspector.** Options: stay closed until the Inspector button;

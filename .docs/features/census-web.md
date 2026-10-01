@@ -887,3 +887,27 @@ demo config was not touched.
 - **Non-IIS listeners** (a Windows service on :9001) stay *unobserved*; seeing them needs a
   collector that reads listening ports.
 
+## 14. Stages read in their real order (2026-10-01, Robert: "the order is DEV -> VAL -> UAT (if exists) -> PROD")
+
+Stages were listed alphabetically everywhere (dev, prod, qa, ref, val). Now one setting,
+**`Census:StageOrder`** in `appsettings.json` — `["dev", "val", "uat", "prod"]` — orders
+every stage list Census draws: the Estate stage bar, Triage's stage chips, a machine's
+stages, Atlas's stage chips, key and builder cards (`/api/systems/overview`,
+`/api/system-graph`). Matching is case-insensitive.
+
+**A stage the setting does not name** is listed after the named ones, alphabetically —
+shown, never dropped. Another team's stages (*qa*, *staging*, *ref* in the demo) are placed
+by adding them to the setting where they belong; no code change.
+
+One comparer, `StageOrder` (`Services/StageOrder.cs`), set at startup from the options; the
+canvas carries the order to the browser for the Estate stage bar, which sorts client-side.
+Move It keeps its own stage order (its `Stage.Sort` column, §13 of move-it.md) — a separate
+store, already ordered.
+
+**Verified 2026-10-01 on the demo profile:** MyWeb's stages read dev, val, prod, qa, ref
+(overview) and dev, val, prod, ref (graph); the Estate stage bar for web servers read
+all · dev · val · prod · qa · staging.
+
+**Open item:** where *qa*, *staging* and *ref* belong once another team's real stages are
+known — a line in the setting each.
+

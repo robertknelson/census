@@ -369,7 +369,7 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
                         .Where(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase))
                         .SelectMany(a => a.Stages)
                         .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
+                        .OrderBy(s => s, StageOrder.Comparer).ToList(),
                     AssertedBy = v.Serves.FirstOrDefault(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase))?.AssertedBy,
                     AssertedAt = v.Serves.FirstOrDefault(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase))?.AssertedAt,
                 }).ToList(),
@@ -416,7 +416,7 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
                 .SelectMany(n => n.Serves.Where(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase)))
                 .SelectMany(a => a.Stages)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(s => s, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(s => s, StageOrder.Comparer)
                 .ToList(),
         });
     }

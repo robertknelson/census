@@ -26,6 +26,8 @@ builder.Services.AddSingleton<MoveItEntry>();
 
 var app = builder.Build();
 
+StageOrder.Configure(app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<CensusOptions>>().Value.StageOrder);
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

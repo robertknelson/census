@@ -333,8 +333,11 @@ class EstatePage {
             this.stagebarEl.innerHTML = '';
             return;
         }
+        // The configured order (census-web.md §14), then any stage it does not name, alphabetically.
+        const order = (this.data.stageOrder ?? []).map((s) => s.toLowerCase());
+        const rank = (s) => { const i = order.indexOf(s.toLowerCase()); return i < 0 ? order.length : i; };
         const stages = [...new Set(this.visibleMachines().flatMap((m) => m.stages))]
-            .sort((a, b) => a.localeCompare(b));
+            .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
         if (stages.length === 0) {
             this.stagebarEl.innerHTML = '';
             return;

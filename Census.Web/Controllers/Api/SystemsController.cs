@@ -162,7 +162,7 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
         }
         foreach (var entry in result.Values)
         {
-            entry.Stages = entry.Stages.OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList();
+            entry.Stages = entry.Stages.OrderBy(s => s, StageOrder.Comparer).ToList();
         }
         return result;
     }

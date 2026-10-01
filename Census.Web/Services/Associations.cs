@@ -73,5 +73,5 @@ public static class Associations
 
     public static List<string> StagesOf(List<SystemAssociation> serves) =>
         serves.SelectMany(a => a.Stages ?? []).Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList();
+            .OrderBy(s => s, StageOrder.Comparer).ToList();
 }

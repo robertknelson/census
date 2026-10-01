@@ -101,7 +101,7 @@ public class EntityTagsEvaluator
             Rollup = new EntityRollupDto
             {
                 Systems = contributors.SelectMany(r => r.System).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
-                Stages = contributors.SelectMany(r => r.Stage).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToList(),
+                Stages = contributors.SelectMany(r => r.Stage).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s, StageOrder.Comparer).ToList(),
                 DerivedFrom = contributors,
             },
             Unclassified = unclassified,

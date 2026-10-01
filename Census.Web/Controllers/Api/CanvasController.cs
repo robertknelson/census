@@ -109,6 +109,7 @@ public class CanvasController(CensusStore censusStore, AssetsStore assetsStore, 
             Ownership = config is null ? null : new OwnershipInfoDto { Key = config.Key, Label = config.Label },
             Owners = owners_,
             Machines = machines,
+            StageOrder = StageOrder.Order.ToList(),
             ExternalPileCount = attribution.Unresolved.Count
                 + attribution.Entities.Count(e => Associations.Of(e.Entity.Serves, e.Entity.System, e.Entity.Stage, e.Entity.AssertedBy, e.Entity.AssertedAt).Count == 0),
         });

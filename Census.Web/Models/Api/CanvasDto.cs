@@ -44,6 +44,9 @@ public record CanvasDto
     public List<CanvasOwnerDto> Owners { get; init; } = [];
     public List<CanvasMachineDto> Machines { get; init; } = [];
 
+    /// <summary>The configured stage order (census-web.md §14), so the stage bar lists stages the way the server does.</summary>
+    public List<string> StageOrder { get; init; } = [];
+
     /// <summary>
     /// Fleet-level pile the machine counts cannot carry: untagged external declared
     /// entities plus unresolved endpoints (declared-entities.md §6). The Triage chip adds

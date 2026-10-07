@@ -50,6 +50,8 @@
 .mi-head-title { font: 600 16px/1.2 var(--mi-display); }
 .mi-head-sub { color: var(--mi-muted); font-size: 13px; }
 .mi-head-end { margin-left: auto; }
+.mi-back { color: var(--mi-muted); font-size: 12.5px; text-decoration: none; white-space: nowrap; padding: 0.15rem 0.45rem 0.15rem 0.3rem; border: 1px solid transparent; border-radius: 4px; }
+.mi-back:hover { color: var(--mi-ink); border-color: var(--mi-rule); }
 .mi-pane { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
 /* Quiet underlined words for a choice of view: stages, releases or items. */

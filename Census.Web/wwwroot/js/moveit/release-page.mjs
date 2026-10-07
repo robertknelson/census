@@ -24,6 +24,7 @@ class ReleasePage {
         this.root.innerHTML = `
             ${renderTabs(null)}
             <div class="mi-head">
+                <a class="mi-back" href="/moveit/releases" data-ref="back" title="Back to where you came from">‹ Back</a>
                 <h1 class="mi-head-title" data-ref="title">Release</h1>
                 <p class="mi-head-sub" data-ref="sub"></p>
                 <div class="mi-head-end" data-ref="delete"></div>
@@ -37,6 +38,15 @@ class ReleasePage {
         this.mainEl = this.root.querySelector('[data-ref="main"]');
         this.entryEl = this.root.querySelector('[data-ref="entry"]');
         this.deleteEl = this.root.querySelector('[data-ref="delete"]');
+        // Back goes where the reader came from when that was a Move It page; otherwise, as the
+        // link says, to the Releases register — a release page reached from a sent link has
+        // nowhere else to go back to.
+        this.root.querySelector('[data-ref="back"]').addEventListener('click', (e) => {
+            if (document.referrer && new URL(document.referrer).origin === window.location.origin && window.history.length > 1) {
+                e.preventDefault();
+                window.history.back();
+            }
+        });
     }
 
     // Stabilization only (move-it.md §16): the release and everything under it, gone — except

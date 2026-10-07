@@ -2045,6 +2045,14 @@ bar grey, the two UAT rows *asserted* with *awaiting approval* / *ready to appro
 was not exercised: the fixture has 19 rows and the page is 50. Clicks were driven through
 the address, not the mouse.
 
+### 28.6 Back from the release page (2026-10-07, Robert: "a [back] button discretely placed would be useful")
+
+The release page has no tab of its own, so a reader who arrived from a register, the board
+or Division had only the browser to get back. A quiet *‹ Back* at the left of its header line
+returns to the page that sent them when that was a Census page (`history.back()`); reached
+from a sent link, it goes to the Releases register, which is what the link under it says.
+Verified headless: the link renders muted before the title on `/moveit/release/5`.
+
 ### 28.5 Open
 
 - Whether the register is the home for a future *move an item between releases* control, if

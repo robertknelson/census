@@ -1906,6 +1906,86 @@ board drew one lane, *DEV / VAL / UAT / PROD 13*, nine releases *late*, and the 
 above it, then the list was restored. The detail's *Shipped* label was checked in node, not
 clicked.
 
+## 28. Two registers — Features and Releases as first-class tabs (2026-10-07, Robert: "Features should be a first class citizen … and maybe Releases as well"; spec, awaiting go)
+
+**The complaint.** On the first real day he mistook a release for a feature, could not
+find the four features he knew were in PROD, and had no page that led with the noun he
+arrived with. The two pages that exist are organised by something else: *Where is it* by
+stage (a feature is a chip in a column), *Division* by release (a feature is an indented
+line under a name). Neither answers "find this one and tell me its story", and nothing on
+screen shows every release as a plain list — a Releases list would have shown the orphan
+(no contents, no build, target Aug 7) in one glance.
+
+**The shape: a register, not another board.** One component, two nouns. A flat list over
+the application rail, a find box first, one row per thing, click a row for its story. The
+lanes stay for "what is at each stage" and Division stays for the executive's step lines;
+the registers answer "where is this one" and "what releases exist". Read-only, as every
+page but History is.
+
+### 28.1 Features (`/moveit/features`)
+
+- **One row per work item**, every application in scope, from question 01: title, kind (a
+  feature solid, a fix dashed, the board's marks), application, release (*no release yet*
+  for the notebook's), **where it is now** as a stage pill in the stage hue, since when, the
+  build that carries it, and the flags the chips carry: late, hold, asserted, *build known,
+  not seen*, *app gives no evidence*.
+- **Order:** most recent movement first (`Since` descending), so what changed this week is at
+  the top; the Coming rows by when heard, like the chips.
+- **Find box first**, over the title and the release name, narrowing as you type; a *kind*
+  pick (all · features · fixes) and a *where* pick (every lane plus *shipped* and *removed*)
+  beside it. The rail is the application scope and shares the remembered choice (§26.2).
+- **Shipped stays listed.** A row at the top stage reads *shipped <date>*, for ever; the
+  register is the one place a feature never leaves when it goes live. The lanes' fold (§27)
+  is the lanes'.
+- **Removed is listed, grey,** with the pull note, under the *where* pick's *removed*; the
+  default view hides them, the count in the pick says how many.
+- **Click a row: the story.** Question 13, drawn as a timeline down the right, as the board's
+  detail column: heard (recorded) · named into *release* · first seen at each stage with the
+  date and days from the previous · approved, by whom, for which build · pulled or rolled
+  back, with the note · links both ways. Latency figures from 13 in a small grid beneath
+  (entry lag, first-seen-to-PROD, approval-to-PROD, days there). The release's name links to
+  its page. 13 needs an endpoint (`/api/moveit/feature-picture?workItemId=`); it exists as
+  a question and has never been served.
+- **+ Coming up lives here too.** Same form, same write (§20): hearing about a feature is
+  the register's first row. It stays on Where is it as well.
+
+### 28.2 Releases (`/moveit/releases`)
+
+- **One row per release**, every application in scope, from question 02: name, kind
+  (*hotfix* marked), application, contents (*2 features, 1 fix*, or **nothing recorded** in
+  the alert tone), **highest stage** as a pill, since, target date, and the flags: late,
+  hold, approved (date), abandoned, contradiction. Builds claimed, as a count with the
+  strings on hover (`board/release-builds.sql`).
+- **Order:** in flight first by most recent movement, then shipped by date live, then
+  abandoned. A *where* pick as the features register has, plus *empty* — releases with no
+  contents, the orphan's row.
+- **Click a row: the release page** (`/moveit/release/<id>`), which already is the story,
+  with its items, builds, events and the stabilization delete (§16). No second detail
+  column: one page per release is enough.
+- **Find box** over the name and the application.
+
+### 28.3 The frame
+
+Both pages wear §26.1's frame: the thin page bar, one header line (the find box, the picks,
+the count *Showing N of M*), the rail. Two new tabs after *Where is it*: **Features**,
+**Releases**. Seven tabs ride in the bar; if the bar wraps on his usual screen, the order
+goes to a §26 question, not to dropping a tab.
+
+### 28.4 Decided on the lean (calls-made-for-you, 2026-10-07)
+
+1. *+ Coming up* on both Features and Where is it, not moved.
+2. Features and fixes together, a kind pick, the tab named *Features*.
+3. Removed items listed, grey, hidden by default.
+4. Releases register drills to the release page, not a column.
+5. Shipped features never fold out of the register.
+
+### 28.5 Open
+
+- Whether the register is the home for a future *move an item between releases* control, if
+  that is ever wanted — not built; the orphan was deleted, not merged.
+- Whether Division's fold-out *earlier:* line should link to the Releases register filtered
+  to shipped, once it exists.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

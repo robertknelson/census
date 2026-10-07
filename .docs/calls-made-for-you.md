@@ -4,6 +4,25 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-07 — the two registers, spec only (move-it §28)
+
+**Features and fixes share the register, with a kind pick.** Options: features only; both.
+Call: both, tab named *Features*. Reason: the lanes and Division treat them as one
+population; a fix you cannot find is the same complaint as a feature you cannot find.
+
+**Removed items are listed, grey, hidden by default.** Reason: a register that forgets is a
+board; a register that shows the dead by default is a graveyard.
+
+**The Releases register opens the release page, not a side column.** Reason: that page is
+already the full story and carries the one write (delete); duplicating it in a column would
+be two places to keep in step.
+
+**+ Coming up on both Features and Where is it.** Reason: hearing about a feature is the
+register's first row, and the board's users have learned where the button is.
+
+**Shipped rows never leave the register.** Reason: the lanes fold shipped work to keep the
+columns readable (§27); a register's whole point is that nothing leaves it.
+
 ## 2026-10-07 — the board on an unordered stage list (move-it §27)
 
 **What a shipped chip says.** Options: *shipped 48 days ago*; *shipped Aug 20*. Call: the

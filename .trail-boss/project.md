@@ -45,7 +45,7 @@ relates: []
   don't want to stifle your creativity, so come up with some options" → four options put, his
   "you just surprise me" → §28 built: two registers on one `Register` component (find, pills,
   facets with counts, sort, paging, state in the address), a step line per row, 13 served as
-  the story. Verified headless; shots sent. Committed, **not pushed**.
+  the story. Verified headless; shots sent. A quiet Back on the release page (§28.6). **Pushed 0f03ccf..5811b19 on his word.**
 
 ### 2026-10-01 (evening — feedback from the wild: screen space, scope, Atlas, web addresses)
 - Move It feedback: Calendar, Division, The week, Where is it and History "very very

@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Two new tabs, Features and Releases, as searchable lists with a story per feature; committed, not pushed"
+summary: "Two new tabs, Features and Releases, as searchable lists with a story per feature; pushed"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -53,7 +53,6 @@ application-level screen.
 - **Speed on real data is still unmeasured** for the Move It pages added last round.
 - **The board still has places to type** and must be gated before anyone but him gets
   a link.
-- **This slice is committed but not pushed.** Say push.
 - **Web-address matching is exact** (plus wildcard site names). A real estate full of DNS
   aliases may resolve less than the demo did; the Triage list will say how much.
 - **Traffic has a naming risk** (MOVEit, the product, versus Move It).

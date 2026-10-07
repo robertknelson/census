@@ -80,6 +80,22 @@ public class HomeController : Controller
         return View();
     }
 
+    // The registers (move-it.md §28): every feature and fix, and every release, as flat lists
+    // with find, facets, sort and paging. Read-only.
+    [HttpGet("/moveit/features")]
+    public IActionResult MoveItFeatures([FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
+        return View();
+    }
+
+    [HttpGet("/moveit/releases")]
+    public IActionResult MoveItReleases([FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
+        return View();
+    }
+
     // The release page (move-it.md §16): one release in depth, with its events and edits.
     [HttpGet("/moveit/release/{id:int}")]
     public IActionResult MoveItRelease(int id, [FromServices] MoveItQuestions questions)

@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "The board says so when the stage list has no order, and chips name their stage; committed, not pushed"
-resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; Move It at /moveit/division, /moveit/week, /moveit/calendar"
+summary: "Two new tabs, Features and Releases, as searchable lists with a story per feature; committed, not pushed"
+resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -26,22 +26,22 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**The board tells you when it cannot rank the stages.** On the real server every stage
-column had merged into one and releases already in production were flagged late. The cause
-is a missing order on the stage list in the tracking database, which Census reads and never
-writes. The board now says so in a line above the lanes instead of drawing a merged column
-as if it meant something, and it never changes its guess between loads.
+**Two new tabs: Features and Releases.** Each is a plain list you can search, sort by any
+column, narrow with facets that show their counts, and page through. A row of standing
+questions sits above the facets, *Late*, *On hold*, *Heard, nothing after 30 days*, *Nothing
+recorded*, each one click and each a link you can send. Every feature carries its own small
+step line, with the days between steps written in. Click a feature and its whole story opens
+down the right: when it was recorded, which release took it, when it reached each stage and
+on which build, when it was approved, and how long each leg took. Click a release and its
+page opens.
 
-**A chip says where it is in words.** In a column shared by two stages it reads *31 days in
-UAT*. At the top it reads *shipped Aug 20* instead of *48 days here*, and after two weeks it
-leaves the columns for a *Shipped* list under the application, as whole releases already
-did. The *to PROD* number works whatever case the stage names are in.
+**The board tells you when it cannot rank the stages,** and a chip says where it is in words,
+*31 days in UAT* or *shipped Aug 20*. (Earlier today.)
 
 ## What's next
 
-**One SQL statement, yours.** Set the order on the four stage rows in the tracking database
-(`.docs/move-it-round-2026-10-07.md` has it, with a look-first query). Then pull, reload the
-board, and bring back anything that still reads wrong.
+**One SQL statement, yours,** then pull and walk the nine steps in
+`.docs/move-it-round-2026-10-07.md`: the board, then the two new tabs on your real data.
 
 **Then the rest of the Oct 1 round,** and in Census, Triage's unresolved addresses.
 

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Run the Sort UPDATE from .docs/move-it-round-2026-10-07.md on the real AppTrak, pull, reload the board, and bring back anything that still reads wrong; then the rest of the 10-01 round and Triage''s unresolved addresses. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Run the Sort UPDATE from .docs/move-it-round-2026-10-07.md on the real AppTrak, pull, reload; then walk that note''s nine steps (the board, and the new Features and Releases tabs) and bring back anything that reads wrong. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -39,6 +39,13 @@ relates: []
   the literal name (his identifiers are lowercase). Fixture check 26/26; headless Edge
   shots of both states sent to him. Committed cf5fcd3, **not pushed** — his word.
 - His one step is data: the UPDATE in `.docs/move-it-round-2026-10-07.md`.
+- Then, from the same session: a release he took for a feature on Division turned out to be
+  an empty release (an orphan); the delete is on the release page (§16). "Features should be a
+  first class citizen … maybe Releases as well … sorting, paging, and facet filtering … but i
+  don't want to stifle your creativity, so come up with some options" → four options put, his
+  "you just surprise me" → §28 built: two registers on one `Register` component (find, pills,
+  facets with counts, sort, paging, state in the address), a step line per row, 13 served as
+  the story. Verified headless; shots sent. Committed, **not pushed**.
 
 ### 2026-10-01 (evening — feedback from the wild: screen space, scope, Atlas, web addresses)
 - Move It feedback: Calendar, Division, The week, Where is it and History "very very

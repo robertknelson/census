@@ -49,6 +49,14 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
     [HttpGet("approval-vs-prod")]
     public Task<IActionResult> ApprovalVsProd() => Run("questions/12-approval-vs-prod.sql");
 
+    // The feature picture (§28): one document, every item, served whole; the register indexes it.
+    [HttpGet("feature-picture")]
+    public async Task<IActionResult> FeaturePicture()
+    {
+        if (!questions.Enabled) return NotFound();
+        return Content(await questions.RunJsonAsync("questions/13-feature-picture.sql"), "application/json");
+    }
+
     [HttpPost("name-build")]
     public async Task<IActionResult> NameBuild([FromBody] NameBuildRequest request)
     {

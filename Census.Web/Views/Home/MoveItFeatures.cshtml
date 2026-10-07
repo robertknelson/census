@@ -1,0 +1,19 @@
+@using Census.Web.Options
+@using Microsoft.Extensions.Options
+@inject IOptions<MoveItOptions> MoveItOptions
+@{
+    ViewData["Title"] = "Features";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/moveit.css" asp-append-version="true" />
+}
+
+<div id="moveit-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import page from '/js/moveit/features-page.mjs';
+        page.init({ rootId: 'moveit-root', pageSize: @MoveItOptions.Value.PageSize, shippedDays: @MoveItOptions.Value.ShippedDays });
+    </script>
+}

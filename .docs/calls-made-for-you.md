@@ -4,6 +4,31 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-07 — the two registers, built (move-it §28.5)
+
+**Question 13 is fetched whole with the page,** not per click. Options: an endpoint with
+`@WorkItemId` and a fetch per story; the whole document once. Call: once. Reason: the step
+column needs every row's stage arrivals before any click, and 13 is one query; a parameter
+would also mean the first SQL the C# side parameterises on a question file.
+
+**The *where* facet is the lane labels, with no separate *shipped* value.** The spec listed
+*shipped*; the top lane *is* shipped on this register (its rows read *shipped <date>*), so a
+second value would have been the same rows twice.
+
+**A pill link carries only the pill.** `?pill=late` is enough; the register applies the
+pill's facets on load. Reason: the link he sends should read as the question, not as its
+plumbing.
+
+**Removed rows hide until the *removed* facet is chosen,** rather than a show-removed toggle.
+Reason: one control fewer; the facet's count still says how many there are.
+
+**The Releases register's row is a link to the release page,** not a selection. Reason: §28.4
+item 4; the page already is the story.
+
+**The first step's gap is blank when negative.** 13's entry lag can be negative (recorded
+after the build was already in DEV, as the fixture's Underwriting rules v2 is); on a step
+line *-6d* reads as a mistake. The story column's timing grid still shows the figure.
+
 ## 2026-10-07 — the two registers, spec only (move-it §28)
 
 **Facets, sort and page in the browser, over one fetch.** Options: server-side paging with

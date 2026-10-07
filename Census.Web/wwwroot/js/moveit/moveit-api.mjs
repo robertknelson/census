@@ -66,6 +66,11 @@ export function fetchReleaseBuilds() {
     return getJson('/api/moveit/release-builds');
 }
 
+// Question 13, every item (move-it.md §28): the register's story column.
+export function fetchFeaturePicture() {
+    return getJson('/api/moveit/feature-picture');
+}
+
 // The board's writes (move-it.md §15, §16). A 400 carries the server's validation messages.
 export function postNameBuild(request) {
     return postJson('/api/moveit/name-build', request);

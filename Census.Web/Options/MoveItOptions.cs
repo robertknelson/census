@@ -23,6 +23,9 @@ public class MoveItOptions
     public int StaleDays { get; set; } = 14;
     public int ComingDays { get; set; } = 60;
 
+    // The registers (§28) page at this many rows.
+    public int PageSize { get; set; } = 50;
+
     // Division (§19) puts a plain-words caption under each stage's step, keyed by stage
     // identifier. A stage with no caption shows its name alone.
     public Dictionary<string, string> StepCaptions { get; set; } = new()

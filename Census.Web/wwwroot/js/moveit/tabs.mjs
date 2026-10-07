@@ -1,10 +1,12 @@
 // Move It's navigation (move-it.md §19): one tab bar across its pages. Division is the
 // executive's page and comes first; History is the entrant's; Calendar (§21) puts
-// all of it on dates.
+// all of it on dates; Features and Releases (§28) are the registers.
 const TABS = [
     { id: 'division', label: 'Division', href: '/moveit/division' },
     { id: 'week', label: 'The week', href: '/moveit/week' },
     { id: 'board', label: 'Where is it', href: '/moveit' },
+    { id: 'features', label: 'Features', href: '/moveit/features' },
+    { id: 'releases', label: 'Releases', href: '/moveit/releases' },
     { id: 'history', label: 'History', href: '/moveit/history' },
     { id: 'calendar', label: 'Calendar', href: '/moveit/calendar' },
 ];

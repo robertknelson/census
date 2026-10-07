@@ -1906,7 +1906,7 @@ board drew one lane, *DEV / VAL / UAT / PROD 13*, nine releases *late*, and the 
 above it, then the list was restored. The detail's *Shipped* label was checked in node, not
 clicked.
 
-## 28. Two registers — Features and Releases as first-class tabs (2026-10-07, Robert: "Features should be a first class citizen … and maybe Releases as well … sorting, paging, and facet filtering"; spec, awaiting go)
+## 28. Two registers — Features and Releases as first-class tabs (2026-10-07, Robert: "Features should be a first class citizen … and maybe Releases as well … sorting, paging, and facet filtering" … "come up with some options" … "you just surprise me"; built and verified the same day)
 
 **The complaint.** On the first real day he mistook a release for a feature, could not
 find the four features he knew were in PROD, and had no page that led with the noun he
@@ -1915,6 +1915,14 @@ stage (a feature is a chip in a column), *Division* by release (a feature is an 
 line under a name). Neither answers "find this one and tell me its story", and nothing on
 screen shows every release as a plain list — a Releases list would have shown the orphan
 (no contents, no build, target Aug 7) in one glance.
+
+**The shape — his "surprise me", from four options put to him.** (A) the ledger: a dense
+sortable table with facets and paging; (B) the track register: every row its own step
+line, the days written in the gaps, sort by stuck-longest; (C) the outline: releases as
+groups with features indented, one page; (D) standing questions: named pills above the
+facets, each a saved facet set and a link. **Built: A as the skeleton, B's step line as one
+column, D's pills above the facets.** Not C: its one virtue, a tab fewer, re-creates the
+confusion that started this — a feature read through its release.
 
 **The shape: a register, not another board.** One component, two nouns. A flat list over
 the application rail, a find box first, one row per thing, click a row for its story. The
@@ -1998,6 +2006,44 @@ goes to a §26 question, not to dropping a tab.
 5. Shipped features never fold out of the register.
 6. Facet, sort and page state in the address bar, so a narrowed view is a link.
 7. Sorting, facets and paging in the browser over one fetch; `MoveIt:PageSize` default 50.
+
+### 28.5 Built (2026-10-07)
+
+- `register.mjs` — the `Register`: find, pills, facets with counts (a facet value may be one
+  string or several, so *flags* is one facet), sort, paging, selection; state in the address
+  (`q`, `sort`, `dir`, `page`, `pill`, `sel`, one parameter per facet). A pill link carries
+  only `pill=`; the register applies the pill's facets on load. A facet may name values
+  that hide unless chosen (`hideUnlessChosen`): *removed* on Features.
+- `features-page.mjs` (`/moveit/features`) — rows from 01 joined to 02 and to 13, which is
+  now served whole by `/api/moveit/feature-picture` (one FOR JSON document, chunks joined in
+  `MoveItQuestions.RunJsonAsync`). Columns: feature or fix, application, release, where,
+  steps, since, build, flags. The step line's gaps are 13's `fromPrevious`, rounded; the
+  first stage's gap is from *recorded* and is left blank when negative (the entry lag,
+  honest in 13's figures, is not a step). The story column is 13 as a timeline: recorded,
+  into the release, each stage reached with build and machine, approval, holds, pulled;
+  then timing, record and links. Pills: Late · On hold · Heard, nothing after 30 days ·
+  Built, not seen · Reported, not observed · Live in `ShippedDays`. *+ Coming up* is here.
+- `releases-page.mjs` (`/moveit/releases`) — rows from 02 with `board/releases.sql`,
+  `release-builds.sql`, 04 and `classifyReleases`. Columns: release, application, contents
+  (**nothing recorded** in the alert tone), highest stage, pieces (the §18 bar, drawn for
+  every release), since, target, builds (count, strings on hover), flags. Facets: kind,
+  highest stage, contents (with *empty*), flags. Pills: Late · Nothing recorded · Awaiting
+  approval · On hold · Live in `ShippedDays` · Live, no sign-off. A row opens the release
+  page.
+- `MoveIt:PageSize` (default 50); tabs *Features*, *Releases* after *Where is it*.
+
+**Verified 2026-10-07 against the local AppTrak (Development profile, headless Edge):** the
+Features register listed 19 rows (the removed one hidden until its facet is chosen), pills
+*Late 7 · On hold 4 · Heard, nothing after 30 days 3 · Built, not seen 1 · Reported, not
+observed 4 · Live in 14 days 0*; `?sel=101` opened Underwriting rules v2's story (DEV Jul 5,
+recorded Jul 11, VAL Jul 19 *14 days after the stage before*, approved Aug 3, PROD Aug 4 *16
+days after*; entry lag 5.6 days, to PROD 30 days, approval to live 1.4 days) with the row
+highlighted; `?pill=late&sort=where&dir=desc` showed *1–7 of 7 (19 in all)*, the Late pill
+and the *late* facet lit, the other facets' counts recomputed with zeros greyed, *sorted by
+where, descending* in the header. The Releases register listed 10, Ledger cleanup's pieces
+bar grey, the two UAT rows *asserted* with *awaiting approval* / *ready to approve*. Paging
+was not exercised: the fixture has 19 rows and the page is 50. Clicks were driven through
+the address, not the mouse.
 
 ### 28.5 Open
 

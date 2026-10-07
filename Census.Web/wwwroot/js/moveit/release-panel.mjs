@@ -114,7 +114,7 @@ function count(n, singular, plural = `${singular}s`) {
 }
 
 // Where the release's pieces are: one segment per lane, width by item count.
-function renderBar(open, lanes) {
+export function renderBar(open, lanes) {
     if (open.length < 2) return '';
     const segments = lanes.map((l) => ({ lane: l, n: open.filter((i) => laneFor(i.Status, lanes) === l.id).length })).filter((s) => s.n);
     if (segments.length < 2) return '';

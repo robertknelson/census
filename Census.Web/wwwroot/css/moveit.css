@@ -575,3 +575,93 @@
     .wk-section { border-color: #ccc; }
     .dv-tile { background: #fff; border: 1px solid #ddd; }
 }
+
+/* The registers (move-it.md §28): a find box in the header line, standing questions as pills,
+   facets with counts, a sortable table, a pager. One component, two nouns. */
+.rg-head { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.rg-find { min-width: 16rem; padding: 0.25rem 0.5rem; border: 1px solid var(--mi-rule); border-radius: 4px; font: inherit; font-size: 13px; background: var(--mi-paper); }
+.rg-find:focus { border-color: var(--mi-ink); outline: none; background: var(--mi-panel); }
+.rg-sortword { font-style: italic; }
+.rg-of-all { color: var(--mi-muted); font-weight: 400; }
+.rg-main { padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.rg-main > .mi-status { padding: 1rem 0; }
+
+.rg-pills { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.rg-pill { display: inline-flex; align-items: baseline; gap: 0.35rem; padding: 0.2rem 0.65rem; border: 1px solid var(--mi-rule); border-radius: 999px; background: var(--mi-panel); color: var(--mi-ink); font-size: 12.5px; cursor: pointer; }
+.rg-pill:hover { border-color: var(--mi-ink); }
+.rg-pill.is-active { background: var(--mi-ink); color: #fff; border-color: var(--mi-ink); }
+.rg-pill.is-zero { color: var(--mi-muted); }
+.rg-pill-n { font: 600 11px/1 var(--mi-display); font-variant-numeric: tabular-nums; color: var(--mi-muted); }
+.rg-pill.is-active .rg-pill-n { color: rgba(255, 255, 255, 0.75); }
+.rg-pill.is-zero .rg-pill-n { color: var(--mi-rule); }
+
+.rg-facets { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.4rem 1.5rem; padding: 0.5rem 0.75rem; background: var(--mi-panel); border: 1px solid var(--mi-rule-soft); border-radius: 6px; }
+.rg-facet { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem; }
+.rg-facet-h { font: 600 10.5px/1 var(--mi-font); letter-spacing: 0.05em; text-transform: uppercase; color: var(--mi-muted); margin-right: 0.35rem; }
+.rg-facet-v { display: inline-flex; align-items: baseline; gap: 0.3rem; padding: 0.1rem 0.45rem; border: 1px solid transparent; border-radius: 4px; background: none; color: var(--mi-ink); font-size: 12.5px; cursor: pointer; }
+.rg-facet-v:hover { border-color: var(--mi-rule); }
+.rg-facet-v.is-on { background: var(--mi-ink); color: #fff; border-color: var(--mi-ink); }
+.rg-facet-v.is-zero { color: var(--mi-muted); }
+.rg-facet-n { font-size: 11px; color: var(--mi-muted); font-variant-numeric: tabular-nums; }
+.rg-facet-v.is-on .rg-facet-n { color: rgba(255, 255, 255, 0.75); }
+.rg-facet-v.is-zero .rg-facet-n { color: var(--mi-rule); }
+.rg-clear { margin-left: auto; border: 0; background: none; color: var(--mi-muted); font-size: 12.5px; text-decoration: underline; cursor: pointer; }
+.rg-clear:hover { color: var(--mi-ink); }
+
+.rg-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--mi-panel); border: 1px solid var(--mi-rule-soft); border-radius: 6px; font-size: 13px; }
+.rg-table th { position: sticky; top: 0; z-index: 1; background: var(--mi-panel); text-align: left; padding: 0; border-bottom: 2px solid var(--mi-rule); white-space: nowrap; }
+.rg-th { display: block; width: 100%; padding: 0.5rem 0.75rem; border: 0; background: none; text-align: left; font: 600 11px/1.2 var(--mi-font); letter-spacing: 0.04em; text-transform: uppercase; color: var(--mi-muted); cursor: pointer; }
+.rg-th:hover, .rg-table th.is-sorted .rg-th { color: var(--mi-ink); }
+.rg-table td { padding: 0.45rem 0.75rem; border-bottom: 1px solid var(--mi-rule-soft); vertical-align: middle; white-space: nowrap; }
+.rg-table td.rg-c-title, .rg-table td.rg-c-wrap { white-space: normal; }
+.rg-table tr:last-child td { border-bottom: 0; }
+.rg-row { cursor: pointer; }
+.rg-row:hover td { background: var(--mi-paper); }
+.rg-row.is-selected td { background: #e9eef6; }
+.rg-row:focus-visible { outline-offset: -2px; }
+.rg-c-title { min-width: 14rem; }
+.rg-title { font-weight: 500; }
+.rg-title.is-fix { font-style: italic; }
+.rg-title.is-removed { text-decoration: line-through; color: var(--mi-muted); }
+.rg-link { color: inherit; text-decoration: none; }
+.rg-link:hover { text-decoration: underline; }
+.rg-shipped { color: #1e7e34; font-weight: 500; }
+.rg-table .mi-stage { white-space: nowrap; }
+.rg-table .mi-flag { white-space: nowrap; }
+.rg-bar { width: 7rem; height: 6px; }
+
+/* The row's own step line: a node per lane, a segment between, the days in the gap. */
+.rg-c-track { width: 12rem; }
+.rg-track { display: flex; align-items: center; width: 11rem; height: 1.6rem; }
+.rg-node { flex: none; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--mi-rule); background: var(--mi-panel); box-sizing: border-box; }
+.rg-node.is-done { background: var(--hue); border-color: var(--hue); }
+.rg-node.is-current { width: 13px; height: 13px; background: var(--hue); border-color: var(--hue); box-shadow: 0 0 0 2px var(--mi-panel), 0 0 0 3px var(--hue); }
+.rg-node.is-asserted { border-style: dashed; background: var(--mi-panel); }
+.rg-node.is-current.is-asserted { background: var(--mi-panel); }
+.rg-seg { position: relative; flex: 1; height: 2px; background: var(--mi-rule); min-width: 0.6rem; }
+.rg-seg.is-done { background: #7d8694; }
+.rg-gap-days { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); font-size: 9.5px; line-height: 1; color: var(--mi-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rg-track.is-removed .rg-node { border-color: var(--mi-rule); background: var(--mi-panel); }
+.rg-track.is-removed .rg-seg { background: var(--mi-rule); }
+.rg-row:hover .rg-node.is-next { border-color: #b8bec8; }
+
+.rg-pager { display: flex; align-items: center; gap: 0.2rem; padding: 0.25rem 0; }
+.rg-page { min-width: 1.8rem; height: 1.8rem; padding: 0 0.4rem; border: 1px solid transparent; border-radius: 4px; background: none; color: var(--mi-ink); font-size: 12.5px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.rg-page:hover:not(:disabled) { border-color: var(--mi-rule); }
+.rg-page.is-current { background: var(--mi-ink); color: #fff; }
+.rg-page:disabled { color: var(--mi-rule); cursor: default; }
+.rg-gap { color: var(--mi-muted); padding: 0 0.2rem; }
+
+/* The story (§28.1): the item's timeline down the detail column. */
+.rg-detail { width: 26rem; }
+.rg-now { margin: 0 0 1rem; }
+.rg-story { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+.rg-story-row { position: relative; display: grid; grid-template-columns: 3.4rem 1fr; gap: 0.6rem; padding: 0.3rem 0 0.55rem 1.1rem; font-size: 13px; }
+.rg-story-row::before { content: ''; position: absolute; left: 0.18rem; top: 0; bottom: 0; width: 2px; background: var(--mi-rule-soft); }
+.rg-story-row:first-child::before { top: 0.75rem; }
+.rg-story-row:last-child::before { bottom: auto; height: 0.75rem; }
+.rg-story-row::after { content: ''; position: absolute; left: 0; top: 0.55rem; width: 10px; height: 10px; border-radius: 50%; background: var(--hue); box-shadow: 0 0 0 2px var(--mi-panel); }
+.rg-story-date { color: var(--mi-muted); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 12px; padding-top: 1px; }
+.rg-story-text { min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+.rg-story-text a { color: inherit; }
+.rg-note { margin-top: 0.75rem; padding: 0.5rem 0.7rem; background: var(--mi-paper); border-radius: 4px; font-size: 13px; color: var(--mi-muted); }

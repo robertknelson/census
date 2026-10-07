@@ -44,4 +44,21 @@ public class MoveItQuestions
         }
         return rows;
     }
+
+    // A question that ends FOR JSON PATH (13) comes back as one document in chunks, one per
+    // row; this joins them. An empty result is an empty array, never an empty body.
+    public async Task<string> RunJsonAsync(string relativeFile)
+    {
+        var sql = await File.ReadAllTextAsync(Path.Combine(_sqlPath, relativeFile));
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        await using var command = new SqlCommand(sql, connection);
+        await using var reader = await command.ExecuteReaderAsync();
+        var json = new System.Text.StringBuilder();
+        while (await reader.ReadAsync())
+        {
+            if (!reader.IsDBNull(0)) json.Append(reader.GetString(0));
+        }
+        return json.Length == 0 ? "[]" : json.ToString();
+    }
 }

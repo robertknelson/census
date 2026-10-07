@@ -36,3 +36,16 @@ value; the board never sees them. Reload the board; no restart.
        order everywhere?
 
 Bring back anything that still reads wrong, with the chip's title and its detail panel.
+
+## Two new tabs — Features and Releases (move-it.md §28)
+
+Both are read-only lists over what the board already knows; no SQL to run.
+
+6. [ ] **Features** (`/moveit/features`): find one of your four PROD features by typing part
+       of its title. Does its row read *shipped Aug 20*? Click it: does the story down the
+       right match what you know happened, in order, with the right builds?
+7. [ ] Click the **Late** pill, then a facet or two. Copy the address and open it in a new
+       tab: the same view should come back. Does the header's *N of M (all)* read true?
+8. [ ] **Releases** (`/moveit/releases`): the **Nothing recorded** pill should be 0 now that
+       release B is gone. Click a row: it opens the release page.
+9. [ ] On your usual screen, do seven tabs fit on one line in the dark bar?

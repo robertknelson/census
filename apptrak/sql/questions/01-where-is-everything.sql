@@ -68,7 +68,7 @@ at_stage AS (
 ),
 best AS (
     SELECT WorkItemId, Stage, Since, Evidence,
-           ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC, Evidence DESC) AS rn
+           ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC, Evidence DESC, Stage) AS rn
     FROM at_stage
 )
 SELECT w.Id AS WorkItemId, w.ApplicationId, r.Id AS ReleaseId, r.Name AS [Release], r.Kind AS ReleaseKind,

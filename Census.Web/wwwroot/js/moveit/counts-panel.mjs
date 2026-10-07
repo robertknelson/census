@@ -1,6 +1,7 @@
 import { escapeHtml } from './format.mjs';
-import { laneFor } from './lanes.mjs';
+import { laneFor, topLane } from './lanes.mjs';
 import { classifyReleases } from './release-panel.mjs';
+import { classifyItems } from './board-panel.mjs';
 
 const WEEK = 7;
 
@@ -12,12 +13,12 @@ const WEEK = 7;
 export class CountsPanel {
     // view 'releases' (§18) counts releases in flight per lane; 'items' counts open work items.
     laneCounts(data) {
-        const { lanes, items, view } = data;
-        const open = items.filter((i) => i.Status !== 'removed');
+        const { lanes, view } = data;
+        const open = classifyItems(data).filter((c) => !c.folded);
         const inFlight = classifyReleases(data).filter((c) => !c.abandoned && !c.shippedAt);
         return new Map(lanes.map((lane) => [lane.id, view === 'releases'
             ? inFlight.filter((c) => c.lane === lane.id).length
-            : open.filter((i) => laneFor(i.Status, lanes) === lane.id).length]));
+            : open.filter((c) => c.lane === lane).length]));
     }
 
     render(el, data) {
@@ -28,7 +29,8 @@ export class CountsPanel {
 
         const pastTarget = releases.filter((r) => r.PastTarget === 1).length;
         const onHold = releases.filter((r) => r.OnHold === 1).length;
-        const reachedProd = releases.filter((r) => r.HighestStage === 'PROD' && r.Since
+        const top = topLane(data.lanes);
+        const reachedProd = releases.filter((r) => top != null && laneFor(r.HighestStage, data.lanes) === top.id && r.Since
             && (now - Date.parse(r.Since)) <= WEEK * 86_400_000).length;
         const ready = candidates.filter((c) => c.Ready === 1).length;
         const n = (count, label, tone = '', title = '') => `

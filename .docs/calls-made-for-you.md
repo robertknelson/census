@@ -4,6 +4,28 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-07 — the board on an unordered stage list (move-it §27)
+
+**What a shipped chip says.** Options: *shipped 48 days ago*; *shipped Aug 20*. Call: the
+date, as the Releases view's cards already say it. Reason: the complaint was that a day count
+reads as "stuck"; a date reads as an event.
+
+**Shipped items leave the items view after `MoveIt:ShippedDays`,** the Releases view's
+setting, not a new one. Reason: two retirement ages for one board would need explaining.
+
+**No shipping with one stage lane.** When only one stage has ever been seen (the real
+server's early state: DEV endpoints only), nothing counts as the top, so nothing retires as
+shipped. Reason: one stage seen says nothing about where PROD is; retiring DEV items as
+shipped would be the §17 "unused stage above PROD" error in a new coat.
+
+**The unordered warning draws the board anyway.** Options: refuse to draw; draw and warn.
+Call: draw and warn above it. Reason: the chips and their releases are still true facts; only
+the ranking is a guess, and the fix is one UPDATE away.
+
+**Tie-break by stage name, not by preferring a stage called PROD.** Reason: guessing which
+name is production is the convention-sniffing this project does not do; a deterministic
+alphabetical pick plus the warning is honest.
+
 ## 2026-10-01 (night, Census) — web addresses resolve through IIS bindings (census-web §13)
 
 **A host name bound on several machines reaches all of them.** Options: treat it as

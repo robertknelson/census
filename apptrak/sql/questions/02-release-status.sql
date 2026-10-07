@@ -101,7 +101,8 @@ FROM moveit.Release r
 LEFT JOIN comp c        ON c.ReleaseId = r.Id
 LEFT JOIN rel_stage rs  ON rs.ReleaseId = r.Id
 LEFT JOIN stg s         ON s.Sort = rs.Sort AND s.Stage = (SELECT TOP 1 Stage FROM stg x WHERE x.Sort = rs.Sort
-                                                            AND EXISTS (SELECT 1 FROM moveit.WorkItem w JOIN at_stage a ON a.WorkItemId = w.Id WHERE w.ReleaseId = r.Id AND a.Stage = x.Stage))
+                                                            AND EXISTS (SELECT 1 FROM moveit.WorkItem w JOIN at_stage a ON a.WorkItemId = w.Id WHERE w.ReleaseId = r.Id AND a.Stage = x.Stage)
+                                                            ORDER BY x.Stage)   -- peers tie on Sort; the pick must not flip between runs
 LEFT JOIN rel_since rsn ON rsn.ReleaseId = r.Id
 LEFT JOIN ev            ON ev.ReleaseId = r.Id
 LEFT JOIN hold_note hn  ON hn.ReleaseId = r.Id

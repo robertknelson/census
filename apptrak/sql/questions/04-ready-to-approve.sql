@@ -50,7 +50,7 @@ at_stage AS (
     GROUP BY c.WorkItemId, cur.Stage, cur.Sort
 ),
 best AS (
-    SELECT WorkItemId, Stage, Sort, ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC) AS rn FROM at_stage
+    SELECT WorkItemId, Stage, Sort, ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC, Stage) AS rn FROM at_stage
 ),
 rel AS (   -- release's highest stage
     SELECT w.ReleaseId, MAX(b.Sort) AS Sort

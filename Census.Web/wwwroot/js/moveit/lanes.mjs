@@ -22,6 +22,25 @@ export function buildLanes(stages) {
     ];
 }
 
+// The stage lanes only: the two pre-stage lanes carry no stage names.
+export function stageLanes(lanes) {
+    return lanes.filter((l) => l.stages.length > 0);
+}
+
+// The top lane: the stage with the highest Sort, PROD in any list that is ordered. Meaningful
+// only when the board has more than one stage lane; with one, "top" is just "the only one".
+export function topLane(lanes) {
+    const staged = stageLanes(lanes);
+    return staged.length > 1 ? staged[staged.length - 1] : null;
+}
+
+// AppTrak's list gives every seen stage the same Sort: there is no sequence to draw, and
+// every question that ranks stages (highest stage, pre-PROD, late) is guessing. The board
+// says so instead of drawing one merged lane as if it meant something.
+export function unorderedStages(stages) {
+    return stages.length > 1 && new Set(stages.map((s) => s.Sort)).size === 1;
+}
+
 export function laneFor(status, lanes) {
     if (status === 'no release' || status === 'with the devs') return COMING;
     if (status === 'not deployed' || status === 'no evidence') return NOT_SEEN;

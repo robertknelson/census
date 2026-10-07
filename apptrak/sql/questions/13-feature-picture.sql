@@ -76,7 +76,7 @@ at_stage AS (
 ),
 best AS (
     SELECT WorkItemId, Stage, Since, Evidence,
-           ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC, Evidence DESC) AS rn
+           ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC, Evidence DESC, Stage) AS rn
     FROM at_stage
 ),
 item AS (   -- 01's row, plus when its first build was first seen

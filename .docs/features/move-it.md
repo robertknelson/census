@@ -1858,6 +1858,54 @@ had shown only *+2 more*; WidgetCore chosen on Calendar opened History and Where
 WidgetCore, and × returned all three to All; Division's step header measured 65px; the week
 ending Aug 31 drew its first cards at 92px, 92px and 296px.
 
+## 27. The board on a stage list with no order (2026-10-07, Robert: "build")
+
+**The report from the wild.** On the real server every Move It stage lane had collapsed
+into one, labelled *prod / val / uat / dev*, and a release deployed to PROD on Aug 20 sat
+there *48 days here* and **late**. His first thought was his own misreading; it was not.
+
+**The cause.** The board draws stages that share a `Sort` in one lane — the rule that keeps
+VAL and UAT as peers (§13) — and every question ranks stages by `Sort` for *highest stage*,
+*pre-PROD* and *reached PROD* (§10.2). His real `stages` list in `core.SelectItem` carried
+one `Sort` for all four, so the lanes merged and the ranking became a tie broken by nothing:
+question 02 took whichever stage came first and, when that was DEV or VAL, called the
+release late by the rule *past target and not at PROD*. *48 days here* was honest — the
+item has been at its stage since Aug 20 — but in PROD "here" reads as stuck.
+
+**The fix is data, his, in AppTrak's own list:** `Sort` on the four rows, DEV 10, VAL 20,
+UAT 20, PROD 30 (the fixture's values; the SQL is in `move-it-round-2026-10-07.md`). Move It
+reads that list and never writes it (§10). What the board does so it cannot happen silently
+again, and so the lane can say what a shared lane hides:
+
+- **The board refuses to guess.** When every seen stage carries one `Sort`
+  (`unorderedStages`, lanes.mjs), both views draw as before and a line above the board
+  says so: the names, the shared value, the table, and that *highest stage*, *late* and
+  *to PROD* are guesses until `Sort` is set. One stage seen is not "unordered"; it is one
+  stage.
+- **Ties never flip.** Every `ROW_NUMBER … ORDER BY Sort DESC` (01, 03, 04, 13) and 02's
+  `TOP 1` stage pick break the tie on stage name, so a load does not disagree with the last
+  one. The answer on an unordered list is still a guess; it is now the same guess every time.
+- **A chip names its stage when the lane cannot.** In a lane holding peers the meta line
+  reads *12 days in UAT*, not *12 days here*. Elsewhere *here* stays.
+- **A chip at the top stage says *shipped Aug 20*, not *48 days here*,** and after
+  `MoveIt:ShippedDays` (14) it leaves the lanes for the application cell, *Shipped: …*, each
+  a link to its detail — the same rule and setting the Releases view applies to a whole
+  release (§18). The lane head counts what is drawn. The detail's *Since* row reads
+  *Shipped* for such an item. The top stage is the last stage lane, as §18 has it; with one
+  stage lane there is no top and nothing ships, since one stage seen says nothing about
+  where PROD is.
+- **The header's *to PROD, 7d*** counts releases whose highest stage is in the top lane,
+  not those literally named `PROD`: his real identifiers are lowercase, so the literal would
+  have read 0 for ever.
+
+**Verified 2026-10-07 against the local AppTrak (Development profile, headless Edge):** the
+fixture check passed 26 of 26 with the tie-breaks in; the items view read *31 days in UAT*
+and *71 days in VAL*, WidgetCore's four PROD items (Aug 4–15) sat under the application as
+*Shipped: …* with the PROD lane head at 0; with every row of the local list set to Sort 20 the
+board drew one lane, *DEV / VAL / UAT / PROD 13*, nine releases *late*, and the warning line
+above it, then the list was restored. The detail's *Shipped* label was checked in node, not
+clicked.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

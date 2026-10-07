@@ -1,6 +1,6 @@
 import { fetchApplications, fetchLists, fetchReadyToApprove, fetchReleaseStatus, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
 import { appLabel, escapeHtml } from './format.mjs';
-import { buildLanes } from './lanes.mjs';
+import { buildLanes, unorderedStages } from './lanes.mjs';
 import { CountsPanel } from './counts-panel.mjs';
 import { BoardPanel, renderDetail } from './board-panel.mjs';
 import { ReleasePanel, renderReleaseDetail } from './release-panel.mjs';
@@ -148,6 +148,16 @@ class MoveItPage {
             return;
         }
         (this.view === 'releases' ? this.releaseBoard : this.board).render(this.mainEl, data);
+        if (unorderedStages(this.stages)) this.mainEl.insertAdjacentHTML('afterbegin', this.renderUnordered());
+    }
+
+    // AppTrak's stage list carries one Sort for every seen stage (§27): nothing here can rank
+    // them. The lanes merge, "highest stage" and "late" are guesses, and the page says so.
+    renderUnordered() {
+        const names = this.stages.map((s) => escapeHtml(s.Stage)).join(', ');
+        return `
+            <p class="mi-status is-error mi-unordered">The stage list has no order: ${names} all carry Sort ${escapeHtml(String(this.stages[0].Sort))} in AppTrak's <code>core.SelectItem</code>,
+            so they share one lane and <em>highest stage</em>, <em>late</em> and <em>to PROD</em> are guesses. Set <code>Sort</code> on those rows (lowest first, peers equal) and reload.</p>`;
     }
 
     closeDetail() {
@@ -169,7 +179,7 @@ class MoveItPage {
         if (!item) { this.closeDetail(); return; }
         const release = this.releases.find((r) => r.ReleaseId === item.ReleaseId);
         const app = this.applications.find((a) => a.ApplicationId === item.ApplicationId);
-        this.openDetail(renderDetail(item, release, app, this.now));
+        this.openDetail(renderDetail(item, release, app, this.now, this.lanes));
     }
 
     showReleaseDetail(card) {

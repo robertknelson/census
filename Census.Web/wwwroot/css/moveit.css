@@ -98,6 +98,8 @@
 .mi-main { flex: 1; overflow: auto; padding: 0 2rem 3rem; }
 .mi-status { color: var(--mi-muted); max-width: 40rem; padding: 2rem 0; }
 .mi-status.is-error { color: var(--mi-alert); }
+.mi-unordered { max-width: none; padding: 0 0 0.75rem; }
+.mi-unordered code { font-size: 0.9em; }
 
 /* The lane board. A grid with the application column pinned and one column per lane; each
    application is one row, ruled off from the next; chips fall into the lane they are at. */

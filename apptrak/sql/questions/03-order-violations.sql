@@ -55,7 +55,7 @@ at_stage AS (
     GROUP BY c.WorkItemId, cur.Stage, cur.Sort
 ),
 best AS (
-    SELECT WorkItemId, Stage, Sort, ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC) AS rn FROM at_stage
+    SELECT WorkItemId, Stage, Sort, ROW_NUMBER() OVER (PARTITION BY WorkItemId ORDER BY Sort DESC, Stage) AS rn FROM at_stage
 ),
 links AS (
     SELECT l.Id AS LinkId, l.WorkItemId, l.LinkedWorkItemId, l.Note,

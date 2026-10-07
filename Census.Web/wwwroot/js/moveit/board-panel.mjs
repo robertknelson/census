@@ -1,6 +1,22 @@
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
-import { laneFor } from './lanes.mjs';
+import { laneFor, topLane } from './lanes.mjs';
 import { laneHue, stageHue } from './stage-hues.mjs';
+
+const DAY = 86_400_000;
+
+// Each open item with its lane, and whether it is shipped (§27): at the top stage for longer
+// than shippedDays, in which case it leaves the lanes and is listed in the application cell,
+// as the Releases view does with a whole release. Removed items are not here; they are
+// counted, not drawn.
+export function classifyItems({ lanes, items, now, shippedDays }) {
+    const top = topLane(lanes);
+    return items.filter((i) => i.Status !== 'removed').map((item) => {
+        const lane = lanes.find((l) => l.id === laneFor(item.Status, lanes));
+        const shipped = top != null && lane === top && item.Since != null;
+        const folded = shipped && (now - Date.parse(item.Since)) > shippedDays * DAY;
+        return { item, lane, shipped, folded };
+    });
+}
 
 // Question 01 as lanes (move-it.md §13, level 1): one row per application, one column per
 // lane, every open work item a chip in the lane it is at. Removed items are counted in the
@@ -12,17 +28,19 @@ export class BoardPanel {
         this.selectedId = null;
     }
 
-    render(el, { lanes, items, applications, releases, now, laneCounts }) {
+    render(el, data) {
         this.el = el;
+        const { lanes, items, applications, releases, now, laneCounts } = data;
         const releasesById = new Map(releases.map((r) => [r.ReleaseId, r]));
+        const classified = classifyItems(data);
         const rows = applications.map((app) => {
-            const mine = items.filter((i) => i.ApplicationId === app.ApplicationId);
+            const mine = classified.filter((c) => c.item.ApplicationId === app.ApplicationId);
             return {
                 app,
-                removed: mine.filter((i) => i.Status === 'removed').length,
+                removed: items.filter((i) => i.ApplicationId === app.ApplicationId && i.Status === 'removed').length,
                 releases: releases.filter((r) => r.ApplicationId === app.ApplicationId),
-                byLane: Object.fromEntries(lanes.map((l) => [l.id,
-                    mine.filter((i) => i.Status !== 'removed' && laneFor(i.Status, lanes) === l.id)])),
+                shipped: mine.filter((c) => c.folded).sort((a, b) => Date.parse(b.item.Since) - Date.parse(a.item.Since)),
+                byLane: Object.fromEntries(lanes.map((l) => [l.id, mine.filter((c) => !c.folded && c.lane === l)])),
             };
         });
 
@@ -59,20 +77,26 @@ export class BoardPanel {
                     <span class="mi-app-name ${row.app.Name ? '' : 'is-unnamed'}">${escapeHtml(appLabel(row.app))}</span>
                     <span class="mi-app-meta">${total ? `${total} open` : 'nothing open'}${row.removed ? `, ${row.removed} removed` : ''}</span>
                     ${releaseNames ? `<span class="mi-app-meta">${releaseNames}</span>` : ''}
+                    ${row.shipped.length ? `<span class="mi-app-meta mi-shipped">Shipped: ${row.shipped.map((c) =>
+                        `<button type="button" class="mi-shipped-link" data-item="${c.item.WorkItemId}" title="${escapeHtml(c.item.Title)}">${escapeHtml(c.item.Title)}</button> ${escapeHtml(shortDate(c.item.Since))}`).join(', ')}</span>` : ''}
                 </div>
                 ${lanes.map((l) => `
                     <div class="mi-lane" style="--lane: ${laneHue(l)}">
-                        ${row.byLane[l.id].map((i) => this.renderChip(i, releasesById.get(i.ReleaseId), now)).join('')}
+                        ${row.byLane[l.id].map((c) => this.renderChip(c, releasesById.get(c.item.ReleaseId), now)).join('')}
                     </div>`).join('')}
             </div>`;
     }
 
-    renderChip(item, release, now) {
+    // The meta line says where in words the lane cannot: "in UAT" when the lane holds peers,
+    // "shipped <date>" at the top, otherwise how long it has sat in the lane (§27).
+    renderChip({ item, lane, shipped }, release, now) {
         const since = daysAgo(item.Since, now);
         const meta = [];
         if (item.Release) meta.push(escapeHtml(item.Release));
         else if (item.Status === 'no release') meta.push('no release yet');
-        if (since != null) meta.push(`${days(since)} here`);
+        if (shipped) meta.push(`shipped ${escapeHtml(shortDate(item.Since))}`);
+        else if (since != null && lane.stages.length > 1) meta.push(`${days(since)} in ${escapeHtml(item.Status)}`);
+        else if (since != null) meta.push(`${days(since)} here`);
         if (item.Evidence === 'asserted') meta.push('asserted');
         if (item.Status === 'not deployed') meta.push('build known, not seen');
         if (item.Status === 'no evidence') meta.push('app gives no evidence');
@@ -93,16 +117,18 @@ function count(n, singular, plural = `${singular}s`) {
 
 // The drill-in for one work item: what question 01 knows, plus the release row from 02. An
 // item with no release (§20) shows what was heard and where, and no release section.
-export function renderDetail(item, release, app, now) {
+export function renderDetail(item, release, app, now, lanes = []) {
     const row = (label, value) => value == null || value === '' ? '' : `<div class="mi-dt">${label}</div><div class="mi-dd">${value}</div>`;
     const since = daysAgo(item.Since, now);
     const heard = item.Status === 'no release';
+    const top = topLane(lanes);
+    const shipped = top != null && laneFor(item.Status, lanes) === top.id;
     return `
         <h2 class="mi-detail-title">${escapeHtml(item.Title)}</h2>
         <p class="mi-detail-sub">${escapeHtml(item.Kind)} ${item.Release ? `in ${escapeHtml(item.Release)} ` : ''}for ${escapeHtml(appLabel(app))}${heard ? ', not in a release yet' : ''}</p>
         <dl class="mi-detail-grid">
             ${row('Where', `<span class="mi-stage" style="--lane: ${stageHue(item.Status)}">${escapeHtml(item.Status)}</span>${item.Evidence ? ` <span class="mi-muted">${escapeHtml(item.Evidence)}</span>` : ''}`)}
-            ${row(heard ? 'Heard' : 'Since', item.Since ? `${shortDate(item.Since)}, ${days(since)}` : null)}
+            ${row(heard ? 'Heard' : shipped ? 'Shipped' : 'Since', item.Since ? `${shortDate(item.Since)}, ${days(since)}${shipped ? ' ago' : ''}` : null)}
             ${row('Note', escapeHtml(item.Description))}
             ${heard ? '' : row('Build', item.IncludedInBuild ? `<code>${escapeHtml(item.IncludedInBuild)}</code>` : 'not built yet')}
             ${row('Built by', escapeHtml(item.BuiltBy))}

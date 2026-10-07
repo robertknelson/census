@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull and restart on the real server, then work through .docs/move-it-round-2026-10-01.md (now with steps 5 and 7b for the new page layout); in Census, check Triage for unresolved addresses that are really your own sites and note the names they use (aliases and wildcards are the next gap). Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Run the Sort UPDATE from .docs/move-it-round-2026-10-07.md on the real AppTrak, pull, reload the board, and bring back anything that still reads wrong; then the rest of the 10-01 round and Triage''s unresolved addresses. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,21 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-07 (first look in the wild — the stage list has no order)
+- He ran the real server and opened Features and fixes: asked what the three lane
+  headings mean, and reported a release deployed to PROD on Aug 20 reading *48 days
+  here* and **late**; "maybe user ignorance". It was not: his real `stages` list carries
+  one `Sort` for all four stages, so the lanes merged into *prod / val / uat / dev* and
+  question 02's untied highest-stage pick called PROD releases late. He confirmed the
+  diagnosis himself mid-stream ("late is determined by stage order"; "ah, set SORT in a
+  table").
+- "build": §27 — a warning line when every seen stage shares one Sort, deterministic
+  tie-breaks in five questions, *N days in UAT* in a peers lane, *shipped <date>* at the
+  top with a fold into the application cell after ShippedDays, *to PROD* by lane not by
+  the literal name (his identifiers are lowercase). Fixture check 26/26; headless Edge
+  shots of both states sent to him. Committed cf5fcd3, **not pushed** — his word.
+- His one step is data: the UPDATE in `.docs/move-it-round-2026-10-07.md`.
 
 ### 2026-10-01 (evening — feedback from the wild: screen space, scope, Atlas, web addresses)
 - Move It feedback: Calendar, Division, The week, Where is it and History "very very

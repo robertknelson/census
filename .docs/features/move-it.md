@@ -1906,7 +1906,7 @@ board drew one lane, *DEV / VAL / UAT / PROD 13*, nine releases *late*, and the 
 above it, then the list was restored. The detail's *Shipped* label was checked in node, not
 clicked.
 
-## 28. Two registers — Features and Releases as first-class tabs (2026-10-07, Robert: "Features should be a first class citizen … and maybe Releases as well"; spec, awaiting go)
+## 28. Two registers — Features and Releases as first-class tabs (2026-10-07, Robert: "Features should be a first class citizen … and maybe Releases as well … sorting, paging, and facet filtering"; spec, awaiting go)
 
 **The complaint.** On the first real day he mistook a release for a feature, could not
 find the four features he knew were in PROD, and had no page that led with the noun he
@@ -1931,9 +1931,22 @@ page but History is.
   not seen*, *app gives no evidence*.
 - **Order:** most recent movement first (`Since` descending), so what changed this week is at
   the top; the Coming rows by when heard, like the chips.
-- **Find box first**, over the title and the release name, narrowing as you type; a *kind*
-  pick (all · features · fixes) and a *where* pick (every lane plus *shipped* and *removed*)
-  beside it. The rail is the application scope and shares the remembered choice (§26.2).
+- **Find box first**, over the title and the release name, narrowing as you type. The rail
+  is the application scope and shares the remembered choice (§26.2).
+- **Facets, with counts** (Robert, 2026-10-07: "sorting, paging, and facet filtering"): a
+  facet strip under the header — *kind* (feature · fix), *where* (each lane, then *shipped*,
+  *removed*), *release*, *flags* (late · hold · asserted · not seen · no evidence). Each value
+  shows how many rows it would leave given the other facets, greyed at zero; several values
+  in one facet are OR, facets are AND; a chosen value is a chip with × and *Clear all* ends
+  the row. Facets and the find box narrow together. Facets, sort and page live in the
+  address (`?kind=fix&where=UAT&sort=since&page=2`), so a narrowed register can be sent as
+  a link and the back button walks the picks.
+- **Sorting** by any column: click a heading, click again to reverse, an arrow marks it. The
+  default is the movement order above. Sorting is of the whole register, not the page.
+- **Paging** at `MoveIt:PageSize` rows (default 50), *‹ 1 2 3 ›* under the list with
+  *Showing 51–100 of 212*; a facet or find change returns to page 1. Sorting, paging and
+  facets are done in the browser over question 01's rows — one fetch, as every page here
+  does; 01 returned 26 rows on the real server and the design holds to thousands.
 - **Shipped stays listed.** A row at the top stage reads *shipped <date>*, for ever; the
   register is the one place a feature never leaves when it goes live. The lanes' fold (§27)
   is the lanes'.
@@ -1957,8 +1970,11 @@ page but History is.
   hold, approved (date), abandoned, contradiction. Builds claimed, as a count with the
   strings on hover (`board/release-builds.sql`).
 - **Order:** in flight first by most recent movement, then shipped by date live, then
-  abandoned. A *where* pick as the features register has, plus *empty* — releases with no
-  contents, the orphan's row.
+  abandoned; every column sortable as in 28.1.
+- **Facets, with counts,** the same strip: *kind* (featureset · hotfix), *where* (each lane,
+  *shipped*, *abandoned*), *contents* (features only · fixes only · mixed · **empty** — the
+  orphan's row), *flags* (late · hold · approved · unsigned, went live with no approval ·
+  contradiction). Same paging, same address-carried state, same `MoveIt:PageSize`.
 - **Click a row: the release page** (`/moveit/release/<id>`), which already is the story,
   with its items, builds, events and the stabilization delete (§16). No second detail
   column: one page per release is enough.
@@ -1966,8 +1982,10 @@ page but History is.
 
 ### 28.3 The frame
 
-Both pages wear §26.1's frame: the thin page bar, one header line (the find box, the picks,
-the count *Showing N of M*), the rail. Two new tabs after *Where is it*: **Features**,
+Both pages wear §26.1's frame: the thin page bar, one header line (the find box, the sort
+in words when it is not the default, *Showing N of M*), the facet strip beneath it, the
+rail. One `Register` component (register.mjs) carries find, facets, sort and paging for
+both nouns; each page hands it its columns, its facet definitions and its row renderer. Two new tabs after *Where is it*: **Features**,
 **Releases**. Seven tabs ride in the bar; if the bar wraps on his usual screen, the order
 goes to a §26 question, not to dropping a tab.
 
@@ -1978,6 +1996,8 @@ goes to a §26 question, not to dropping a tab.
 3. Removed items listed, grey, hidden by default.
 4. Releases register drills to the release page, not a column.
 5. Shipped features never fold out of the register.
+6. Facet, sort and page state in the address bar, so a narrowed view is a link.
+7. Sorting, facets and paging in the browser over one fetch; `MoveIt:PageSize` default 50.
 
 ### 28.5 Open
 

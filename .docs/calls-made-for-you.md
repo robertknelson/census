@@ -6,6 +6,17 @@ call, the reason. Reverse any of them by saying so.
 
 ## 2026-10-07 — the two registers, spec only (move-it §28)
 
+**Facets, sort and page in the browser, over one fetch.** Options: server-side paging with
+query parameters on 01 and 02; in the browser. Call: browser. Reason: every Move It page is
+one fetch per question and 01 returned 26 rows on the real server; the first design that
+needs server paging is the one that sees thousands, and it is not this one.
+
+**Register state in the address bar.** Reason: "the features in UAT that are late" is a
+thing he will want to send someone; a link is the cheapest handoff.
+
+**Page size is a setting,** `MoveIt:PageSize`, default 50. Reason: a doubtful number that
+could be a setting is one (his 2026-09-04 rule).
+
 **Features and fixes share the register, with a kind pick.** Options: features only; both.
 Call: both, tab named *Features*. Reason: the lanes and Division treat them as one
 population; a fix you cannot find is the same complaint as a feature you cannot find.

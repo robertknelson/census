@@ -506,6 +506,22 @@
           "secretsPresent": false,
           "parseStatus": "ok",
           "sha256": "24d8f7a74a0be27b1d754b97c08b3a24c98948147ec9076e9c0b31ef5a55ab76"
+        },
+        {
+          "siteName": "myweb.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "http",
+          "name": "Services:Lookup:BaseUrl",
+          "scheme": "https",
+          "host": "yourweb.dev.example.com",
+          "rawHost": "yourweb.dev.example.com",
+          "isLocal": false,
+          "port": 443,
+          "path": "/api/lookup",
+          "hadCredentials": false,
+          "hadQuery": false,
+          "sha256": "bf8da4be070de6680e569982f3053639b0020e87cec7984951f6715a6b6cbeaa"
         }
       ]
     },

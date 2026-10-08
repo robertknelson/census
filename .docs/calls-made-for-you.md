@@ -4,6 +4,53 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-08 — stage crossings, built
+
+**A stage outside `Census:StageOrder` makes a crossing `unordered`,** a fifth direction,
+rather than `up` by the alphabetical fallback the lists use. Options: treat unnamed as
+ranking last (the demo's `ref` would then read "prod calls a higher stage"); say there is no
+rank. Call: say so. Reason: a direction the order never stated is a guess, and the finding
+title would be wrong in a way that reads confident.
+
+**No arrowhead on a crossing edge** although the spec named one. Reason: the line runs
+centre to centre and the target's shape covers its end; a mark nobody can see is a setting
+without a use. The stroke colour and width carry it.
+
+**The fixture for "up, derived" uses an untagged database on SQL02** (`Gateway`), a box
+`assets.demo.json` asserts prod, rather than tagging anything new: it exercises the
+machine-stage fallback with nothing added to the tag files, and keeps OrderPortal's two
+unclassified web apps (a §8 fixture) untouched.
+
+**Fixtures went through the generator, both days.** Options: hand-add the two edges to the
+latest snapshot files; add them to `New-DemoStageTopology.ps1` and regenerate. Call: the
+generator (it is the source of truth and idempotent); both days, so the wound reads as
+long-standing like his.
+
+**Hosting and blast radius carry the crossing as words in their existing detail,** not a
+new column — their JS renders detail as a tooltip already, and the spec said "a word".
+
+**The acceptance key is the graph's own node id, a JSON array string,** not the
+pipe-joined form the spec first sketched. Reason: one id, minted in one place, never a
+delimiter a name could break (the NodeId rule).
+
+## 2026-10-08 — stage crossings (stage-crossings.md)
+
+**An unclassified target is judged on its host machine's effective stage, badged derived.**
+Options: unjudged until someone tags the target; judge on the machine's effective stage.
+Call: the machine's stage, marked derived. Reason: the effective stage is derived from
+assertions (derived-machine-stage.md §2), not from names, so it is inside the law; and the
+real estate's downstream services are tagged more thinly than its machines, so waiting
+on the target tag would leave the wound's own edge unjudged. He said "follow your lean".
+
+**The crossing comparer takes the whole stage set of each end,** across all its
+associations, not only the viewed system's. Reason: an application serving two systems at
+prod is a prod caller whichever tab you are on; a per-system reading would let the same
+edge read differently on two tabs.
+
+**Edge composition lifts out of the graph controller into a shared composer** so the
+findings engine can judge estate-wide, rather than the findings engine re-resolving edges
+on its own. Reason: the W-3 argument; two resolvers would drift.
+
 ## 2026-10-07 — the two registers, built (move-it §28.5)
 
 **Question 13 is fetched whole with the page,** not per click. Options: an endpoint with

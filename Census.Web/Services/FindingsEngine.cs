@@ -11,7 +11,7 @@ namespace Census.Web.Services;
 /// no lifecycle, no persistence. Every finding carries its machine's facets so both
 /// personas project the same stream: dev-ops filters it, Estate aggregates it.
 /// </summary>
-public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklistEvaluator, AssetsStore assetsStore, BaselineEvaluator baselineEvaluator, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator)
+public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklistEvaluator, AssetsStore assetsStore, BaselineEvaluator baselineEvaluator, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator, GraphComposer graphComposer)
 {
     // Provisional per-kind severities — same caveat as SeverityRanking (tiers unratified).
     private const int CertExpiryWarningDays = 30;
@@ -227,6 +227,29 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                         $"Last ok {lastOk.FinishedUtc:yyyy-MM-dd}; a stale machine is a compliance blind spot, not a clean bill."));
                 }
             }
+        }
+
+        // An edge whose two ends share no stage (stage-crossings.md §3.3), keyed on the
+        // calling application's machine: the misconfiguration is a file on that machine, and
+        // that is where the fix is. Accepted crossings stay drawn in Atlas and leave here;
+        // unjudged edges are Triage's queue, not a defect of the estate.
+        var estate = graphComposer.Compose(collected, entityTags, declaredEntities);
+        foreach (var edge in estate.Edges.Where(e => e.Crossing is not null && e.Accepted is null))
+        {
+            var caller = estate.Nodes[edge.SourceId];
+            var target = estate.Nodes[edge.TargetId];
+            if (caller.Machine is null) continue;
+            var callerSystems = string.Join(", ", caller.Serves.Select(a => a.System).Where(s => !string.IsNullOrEmpty(s)).Distinct(StringComparer.OrdinalIgnoreCase));
+            var targetSystems = string.Join(", ", target.Serves.Select(a => a.System).Where(s => !string.IsNullOrEmpty(s)).Distinct(StringComparer.OrdinalIgnoreCase));
+            var phrase = StageCrossing.Phrase(edge.Crossing);
+            var title = $"{char.ToUpperInvariant(phrase[0])}{phrase[1..]}: {target.Name} ({string.Join(", ", edge.TargetStages)}) from {caller.Name} ({string.Join(", ", edge.CallerStages)})";
+            var where = target.Machine is null ? "" : $" on {target.Machine}{(target.Container is null ? "" : $" · {target.Container}")}";
+            var basis = edge.CrossingBasis == "derived"
+                ? $" The target carries no stage of its own; judged on {target.Machine}'s effective stage, derived."
+                : "";
+            findings.Add(Build(assets, caller.Machine, "stage-crossing", "medium", title,
+                $"{edge.Name} in {edge.SourceFile} reaches {target.Name}{where}{(string.IsNullOrEmpty(targetSystems) ? "" : $" ({targetSystems})")} — "
+                + $"the caller serves {(string.IsNullOrEmpty(callerSystems) ? "its system" : callerSystems)} at {string.Join(", ", edge.CallerStages)}, the target stands at {string.Join(", ", edge.TargetStages)}; they share no stage.{basis} Accept it in Atlas if it is meant."));
         }
 
         var knownMachines = machineDirs

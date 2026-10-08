@@ -94,6 +94,8 @@ export class PhysicsView {
             };
         });
         this.byId = new Map(this.nodes.map((n) => [n.dto.id, n]));
+        // The ends of every unaccepted crossing — what the toolbar's lift keeps at full.
+        this.crossingEnds = new Set(graph.edges.filter((e) => e.crossing && !e.accepted).flatMap((e) => [e.sourceId, e.targetId]));
         // Settle SYNCHRONOUSLY, then draw once — no animation loop at all. A frame-driven
         // simulation throttles with window focus and drifts for minutes; a settled-once
         // layout is the ratified behavior (settle-and-freeze) with zero jiggle ever, and
@@ -106,6 +108,13 @@ export class PhysicsView {
     }
 
     destroy() { }
+
+    /// Lift the crossing edges and their ends; everything else recedes to the ghost level.
+    /// Transient — any press on the graph clears it (stage-crossings.md §3.2).
+    setLift(on) {
+        if (!this.svg) return;
+        this.svg.classList.toggle('is-lifting', on);
+    }
 
     /// Highlight the selected node/edge element (or clear with null) — the page calls
     /// this too when the inspector is dismissed from its own close button.
@@ -173,10 +182,17 @@ export class PhysicsView {
         const edgeSvg = this.graph.edges.map((e, i) => {
             const sf = this.state.focus.get(e.sourceId) ?? 'focus';
             const tf = this.state.focus.get(e.targetId) ?? 'focus';
-            const fade = sf === 'ghost' && tf === 'ghost' ? ' atl-edge-ghost'
+            // A crossing (stage-crossings.md §3.2) draws distinctly on every tab regardless of
+            // the filter and never recedes past the bleed level; verdict and crossing are
+            // independent axes, so the verdict's dash survives underneath.
+            const crossing = !e.crossing ? ''
+                : e.accepted ? ' atl-edge-crossing atl-edge-accepted'
+                : e.crossingBasis === 'derived' ? ' atl-edge-crossing atl-edge-derived'
+                : ' atl-edge-crossing';
+            const fade = sf === 'ghost' && tf === 'ghost' ? (e.crossing ? ' atl-edge-bleed' : ' atl-edge-ghost')
                 : sf === 'ghost' || tf === 'ghost' ? ' atl-edge-bleed' : '';
             return `
-            <line data-edge="${i}" class="atl-edge atl-edge-${escapeHtml(e.verdict)} atl-edgekind-${escapeHtml(e.kind)}${fade}"></line>`;
+            <line data-edge="${i}" class="atl-edge atl-edge-${escapeHtml(e.verdict)} atl-edgekind-${escapeHtml(e.kind)}${crossing}${fade}"></line>`;
         }).join('');
         // A rendered edge is barely over a CSS pixel wide once the viewBox scales down —
         // an invisible fat twin under the nodes gives every connection a real hit target.
@@ -195,6 +211,7 @@ export class PhysicsView {
                 d.member ? 'atl-member' : d.unclassified ? 'atl-unclassified' : d.offSystem ? 'atl-offsystem' : '',
                 d.phantom ? 'atl-phantom' : '',
                 d.canonical ? 'atl-canonical' : '',
+                this.crossingEnds.has(d.id) ? 'atl-crossing-end' : '',
                 focus === 'ghost' ? 'atl-ghost' : '',
             ].filter(Boolean).join(' ');
             // A canonical node's sublabel is its distinct hosts — the clean-view line
@@ -253,6 +270,10 @@ export class PhysicsView {
     bind() {
         let press = null;
         this.svg.addEventListener('pointerdown', (ev) => {
+            if (this.svg.classList.contains('is-lifting')) {
+                this.svg.classList.remove('is-lifting');
+                this.onLiftCleared?.();
+            }
             const g = ev.target.closest('[data-node]');
             press = {
                 n: g ? this.byId.get(g.dataset.node) : null,

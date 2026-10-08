@@ -68,6 +68,24 @@ public record SystemGraphEdgeDto
     public required string Verdict { get; init; }     // confirmed | contradicted | unobserved | declared | unresolved
     public string Detail { get; init; }
     public string SourceFile { get; init; }
+
+    /// <summary>The stage crossing reading (stage-crossings.md §2): null = the ends share a stage; down | up | mixed | unordered.</summary>
+    public string Crossing { get; init; }
+    /// <summary>asserted — both ends' own associations; derived — the target judged on its machine's effective stage.</summary>
+    public string CrossingBasis { get; init; }
+    public List<string> CallerStages { get; init; } = [];
+    public List<string> TargetStages { get; init; } = [];
+    /// <summary>An end had no stage to compare — said, counted, never silent.</summary>
+    public bool Unjudged { get; init; }
+    /// <summary>A human said this crossing is meant (stage-crossings.md §4) — still drawn, out of the findings.</summary>
+    public AcceptedCrossingDto Accepted { get; init; }
+}
+
+public record AcceptedCrossingDto
+{
+    public string By { get; init; }
+    public string At { get; init; }
+    public string Note { get; init; }
 }
 
 public record SystemGraphDto
@@ -78,6 +96,10 @@ public record SystemGraphDto
 
     /// <summary>Stages the members claim — the filter chips. Filtering is client-side; ghosting, never hiding.</summary>
     public List<string> Stages { get; init; } = [];
+
+    /// <summary>Crossing edges not accepted, and edges an unstaged end left unjudged — the toolbar's figures.</summary>
+    public int Crossings { get; init; }
+    public int UnjudgedEdges { get; init; }
 }
 
 /// <summary>
@@ -87,7 +109,7 @@ public record SystemGraphDto
 /// </summary>
 [ApiController]
 [Route("api/system-graph")]
-public class SystemGraphController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore) : ControllerBase
+public class SystemGraphController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, GraphComposer graphComposer) : ControllerBase
 {
     /// <param name="grouping">canonical (default) collapses stage variants sharing a canonical
     /// name; observed leaves every entity as its own node — the canonical name stays a fact
@@ -102,212 +124,11 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
             if (envelope is not null) snapshots.Add((dir, envelope));
         }
 
-        var tags = entityTagsStore.Load();
-        var declared = declaredEntitiesStore.Load();
-        var index = HostResolver.BuildIndex(snapshots);
-        var attribution = ExternalAttribution.Compute(snapshots, declared, index);
-
-        var nodes = new Dictionary<string, SystemGraphNodeDto>(StringComparer.Ordinal);
-        var edges = new List<SystemGraphEdgeDto>();
-
-        bool ClaimsSystem(List<SystemAssociation> serves) =>
-            serves.Any(a => string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase));
-
-        SystemGraphNodeDto AddNode(SystemGraphNodeDto node)
-        {
-            if (!nodes.TryGetValue(node.Id, out var existing)) nodes[node.Id] = existing = node;
-            return existing;
-        }
-
-        SystemGraphNodeDto EntityNode(string id, string kind, string name, string container, string machine, bool isDeclared, bool isExternal, List<SystemAssociation> serves, string note = null, bool phantom = false)
-        {
-            var member = ClaimsSystem(serves);
-            return AddNode(new SystemGraphNodeDto
-            {
-                Id = id,
-                Kind = kind,
-                Name = name,
-                Container = container,
-                Machine = machine,
-                Declared = isDeclared,
-                External = isExternal,
-                Member = member,
-                Unclassified = !member && serves.Count == 0 && !phantom,
-                OffSystem = !member && serves.Count > 0,
-                Phantom = phantom,
-                Serves = EntityTagsEvaluator.ToDtos(serves),
-                Note = note,
-            });
-        }
-
-        // Observed entities. Nodes for every collected database and application — pruned to
-        // members-plus-touched at the end, so membership never has to be known up front.
-        foreach (var (machine, envelope) in snapshots)
-        {
-            if (envelope.SqlServer?.Status == "ok")
-            {
-                foreach (var instance in envelope.SqlServer.Data?.Instances ?? [])
-                {
-                    if (instance.ConnectedStatus != "ok") continue;
-                    foreach (var db in instance.Databases.Where(d => d.DatabaseId is null or > 4))
-                    {
-                        var leaf = EntityTagsEvaluator.AssertionFor(tags.Databases, machine, instance.InstanceName, db.Name);
-                        EntityNode(NodeId("database", machine, instance.InstanceName ?? "", db.Name), "database", db.Name, instance.InstanceName, machine, false, false, ServesOf(leaf));
-                    }
-                }
-            }
-            if (envelope.Iis?.Status == "ok")
-            {
-                foreach (var app in envelope.Iis.Data?.Applications ?? [])
-                {
-                    var leaf = EntityTagsEvaluator.AssertionFor(tags.Applications, machine, app.SiteName, app.Path);
-                    EntityNode(NodeId("application", machine, app.SiteName ?? "", app.Path ?? ""), "application", $"{app.SiteName}{app.Path}", app.SiteName, machine, false, false, ServesOf(leaf));
-                }
-            }
-        }
-
-        foreach (var (machine, entities) in declared.OnMachines)
-        {
-            foreach (var (name, entity) in entities)
-            {
-                EntityNode(NodeId("declared", machine, name), entity.Kind ?? "declared", name, null, machine, true, false,
-                    Associations.Of(entity.Serves, entity.System, entity.Stage, entity.AssertedBy, entity.AssertedAt), entity.Note);
-            }
-        }
-        foreach (var (name, entity) in declared.External)
-        {
-            EntityNode(NodeId("external", name), entity.Kind ?? "external", name, null, null, true, true,
-                Associations.Of(entity.Serves, entity.System, entity.Stage, entity.AssertedBy, entity.AssertedAt), entity.Note);
-        }
-
-        // Observed database edges, resolved without guessing: ambiguous names dropped (H-5),
-        // resolved-but-absent targets become phantoms — the edge's claim, visibly unbacked.
-        foreach (var (machine, envelope) in snapshots)
-        {
-            if (envelope.Iis?.Status != "ok") continue;
-            foreach (var edge in envelope.Iis.Data?.Dependencies ?? [])
-            {
-                if (edge.Kind != "database" || edge.Host is null) continue;
-                if (index.Ambiguous.Contains(edge.Host)) continue;
-                if (!index.ByName.TryGetValue(edge.Host, out var target)) continue;
-
-                var sourceId = NodeId("application", machine, edge.SiteName ?? "", edge.AppPath ?? "");
-                if (!nodes.ContainsKey(sourceId)) continue;
-
-                var (verdict, detail) = HostResolver.Corroborate(edge, index);
-                var instanceName = ResolveInstance(target, edge);
-                var targetId = NodeId("database", target.Machine, instanceName ?? edge.Instance ?? "", edge.Database ?? "");
-                if (!nodes.ContainsKey(targetId))
-                {
-                    var leaf = EntityTagsEvaluator.AssertionFor(tags.Databases, target.Machine, instanceName ?? edge.Instance, edge.Database);
-                    EntityNode(targetId, "database", edge.Database ?? "?", instanceName ?? edge.Instance, target.Machine, false, false, ServesOf(leaf), phantom: true);
-                }
-                edges.Add(new SystemGraphEdgeDto
-                {
-                    SourceId = sourceId,
-                    TargetId = targetId,
-                    Name = edge.Name,
-                    Kind = "database",
-                    Verdict = verdict,
-                    Detail = detail,
-                    SourceFile = edge.SourceFile,
-                });
-            }
-        }
-
-        // Web addresses resolved through IIS bindings (census-web.md §13): to the application
-        // that answers, which carries its own serves — another system's site reads as
-        // off-system. A known machine with no answering site ends at an endpoint on it.
-        foreach (var (machine, envelope) in snapshots)
-        {
-            if (envelope.Iis?.Status != "ok") continue;
-            foreach (var edge in envelope.Iis.Data?.Dependencies ?? [])
-            {
-                if (edge.Kind != "http") continue;
-                var sourceId = NodeId("application", machine, edge.SiteName ?? "", edge.AppPath ?? "");
-                if (!nodes.ContainsKey(sourceId)) continue;
-                var http = HostResolver.ResolveHttp(edge, machine, index);
-                if (!http.InEstate) continue;
-
-                if (http.Status == "site")
-                {
-                    foreach (var (tm, site, appPath) in http.Sites)
-                    {
-                        var targetId = NodeId("application", tm, site ?? "", appPath ?? "");
-                        if (!nodes.ContainsKey(targetId))
-                        {
-                            var leaf = EntityTagsEvaluator.AssertionFor(tags.Applications, tm, site, appPath);
-                            EntityNode(targetId, "application", $"{site}{appPath}", site, tm, false, false, ServesOf(leaf), phantom: true);
-                        }
-                        if (targetId == sourceId) continue;
-                        edges.Add(new SystemGraphEdgeDto
-                        {
-                            SourceId = sourceId, TargetId = targetId, Name = edge.Name, Kind = "http",
-                            Verdict = "confirmed", Detail = http.Detail, SourceFile = edge.SourceFile,
-                        });
-                    }
-                    continue;
-                }
-
-                var label = $"{edge.Scheme}://{edge.Host}{(edge.Port is null ? "" : ":" + edge.Port)}";
-                var endpointId = NodeId("endpoint", http.Machine ?? "", label);
-                AddNode(new SystemGraphNodeDto
-                {
-                    Id = endpointId, Kind = "endpoint", Name = label, Machine = http.Machine, Note = http.Detail,
-                });
-                edges.Add(new SystemGraphEdgeDto
-                {
-                    SourceId = sourceId, TargetId = endpointId, Name = edge.Name, Kind = "http",
-                    Verdict = "unobserved", Detail = http.Detail, SourceFile = edge.SourceFile,
-                });
-            }
-        }
-
-        // Attributed edges into external entities — declared targets, never corroborated.
-        foreach (var entity in attribution.Entities)
-        {
-            var targetId = NodeId("external", entity.Name);
-            foreach (var e in entity.AllEdges)
-            {
-                var sourceId = NodeId("application", e.Machine, e.SiteName ?? "", e.AppPath ?? "");
-                if (!nodes.ContainsKey(sourceId)) continue;
-                edges.Add(new SystemGraphEdgeDto
-                {
-                    SourceId = sourceId,
-                    TargetId = targetId,
-                    Name = e.Name,
-                    Kind = "external",
-                    Verdict = "declared",
-                    Detail = $"target {e.Target} — declared, never corroborated",
-                    SourceFile = e.SourceFile,
-                });
-            }
-        }
-
-        // Unresolved endpoints a member touches: raw targets, no matching, straight to Triage.
-        foreach (var u in attribution.Unresolved)
-        {
-            var endpointId = NodeId("endpoint", u.Target);
-            foreach (var e in u.Edges)
-            {
-                var sourceId = NodeId("application", e.Machine, e.SiteName ?? "", e.AppPath ?? "");
-                if (!nodes.TryGetValue(sourceId, out var source) || !source.Member) continue;
-                AddNode(new SystemGraphNodeDto
-                {
-                    Id = endpointId, Kind = "endpoint", Name = u.Target, Unclassified = true,
-                });
-                edges.Add(new SystemGraphEdgeDto
-                {
-                    SourceId = sourceId,
-                    TargetId = endpointId,
-                    Name = e.Name,
-                    Kind = "unresolved",
-                    Verdict = "unresolved",
-                    Detail = "observed edge to no machine and no declared entity — attribute it in Triage",
-                    SourceFile = e.SourceFile,
-                });
-            }
-        }
+        // The estate graph is composed once for every reader (GraphComposer); this view
+        // layers membership on and prunes to its scope.
+        var estate = graphComposer.Compose(snapshots, entityTagsStore.Load(), declaredEntitiesStore.Load());
+        var nodes = estate.ForSystem(system);
+        var edges = estate.Edges;
 
         // The scope rule (system-view.md §2): members, plus anything a member-touching edge
         // reaches. Nothing else — but nothing touched is ever dropped.
@@ -336,7 +157,7 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
             .GroupBy(x => x.Canonical, StringComparer.OrdinalIgnoreCase))
         {
             var variants = group.Select(x => x.Node).ToList();
-            var id = NodeId("canonical", system.ToLowerInvariant(), group.Key.ToLowerInvariant());
+            var id = GraphComposer.NodeId("canonical", system.ToLowerInvariant(), group.Key.ToLowerInvariant());
             foreach (var v in variants) idMap[v.Id] = id;
             var hosts = variants.Select(v => v.Machine).Where(m => m is not null)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -397,8 +218,10 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
             .SelectMany(g =>
             {
                 if (!canonicalIds.Contains(g.Key.SourceId) && !canonicalIds.Contains(g.Key.TargetId)) return g.AsEnumerable();
+                // The loudest crossing reading survives the merge (stage-crossings.md §7.3).
+                var loudest = g.OrderBy(e => StageCrossing.Rank(e.Crossing)).ThenBy(e => e.Accepted is null ? 0 : 1).First();
                 var merged = g.Count() == 1 ? g.First()
-                    : g.First() with
+                    : loudest with
                     {
                         Detail = $"{g.Count()} observed edges under this canonical pairing"
                             + (string.IsNullOrEmpty(g.First().Detail) ? "" : $" — first: {g.First().Detail}"),
@@ -418,20 +241,8 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(s => s, StageOrder.Comparer)
                 .ToList(),
+            Crossings = finalEdges.Count(e => e.Crossing is not null && e.Accepted is null),
+            UnjudgedEdges = finalEdges.Count(e => e.Unjudged),
         });
     }
-
-    private List<SystemAssociation> ServesOf(EntityTagAssertion leaf) =>
-        leaf is null ? [] : Associations.Of(leaf.Serves, leaf.System, leaf.Stage, leaf.AssertedBy, leaf.AssertedAt);
-
-    /// <summary>The instance actually holding the database, when the edge named none — observed containment, not a guess.</summary>
-    private static string ResolveInstance(HostResolver.MachineSql target, IisDependency edge)
-    {
-        if (!string.IsNullOrEmpty(edge.Instance)) return edge.Instance;
-        if (edge.Database is null) return null;
-        return target.Instances.FirstOrDefault(i => i.Databases.Contains(edge.Database)).Instance;
-    }
-
-    /// <summary>Opaque structured id — serialized parts, never a delimiter-joined string a name could break.</summary>
-    private static string NodeId(params string[] parts) => JsonSerializer.Serialize(parts);
 }

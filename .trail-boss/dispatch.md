@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Two new tabs, Features and Releases, as searchable lists with a story per feature; pushed"
-resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
+summary: "Atlas now flags a site calling a service in another stage, with a finding on the machine to fix; committed, not pushed"
+resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -26,22 +26,29 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Two new tabs: Features and Releases.** Each is a plain list you can search, sort by any
-column, narrow with facets that show their counts, and page through. A row of standing
-questions sits above the facets, *Late*, *On hold*, *Heard, nothing after 30 days*, *Nothing
-recorded*, each one click and each a link you can send. Every feature carries its own small
-step line, with the days between steps written in. Click a feature and its whole story opens
-down the right: when it was recorded, which release took it, when it reached each stage and
-on which build, when it was approved, and how long each leg took. Click a release and its
-page opens.
+**Atlas now notices when a site calls a service in the wrong stage.** This morning's find,
+a production site configured for over a year against a development service, is exactly the
+thing it looks for: any connection whose two ends share no stage. The line draws in red on
+every Atlas tab whatever the filter, the inspector says it in words (*MyWeb · prod →
+yourweb.dev · dev — crossing, down*), and a finding lands on the machine where the
+configuration file lives, which is where the fix is. When a crossing is meant, one click
+accepts it with your name and a note; it stays drawn, muted, and leaves the findings.
+Hosting and blast radius carry the same word, the registry panel counts them per system,
+and connections Census cannot judge yet, because one end has no stage tagged, are counted
+as *unjudged* rather than passed quietly.
 
-**The board tells you when it cannot rank the stages,** and a chip says where it is in words,
-*31 days in UAT* or *shipped Aug 20*. (Earlier today.)
+**Not built yet, deliberately:** the layered architecture picture (user interface over
+gateway over database, peers to the side). It needs someone to say which layer each
+application sits in, and it would not have caught this on its own.
 
 ## What's next
 
-**One SQL statement, yours,** then pull and walk the nine steps in
-`.docs/move-it-round-2026-10-07.md`: the board, then the two new tabs on your real data.
+**Pull and look at the real estate in Atlas.** Tag the site and the service if they are
+not tagged yet; the edge should read *crossing, down* and the finding should sit on the
+site's machine. Accept the crossings that are meant.
+
+**Then the Move It round:** one SQL statement, yours, then the nine steps in
+`.docs/move-it-round-2026-10-07.md` on your real data.
 
 **Then the rest of the Oct 1 round,** and in Census, Triage's unresolved addresses.
 
@@ -50,6 +57,9 @@ application-level screen.
 
 ## Anything alarming
 
+- **A crossing is only as good as the tags.** An untagged downstream service is judged on
+  its machine's stage when the machine has one, and otherwise sits in the *unjudged* count.
+  That count is the honest size of the blind spot.
 - **Speed on real data is still unmeasured** for the Move It pages added last round.
 - **The board still has places to type** and must be gated before anyone but him gets
   a link.

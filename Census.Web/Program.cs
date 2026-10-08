@@ -18,6 +18,8 @@ builder.Services.AddSingleton<EntityTagsStore>();
 builder.Services.AddSingleton<DeclaredEntitiesStore>();
 builder.Services.AddSingleton<SystemsStore>();
 builder.Services.AddSingleton<ViewsStore>();
+builder.Services.AddSingleton<StageCrossingsStore>();
+builder.Services.AddSingleton<GraphComposer>();
 builder.Services.AddSingleton<EntityTagsEvaluator>();
 builder.Services.AddSingleton<FindingsEngine>();
 builder.Services.Configure<MoveItOptions>(builder.Configuration.GetSection(MoveItOptions.SectionName));

@@ -207,6 +207,28 @@
 }
 .atl-edge-bleed { opacity: var(--atl-bleed-opacity); }
 .atl-edge-ghost { opacity: var(--atl-ghost-opacity); }
+/* Stage crossings (stage-crossings.md §3.2): a warning stroke on every tab regardless of
+   the filter, over the verdict's own dash; derived dashes long, accepted mutes. The colour,
+   width and the two variants are settings. */
+.atl-svg, .atl-key-swatch {
+    --atl-crossing-stroke: var(--atl-bad);
+    --atl-crossing-width: 3.4;
+    --atl-crossing-derived-dash: 10 5;
+    --atl-crossing-accepted-stroke: #b9a0a0;
+}
+.atl-edge-crossing { stroke: var(--atl-crossing-stroke); stroke-width: var(--atl-crossing-width); }
+.atl-edge-crossing.atl-edge-derived { stroke-dasharray: var(--atl-crossing-derived-dash); }
+.atl-edge-crossing.atl-edge-accepted { stroke: var(--atl-crossing-accepted-stroke); stroke-width: 2.4; }
+/* The toolbar's lift: crossings and their ends at full, the rest at the ghost level. */
+.atl-svg.is-lifting .atl-edge:not(.atl-edge-crossing),
+.atl-svg.is-lifting .atl-edge-accepted,
+.atl-svg.is-lifting .atl-node:not(.atl-crossing-end) { opacity: var(--atl-ghost-opacity); }
+.atl-svg.is-lifting .atl-edge-crossing:not(.atl-edge-accepted),
+.atl-svg.is-lifting .atl-node.atl-crossing-end { opacity: 1; }
+.atl-lift { font: inherit; font-size: 0.75rem; padding: 0 0.45rem; border: 1px solid var(--atl-bad); border-radius: 999px; background: none; color: var(--atl-bad); cursor: pointer; }
+.atl-lift.is-on { background: var(--atl-bad); color: #fff; }
+.atl-accept { display: inline-flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+.atl-accept-by { flex: 0 1 7rem; min-width: 6rem; }
 /* Under a stage filter what is in focus steps forward a little: heavier outline, bolder
    label, thicker line — so the contrast is carried by both sides, not by fading alone. */
 .atl-svg.is-filtered .atl-node:not(.atl-ghost) .atl-shape { stroke-width: var(--atl-focus-stroke); }

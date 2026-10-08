@@ -1,4 +1,4 @@
-<#
+﻿<#
     Creates the three-stage WebApp->DB topology: five machines whose only reason to exist is
     the SHAPE of the dependency graph between them.
 
@@ -316,6 +316,19 @@ function DbEdge {
     }
 }
 
+# A web address in appsettings (census-web.md 13): resolves through the target's IIS bindings.
+# The fixture's reason to exist is stage-crossings.md 6 - a PROD site configured to call a DEV
+# site, the wound of 2026-10-08, which no naming rule may detect and the stage comparer must.
+function HttpEdge {
+    param([string]$Site, [string]$Name, [string]$Scheme, [string]$TargetHost, [int]$Port, [string]$UrlPath)
+    [ordered]@{
+        siteName = $Site; appPath = '/'; sourceFile = 'appsettings.json'; kind = 'http'; name = $Name
+        scheme = $Scheme; host = $TargetHost; rawHost = $TargetHost; isLocal = $false; port = $Port; path = $UrlPath
+        hadCredentials = $false; hadQuery = $false
+        sha256 = FakeSha "$Site|/|appsettings.json|$Name|$Scheme|$TargetHost|$Port|$UrlPath"
+    }
+}
+
 function IisServer {
     param([string]$Written, [string]$Seed)
     [ordered]@{
@@ -462,7 +475,8 @@ function WebEnvelope {
     param([string]$Name, [string]$Ipv4, [string]$Guid, [string]$Smbios, [string]$Serial,
           [string]$MyHost, [string]$YourHost, [string]$SqlHost,
           [string]$MyDb, [string]$MyDb2, [string]$YourDb, [string]$YourDb2, $ExtraApps,
-          [string]$CollectedUtc, [int]$Ubr, [long]$CFree, [int]$LogFiles, [long]$LogTotal)
+          [string]$CollectedUtc, [int]$Ubr, [long]$CFree, [int]$LogFiles, [long]$LogTotal,
+          $ExtraDeps = @())
 
     $lower = $Name.ToLowerInvariant()
     $myCertHash   = (FakeSha "cert|$MyHost").Substring(0, 40).ToUpperInvariant()
@@ -544,7 +558,7 @@ function WebEnvelope {
                 (DbEdge $MyHost   'LegacyDb'  $SqlHost $MyDb2),
                 (DbEdge $YourHost 'YourDb'    $SqlHost $YourDb),
                 (DbEdge $YourHost 'SharedRef' $SqlHost $YourDb2)
-            )
+            ) + @($ExtraDeps)
         }) 1180
         certificates = Category ([ordered]@{
             certificates = @(
@@ -677,17 +691,21 @@ $ssms       = @((App 'SQL Server 2019 Management Studio' '19.3.0' 'Microsoft Cor
 $ubrDay1 = 3630
 $ubrDay2 = 3807
 
+# stage-crossings.md 6 fixtures (see the PRODWEBBOX entries below).
+$prodCrossing = @( (HttpEdge 'myweb.example.com' 'Services:Lookup:BaseUrl' 'https' 'yourweb.dev.example.com' 443 '/api/lookup') )
+$devCrossing  = @( (DbEdge 'yourweb.dev.example.com' 'ReportsDb' 'SQL02' 'Gateway') )
+
 $targets = @(
     @{ File = 'DEVWEBBOX\devwebbox-census-20260730.json'
        Envelope = WebEnvelope 'DEVWEBBOX' '10.0.1.10' 'd1e2f3a4-5b60-4712-8c3d-4e5f60718a01' `
            '4c4c4544-1001-3610-8052-b7c04f560001' 'DEVWEB01' `
            'myweb.dev.example.com' 'yourweb.dev.example.com' 'DEVSQLBOX' 'MyDB_DEV' 'MyDatabase_DEV' 'YourDB_DEV' 'Shared_REF' @() `
-           '2026-07-30T03:20:11.0000000Z' $ubrDay1 64424509440 12 18432 }
+           '2026-07-30T03:20:11.0000000Z' $ubrDay1 64424509440 12 18432 $devCrossing }
     @{ File = 'DEVWEBBOX\devwebbox-census-20260731.json'
        Envelope = WebEnvelope 'DEVWEBBOX' '10.0.1.10' 'd1e2f3a4-5b60-4712-8c3d-4e5f60718a01' `
            '4c4c4544-1001-3610-8052-b7c04f560001' 'DEVWEB01' `
            'myweb.dev.example.com' 'yourweb.dev.example.com' 'DEVSQLBOX' 'MyDB_DEV' 'MyDatabase_DEV' 'YourDB_DEV' 'Shared_REF' @() `
-           '2026-07-31T03:20:38.0000000Z' $ubrDay2 61203283968 13 20480 }
+           '2026-07-31T03:20:38.0000000Z' $ubrDay2 61203283968 13 20480 $devCrossing }
 
     @{ File = 'VALWEBBOX\valwebbox-census-20260730.json'
        Envelope = WebEnvelope 'VALWEBBOX' '10.0.1.11' 'e2f3a4b5-6c71-4823-9d4e-5f60718a9b02' `
@@ -700,16 +718,19 @@ $targets = @(
            'myweb.val.example.com' 'yourweb.val.example.com' 'DEVSQLBOX' 'MyDB_VAL' 'MyDatabase_VAL' 'YourDB_VAL' 'Shared_REF' @() `
            '2026-07-31T03:22:29.0000000Z' $ubrDay2 57042534400 10 15360 }
 
+    # stage-crossings.md 6: the wound. PROD MyWeb configured to call the DEV YourWeb site (down,
+    # over http, resolved through DEVWEBBOX's binding); DEV YourWeb reading an untagged database
+    # on SQL02, a prod-asserted box (up, judged on the machine's effective stage - derived).
     @{ File = 'PRODWEBBOX\prodwebbox-census-20260730.json'
        Envelope = WebEnvelope 'PRODWEBBOX' '10.0.1.12' 'f3a4b5c6-7d82-4934-ae5f-60718a9bac03' `
            '4c4c4544-1003-3610-8052-b7c04f560003' 'PRODWEB01' `
            'myweb.example.com' 'yourweb.example.com' 'PRODSQLBOX' 'MyDB' 'AppData01' 'YourDB' 'Shared_REF' $urlRewrite `
-           '2026-07-30T03:24:47.0000000Z' $ubrDay1 51539607552 41 96256 }
+           '2026-07-30T03:24:47.0000000Z' $ubrDay1 51539607552 41 96256 $prodCrossing }
     @{ File = 'PRODWEBBOX\prodwebbox-census-20260731.json'
        Envelope = WebEnvelope 'PRODWEBBOX' '10.0.1.12' 'f3a4b5c6-7d82-4934-ae5f-60718a9bac03' `
            '4c4c4544-1003-3610-8052-b7c04f560003' 'PRODWEB01' `
            'myweb.example.com' 'yourweb.example.com' 'PRODSQLBOX' 'MyDB' 'AppData01' 'YourDB' 'Shared_REF' $urlRewrite `
-           '2026-07-31T03:25:12.0000000Z' $ubrDay2 48318382080 43 101376 }
+           '2026-07-31T03:25:12.0000000Z' $ubrDay2 48318382080 43 101376 $prodCrossing }
 
     @{ File = 'DEVSQLBOX\devsqlbox-census-20260730.json'
        Envelope = SqlEnvelope 'DEVSQLBOX' '10.0.1.20' 'a4b5c6d7-8e93-4a45-bf60-718a9bacbd04' `

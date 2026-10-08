@@ -65,6 +65,9 @@ export class RegistryPanel {
         const drift = [
             ...r.missingExpectedStages.map((s) => `<span class="atl-drift-bad">expected ${escapeHtml(s)} — nothing serves it</span>`),
             ...r.unexpectedStages.map((s) => `<span class="atl-drift-warn">${escapeHtml(s)} in use, not expected</span>`),
+            // stage-crossings.md §3.5: crossings touching a member, and the honest remainder.
+            ...(r.crossings ? [`<span class="atl-drift-bad">${r.crossings} stage crossing${r.crossings === 1 ? '' : 's'}</span>`] : []),
+            ...(r.unjudgedEdges ? [`<span class="atl-muted">${r.unjudgedEdges} edge${r.unjudgedEdges === 1 ? '' : 's'} unjudged — an end unstaged</span>`] : []),
         ].join(' · ');
         return `
             <div class="atl-card">

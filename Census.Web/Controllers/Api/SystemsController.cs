@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Census.Web.Models;
+using Census.Web.Models.Census;
 using Census.Web.Models.Systems;
 using Census.Web.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -29,11 +30,15 @@ public record SystemOverviewDto
     /// <summary>Expected-stage drift (systems-registry.md §3): asserted-but-unserved, and served-but-unexpected.</summary>
     public List<string> MissingExpectedStages { get; init; } = [];
     public List<string> UnexpectedStages { get; init; } = [];
+
+    /// <summary>Edges touching a member that cross stages and are not accepted, and edges an unstaged end left unjudged (stage-crossings.md §3.5).</summary>
+    public int Crossings { get; init; }
+    public int UnjudgedEdges { get; init; }
 }
 
 [ApiController]
 [Route("api/systems")]
-public class SystemsController(SystemsStore systemsStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore) : ControllerBase
+public class SystemsController(SystemsStore systemsStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, CensusStore censusStore, GraphComposer graphComposer) : ControllerBase
 {
     [HttpGet]
     public ActionResult<SystemsConfig> Get() => Ok(systemsStore.Load());
@@ -76,6 +81,7 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
     {
         var registry = systemsStore.Load();
         var inUse = CollectInUse();
+        var edgeCounts = CountEdges();
 
         var rows = new List<SystemOverviewDto>();
         foreach (var (name, record) in registry.Systems)
@@ -99,6 +105,8 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 MissingExpectedStages = expected.Where(e => !stagesInUse.Contains(e, StringComparer.OrdinalIgnoreCase)).ToList(),
                 UnexpectedStages = record.ExpectedStages is null ? []
                     : stagesInUse.Where(s => !expected.Contains(s, StringComparer.OrdinalIgnoreCase)).ToList(),
+                Crossings = edgeCounts.GetValueOrDefault(name).Crossings,
+                UnjudgedEdges = edgeCounts.GetValueOrDefault(name).Unjudged,
             });
         }
         foreach (var (name, usage) in inUse.Where(u => !registry.Systems.ContainsKey(u.Key)))
@@ -111,6 +119,8 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 StagesInUse = usage.Stages,
                 CanonicalNameCount = usage.CanonicalNames.Count,
                 NamedMemberCount = usage.Named,
+                Crossings = edgeCounts.GetValueOrDefault(name).Crossings,
+                UnjudgedEdges = edgeCounts.GetValueOrDefault(name).Unjudged,
             });
         }
 
@@ -126,6 +136,32 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
         public int Named;
         public List<string> Stages = [];
         public HashSet<string> CanonicalNames = new(StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Per system, the edges touching a member that cross stages unaccepted, and the ones left unjudged (stage-crossings.md §3.5).</summary>
+    private Dictionary<string, (int Crossings, int Unjudged)> CountEdges()
+    {
+        var snapshots = new List<(string Machine, CensusEnvelope Envelope)>();
+        foreach (var dir in censusStore.GetMachineDirs())
+        {
+            var envelope = censusStore.GetLatestSnapshot(dir);
+            if (envelope is not null) snapshots.Add((dir, envelope));
+        }
+        var estate = graphComposer.Compose(snapshots, entityTagsStore.Load(), declaredEntitiesStore.Load());
+        var counts = new Dictionary<string, (int Crossings, int Unjudged)>(StringComparer.OrdinalIgnoreCase);
+        foreach (var edge in estate.Edges)
+        {
+            var crossing = edge.Crossing is not null && edge.Accepted is null;
+            if (!crossing && !edge.Unjudged) continue;
+            var systems = estate.Nodes[edge.SourceId].Serves.Concat(estate.Nodes[edge.TargetId].Serves)
+                .Select(a => a.System).Where(s => !string.IsNullOrEmpty(s)).Distinct(StringComparer.OrdinalIgnoreCase);
+            foreach (var system in systems)
+            {
+                var c = counts.GetValueOrDefault(system);
+                counts[system] = (c.Crossings + (crossing ? 1 : 0), c.Unjudged + (edge.Unjudged ? 1 : 0));
+            }
+        }
+        return counts;
     }
 
     private Dictionary<string, Usage> CollectInUse()

@@ -1,4 +1,4 @@
-import { fetchSystemsOverview, fetchSystemGraph, fetchViews, saveViews } from './atlas-api.mjs';
+import { fetchSystemsOverview, fetchSystemGraph, fetchViews, saveViews, fetchStageCrossings, saveStageCrossings } from './atlas-api.mjs';
 import { PhysicsView, shapeSvg } from './physics-view.mjs';
 import { stageColor } from './stage-colors.mjs';
 import { RegistryPanel } from './registry-panel.mjs';
@@ -11,6 +11,7 @@ import { RegistryPanel } from './registry-panel.mjs';
 // declared seam, unclassified shown) live here, so every future view type inherits them.
 
 const LOCAL_KEY = 'census-atlas-tabs-v1';
+const ASSERTED_BY_KEY = 'census-asserted-by';
 
 const STRATEGIES = {
     physics: { label: 'Physics graph', make: (onSelect, onPositions) => new PhysicsView(onSelect, onPositions) },
@@ -53,6 +54,9 @@ class AtlasPage {
     async bootstrap(stored) {
         this.keyOpen = stored.keyOpen ?? true;
         this.inspectorOpen = stored.inspectorOpen ?? true;
+        // The same identity Triage's assertions carry (triage-panel.mjs) — one name per browser.
+        this.assertedBy = localStorage.getItem(ASSERTED_BY_KEY) ?? '';
+        this.lifting = false;
         this.mainEl.innerHTML = '<p class="atl-status">Reading the views…</p>';
         try {
             let views = (await fetchViews()).views ?? [];
@@ -266,6 +270,11 @@ class AtlasPage {
             focus: this.focusMap(graph, tab),
             positions: tab.positions,
         });
+        this.lifting = false;
+        this.view.onLiftCleared = () => {
+            this.lifting = false;
+            this.toolbarEl.querySelector('[data-ref="lift"]')?.classList.remove('is-on');
+        };
         this.renderKey();
     }
 
@@ -319,6 +328,9 @@ class AtlasPage {
                 ${row(edge('unresolved'), 'unresolved endpoint')}
                 ${row(edge('confirmed', 'atl-edge-bleed'), 'one end filtered — the bleed')}
                 ${row(edge('confirmed', 'atl-edge-ghost'), 'both ends filtered')}
+                ${row(edge('confirmed', 'atl-edge-crossing'), 'stage crossing — the ends share no stage')}
+                ${row(edge('confirmed', 'atl-edge-crossing atl-edge-derived'), 'crossing judged on the machine\'s stage (derived)')}
+                ${row(edge('confirmed', 'atl-edge-crossing atl-edge-accepted'), 'accepted crossing — meant, and said so')}
                 ${row('<span class="atl-also atl-key-mark">+n</span>', 'also serves n other systems')}
             </div>
             </div>`;
@@ -360,6 +372,10 @@ class AtlasPage {
             <div class="atl-tb-title">
                 <span class="atl-tb-system">${escapeHtml(tab.system)}</span>
                 <span class="atl-tb-stats">${graph.nodes.filter((n) => n.member).length} members · ${graph.edges.length} edges</span>
+                ${graph.crossings || graph.unjudgedEdges ? `<span class="atl-tb-stats">
+                    ${graph.crossings ? `<button class="atl-lift ${this.lifting ? 'is-on' : ''}" data-ref="lift" title="Lift the stage crossings — edges whose ends share no stage. Any click on the graph puts it back.">${graph.crossings} crossing${graph.crossings === 1 ? '' : 's'}</button>` : ''}
+                    ${graph.unjudgedEdges ? `<span title="Edges with an unstaged end — nothing to compare until someone tags it in Triage">${graph.crossings ? ' · ' : ''}${graph.unjudgedEdges} unjudged</span>` : ''}
+                </span>` : ''}
             </div>
             <div class="atl-tb-center">
             <div class="atl-tb-group" role="group" aria-label="Stages">
@@ -400,6 +416,11 @@ class AtlasPage {
             this.persistViews();
             this.openView();
         }));
+        this.toolbarEl.querySelector('[data-ref="lift"]')?.addEventListener('click', (e) => {
+            this.lifting = !this.lifting;
+            e.currentTarget.classList.toggle('is-on', this.lifting);
+            this.view?.setLift?.(this.lifting);
+        });
         this.toolbarEl.querySelector('[data-ref="refetch"]').addEventListener('click', () => {
             this.graphs.delete(tab.id);
             this.openView();
@@ -479,6 +500,28 @@ class AtlasPage {
                 const host = n?.machine ?? ((n?.hosts ?? []).join(', ') || null);
                 return n ? `${n.name}${host ? ` · ${host}` : ''}` : id;
             };
+            // The crossing in words (stage-crossings.md §3.2): both ends with their stage sets,
+            // the direction, the basis when derived; Accept or Withdraw right here.
+            const nameOf = (id) => byId.get(id)?.name ?? id;
+            const stagesOf = (s) => (s ?? []).length ? s.join(', ') : 'unstaged';
+            const crossing = item.crossing ? `
+                <div class="atl-row ${item.accepted ? 'atl-muted' : 'atl-drift-bad'}">
+                    ${escapeHtml(nameOf(item.sourceId))} · ${escapeHtml(stagesOf(item.callerStages))} → ${escapeHtml(nameOf(item.targetId))} · ${escapeHtml(stagesOf(item.targetStages))}
+                    — crossing, ${escapeHtml(item.crossing)}${item.crossingBasis === 'derived' ? ` · judged on ${escapeHtml(byId.get(item.targetId)?.machine ?? 'its machine')}'s stage, derived` : ''}
+                </div>
+                ${item.accepted ? `
+                <div class="atl-row atl-kv"><span class="atl-key">accepted</span>
+                    <span class="atl-kv-cell"><span class="atl-muted">${escapeHtml([item.accepted.by, item.accepted.at].filter(Boolean).join(', ') || 'unsigned')}${item.accepted.note ? ` — ${escapeHtml(item.accepted.note)}` : ''}</span>
+                    <button class="atl-btn" data-ref="withdraw" title="Withdraw the acceptance — the crossing returns to the findings">Withdraw</button></span></div>`
+                : `
+                <div class="atl-row atl-kv"><span class="atl-key">accept</span>
+                    <span class="atl-accept">
+                        <input class="atl-card-name atl-accept-by" data-ref="accept-by" placeholder="by" value="${escapeHtml(this.assertedBy)}">
+                        <input class="atl-card-name" data-ref="accept-note" placeholder="why this crossing is meant">
+                        <button class="atl-btn" data-ref="accept" title="Say this crossing is meant — still drawn, out of the findings">Accept</button>
+                    </span></div>`}`
+                : item.unjudged ? `<div class="atl-row atl-drift-warn">unjudged — ${(item.callerStages ?? []).length ? 'the target' : 'the caller'} has no stage to compare; tag it in Triage</div>`
+                : '';
             this.inspectorEl.innerHTML = `
                 <div class="atl-card-head">
                     <span class="atl-mono">${escapeHtml(item.name ?? 'edge')}</span>
@@ -488,9 +531,55 @@ class AtlasPage {
                 <div class="atl-row atl-kv"><span class="atl-key">from</span><span class="atl-mono">${escapeHtml(end(item.sourceId))}</span></div>
                 <div class="atl-row atl-kv"><span class="atl-key">to</span><span class="atl-mono">${escapeHtml(end(item.targetId))}</span></div>
                 ${item.sourceFile ? `<div class="atl-row atl-kv"><span class="atl-key">seen in</span><span class="atl-mono">${escapeHtml(item.sourceFile)}</span></div>` : ''}
-                ${item.detail ? `<div class="atl-muted">${escapeHtml(item.detail)}</div>` : ''}`;
+                ${item.detail ? `<div class="atl-muted">${escapeHtml(item.detail)}</div>` : ''}
+                ${crossing}
+                <div class="atl-error" data-ref="crossing-error" hidden></div>`;
+            this.inspectorEl.querySelector('[data-ref="accept"]')?.addEventListener('click', () => this.acceptCrossing(item,
+                this.inspectorEl.querySelector('[data-ref="accept-by"]').value.trim(),
+                this.inspectorEl.querySelector('[data-ref="accept-note"]').value.trim()));
+            this.inspectorEl.querySelector('[data-ref="withdraw"]')?.addEventListener('click', () => this.withdrawCrossing(item));
         }
         this.bindInspectorClose();
+    }
+
+    // --- accepted crossings (stage-crossings.md §4) -------------------------------------------
+    // Whole-file replace on config/stage-crossings.json, keyed by the two node ids; then the
+    // graph is re-read and the same edge re-selected so the inspector shows the new state.
+
+    async acceptCrossing(item, by, note) {
+        await this.writeCrossings(item, (accepted) => [
+            ...accepted.filter((a) => !(a.caller === item.sourceId && a.target === item.targetId)),
+            { caller: item.sourceId, target: item.targetId, by: by || null, at: new Date().toISOString().slice(0, 10), note: note || null },
+        ]);
+        if (by) {
+            this.assertedBy = by;
+            localStorage.setItem(ASSERTED_BY_KEY, by);
+        }
+    }
+
+    async withdrawCrossing(item) {
+        await this.writeCrossings(item, (accepted) => accepted.filter((a) => !(a.caller === item.sourceId && a.target === item.targetId)));
+    }
+
+    async writeCrossings(item, change) {
+        try {
+            const config = await fetchStageCrossings();
+            config.accepted = change(config.accepted ?? []);
+            await saveStageCrossings(config);
+        } catch (err) {
+            const el = this.inspectorEl.querySelector('[data-ref="crossing-error"]');
+            if (el) { el.textContent = err.message; el.hidden = false; }
+            return;
+        }
+        const tab = this.tab();
+        this.graphs.delete(tab.id);
+        await this.openView();
+        const graph = this.graphs.get(tab.id);
+        const index = graph?.edges.findIndex((e) => e.sourceId === item.sourceId && e.targetId === item.targetId && e.name === item.name) ?? -1;
+        if (index < 0) return;
+        this.selection = { type: 'edge', item: graph.edges[index] };
+        this.view.setSelected?.({ type: 'edge', index });
+        this.renderInspector();
     }
 
     bindInspectorClose() {

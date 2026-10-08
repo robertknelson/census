@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Run the Sort UPDATE from .docs/move-it-round-2026-10-07.md on the real AppTrak, pull, reload; then walk that note''s nine steps (the board, and the new Features and Releases tabs) and bring back anything that reads wrong. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Pull, open Atlas on the real estate, tag the PROD site and its DEV downstream service if they are not yet, and confirm the edge reads "crossing, down" with the finding on the site''s machine; accept the crossings that are meant. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,24 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-08 (the hot potato — a PROD site pointed at a DEV service for a year)
+- He came in with it: "something that I should have seen in Atlas". Two approaches
+  weighed, his layered architecture diagram and an audit; position taken: the audit as a
+  fact of the graph that every surface inherits, the diagram later as an Atlas strategy
+  (it needs a layer per node, a new human assertion). Four open items put; he answered
+  "I'm not sure what I'm supposed to rule on" on the first — explained, then "follow your
+  lean" — and ruled the rest in one line each (one stage vocabulary *for now*, up is a
+  finding, acceptance in its own file); "once you complete the spec just go ahead and
+  start building".
+- Built `stage-crossings.md` §1–§7: `StageCrossing.Judge` (down / up / mixed / unordered /
+  unjudged), `GraphComposer` lifted out of the graph controller (behaviour-preserving, the
+  §8 counts held), the reading on every graph edge, a `stage-crossing` finding on the
+  caller's machine, the word on Hosting and blast radius, counts in the toolbar and
+  registry panel, Accept/Withdraw in the inspector writing `config/stage-crossings.json`.
+  Demo fixtures regenerated with a PROD → DEV http edge and a dev → prod derived one;
+  `tests/Test-StageCrossings.ps1` 19/19; headless Edge shots of six states. **Committed,
+  not pushed** — his word.
 
 ### 2026-10-07 (first look in the wild — the stage list has no order)
 - He ran the real server and opened Features and fixes: asked what the three lane

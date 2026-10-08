@@ -18,7 +18,7 @@ namespace Census.Web.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/blast-radius")]
-public class BlastRadiusController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator) : ControllerBase
+public class BlastRadiusController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, EntityTagsEvaluator entityTagsEvaluator, GraphComposer graphComposer) : ControllerBase
 {
     [HttpGet("{machine}")]
     public ActionResult<BlastRadiusDto> Get(string machine)
@@ -36,7 +36,7 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
         var config = entityTagsStore.Load();
         var declaredConfig = declaredEntitiesStore.Load();
         var hosted = BuildHosted(subject.Machine, subject.Envelope, config, declaredConfig);
-        var (dependents, contradicted) = BuildDependents(subject.Machine, snapshots, config);
+        var (dependents, contradicted) = BuildDependents(subject.Machine, snapshots, config, graphComposer.Compose(snapshots, config, declaredConfig));
 
         // Deployments keyed by (system, stage); an axis nobody asserted is "" and renders as
         // such — the answer never invents a value to fill a hole.
@@ -245,7 +245,7 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
     }
 
     private static (List<BlastDependentDto> Dependents, List<BlastDependentDto> Contradicted) BuildDependents(
-        string subject, List<(string Machine, CensusEnvelope Envelope)> snapshots, EntityTagsConfig config)
+        string subject, List<(string Machine, CensusEnvelope Envelope)> snapshots, EntityTagsConfig config, GraphComposer.EstateGraph estate)
     {
         var index = HostResolver.BuildIndex(snapshots);
         var byApp = new Dictionary<(string Machine, string Site, string Path), List<BlastEdgeDto>>();
@@ -274,7 +274,7 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
                         Url = $"{edge.Scheme}://{edge.Host}{(edge.Port is null ? "" : ":" + edge.Port)}{edge.Path}",
                         SourceFile = edge.SourceFile,
                         Verdict = http.Status == "site" ? "confirmed" : "unobserved",
-                        Detail = http.Detail,
+                        Detail = WithCrossing(http.Detail, estate.EdgesFor(machine, edge)),
                     });
                     continue;
                 }
@@ -295,7 +295,7 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
                     Instance = edge.Instance,
                     SourceFile = edge.SourceFile,
                     Verdict = verdict,
-                    Detail = detail,
+                    Detail = WithCrossing(detail, estate.EdgesFor(machine, edge)),
                 });
             }
         }
@@ -323,5 +323,14 @@ public class BlastRadiusController(CensusStore censusStore, EntityTagsStore enti
             else dependents.Add(dto);
         }
         return (dependents, contradicted);
+    }
+
+    /// <summary>The crossing word on a dependent's edge (stage-crossings.md §3.4) — a dependent calling across stages says so.</summary>
+    private static string WithCrossing(string detail, List<SystemGraphEdgeDto> judged)
+    {
+        var crossing = judged.Where(e => e.Crossing is not null && e.Accepted is null).OrderBy(e => StageCrossing.Rank(e.Crossing)).FirstOrDefault();
+        if (crossing is null) return detail;
+        var word = $"stage crossing, {crossing.Crossing} ({string.Join(", ", crossing.CallerStages)} → {string.Join(", ", crossing.TargetStages)})";
+        return string.IsNullOrEmpty(detail) ? word : $"{detail} · {word}";
     }
 }

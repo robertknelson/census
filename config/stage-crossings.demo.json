@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "accepted": [
+    {
+      "caller": "[\"application\",\"PRODWEBBOX\",\"yourweb.example.com\",\"/\"]",
+      "target": "[\"database\",\"PRODSQLBOX\",\"MSSQLSERVER\",\"Shared_REF\"]",
+      "by": "robert",
+      "at": "2026-10-08",
+      "note": "Reference data has one copy per tier; ref is deliberately outside the stage order."
+    }
+  ]
+}

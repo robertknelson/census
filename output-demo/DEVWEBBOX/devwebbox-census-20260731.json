@@ -495,6 +495,28 @@
           "secretsPresent": false,
           "parseStatus": "ok",
           "sha256": "7a381163f2da226bd460e180a44142690a9fd5acafae7a58cee30d65a7c9f117"
+        },
+        {
+          "siteName": "yourweb.dev.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "database",
+          "name": "ReportsDb",
+          "host": "SQL02",
+          "rawHost": "SQL02",
+          "isLocal": false,
+          "instance": null,
+          "port": 1433,
+          "protocol": null,
+          "filePath": null,
+          "database": "Gateway",
+          "authMode": "integrated",
+          "provider": "Microsoft.Data.SqlClient",
+          "encrypt": "true",
+          "trustServerCertificate": "false",
+          "secretsPresent": false,
+          "parseStatus": "ok",
+          "sha256": "eeed885226eb22126ad8bf40111ed4643504cf8546dd7ebc13c8cfb2df965ba0"
         }
       ]
     },

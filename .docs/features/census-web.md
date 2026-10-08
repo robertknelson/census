@@ -936,3 +936,13 @@ all · dev · val · prod · qa · staging.
 **Open item:** where *qa*, *staging* and *ref* belong once another team's real stages are
 known — a line in the setting each.
 
+## 15. Stage crossings — an edge whose two ends share no stage (2026-10-08, Robert: "just go ahead and start building")
+
+The wound: a PROD site he is responsible for had, for over a year, a configured endpoint
+pointing at a DEV downstream service. Spec and build in **`stage-crossings.md`**: one
+comparer on the server, the reading on every graph edge (down / up / mixed / unordered /
+unjudged, basis asserted or derived from the target machine's effective stage), a
+`stage-crossing` finding on the *caller's* machine, the word on Hosting · Dependencies and
+blast radius, counts in the Atlas toolbar and registry panel, and accepted crossings in
+`config/stage-crossings.json`. The node and edge composition moved from the graph controller
+into `Services/GraphComposer.cs` so every surface reads one answer.

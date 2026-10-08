@@ -189,6 +189,10 @@ register-an-unregistered gesture.
 > forbids. A 4px threshold separates click from drag. The v1/v2 ux-switch is
 > suppressed on /atlas (it compares the two Estate UIs; Atlas is neither).
 
+> **2026-10-08:** the MyWeb edge count is **10** since the stage-crossings fixture
+> (`stage-crossings.md` §6) added a PROD → DEV http edge; members and neighbors unchanged.
+> The composition behind this API now lives in `GraphComposer` (same section).
+
 ## 9. Grouped or every entity, chosen when the view is built (2026-10-01, Robert: "go")
 
 The canonical/observed grouping (canonical-names.md) was a per-tab toggle only. The builder

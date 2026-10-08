@@ -16,7 +16,7 @@ namespace Census.Web.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/hosting")]
-public class HostingController(CensusStore censusStore) : ControllerBase
+public class HostingController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, GraphComposer graphComposer) : ControllerBase
 {
     private static readonly string[] SystemDatabases = ["master", "model", "msdb", "tempdb"];
 
@@ -34,7 +34,7 @@ public class HostingController(CensusStore censusStore) : ControllerBase
         {
             Applications = BuildApplications(snapshots),
             Databases = BuildDatabases(snapshots),
-            Dependencies = BuildDependencies(snapshots),
+            Dependencies = BuildDependencies(snapshots, graphComposer.Compose(snapshots, entityTagsStore.Load(), declaredEntitiesStore.Load())),
         });
     }
 
@@ -146,7 +146,7 @@ public class HostingController(CensusStore censusStore) : ControllerBase
 
     // Grouped by TARGET, not source. Census collects downstream edges; blast radius needs the
     // inverse, and inverting them is the whole point of this view (graph-interop.md §6.1).
-    private static List<DependencyTargetDto> BuildDependencies(List<(string Machine, CensusEnvelope Envelope)> snapshots)
+    private static List<DependencyTargetDto> BuildDependencies(List<(string Machine, CensusEnvelope Envelope)> snapshots, GraphComposer.EstateGraph estate)
     {
         var index = HostResolver.BuildIndex(snapshots);
         var occurrences = new List<(string Key, IisDependency Edge, DependencySourceDto Source)>();
@@ -178,6 +178,16 @@ public class HostingController(CensusStore censusStore) : ControllerBase
                 var (verdict, detail) = edge.Kind == "http"
                     ? HostResolver.CorroborateHttp(edge, g.First().Source.Machine, index)
                     : HostResolver.Corroborate(edge, index);
+                // The crossing word (stage-crossings.md §3.4): how many of this target's callers
+                // reach it from a stage it does not serve, and the loudest direction among them.
+                var crossings = g.SelectMany(o => estate.EdgesFor(o.Source.Machine, o.Edge))
+                    .Where(e => e.Crossing is not null && e.Accepted is null)
+                    .OrderBy(e => StageCrossing.Rank(e.Crossing)).ToList();
+                if (crossings.Count > 0)
+                {
+                    var word = $"stage crossing from {crossings.Count} caller{(crossings.Count == 1 ? "" : "s")} — {crossings[0].Crossing} ({string.Join(", ", crossings[0].CallerStages)} → {string.Join(", ", crossings[0].TargetStages)})";
+                    detail = string.IsNullOrEmpty(detail) ? word : $"{detail} · {word}";
+                }
                 return new DependencyTargetDto
                 {
                     Target = g.Key,

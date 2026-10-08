@@ -20,6 +20,9 @@ public static class StageOrder
 
     public static IReadOnlyList<string> Order => order;
 
+    public static bool IsNamed(string stage) =>
+        order.Any(s => string.Equals(s, stage, StringComparison.OrdinalIgnoreCase));
+
     public static readonly IComparer<string> Comparer = Comparer<string>.Create(Compare);
 
     public static int Compare(string a, string b)

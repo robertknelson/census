@@ -60,6 +60,9 @@ export function shapeSvg(shape, r) {
             return `<path class="atl-shape" transform="scale(${s})" d="M -14 9 A 8.5 8.5 0 0 1 -12.5 -7.5 A 11.5 11.5 0 0 1 9 -9.5 A 8.5 8.5 0 0 1 14.5 9 Z"></path>`;
         }
         case 'dot': return `<circle class="atl-shape" r="${(r * 0.45).toFixed(1)}"></circle>`;
+        // The browser tier's glyph (layered-view.md §2) — his triangle; drawn by the layered
+        // strategy above a web/spa app, and by the key.
+        case 'triangle': return `<path class="atl-shape" d="M 0 ${-r * 0.85} L ${r * 0.95} ${r * 0.7} L ${-r * 0.95} ${r * 0.7} Z"></path>`;
         default: return `<rect class="atl-shape" x="${-r * 0.8}" y="${-r * 0.8}" width="${r * 1.6}" height="${r * 1.6}" transform="rotate(45)"></rect>`;
     }
 }

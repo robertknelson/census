@@ -68,6 +68,7 @@ export class TriagePanel {
         this.system = '';
         this.stage = '';
         this.canonical = '';
+        this.layer = '';
         this.assertedBy = localStorage.getItem(ASSERTED_BY_KEY) ?? '';
         this.error = null;
         this.declaring = false;
@@ -480,6 +481,11 @@ export class TriagePanel {
                     ${this.canonicalDatalist()}
                 </div>
                 <div class="est-edit-row">
+                    <span class="est-facet-key">layer</span>
+                    <input class="est-edit-input" data-field="layer" value="${escapeHtml(this.layer)}" placeholder="web, spa or api — the role in the system's picture (optional; databases need none)" style="max-width:24rem">
+                    ${this.layerChips()}
+                </div>
+                <div class="est-edit-row">
                     <span class="est-facet-key">by</span>
                     <input class="est-edit-input" data-field="asserted-by" value="${escapeHtml(this.assertedBy)}" placeholder="who is asserting (optional)">
                     <button class="est-btn est-btn-primary" data-act="apply">${escapeHtml(target)}</button>
@@ -500,6 +506,17 @@ export class TriagePanel {
             }
         }
         return `<datalist id="est-canonical-names">${[...names].sort().map((n) => `<option value="${escapeHtml(n)}">`).join('')}</datalist>`;
+    }
+
+    // Layer vocabulary (layered-view.md §3): web, spa, api first, then whatever else is in
+    // use — suggested, never restricted. A chip selects (one layer per claim).
+    layerChips() {
+        const inUse = new Set();
+        for (const row of this.data.machines.flatMap((m) => this.machineRows(m)).concat(this.externalRows())) {
+            for (const a of row.serves ?? []) if (a.layer) inUse.add(a.layer);
+        }
+        const values = ['web', 'spa', 'api', ...[...inUse].filter((v) => !['web', 'spa', 'api'].includes(v.toLowerCase())).sort()];
+        return values.map((v) => `<button class="est-btn est-btn-sm" data-suggest="layer" data-value="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join('');
     }
 
     // Registered systems lead the picker with their descriptions (systems-registry.md §5.1);
@@ -565,6 +582,7 @@ export class TriagePanel {
             this.system = system;
             this.stage = (assoc?.stages ?? []).join(', ');
             this.canonical = assoc?.canonicalName ?? '';
+            this.layer = assoc?.layer ?? '';
             this.render();
         }));
 
@@ -628,8 +646,8 @@ export class TriagePanel {
         this.container.querySelectorAll('[data-suggest]').forEach((btn) => btn.addEventListener('click', () => {
             const field = btn.dataset.suggest;
             // The bar asserts one system per apply; a system chip selects, stage chips accumulate.
-            if (field === 'system') {
-                this.system = btn.dataset.value;
+            if (field === 'system' || field === 'layer') {
+                this[field] = btn.dataset.value;
             } else {
                 const values = splitValues(this[field]);
                 if (!values.some((v) => v.toLowerCase() === btn.dataset.value.toLowerCase())) values.push(btn.dataset.value);
@@ -639,7 +657,7 @@ export class TriagePanel {
         }));
 
         this.container.querySelectorAll('[data-field]').forEach((input) => input.addEventListener('input', () => {
-            const map = { 'system': 'system', 'stage': 'stage', 'canonical': 'canonical', 'asserted-by': 'assertedBy' };
+            const map = { 'system': 'system', 'stage': 'stage', 'canonical': 'canonical', 'layer': 'layer', 'asserted-by': 'assertedBy' };
             this[map[input.dataset.field]] = input.value;
         }));
 
@@ -654,6 +672,7 @@ export class TriagePanel {
             this.system = '';
             this.stage = '';
             this.canonical = '';
+            this.layer = '';
             this.render();
         });
     }
@@ -662,6 +681,7 @@ export class TriagePanel {
         const system = this.system.trim();
         const stages = splitValues(this.stage);
         const canonical = this.canonical.trim();
+        const layer = this.layer.trim();
         const editing = this.editAssoc !== null;
 
         if (!editing && !system && stages.length === 0) {
@@ -700,7 +720,7 @@ export class TriagePanel {
                     : system || (rowByKey.get(key)?.serves[0]?.system ?? '');
                 const i = serves.findIndex((a) => (a.system ?? '').toLowerCase() === targetSystem.toLowerCase());
                 if (i < 0) {
-                    serves.push({ system: targetSystem, stages, ...(canonical ? { canonicalName: canonical } : {}), assertedBy: by, assertedAt: today });
+                    serves.push({ system: targetSystem, stages, ...(canonical ? { canonicalName: canonical } : {}), ...(layer ? { layer } : {}), assertedBy: by, assertedAt: today });
                 } else {
                     // Editing overwrites the claim's stages (emptied = unstaged); bulk
                     // merges — never removing a stage somebody else asserted.
@@ -714,9 +734,20 @@ export class TriagePanel {
                     } else if (canonical && !serves[i].canonicalName) {
                         serves[i].canonicalName = canonical;
                     }
+                    // Layer (layered-view.md §3): the same rule as the canonical name.
+                    if (editing) {
+                        if (layer) serves[i].layer = layer;
+                        else delete serves[i].layer;
+                    } else if (layer && !serves[i].layer) {
+                        serves[i].layer = layer;
+                    }
                     serves[i].assertedBy = by;
                     serves[i].assertedAt = today;
                 }
+                // An entity is one thing in every system's picture (layered-view.md §1.4): the
+                // layer copies to this entity's other claims where they say nothing, never
+                // where they already speak.
+                if (layer) for (const a of serves) if (!a.layer) a.layer = layer;
             }
         });
         this.selected.clear();
@@ -724,6 +755,7 @@ export class TriagePanel {
         this.system = '';
         this.stage = '';
         this.canonical = '';
+        this.layer = '';
         this.render();
     }
 

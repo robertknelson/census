@@ -189,6 +189,10 @@ register-an-unregistered gesture.
 > forbids. A 4px threshold separates click from drag. The v1/v2 ux-switch is
 > suppressed on /atlas (it compares the two Estate UIs; Atlas is neither).
 
+> **2026-10-08, later:** a second strategy, **`layered`** (`layered-view.md`) — stage planes,
+> browser / server / data rows, downstream services to the side — beside physics; chosen in
+> the builder or the toolbar's Layout segment; observed grouping only.
+>
 > **2026-10-08:** the MyWeb edge count is **10** since the stage-crossings fixture
 > (`stage-crossings.md` §6) added a PROD → DEV http edge; members and neighbors unchanged.
 > The composition behind this API now lives in `GraphComposer` (same section).

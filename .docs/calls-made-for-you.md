@@ -4,6 +4,30 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-08 — the layered view, built (layered-view.md)
+
+**The picture draws at its natural size and the canvas scrolls sideways,** rather than
+fitting the canvas. Options: fit (the first cut — five planes shrank to a strip of
+unreadable glyphs); fit the height (the second — one plane filled the screen and the rest
+scrolled far); natural size. Call: natural size, slot 132 and row 112 as settings. Reason: a
+wide estate is wide; the labels have to be readable or the picture says nothing.
+
+**A Layout segment in the toolbar, not only the builder.** The spec put the choice in the
+builder; his four existing tabs could not become layered without rebuilding them. Call:
+both. Reason: the grouping segment is right there and the switch is one field on the tab.
+
+**An empty plane is not drawn.** The unstaged plane appeared on every tab as an empty slab.
+Call: a plane nobody stands on is dropped. Reason: an empty plane says nothing; the
+never-hide rule is about nodes.
+
+**The spa fixture serves YourWeb, not MyWeb.** Tagging `legacy.example.com/` into MyWeb
+would have moved the §8 member count from 11 to 12 and broken the crossings test's pin.
+Call: YourWeb · prod. Reason: the fixture's job is the glyph and the stem, not the system.
+
+**No arrowheads, no orthogonal routing** on the layered edges: straight centre-to-centre
+lines, as the physics view draws. Reason: the rows and planes carry the direction; a
+router is a slice of its own if the real estate asks for one.
+
 ## 2026-10-08 — stage crossings, built
 
 **A stage outside `Census:StageOrder` makes a crossing `unordered`,** a fifth direction,

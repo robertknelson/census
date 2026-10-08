@@ -60,7 +60,9 @@ public static class Associations
             .Concat(assoc.Stages ?? [])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
-        into[existing] = (overwriteProvenance ? assoc : into[existing]) with { Stages = union };
+        // A layer stated by either side survives the merge; the incoming one wins when both speak.
+        var layer = string.IsNullOrWhiteSpace(assoc.Layer) ? into[existing].Layer : assoc.Layer;
+        into[existing] = (overwriteProvenance ? assoc : into[existing]) with { Stages = union, Layer = layer };
     }
 
     /// <summary>Each association contributes its own (system × stages) pairs — no cross-product across associations. Empty stages pair as ("system", "").</summary>

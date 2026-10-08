@@ -237,7 +237,8 @@
               ],
               "canonicalName": "MyWeb",
               "assertedBy": "robert",
-              "assertedAt": "2026-08-21"
+              "assertedAt": "2026-10-08",
+              "layer": "web"
             }
           ],
           "assertedBy": "robert",
@@ -246,14 +247,19 @@
       },
       "yourweb.dev.example.com": {
         "/": {
-          "system": [
-            "YourWeb"
-          ],
-          "stage": [
-            "dev"
-          ],
           "assertedBy": "robert",
-          "assertedAt": "2026-08-18"
+          "assertedAt": "2026-08-18",
+          "serves": [
+            {
+              "system": "YourWeb",
+              "stages": [
+                "dev"
+              ],
+              "assertedBy": "robert",
+              "assertedAt": "2026-10-08",
+              "layer": "web"
+            }
+          ]
         }
       }
     },
@@ -268,7 +274,8 @@
               ],
               "canonicalName": "MyWeb",
               "assertedBy": "robert",
-              "assertedAt": "2026-08-21"
+              "assertedAt": "2026-10-08",
+              "layer": "web"
             }
           ],
           "assertedBy": "robert",
@@ -277,14 +284,19 @@
       },
       "yourweb.val.example.com": {
         "/": {
-          "system": [
-            "YourWeb"
-          ],
-          "stage": [
-            "val"
-          ],
           "assertedBy": "robert",
-          "assertedAt": "2026-08-18"
+          "assertedAt": "2026-08-18",
+          "serves": [
+            {
+              "system": "YourWeb",
+              "stages": [
+                "val"
+              ],
+              "assertedBy": "robert",
+              "assertedAt": "2026-10-08",
+              "layer": "web"
+            }
+          ]
         }
       }
     },
@@ -299,7 +311,8 @@
               ],
               "canonicalName": "MyWeb",
               "assertedBy": "robert",
-              "assertedAt": "2026-08-21"
+              "assertedAt": "2026-10-08",
+              "layer": "web"
             }
           ],
           "assertedBy": "robert",
@@ -308,14 +321,57 @@
       },
       "yourweb.example.com": {
         "/": {
-          "system": [
-            "YourWeb"
-          ],
-          "stage": [
-            "prod"
+          "assertedBy": "robert",
+          "assertedAt": "2026-08-18",
+          "serves": [
+            {
+              "system": "YourWeb",
+              "stages": [
+                "prod"
+              ],
+              "assertedBy": "robert",
+              "assertedAt": "2026-10-08",
+              "layer": "web"
+            }
+          ]
+        }
+      }
+    },
+    "WEB01": {
+      "portal.example.com": {
+        "/api": {
+          "serves": [
+            {
+              "system": "BillingSvc",
+              "stages": [
+                "prod"
+              ],
+              "layer": "api",
+              "assertedBy": "robert",
+              "assertedAt": "2026-10-08"
+            }
           ],
           "assertedBy": "robert",
-          "assertedAt": "2026-08-18"
+          "assertedAt": "2026-10-08"
+        }
+      }
+    },
+    "WEB02": {
+      "legacy.example.com": {
+        "/": {
+          "serves": [
+            {
+              "system": "YourWeb",
+              "stages": [
+                "prod"
+              ],
+              "layer": "spa",
+              "assertedBy": "robert",
+              "assertedAt": "2026-10-08"
+            }
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-10-08"
         }
       }
     }

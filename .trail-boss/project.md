@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull, open Atlas on the real estate, tag the PROD site and its DEV downstream service if they are not yet, and confirm the edge reads "crossing, down" with the finding on the site''s machine; accept the crossings that are meant. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Pull, open Atlas on the real estate: confirm the PROD-to-DEV edge reads "crossing, down" with the finding on the site''s machine; tag web / spa / api on the applications of one system in Triage and open it Layered. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. 3D is the next build. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -45,7 +45,10 @@ relates: []
 - Then the layered view, defined in conversation: browser / server / data rows, stage as
   the depth axis, downstream services to the side, a 3D view ("a great wow factor") as the
   named follow-on. "Go" → `.docs/features/layered-view.md`, six open items first with leans;
-  build awaits his rulings.
+  "your lean on all six" → built: `layer` on the association (web / spa / api, suggested),
+  Triage carries it, `layered-placement.mjs` (pure, 15/15 under node) and `layered-view.mjs`
+  beside physics, builder and toolbar Layout segment, key rows; demo tags; headless shots.
+  **Committed, not pushed.** 3D (§8) is the next slice.
 
 ### 2026-10-07 (first look in the wild — the stage list has no order)
 - He ran the real server and opened Features and fixes: asked what the three lane

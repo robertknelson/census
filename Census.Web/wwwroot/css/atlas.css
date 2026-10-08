@@ -225,6 +225,34 @@
 .atl-svg.is-lifting .atl-node:not(.atl-crossing-end) { opacity: var(--atl-ghost-opacity); }
 .atl-svg.is-lifting .atl-edge-crossing:not(.atl-edge-accepted),
 .atl-svg.is-lifting .atl-node.atl-crossing-end { opacity: 1; }
+/* The layered view (layered-view.md §4). The doubtful values are settings, read by the
+   strategy as unitless numbers: slot width, row height, the gap between stage planes, the
+   side strip's gutter, the browser glyph's size, the outer padding. */
+.atl-svg {
+    --atl-lay-slot: 132;
+    --atl-lay-row: 112;
+    --atl-lay-gap: 60;
+    --atl-lay-side: 48;
+    --atl-lay-glyph: 15;
+    --atl-lay-pad: 56;
+}
+/* The planes draw at their natural size and the canvas scrolls — a wide estate is wide;
+   shrinking it to fit would make the labels unreadable, stretching it wastes the screen. */
+.atl-canvas:has(> .atl-lay) { overflow: auto; }
+.atl-svg.atl-lay { width: auto; height: auto; max-width: none; display: block; margin: 0 auto; }
+.atl-lay-slab { fill: var(--atl-panel); stroke: var(--atl-line); stroke-width: 1; }
+.atl-lay-stage { font: 600 15px/1 var(--atl-mono); fill: var(--atl-current); }
+.atl-lay-rowlabel { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; fill: var(--atl-muted); }
+.atl-lay-rowline { stroke: var(--atl-line); stroke-dasharray: 2 4; }
+.atl-lay-sideline { stroke: var(--atl-line); stroke-width: 1.5; }
+.atl-lay-badge { font-size: 10px; fill: var(--atl-muted); text-anchor: middle; }
+.atl-lay-badge-warn { fill: var(--atl-warn); }
+.atl-lay-browser .atl-shape { fill: #e8effc; stroke: var(--atl-accent); stroke-width: 1.6; }
+.atl-lay-stem { stroke: var(--atl-accent); stroke-width: 1.4; }
+.atl-lay-stem-unobserved { stroke: var(--atl-muted); stroke-dasharray: 2 4; }
+.atl-lay-key-stem { color: var(--atl-muted); font-weight: 700; }
+.atl-seg.is-disabled { opacity: 0.5; }
+.atl-seg button:disabled { cursor: default; }
 .atl-lift { font: inherit; font-size: 0.75rem; padding: 0 0.45rem; border: 1px solid var(--atl-bad); border-radius: 999px; background: none; color: var(--atl-bad); cursor: pointer; }
 .atl-lift.is-on { background: var(--atl-bad); color: #fff; }
 .atl-accept { display: inline-flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }

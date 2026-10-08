@@ -145,6 +145,7 @@ public class EntityTagsEvaluator
             System = a.System ?? "",
             Stages = a.Stages ?? [],
             CanonicalName = a.CanonicalName,
+            Layer = a.Layer,
             AssertedBy = a.AssertedBy,
             AssertedAt = a.AssertedAt,
         }).ToList();

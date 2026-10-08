@@ -1,5 +1,7 @@
 import { fetchSystemsOverview, fetchSystemGraph, fetchViews, saveViews, fetchStageCrossings, saveStageCrossings } from './atlas-api.mjs';
 import { PhysicsView, shapeSvg } from './physics-view.mjs';
+import { LayeredView } from './layered-view.mjs';
+import { ROWS as LAYER_ROWS } from './layered-placement.mjs';
 import { stageColor } from './stage-colors.mjs';
 import { RegistryPanel } from './registry-panel.mjs';
 
@@ -15,7 +17,14 @@ const ASSERTED_BY_KEY = 'census-asserted-by';
 
 const STRATEGIES = {
     physics: { label: 'Physics graph', make: (onSelect, onPositions) => new PhysicsView(onSelect, onPositions) },
+    // Layered (layered-view.md §4): stage planes, browser/server/data rows, peers to the
+    // side. Observed grouping only — the planes are the stage variants.
+    layered: { label: 'Layered', make: (onSelect) => new LayeredView(onSelect) },
 };
+
+const LAYERED_ICON = `<svg class="atl-every" viewBox="0 0 16 16" aria-hidden="true">
+    <rect x="2" y="2.5" width="12" height="2.6" rx="1"></rect><rect x="2" y="6.7" width="12" height="2.6" rx="1"></rect>
+    <rect x="2" y="10.9" width="12" height="2.6" rx="1"></rect></svg>`;
 
 // The name the builder gives (system-view.md §9–10, §14): the system, then the starting
 // stages. Every-entity grouping is shown by EVERY_ICON on the tab, not spelled into the name,
@@ -129,8 +138,8 @@ class AtlasPage {
     renderTabs() {
         this.tabsEl.innerHTML = [
             ...this.tabs.map((t) => `
-                <button class="atl-tab ${this.active === t.id ? 'is-active' : ''}" data-tab="${escapeHtml(t.id)}"${t.grouping === 'observed' ? ' title="Every entity — nothing grouped by canonical name"' : ''}>
-                    ${t.grouping === 'observed' ? EVERY_ICON : ''}${escapeHtml(t.name)}
+                <button class="atl-tab ${this.active === t.id ? 'is-active' : ''}" data-tab="${escapeHtml(t.id)}"${t.strategy === 'layered' ? ' title="Layered — stage planes, browser / server / data rows"' : t.grouping === 'observed' ? ' title="Every entity — nothing grouped by canonical name"' : ''}>
+                    ${t.strategy === 'layered' ? LAYERED_ICON : t.grouping === 'observed' ? EVERY_ICON : ''}${escapeHtml(t.name)}
                     <span class="atl-tab-x" data-close="${escapeHtml(t.id)}" title="Close this view">×</span>
                 </button>`),
             `<button class="atl-tab ${this.active === 'builder' ? 'is-active' : ''}" data-tab="builder" title="Build a new view">+</button>`,
@@ -190,6 +199,10 @@ class AtlasPage {
                     ${r.stagesInUse.length ? `<span class="atl-key">start at</span>
                         ${r.stagesInUse.map((st) => `<button class="atl-chip" data-start-stage="${escapeHtml(st)}" title="Open with ${escapeHtml(st)} in focus; the rest stay drawn, faded"><span class="atl-chip-dot" style="background:${stageColor(st)}"></span>${escapeHtml(st)}</button>`).join('')}` : ''}
                     <input class="atl-card-name" data-ref="name" placeholder="${escapeHtml(tabName(r.name))}" aria-label="Tab name (optional)" title="Tab name — leave empty to name it for you">
+                    <span class="atl-seg" role="group" aria-label="Layout">
+                        <button class="is-active" data-strategy="physics" title="A settled graph — drag to pin">Physics</button>
+                        <button data-strategy="layered" title="Stage planes with browser, server and data rows; downstream services to the side${r.layersInUse?.length ? '' : ' — no member carries a layer tag yet, applications land in the unplaced row'}">${LAYERED_ICON}Layered</button>
+                    </span>
                     <span class="atl-card-actions">
                         ${r.canonicalNameCount
                             ? `<button class="atl-btn" data-grouping="canonical" title="Members sharing a canonical name collapse into one node">Open grouped</button>
@@ -213,15 +226,20 @@ class AtlasPage {
                 chip.classList.toggle('is-active');
                 nameEl.placeholder = tabName(system, picked());
             }));
+            el.querySelectorAll('[data-strategy]').forEach((btn) => btn.addEventListener('click', () => {
+                el.querySelectorAll('[data-strategy]').forEach((b) => b.classList.toggle('is-active', b === btn));
+            }));
             el.querySelectorAll('[data-grouping]').forEach((btn) => btn.addEventListener('click', () => {
-                const grouping = btn.dataset.grouping;
+                const strategy = el.querySelector('[data-strategy].is-active')?.dataset.strategy ?? 'physics';
+                // Layered draws every entity: the planes are the stage variants (layered-view.md §4).
+                const grouping = strategy === 'layered' ? 'observed' : btn.dataset.grouping;
                 const stages = picked();
                 const tab = {
                     id: `t${(this.tabs.length + 1)}-${system.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                     name: nameEl.value.trim() || tabName(system, stages),
                     system,
                     stages,               // empty = all stages
-                    strategy: 'physics',
+                    strategy,
                     grouping,             // 'canonical' collapses variants sharing a canonical name; 'observed' keeps every entity
                     positions: {},
                 };
@@ -249,7 +267,7 @@ class AtlasPage {
         let graph = this.graphs.get(tab.id);
         if (!graph) {
             try {
-                graph = await fetchSystemGraph(tab.system, tab.grouping ?? 'canonical');
+                graph = await fetchSystemGraph(tab.system, tab.strategy === 'layered' ? 'observed' : (tab.grouping ?? 'canonical'));
             } catch (err) {
                 this.mainEl.innerHTML = `<p class="atl-status atl-error">${escapeHtml(err.message)}</p>`;
                 return;
@@ -294,6 +312,7 @@ class AtlasPage {
         const stages = (this.graphs.get(this.active)?.stages ?? []).map((s) => row(
             `<span class="atl-key-mark"><span class="atl-chip-dot" style="background:${stageColor(s)}"></span></span>`,
             escapeHtml(s))).join('');
+        const layered = this.tab()?.strategy === 'layered';
         this.keycardEl.innerHTML = `
             <div class="atl-key-head"><span class="atl-key">key</span><button class="atl-btn" data-ref="key-close" title="Hide the key">×</button></div>
             <div class="atl-key-groups">
@@ -304,7 +323,13 @@ class AtlasPage {
                 ${row(kind('cloud'), 'external entity')}
                 ${row(kind('diamond'), 'declared kind (task, …)')}
                 ${row(kind('dot'), 'endpoint')}
+                ${layered ? row(kind('triangle'), 'browser tier — a web or spa app, seen from the browser') : ''}
             </div>
+            ${layered ? `<div>
+                <div class="atl-key-ghead">layers — rows</div>
+                ${LAYER_ROWS.map((r) => row('<span class="atl-key-mark">—</span>', r === 'unplaced' ? 'unplaced — no layer tag yet' : r === 'browser' ? 'browser — drawn above web and spa apps' : r === 'server' ? 'server — web, spa, api, declared kinds' : 'data — databases, by kind')).join('')}
+                ${row('<span class="atl-key-mark atl-lay-key-stem">┊</span>', 'spa — calls unobserved (no line is guessed)')}
+            </div>` : ''}
             ${stages ? `<div>
                 <div class="atl-key-ghead">stages</div>
                 ${stages}
@@ -368,6 +393,7 @@ class AtlasPage {
         // the stage filter, the grouping switch, then the tab's tools. The "click opens
         // details · drag pins" hint lives in the inspector's empty state.
         const grouping = tab.grouping ?? 'canonical';
+        const layered = tab.strategy === 'layered';
         this.toolbarEl.innerHTML = `
             <div class="atl-tb-title">
                 <span class="atl-tb-system">${escapeHtml(tab.system)}</span>
@@ -385,9 +411,16 @@ class AtlasPage {
             </div>
             <div class="atl-tb-group" role="group" aria-label="Grouping">
                 <span class="atl-tb-label">Grouping</span>
+                <span class="atl-seg ${layered ? 'is-disabled' : ''}" ${layered ? 'title="The layered view draws every entity — the planes are the stage variants"' : ''}>
+                    <button class="${!layered && grouping === 'canonical' ? 'is-active' : ''}" data-grouping="canonical" ${layered ? 'disabled' : ''} title="Members sharing a canonical name collapse into one node">Grouped</button>
+                    <button class="${layered || grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" ${layered ? 'disabled' : ''} title="Every observed entity stays its own node">${EVERY_ICON}Every entity</button>
+                </span>
+            </div>
+            <div class="atl-tb-group" role="group" aria-label="Layout">
+                <span class="atl-tb-label">Layout</span>
                 <span class="atl-seg">
-                    <button class="${grouping === 'canonical' ? 'is-active' : ''}" data-grouping="canonical" title="Members sharing a canonical name collapse into one node">Grouped</button>
-                    <button class="${grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" title="Every observed entity stays its own node">${EVERY_ICON}Every entity</button>
+                    <button class="${!layered ? 'is-active' : ''}" data-strategy="physics" title="A settled graph — drag to pin">Physics</button>
+                    <button class="${layered ? 'is-active' : ''}" data-strategy="layered" title="Stage planes with browser, server and data rows; downstream services to the side">${LAYERED_ICON}Layered</button>
                 </span>
             </div>
             </div>
@@ -407,7 +440,16 @@ class AtlasPage {
             this.persistViews();
             this.openView();
         }));
+        this.toolbarEl.querySelectorAll('[data-strategy]').forEach((btn) => btn.addEventListener('click', () => {
+            if ((tab.strategy ?? 'physics') === btn.dataset.strategy) return;
+            tab.strategy = btn.dataset.strategy;
+            this.renderTabs();
+            this.graphs.delete(tab.id);
+            this.persistViews();
+            this.openView();
+        }));
         this.toolbarEl.querySelectorAll('[data-grouping]').forEach((chip) => chip.addEventListener('click', () => {
+            if (chip.disabled) return;
             if ((tab.grouping ?? 'canonical') === chip.dataset.grouping) return;
             // The name does not change: the tab's icon shows the grouping (§14).
             tab.grouping = chip.dataset.grouping;

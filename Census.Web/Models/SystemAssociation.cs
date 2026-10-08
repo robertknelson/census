@@ -23,6 +23,13 @@ public record SystemAssociation
     /// </summary>
     public string CanonicalName { get; init; }
 
+    /// <summary>
+    /// The role this entity plays in the system's architecture (layered-view.md §3): web
+    /// (server-rendered), spa, api — suggested, never restricted. Rides the claim like the
+    /// canonical name. Null = unplaced; databases need none (placed by kind).
+    /// </summary>
+    public string Layer { get; init; }
+
     public string AssertedBy { get; init; }
     public string AssertedAt { get; init; }
 

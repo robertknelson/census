@@ -193,7 +193,7 @@ with a `.demo.json` for the demo profile.
   §7.6.
 - Hand-editing is first-class, as for every config file.
 
-## 5. The layered diagram — second slice, deliberately
+## 5. The layered diagram — second slice, deliberately (built 2026-10-08: `layered-view.md`)
 
 Robert's picture: layers top to bottom (user interface, server side / API gateway,
 application, database), peers and downstream services to a side, a standard glyph per

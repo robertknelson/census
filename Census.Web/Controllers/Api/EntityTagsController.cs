@@ -189,6 +189,7 @@ public class EntityTagsController(EntityTagsStore entityTagsStore, DeclaredEntit
                 System = a.System?.Trim() ?? "",
                 Stages = Clean(a.Stages),
                 CanonicalName = string.IsNullOrWhiteSpace(a.CanonicalName) ? null : a.CanonicalName.Trim(),
+                Layer = string.IsNullOrWhiteSpace(a.Layer) ? null : a.Layer.Trim(),
             })
             .Where(a => a.System.Length > 0 || a.Stages.Count > 0)
             .ToList();

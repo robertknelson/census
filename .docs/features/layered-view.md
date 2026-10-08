@@ -5,7 +5,8 @@
 > side — as an Atlas strategy. Defined in conversation the same day: three rows (browser,
 > server, data), stage as the depth axis, downstream services to the side; a 3D view that
 > "you could move around … look into" as the named follow-on, "a great wow factor". Status:
-> **spec, open items awaiting his rulings (§1); build after.**
+> **all six open items ruled "your lean" 2026-10-08; 2D built and verified the same day
+> (§7); 3D (§8) is the next slice.**
 >
 > Parent docs: `system-view.md` §2 (one substrate, many strategies — a strategy owns layout
 > and drawing only), `entity-associations.md` (the layer tag rides the system claim, as the
@@ -14,7 +15,7 @@
 
 ## 1. Open items — rule these first
 
-Each with the lean I would build on if told "your lean".
+Each with the lean I would build on if told "your lean" — which he did, all six, 2026-10-08.
 
 1. **The SPA's browser-side calls.** Census reads appsettings and web.config; a single page
    app calls its gateway from the browser, from a config file in the site folder the
@@ -165,6 +166,27 @@ observe**, and the picture says that it did not.
   prod plane's MyWeb to the dev plane's YourWeb in the side strip; the dev chip ghosting the
   other planes; an edge selected; the key with the layer group; the builder's strategy
   segment.
+
+> **Executed 2026-10-08** on the demo profile, scratch server 5297 with a scratch copy of
+> the views file. `tests/Test-LayeredPlacement.mjs` (node, the pure placement) **15/15**:
+> plane order and the dropped empty plane, rows by tag and kind, slot alignment by
+> canonical name across planes, a two-stage entity on both planes, the side strip, the
+> unstaged plane, edge endpoints on the shared plane and a crossing spanning planes.
+> `Test-StageCrossings.ps1` still **19/19** after the layer tags. API: `layer` round-trips
+> through PUT/GET entity tags, trimmed (`"  api  "` → `api`), and the graph reads it;
+> `layersInUse` on the overview (MyWeb web; YourWeb spa, web; BillingSvc api). Headless
+> Edge: the MyWeb layered tab — dev, val, prod and ref planes with the browser triangle
+> over each web app, MyDB in one column through the planes, downstream strips, the red
+> PROD → DEV crossing reaching from the prod plane into dev's downstream strip; the
+> YourWeb tab with the spa glyph and its *calls unobserved* stem and Gateway on the
+> unstaged plane's side strip; the dev chip ghosting the other planes; the inspector on the
+> crossing edge; the key's browser glyph and layers group; the builder's Physics | Layered
+> segment; Triage editing a claim with the *layer* row and its web / spa / api chips.
+> Demo tags: `web` on the six web apps, `api` on WEB01 `portal.example.com/api`
+> (BillingSvc · prod), `spa` on WEB02 `legacy.example.com/` (YourWeb · prod — not MyWeb, to
+> keep system-view.md §8's 11-member count). Two build-found calls in
+> `calls-made-for-you.md`: the picture draws at natural size and scrolls, and a Layout
+> segment sits in the toolbar as well as the builder.
 
 ## 8. The 3D view — `layered-3d`, the named follow-on
 

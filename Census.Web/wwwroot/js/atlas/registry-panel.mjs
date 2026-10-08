@@ -81,6 +81,7 @@ export class RegistryPanel {
                 ${r.description ? `<div class="atl-muted">${escapeHtml(r.description)}</div>` : ''}
                 <div class="atl-row">
                     <span class="atl-muted">stages in use: ${r.stagesInUse.map(escapeHtml).join(', ') || '—'}</span>
+                    ${(r.layersInUse ?? []).length ? `<span class="atl-muted">layers: ${r.layersInUse.map(escapeHtml).join(', ')}</span>` : ''}
                     ${r.expectedStages ? `<span class="atl-muted">expected: ${r.expectedStages.map(escapeHtml).join(', ')}</span>` : '<span class="atl-muted">no completeness claim</span>'}
                 </div>
                 ${drift ? `<div class="atl-row">${drift}</div>` : ''}

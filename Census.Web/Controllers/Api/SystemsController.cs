@@ -23,6 +23,9 @@ public record SystemOverviewDto
     public int MemberCount { get; init; }
     public List<string> StagesInUse { get; init; } = [];
 
+    /// <summary>Layer tags the members carry (layered-view.md §3) — the builder's hint and Triage's suggestions.</summary>
+    public List<string> LayersInUse { get; init; } = [];
+
     /// <summary>Distinct canonical names claimed within this system, and how many member entities carry one (canonical-names.md; system-view.md §9) — the builder offers grouped-or-not only when this is non-zero.</summary>
     public int CanonicalNameCount { get; init; }
     public int NamedMemberCount { get; init; }
@@ -100,6 +103,7 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 AssertedAt = record.AssertedAt,
                 MemberCount = found ? usage.Members : 0,
                 StagesInUse = stagesInUse,
+                LayersInUse = found ? usage.Layers : [],
                 CanonicalNameCount = found ? usage.CanonicalNames.Count : 0,
                 NamedMemberCount = found ? usage.Named : 0,
                 MissingExpectedStages = expected.Where(e => !stagesInUse.Contains(e, StringComparer.OrdinalIgnoreCase)).ToList(),
@@ -117,6 +121,7 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 Registered = false,
                 MemberCount = usage.Members,
                 StagesInUse = usage.Stages,
+                LayersInUse = usage.Layers,
                 CanonicalNameCount = usage.CanonicalNames.Count,
                 NamedMemberCount = usage.Named,
                 Crossings = edgeCounts.GetValueOrDefault(name).Crossings,
@@ -135,6 +140,7 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
         public int Members;
         public int Named;
         public List<string> Stages = [];
+        public List<string> Layers = [];
         public HashSet<string> CanonicalNames = new(StringComparer.OrdinalIgnoreCase);
     }
 
@@ -194,11 +200,13 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 {
                     if (!entry.Stages.Contains(stage, StringComparer.OrdinalIgnoreCase)) entry.Stages.Add(stage);
                 }
+                if (!string.IsNullOrWhiteSpace(assoc.Layer) && !entry.Layers.Contains(assoc.Layer, StringComparer.OrdinalIgnoreCase)) entry.Layers.Add(assoc.Layer);
             }
         }
         foreach (var entry in result.Values)
         {
             entry.Stages = entry.Stages.OrderBy(s => s, StageOrder.Comparer).ToList();
+            entry.Layers = entry.Layers.OrderBy(l => l, StringComparer.OrdinalIgnoreCase).ToList();
         }
         return result;
     }

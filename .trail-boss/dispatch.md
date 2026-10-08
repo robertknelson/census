@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Atlas now flags a site calling a service in another stage, with a finding on the machine to fix; committed, not pushed"
+summary: "Atlas flags cross-stage calls and draws systems as layered stage planes; committed, not pushed"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -26,6 +26,14 @@ ignite: start-census.bat
 
 ## The latest feature added
 
+**Atlas can draw a system the way the old architecture diagrams did.** Pick *Layered* and
+each stage becomes a panel, dev through prod, with three rows on every panel: the browser
+(a triangle over each web app), the server, and the data. Downstream services sit in a
+strip to the right. The same thing keeps the same column on every panel, so you read a
+database straight across the stages. A cross-stage call is a red line reaching from one
+panel into another. An application nobody has placed yet sits in an *unplaced* row until
+someone picks web, spa or api for it in Triage. (Later today.)
+
 **Atlas now notices when a site calls a service in the wrong stage.** This morning's find,
 a production site configured for over a year against a development service, is exactly the
 thing it looks for: any connection whose two ends share no stage. The line draws in red on
@@ -47,9 +55,8 @@ application sits in, and it would not have caught this on its own.
 not tagged yet; the edge should read *crossing, down* and the finding should sit on the
 site's machine. Accept the crossings that are meant.
 
-**Rule the six open items in `.docs/features/layered-view.md`** (each has a lean), then the
-layered picture gets built: browser, server and data rows, one plane per stage, peers to
-the side; the 3D version after.
+**Tag one real system's applications** (web, spa or api, in Triage) and open it Layered.
+Then the 3D version of the same picture, the one you can turn and move into.
 
 **Then the Move It round:** one SQL statement, yours, then the nine steps in
 `.docs/move-it-round-2026-10-07.md` on your real data.

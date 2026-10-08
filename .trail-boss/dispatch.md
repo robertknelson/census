@@ -47,6 +47,10 @@ application sits in, and it would not have caught this on its own.
 not tagged yet; the edge should read *crossing, down* and the finding should sit on the
 site's machine. Accept the crossings that are meant.
 
+**Rule the six open items in `.docs/features/layered-view.md`** (each has a lean), then the
+layered picture gets built: browser, server and data rows, one plane per stage, peers to
+the side; the 3D version after.
+
 **Then the Move It round:** one SQL statement, yours, then the nine steps in
 `.docs/move-it-round-2026-10-07.md` on your real data.
 

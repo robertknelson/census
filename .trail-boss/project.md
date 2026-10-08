@@ -42,6 +42,10 @@ relates: []
   Demo fixtures regenerated with a PROD → DEV http edge and a dev → prod derived one;
   `tests/Test-StageCrossings.ps1` 19/19; headless Edge shots of six states. **Committed,
   not pushed** — his word.
+- Then the layered view, defined in conversation: browser / server / data rows, stage as
+  the depth axis, downstream services to the side, a 3D view ("a great wow factor") as the
+  named follow-on. "Go" → `.docs/features/layered-view.md`, six open items first with leans;
+  build awaits his rulings.
 
 ### 2026-10-07 (first look in the wild — the stage list has no order)
 - He ran the real server and opened Features and fixes: asked what the three lane

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull, open Atlas on the real estate: confirm the PROD-to-DEV edge reads "crossing, down" with the finding on the site''s machine; tag web / spa / api on the applications of one system in Triage and open it Layered. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. 3D is the next build. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Pull, open Atlas on the real estate: confirm the PROD-to-DEV edge reads "crossing, down" with the finding on the site''s machine; tag web / spa / api on the applications of one system in Triage and open it Layered. Bring back what reads wrong in the layered view — he wants to refine 2D before any 3D (parked). Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -48,7 +48,8 @@ relates: []
   "your lean on all six" → built: `layer` on the association (web / spa / api, suggested),
   Triage carries it, `layered-placement.mjs` (pure, 15/15 under node) and `layered-view.mjs`
   beside physics, builder and toolbar Layout segment, key rows; demo tags; headless shots.
-  **Committed, not pushed.** 3D (§8) is the next slice.
+  **Committed, not pushed.** Then his ruling: **3D parked** — "I want to really look at
+  the 2D view and refine it before we go 3D". The refinement round is the next thread.
 
 ### 2026-10-07 (first look in the wild — the stage list has no order)
 - He ran the real server and opened Features and fixes: asked what the three lane

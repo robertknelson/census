@@ -188,7 +188,7 @@ observe**, and the picture says that it did not.
 > `calls-made-for-you.md`: the picture draws at natural size and scrolls, and a Layout
 > segment sits in the toolbar as well as the builder.
 
-## 8. The 3D view — `layered-3d`, the named follow-on
+## 8. The 3D view — `layered-3d`, the named follow-on (**parked 2026-10-08**, his ruling: "hold off on the 3D view. I want to really look at the 2D view and refine it before we go 3D")
 
 **What it is.** The same placement, drawn with the stage planes stacked in depth: dev at
 the front through prod at the back, each a translucent slab with the three rows on it, the

@@ -55,8 +55,9 @@ application sits in, and it would not have caught this on its own.
 not tagged yet; the edge should read *crossing, down* and the finding should sit on the
 site's machine. Accept the crossings that are meant.
 
-**Tag one real system's applications** (web, spa or api, in Triage) and open it Layered.
-Then the 3D version of the same picture, the one you can turn and move into.
+**Tag one real system's applications** (web, spa or api, in Triage), open it Layered, and
+bring back what reads wrong — he wants to refine the flat picture first. The 3D version
+is parked until then.
 
 **Then the Move It round:** one SQL statement, yours, then the nine steps in
 `.docs/move-it-round-2026-10-07.md` on your real data.

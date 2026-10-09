@@ -196,6 +196,76 @@ public class MoveItEntry
         return (string)row["Outcome"];
     }
 
+    // The release page's build claims (move-it.md §29): claim a seen build, release a claim with
+    // the act on the record, or move a claim to another release of the same application.
+    public List<string> ValidateBuildClaim(BuildClaimRequest request, bool needsBy, bool needsTo)
+    {
+        var errors = new List<string>();
+        if (request.ReleaseId <= 0) errors.Add("A release is required.");
+        if (string.IsNullOrWhiteSpace(request.Build)) errors.Add("A build is required.");
+        if (needsBy && string.IsNullOrWhiteSpace(request.By)) errors.Add("Say who did it.");
+        if (needsTo && (request.ToReleaseId <= 0 || request.ToReleaseId == request.ReleaseId)) errors.Add("Pick another release to move it to.");
+        return errors;
+    }
+
+    public async Task<string> ClaimBuildAsync(BuildClaimRequest request)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        var row = await RunAsync(connection, null, "build-upsert",
+            ("ReleaseId", request.ReleaseId, SqlDbType.Int),
+            ("Build", request.Build.Trim(), SqlDbType.NVarChar),
+            ("Note", Text(request.Note), SqlDbType.NVarChar),
+            ("By", _by, SqlDbType.NVarChar));
+        return (string)row["Outcome"];
+    }
+
+    public async Task<string> ReleaseBuildAsync(BuildClaimRequest request)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        await using var tx = connection.BeginTransaction();
+        var outcome = await ReleaseClaimAsync(connection, tx, request.ReleaseId, request.Build.Trim(), request.By.Trim(), Text(request.Note));
+        await tx.CommitAsync();
+        return outcome;
+    }
+
+    public async Task<string> MoveBuildAsync(BuildClaimRequest request)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        await using var tx = connection.BeginTransaction();
+        var build = request.Build.Trim();
+        var released = await ReleaseClaimAsync(connection, tx, request.ReleaseId, build, request.By.Trim(),
+            Text(request.Note) ?? $"moved to release {request.ToReleaseId}");
+        var claimed = await RunAsync(connection, tx, "build-upsert",
+            ("ReleaseId", request.ToReleaseId, SqlDbType.Int),
+            ("Build", build, SqlDbType.NVarChar),
+            ("Note", (string)null, SqlDbType.NVarChar),
+            ("By", _by, SqlDbType.NVarChar));
+        await tx.CommitAsync();
+        return $"{released}, {(string)claimed["Outcome"]} on the other";
+    }
+
+    private async Task<string> ReleaseClaimAsync(SqlConnection connection, SqlTransaction tx, int releaseId, string build, string by, string note)
+    {
+        var row = await RunAsync(connection, tx, "build-release",
+            ("ReleaseId", releaseId, SqlDbType.Int),
+            ("Build", build, SqlDbType.NVarChar));
+        var outcome = (string)row["Outcome"];
+        if (outcome != "released") return outcome;
+        await RunAsync(connection, tx, "event-insert",
+            ("ReleaseId", releaseId, SqlDbType.Int),
+            ("Kind", "build-released", SqlDbType.NVarChar),
+            ("Stage", (string)null, SqlDbType.NVarChar),
+            ("Build", build, SqlDbType.NVarChar),
+            ("At", DateTimeOffset.Now, SqlDbType.DateTimeOffset),
+            ("EventBy", by, SqlDbType.NVarChar),
+            ("Note", note, SqlDbType.NVarChar),
+            ("By", _by, SqlDbType.NVarChar));
+        return outcome;
+    }
+
     // Stabilization only (move-it.md §16): the release and everything asserted under it, in one transaction.
     public async Task<Dictionary<string, object>> DeleteReleaseAsync(int releaseId)
     {
@@ -305,6 +375,15 @@ public class ItemRequest
 public class ReleaseRequest
 {
     public int ReleaseId { get; set; }
+}
+
+public class BuildClaimRequest
+{
+    public int ReleaseId { get; set; }
+    public int ToReleaseId { get; set; }
+    public string Build { get; set; }
+    public string By { get; set; }
+    public string Note { get; set; }
 }
 
 public class NameBuildResult

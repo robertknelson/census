@@ -266,6 +266,16 @@
 .mi-builds li, .mi-events li { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--mi-rule-soft); display: flex; gap: 0.75rem; align-items: baseline; flex-wrap: wrap; }
 .mi-builds li:last-child, .mi-events li:last-child { border-bottom: 0; }
 .mi-build-where { flex: 1; }
+/* The release page's claimed builds (move-it.md §29): a line, a history fold, the claim's actions. */
+.mi-builds li.mi-build { display: block; }
+.mi-build-line { display: flex; gap: 0.75rem; align-items: baseline; flex-wrap: wrap; }
+.mi-build-actions { margin-left: auto; white-space: nowrap; }
+.mi-build-actions .mi-inline input, .mi-build-actions .mi-inline select { min-width: 8rem; }
+.mi-build-history-toggle { margin-top: 0.3rem; padding: 0; border: 0; background: none; color: var(--mi-muted); font: inherit; font-size: 12px; cursor: pointer; }
+.mi-build-history-toggle:hover { color: var(--mi-ink); }
+.mi-build-history { list-style: none; margin: 0.3rem 0 0; padding: 0 0 0 1rem; border-left: 2px solid var(--mi-rule-soft); }
+.mi-build-history li { display: flex; gap: 0.6rem; align-items: baseline; padding: 0.15rem 0; border: 0; font-size: 12.5px; }
+.mi-events li.is-build-released .mi-event-what strong { color: var(--mi-hold); }
 .mi-event-when { min-width: 4.5rem; color: var(--mi-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .mi-event-what { flex: 1; }
 .mi-events li.is-hold .mi-event-what strong { color: var(--mi-hold); }

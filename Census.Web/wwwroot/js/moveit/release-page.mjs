@@ -1,4 +1,4 @@
-import { fetchApplications, fetchEvents, fetchLists, fetchReleaseBuilds, fetchReleaseStatus, fetchReleases, fetchStages, fetchWhereIsEverything, postDeleteRelease, postPullItem, postRetitle } from './moveit-api.mjs';
+import { fetchApplications, fetchBuildsSeen, fetchEvents, fetchLists, fetchReleaseBuildHistory, fetchReleaseBuilds, fetchReleaseStatus, fetchReleases, fetchStages, fetchWhereIsEverything, postClaimBuild, postDeleteRelease, postMoveBuild, postPullItem, postReleaseBuild, postRetitle } from './moveit-api.mjs';
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { stageHue } from './stage-hues.mjs';
 import { EventForm } from './event-form.mjs';
@@ -14,7 +14,8 @@ class ReleasePage {
         this.root = document.getElementById(config.rootId ?? 'moveit-root');
         this.releaseId = Number(config.releaseId);
         this.now = Date.now();
-        this.editing = null;            // { id, mode: 'rename' | 'pull' }
+        this.editing = null;            // { id, mode: 'rename' | 'pull' } | { build, mode: 'release' | 'move' }
+        this.historyOpen = new Set();   // builds whose deployment history is unfolded
         this.eventForm = new EventForm(() => this.reload());
         this.renderShell();
         this.load();
@@ -85,14 +86,17 @@ class ReleasePage {
     }
 
     async reload() {
-        const [releases, status, items, builds, events] = await Promise.all([
-            fetchReleases(), fetchReleaseStatus(), fetchWhereIsEverything(), fetchReleaseBuilds(), fetchEvents(),
+        const [releases, status, items, builds, events, history, seen] = await Promise.all([
+            fetchReleases(), fetchReleaseStatus(), fetchWhereIsEverything(), fetchReleaseBuilds(), fetchEvents(), fetchReleaseBuildHistory(), fetchBuildsSeen(),
         ]);
         const mine = (r) => r.ReleaseId === this.releaseId;
         this.release = releases.find(mine);
         this.status = status.find(mine);
         this.items = items.filter(mine);
         this.builds = builds.filter(mine);
+        this.history = history.filter(mine);
+        this.allReleases = releases;
+        this.seen = seen.filter((b) => b.ApplicationId === this.release?.ApplicationId);
         this.events = events.filter(mine).sort((a, b) => Date.parse(b.At) - Date.parse(a.At) || b.EventId - a.EventId);
         if (!this.release) {
             this.mainEl.innerHTML = '<p class="mi-status is-error">No release has that id.</p>';
@@ -128,10 +132,15 @@ class ReleasePage {
                 ${this.builds.length ? this.renderBuilds() : '<p class="mi-status">No build attributed yet.</p>'}
             </section>
             <section class="mi-section">
+                <h2 class="mi-section-title">Seen for ${escapeHtml(appLabel(this.app))}, not claimed here</h2>
+                ${this.renderSeen()}
+            </section>
+            <section class="mi-section">
                 <h2 class="mi-section-title">Events</h2>
                 ${this.events.length ? this.renderEvents() : '<p class="mi-status">Nothing recorded.</p>'}
             </section>`;
         this.bindItems();
+        this.bindBuilds();
         this.renderDelete();
         this.eventForm.render(this.entryEl, {
             releaseId: this.releaseId, lists: this.lists, stages: this.stages,
@@ -202,22 +211,110 @@ class ReleasePage {
         this.mainEl.prepend(p);
     }
 
+    // Each claimed build: where it is now, a fold of every deployment the ledger holds of it
+    // (§29, his 13), and the claim's own actions — release it, or move it to another release
+    // of the same application (his 19). Pulling a claim is recorded as a build-released event.
     renderBuilds() {
         const byBuild = new Map();
         for (const b of this.builds) {
             if (!byBuild.has(b.Build)) byBuild.set(b.Build, { note: b.Note, where: [] });
             if (b.EndpointId != null) byBuild.get(b.Build).where.push(b);
         }
+        const others = this.allReleases.filter((r) => r.ApplicationId === this.release.ApplicationId && r.ReleaseId !== this.releaseId);
         return `
             <ul class="mi-builds">
-                ${[...byBuild.entries()].map(([build, { note, where }]) => `
+                ${[...byBuild.entries()].map(([build, { note, where }]) => {
+                    const rows = this.history.filter((h) => h.Build === build);
+                    const open = this.historyOpen.has(build);
+                    const edit = this.editing?.build === build ? this.editing.mode : null;
+                    const actions = edit === 'release'
+                        ? `<span class="mi-inline"><input name="by" placeholder="who" /><input name="note" placeholder="why it is released" /><button type="button" class="mi-button is-primary" data-confirm-release="${escapeHtml(build)}">Release</button><button type="button" class="mi-button is-quiet" data-cancel>Cancel</button></span>`
+                        : edit === 'move'
+                        ? `<span class="mi-inline"><select name="to">${others.map((r) => `<option value="${r.ReleaseId}">${escapeHtml(r.Name)}</option>`).join('')}</select><input name="by" placeholder="who" /><button type="button" class="mi-button is-primary" data-confirm-move="${escapeHtml(build)}">Move</button><button type="button" class="mi-button is-quiet" data-cancel>Cancel</button></span>`
+                        : `<button type="button" class="mi-button is-quiet" data-release="${escapeHtml(build)}" title="Remove this claim; recorded as an event">Release</button>${others.length ? ` <button type="button" class="mi-button is-quiet" data-move="${escapeHtml(build)}" title="Move this claim to another release of the application">Move to…</button>` : ''}`;
+                    return `
+                    <li class="mi-build ${open ? 'is-open' : ''}">
+                        <div class="mi-build-line">
+                            <code>${escapeHtml(build)}</code>${note ? ` <span class="mi-muted">${escapeHtml(note)}</span>` : ''}
+                            <span class="mi-build-where">${where.length
+                                ? where.map((w) => `<span class="mi-stage" style="--lane: ${stageHue(w.Stage)}">${escapeHtml(w.Stage)}</span> on ${escapeHtml(w.Machine)} <span class="mi-muted">since ${escapeHtml(shortDate(w.DetectedAt))}</span>`).join(', ')
+                                : '<span class="mi-muted">not on any box now</span>'}</span>
+                            <span class="mi-build-actions">${actions}</span>
+                        </div>
+                        <button type="button" class="mi-build-history-toggle" data-history="${escapeHtml(build)}" aria-expanded="${open}">${open ? '▾' : '▸'} history <span class="mi-muted">(${rows.length})</span></button>
+                        ${open ? this.renderHistory(rows) : ''}
+                    </li>`;
+                }).join('')}
+            </ul>`;
+    }
+
+    // One line per deployment: the stage, the box, when it arrived, and when it went and what
+    // replaced it — a rollback reads as the same build arriving twice at a stage.
+    renderHistory(rows) {
+        if (!rows.length) return '<p class="mi-status">Never seen anywhere: no deployment, observed or asserted, carries this build.</p>';
+        const sorted = [...rows].sort((a, b) => (this.stageSort(b.Stage) - this.stageSort(a.Stage)) || a.DetectedAt.localeCompare(b.DetectedAt) || (a.Machine ?? '').localeCompare(b.Machine ?? ''));
+        return `
+            <ul class="mi-build-history">
+                ${sorted.map((h) => `
                     <li>
-                        <code>${escapeHtml(build)}</code>${note ? ` <span class="mi-muted">${escapeHtml(note)}</span>` : ''}
-                        <span class="mi-build-where">${where.length
-                            ? where.map((w) => `<span class="mi-stage" style="--lane: ${stageHue(w.Stage)}">${escapeHtml(w.Stage)}</span> on ${escapeHtml(w.Machine)} <span class="mi-muted">since ${escapeHtml(shortDate(w.DetectedAt))}</span>`).join(', ')
-                            : '<span class="mi-muted">not on any box now</span>'}</span>
+                        <span class="mi-stage" style="--lane: ${stageHue(h.Stage)}">${escapeHtml(h.Stage)}</span>
+                        <span>${h.Machine ? escapeHtml(h.Machine) : '<span class="mi-muted">said, not seen</span>'}</span>
+                        <span class="mi-muted">${escapeHtml(shortDate(h.DetectedAt))} → ${h.SupersededAt
+                            ? `${escapeHtml(shortDate(h.SupersededAt))}${h.SupersededBy ? ` (superseded by <code>${escapeHtml(h.SupersededBy)}</code>)` : ''}`
+                            : h.Evidence === 'asserted' ? 'asserted' : 'now'}</span>
                     </li>`).join('')}
             </ul>`;
+    }
+
+    stageSort(stage) {
+        return this.stages.find((s) => s.Stage === stage)?.Sort ?? 0;
+    }
+
+    // Builds the ledger has seen for this application that this release does not claim:
+    // claim one here, whether nobody claims it yet or another release does (a build may belong
+    // to two releases — the unique key is per release).
+    renderSeen() {
+        const mine = new Set(this.builds.map((b) => b.Build));
+        const list = this.seen.filter((b) => !mine.has(b.Build));
+        if (!list.length) return '<p class="mi-status">Every build the ledger has seen for this application is claimed here.</p>';
+        return `
+            <ul class="mi-builds">
+                ${list.map((b) => `
+                    <li class="mi-build">
+                        <div class="mi-build-line">
+                            <code>${escapeHtml(b.Build)}</code>
+                            <span class="mi-build-where">${b.Stages ? b.Stages.split(', ').map((st) => `<span class="mi-stage" style="--lane: ${stageHue(st)}">${escapeHtml(st)}</span>`).join(' ') : ''}
+                                <span class="mi-muted">first seen ${escapeHtml(shortDate(b.FirstSeen))}${b.IsCurrent ? ', on a box now' : ''}</span>
+                                ${b.ClaimedBy ? `<span class="mi-muted">· claimed by ${escapeHtml(b.ClaimedBy)}</span>` : '<span class="mi-flag is-hold">unclaimed</span>'}</span>
+                            <span class="mi-build-actions"><button type="button" class="mi-button is-quiet" data-claim="${escapeHtml(b.Build)}">${b.ClaimedBy ? 'Claim here too' : 'Claim'}</button></span>
+                        </div>
+                    </li>`).join('')}
+            </ul>`;
+    }
+
+    bindBuilds() {
+        const el = this.mainEl;
+        el.querySelectorAll('[data-history]').forEach((b) => b.addEventListener('click', () => {
+            const build = b.dataset.history;
+            if (this.historyOpen.has(build)) this.historyOpen.delete(build); else this.historyOpen.add(build);
+            this.render();
+        }));
+        el.querySelectorAll('[data-release]').forEach((b) => b.addEventListener('click', () => { this.editing = { build: b.dataset.release, mode: 'release' }; this.render(); el.querySelector('[name="by"]')?.focus(); }));
+        el.querySelectorAll('[data-move]').forEach((b) => b.addEventListener('click', () => { this.editing = { build: b.dataset.move, mode: 'move' }; this.render(); el.querySelector('[name="by"]')?.focus(); }));
+        el.querySelectorAll('[data-confirm-release]').forEach((b) => b.addEventListener('click', () =>
+            this.claimAct(postReleaseBuild, { releaseId: this.releaseId, build: b.dataset.confirmRelease, by: el.querySelector('[name="by"]').value, note: el.querySelector('[name="note"]').value })));
+        el.querySelectorAll('[data-confirm-move]').forEach((b) => b.addEventListener('click', () =>
+            this.claimAct(postMoveBuild, { releaseId: this.releaseId, toReleaseId: Number(el.querySelector('[name="to"]').value), build: b.dataset.confirmMove, by: el.querySelector('[name="by"]').value })));
+        el.querySelectorAll('[data-claim]').forEach((b) => b.addEventListener('click', () =>
+            this.claimAct(postClaimBuild, { releaseId: this.releaseId, build: b.dataset.claim })));
+    }
+
+    async claimAct(post, request) {
+        try {
+            await post(request);
+            this.editing = null;
+            await this.reload();
+        } catch (err) { this.say(err.message); }
     }
 
     renderEvents() {

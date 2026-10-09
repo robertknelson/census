@@ -31,7 +31,8 @@ INSERT @m VALUES
     ('event-kinds',       'resumed',           'Resumed',             'Hold lifted',                                                   40),
     ('event-kinds',       'note',              'Note',                'Free text against the release at a moment in time',             50),
     ('event-kinds',       'abandoned',         'Abandoned',           'Release will not ship',                                         60),
-    ('event-kinds',       'deployed-asserted', 'Deployed (asserted)', 'Human statement of a deployment for an app with no health regime; declared, never counted as observed', 70);
+    ('event-kinds',       'deployed-asserted', 'Deployed (asserted)', 'Human statement of a deployment for an app with no health regime; declared, never counted as observed', 70),
+    ('event-kinds',       'build-released',    'Build released',      'A build claim removed from the release by hand (move-it.md 29); Build names it, Note says why', 80);
 
 -- headers
 INSERT core.SelectItem (Identifier, Display, Description, Sort, IsShow, MasterId, Grouping)

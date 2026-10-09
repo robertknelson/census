@@ -28,6 +28,13 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
     [HttpGet("release-builds")]
     public Task<IActionResult> ReleaseBuilds() => Run("board/release-builds.sql");
 
+    // The release page's build claims (move-it.md §29).
+    [HttpGet("release-build-history")]
+    public Task<IActionResult> ReleaseBuildHistory() => Run("board/release-build-history.sql");
+
+    [HttpGet("builds-seen")]
+    public Task<IActionResult> BuildsSeen() => Run("board/builds-seen.sql");
+
     [HttpGet("coverage")]
     public Task<IActionResult> Coverage() => Run("board/coverage.sql");
 
@@ -99,6 +106,33 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
         if (!entry.Enabled) return NotFound();
         if (request.WorkItemId <= 0 || string.IsNullOrWhiteSpace(request.Title)) return BadRequest(new { errors = new[] { "An item and a title are required." } });
         return Ok(new { outcome = await entry.RetitleAsync(request) });
+    }
+
+    [HttpPost("claim-build")]
+    public async Task<IActionResult> ClaimBuild([FromBody] BuildClaimRequest request)
+    {
+        if (!entry.Enabled) return NotFound();
+        var errors = entry.ValidateBuildClaim(request, needsBy: false, needsTo: false);
+        if (errors.Count > 0) return BadRequest(new { errors });
+        return Ok(new { outcome = await entry.ClaimBuildAsync(request) });
+    }
+
+    [HttpPost("release-build")]
+    public async Task<IActionResult> ReleaseBuild([FromBody] BuildClaimRequest request)
+    {
+        if (!entry.Enabled) return NotFound();
+        var errors = entry.ValidateBuildClaim(request, needsBy: true, needsTo: false);
+        if (errors.Count > 0) return BadRequest(new { errors });
+        return Ok(new { outcome = await entry.ReleaseBuildAsync(request) });
+    }
+
+    [HttpPost("move-build")]
+    public async Task<IActionResult> MoveBuild([FromBody] BuildClaimRequest request)
+    {
+        if (!entry.Enabled) return NotFound();
+        var errors = entry.ValidateBuildClaim(request, needsBy: true, needsTo: true);
+        if (errors.Count > 0) return BadRequest(new { errors });
+        return Ok(new { outcome = await entry.MoveBuildAsync(request) });
     }
 
     [HttpPost("delete-release")]

@@ -156,6 +156,18 @@ Assert-That 'notes are not drawn' (@(Rows $calendar { $_.EventKind -eq 'note' })
 $recorded = @(Rows $calendar { $_.Kind -eq 'recorded-through' })
 Assert-That 'recorded through the backfill''s stamp' ($recorded.Count -eq 1 -and $recorded[0].Source -eq 'backfill' -and $recorded[0].At -eq [DateTimeOffset]'2026-09-13T23:50:00+00:00') "$($recorded[0].Source) $($recorded[0].At)"
 
+Write-Host "`nThe release page's build claims (29)" -ForegroundColor Cyan
+$bh = (Invoke-File 'board\release-build-history.sql')[0]
+$r3 = @(Rows $bh { $_.ReleaseId -eq 3 -and $_.Build -eq '20260820.4' })
+Assert-That 'Sprint 43 (WidgetCore) build 20260820.4: every deployment, DEV through PROD' ($r3.Count -ge 3 -and ($r3 | ForEach-Object Stage) -contains 'PROD') ($r3.Count)
+Assert-That '  its PROD rows were superseded by the rollback build 20260815.1' (@($r3 | Where-Object { $_.Stage -eq 'PROD' -and $_.SupersededBy -eq '20260815.1' }).Count -ge 1) (($r3 | Where-Object { $_.Stage -eq 'PROD' } | ForEach-Object SupersededBy) -join ',')
+Assert-That 'Q3 rate changes (asserted app): rows say asserted, no machine' (@(Rows $bh { $_.ReleaseId -eq 6 -and $_.Evidence -eq 'asserted' -and $_.Machine -is [DBNull] }).Count -ge 1) ''
+$seen = (Invoke-File 'board\builds-seen.sql')[0]
+Assert-That 'builds-seen: one row per (application, build)' (@($seen.Rows | Group-Object ApplicationId, Build | Where-Object Count -gt 1).Count -eq 0) ''
+Assert-That '  WidgetCore has a seen build nobody claims (the DEV-only churn 05 leaves out)' (@(Rows $seen { $_.ApplicationId -eq 1 -and [string]::IsNullOrEmpty($_.ClaimedBy) }).Count -ge 1) ''
+Assert-That '  20260723.2 is claimed by Sprint 42 and seen at PROD' (@(Rows $seen { $_.ApplicationId -eq 1 -and $_.Build -eq '20260723.2' -and $_.ClaimedBy -eq 'Sprint 42' -and $_.Stages -like '*PROD*' }).Count -eq 1) ''
+Assert-That 'build-released is an event kind' ((Invoke-Scalar "SELECT COUNT(*) FROM core.SelectItem x JOIN core.SelectItem y ON y.Id = x.MasterId WHERE y.Identifier = 'event-kinds' AND x.Identifier = 'build-released'") -eq 1) ''
+
 Write-Host ''
 $colour = if ($script:failed -eq 0) { 'Green' } else { 'Red' }
 Write-Host "$($script:passed) passed, $($script:failed) failed" -ForegroundColor $colour

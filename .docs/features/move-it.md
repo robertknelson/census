@@ -2109,6 +2109,44 @@ weekend* section; Mon 3's detail with the sentence.
 Verified headless on the fixtures: WidgetCore's PROD lane holds *Login timeout under load,
 shipped 15 Aug* with three older items in the cell; every chip carries its date.
 
+**Step 5 — the release page's build claims (built and verified the same day):**
+
+- **Every deployment of every claimed build** (his 13). `board/release-build-history.sql`:
+  observed rows from `moveit.Deployment` with the build that superseded each on its endpoint
+  (`LEAD` over the endpoint's deployments), plus asserted rows from `deployed-asserted` events
+  of the application's releases. Under each claimed build a *history (n)* fold lists them,
+  top stage first: *PROD · WEBPROD01 · 29 Aug → 30 Aug (superseded by `20260815.1`)*,
+  *DEV · WEBDEV01 · 19 Aug → now*, *said, not seen* for an asserted row. A rollback reads as
+  the same build arriving twice at a stage; a never-seen build says so.
+- **Seen for the application, not claimed here** (his 18). `board/builds-seen.sql`: one row
+  per (application, build) the ledger has seen, observed or asserted, with its stages, first
+  and last sight, whether it is on a box now, and who claims it. DEV-only churn is included
+  here on purpose — the inbox (05) leaves it out, this page wants it. *Claim* on an unclaimed
+  build, *Claim here too* on one another release claims (a build may belong to two releases;
+  the unique key is per release). Both call the loader's `build-upsert`.
+- **Release, and Move to…** (his 19). *Release* asks who and why inline, deletes the
+  `ReleaseBuild` row (`manifest/build-release.sql`) and, in the same transaction, writes a
+  **`build-released`** event with the build and the note — the act stays on the record, as
+  `calls-made-for-you.md` argues. *Move to…* is release here and claim on the chosen release
+  of the same application, one transaction. Work items whose `IncludedInBuild` is the released
+  build are left alone; the location rule answers from the claims that remain.
+  `build-released` is a new row in `003-lookups.sql` (insert-only, so re-running it on the
+  real server adds the kind and nothing else); the entry page's event validation reads the
+  list, so the kind must exist before the first release.
+- API: `GET release-build-history`, `GET builds-seen`; `POST claim-build`, `release-build`,
+  `move-build` (`BuildClaimRequest`: releaseId, toReleaseId, build, by, note).
+
+Pinned in `Test-MoveItQuestions.ps1` (seven new assertions, 33/33): Sprint 43's
+`20260820.4` has DEV and PROD rows, the PROD rows superseded by `20260815.1`; Q3 rate
+changes' rows are asserted with no machine; builds-seen is one row per build, WidgetCore has
+unclaimed DEV builds, `20260723.2` is Sprint 42's at PROD; the event kind exists.
+Round-tripped through the API on the fixtures: claim `20260805.1` on Sprint 43 (inserted),
+release it by robert (released; the event reads *build-released 20260805.1 robert "wrong
+build, was a spike"*), release again (unchanged), release without a name (400 *Say who did
+it.*), move `20260820.4` to the hotfix and back (*released, inserted on the other* both ways).
+Verified headless on `/moveit/release/3`: the history fold open; the Release action's inline
+who / why; the seen list with *unclaimed* and *claimed by Sprint 42* rows.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

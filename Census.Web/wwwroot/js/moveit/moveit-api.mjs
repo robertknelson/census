@@ -66,6 +66,16 @@ export function fetchReleaseBuilds() {
     return getJson('/api/moveit/release-builds');
 }
 
+// The release page's build claims (move-it.md §29): every deployment of a claimed build, and
+// every build the ledger has seen per application with who claims it.
+export function fetchReleaseBuildHistory() {
+    return getJson('/api/moveit/release-build-history');
+}
+
+export function fetchBuildsSeen() {
+    return getJson('/api/moveit/builds-seen');
+}
+
 // Question 13, every item (move-it.md §28): the register's story column.
 export function fetchFeaturePicture() {
     return getJson('/api/moveit/feature-picture');
@@ -95,6 +105,18 @@ export function postRetitle(request) {
 
 export function postDeleteRelease(request) {
     return postJson('/api/moveit/delete-release', request);
+}
+
+export function postClaimBuild(request) {
+    return postJson('/api/moveit/claim-build', request);
+}
+
+export function postReleaseBuild(request) {
+    return postJson('/api/moveit/release-build', request);
+}
+
+export function postMoveBuild(request) {
+    return postJson('/api/moveit/move-build', request);
 }
 
 async function postJson(url, request) {

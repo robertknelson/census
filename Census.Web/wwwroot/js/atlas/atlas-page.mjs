@@ -4,6 +4,8 @@ import { LayeredView } from './layered-view.mjs';
 import { ROWS as LAYER_ROWS } from './layered-placement.mjs';
 import { stageColor } from './stage-colors.mjs';
 import { RegistryPanel } from './registry-panel.mjs';
+import { fetchEntityTagsConfig, saveEntityTags } from '../estate/estate-api.mjs';
+import { ensureLeaf, upgradeLeaf } from '../estate/entity-tags-edit.mjs';
 
 // Atlas (system-view.md): pick a system, see its dependency graph. Tabs are built views —
 // {id, name, system, stages, strategy, grouping, positions} — estate artifacts in config/views.json
@@ -185,6 +187,7 @@ class AtlasPage {
             this.mainEl.innerHTML = `<p class="atl-status atl-error">${escapeHtml(err.message)}</p>`;
             return;
         }
+        this.overview = overview;
         // Each card is a small form (system-view.md §9–10): starting stages to tick (none = all),
         // an optional name, then open. Grouped-or-not is offered only where it changes the
         // drawing — a system with no canonical names draws the same either way.
@@ -537,6 +540,31 @@ class AtlasPage {
                 item.unclassified ? '<div class="atl-drift-warn">unclassified — nobody has said what this serves; classify it in Triage</div>' :
                 item.offSystem ? '<div class="atl-muted">serves other systems only — shown because an edge touches this view</div>' :
                 '';
+            // The layer, editable here (layered-view.md §3.1): the one tag the layered picture
+            // is about, on a concrete member application of the viewed system. The claim's
+            // other axes stay Triage's.
+            const graphSystem = this.graphs.get(this.active)?.system ?? '';
+            const claim = item.serves.find((a) => (a.system ?? '').toLowerCase() === graphSystem.toLowerCase());
+            const layerEditable = item.kind === 'application' && item.member && !item.canonical && !item.service && !!claim;
+            const layerRow = layerEditable ? (() => {
+                const inUse = this.overview?.find((r) => (r.name ?? '').toLowerCase() === graphSystem.toLowerCase())?.layersInUse ?? [];
+                const values = ['web', 'spa', 'api'];
+                for (const v of inUse) if (!values.some((x) => x.toLowerCase() === v.toLowerCase())) values.push(v);
+                return `
+                <div class="atl-row atl-kv"><span class="atl-key">layer</span>
+                    <span class="atl-kv-cell">
+                        <span class="atl-accept">
+                            <input class="atl-card-name atl-accept-by" data-ref="layer" placeholder="web, spa or api" value="${escapeHtml(claim.layer ?? '')}">
+                            ${values.map((v) => `<button class="atl-btn ${(claim.layer ?? '').toLowerCase() === v.toLowerCase() ? 'is-on' : ''}" data-layer-chip="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join('')}
+                        </span>
+                        <span class="atl-accept">
+                            <input class="atl-card-name atl-accept-by" data-ref="layer-by" placeholder="by" value="${escapeHtml(this.assertedBy)}">
+                            <button class="atl-btn" data-ref="layer-save" title="Write the layer onto this entity's claim — emptied removes it">Save</button>
+                        </span>
+                        ${!claim.layer ? '<span class="atl-drift-warn">untagged — the layered picture cannot place it</span>' : ''}
+                    </span></div>
+                <div class="atl-error" data-ref="layer-error" hidden></div>`;
+            })() : '';
             this.inspectorEl.innerHTML = `
                 <div class="atl-card-head">
                     <span class="atl-mono">${escapeHtml(item.name)}</span>
@@ -551,9 +579,18 @@ class AtlasPage {
                 ${(item.canonical || item.service) && (item.hosts ?? []).length > 1 ? `<div class="atl-row atl-kv"><span class="atl-key">hosts</span><span class="atl-mono">${item.hosts.map(escapeHtml).join(', ')}</span></div>` : ''}
                 ${item.container ? `<div class="atl-row atl-kv"><span class="atl-key">${item.kind === 'database' ? 'instance' : 'site'}</span><span class="atl-mono">${escapeHtml(item.container)}</span></div>` : ''}
                 ${item.service ? state : (serves || state)}
+                ${layerRow}
                 ${variants}
                 ${item.note ? `<div class="atl-muted">${escapeHtml(item.note)}</div>` : ''}
                 ${item.declared ? '<div class="atl-muted">Declared — asserted to exist, never corroborated.</div>' : ''}`;
+            const layerInput = this.inspectorEl.querySelector('[data-ref="layer"]');
+            this.inspectorEl.querySelectorAll('[data-layer-chip]').forEach((btn) => btn.addEventListener('click', () => {
+                layerInput.value = btn.dataset.layerChip;
+                this.inspectorEl.querySelectorAll('[data-layer-chip]').forEach((b) => b.classList.toggle('is-on', b === btn));
+            }));
+            this.inspectorEl.querySelector('[data-ref="layer-save"]')?.addEventListener('click', () => this.saveLayer(item, claim,
+                layerInput.value.trim(),
+                this.inspectorEl.querySelector('[data-ref="layer-by"]').value.trim()));
         } else {
             // Both endpoints resolved from the graph (§5 promised them): name · host machine.
             const byId = new Map((this.graphs.get(this.active)?.nodes ?? []).map((n) => [n.id, n]));
@@ -602,6 +639,45 @@ class AtlasPage {
             this.inspectorEl.querySelector('[data-ref="withdraw"]')?.addEventListener('click', () => this.withdrawCrossing(item));
         }
         this.bindInspectorClose();
+    }
+
+    // --- the layer, from the inspector (layered-view.md §3.1) ----------------------------------
+    // The same write Triage's edit makes for this one axis: the claim on the viewed system
+    // takes the value (emptied removes it), and the entity's other claims take it where they
+    // say nothing (§1.4). Freshest file wins as the base; then the graph is re-read and the
+    // node re-selected so the inspector and the picture show the new state.
+
+    async saveLayer(item, claim, layer, by) {
+        try {
+            const config = { tags: await fetchEntityTagsConfig() };
+            // The id is the leaf's address (kind, machine, container, name); the node's name is
+            // its label (host + path), not the path the tags file keys on.
+            const leaf = ensureLeaf(config, ...JSON.parse(item.id));
+            const serves = upgradeLeaf(leaf);
+            const target = serves.find((a) => (a.system ?? '').toLowerCase() === (claim.system ?? '').toLowerCase());
+            if (!target) throw new Error(`${item.name} no longer claims ${claim.system} — re-open the view`);
+            if (layer) target.layer = layer; else delete target.layer;
+            target.assertedBy = by || undefined;
+            target.assertedAt = new Date().toISOString().slice(0, 10);
+            if (layer) for (const a of serves) if (!a.layer) a.layer = layer;
+            await saveEntityTags(config.tags);
+        } catch (err) {
+            const el = this.inspectorEl.querySelector('[data-ref="layer-error"]');
+            if (el) { el.textContent = err.message; el.hidden = false; }
+            return;
+        }
+        if (by) {
+            this.assertedBy = by;
+            localStorage.setItem(ASSERTED_BY_KEY, by);
+        }
+        const tab = this.tab();
+        this.graphs.delete(tab.id);
+        await this.openView();
+        const node = this.graphs.get(tab.id)?.nodes.find((n) => n.id === item.id);
+        if (!node) return;
+        this.selection = { type: 'node', item: node };
+        this.view.setSelected?.({ type: 'node', id: node.id });
+        this.renderInspector();
     }
 
     // --- accepted crossings (stage-crossings.md §4) -------------------------------------------

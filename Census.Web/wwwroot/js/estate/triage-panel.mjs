@@ -1,5 +1,6 @@
 import { fetchTriage, fetchEntityTagsConfig, saveEntityTags, fetchDeclaredEntities, saveDeclaredEntities } from './estate-api.mjs';
 import { PanelScope } from './panel-scope.mjs';
+import { findKey, servesOf, upgradeLeaf, ensureLeaf } from './entity-tags-edit.mjs';
 
 // The Tuesday screen (triage-workbench.md): the unclassified pile, worked in bulk. Every
 // apply persists the whole config immediately — config/entity-tags.json stays the artifact,
@@ -17,42 +18,15 @@ function rowKey(kind, machine, container, name) {
     return JSON.stringify([kind, machine, container, name]);
 }
 
-function findKey(obj, key) {
-    const lower = String(key).toLowerCase();
-    return Object.keys(obj ?? {}).find((k) => k.toLowerCase() === lower) ?? key;
-}
-
 function splitValues(text) {
     return String(text ?? '').split(',').map((v) => v.trim()).filter(Boolean);
 }
 
 const ASSERTED_BY_KEY = 'census-asserted-by';
 
-// The read-both rule, client side (entity-associations.md §3): rows and leaves from a
-// backend or file still speaking the flat shape are interpreted as the cross-product
-// they always meant. Writers emit associations only.
-function servesOf(x) {
-    if (x.serves) return x.serves;
-    const systems = x.system ?? [];
-    const stages = x.stage ?? [];
-    if (!systems.length && !stages.length) return [];
-    if (!systems.length) return [{ system: '', stages: [...stages], assertedBy: x.assertedBy, assertedAt: x.assertedAt }];
-    return systems.map((s) => ({ system: s, stages: [...stages], assertedBy: x.assertedBy, assertedAt: x.assertedAt }));
-}
-
 function unionStages(a, b) {
     const seen = new Set(a.map((v) => v.toLowerCase()));
     return [...a, ...b.filter((v) => !seen.has(v.toLowerCase()))];
-}
-
-// Upgrade-on-write (entity-associations.md §7.3): the first UI touch converts the whole
-// leaf to associations and drops the flat axes, so a leaf speaks one shape after it.
-// Leaf-level provenance stays as history; new provenance lands on the associations.
-function upgradeLeaf(leaf) {
-    if (!leaf.serves) leaf.serves = servesOf(leaf);
-    delete leaf.system;
-    delete leaf.stage;
-    return leaf.serves;
 }
 
 export class TriagePanel {
@@ -714,7 +688,7 @@ export class TriagePanel {
         await this.persist({ tags: kinds.some((k) => !inDeclaredFile(k)), declared: kinds.some(inDeclaredFile) }, (config) => {
             for (const key of targets) {
                 const [kind, machine, container, name] = JSON.parse(key);
-                const leaf = this.ensureLeaf(config, kind, machine, container, name);
+                const leaf = ensureLeaf(config, kind, machine, container, name);
                 const serves = upgradeLeaf(leaf);
                 const targetSystem = editing ? this.editAssoc.system
                     : system || (rowByKey.get(key)?.serves[0]?.system ?? '');
@@ -760,7 +734,7 @@ export class TriagePanel {
     }
 
     removeAssociation(config, kind, machine, container, name, system) {
-        const leaf = this.ensureLeaf(config, kind, machine, container, name);
+        const leaf = ensureLeaf(config, kind, machine, container, name);
         const serves = upgradeLeaf(leaf).filter((a) => (a.system ?? '').toLowerCase() !== system.toLowerCase());
         leaf.serves = serves;
         // An observed leaf with no claims left asserts nothing — remove it. A declared
@@ -770,26 +744,6 @@ export class TriagePanel {
         }
     }
 
-    ensureLeaf(config, kind, machine, container, name) {
-        // A declared entity's record is its own leaf — assert axes onto it in
-        // declared-entities.json; kind, note and endpoints are untouched by a classify.
-        if (kind === 'declared') {
-            const tree = (config.declared.onMachines ??= {});
-            const entities = (tree[findKey(tree, machine)] ??= {});
-            return (entities[findKey(entities, name)] ??= {});
-        }
-        if (kind === 'external') {
-            const entities = (config.declared.external ??= {});
-            return (entities[findKey(entities, name)] ??= {});
-        }
-        const tree = kind === 'database' ? (config.tags.databases ??= {}) : (config.tags.applications ??= {});
-        const machineKey = findKey(tree, machine);
-        const containers = (tree[machineKey] ??= {});
-        const containerKey = findKey(containers, container);
-        const leaves = (containers[containerKey] ??= {});
-        const leafKey = findKey(leaves, name);
-        return (leaves[leafKey] ??= {});
-    }
 
     removeLeaf(config, kind, machine, container, name) {
         if (kind === 'declared') {

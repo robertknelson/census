@@ -106,6 +106,10 @@ dossier keeps its character — the full-depth *reading* of one machine. A
 dossier chip row is one click from the workbench via the top bar if editing is
 wanted. Revisit only if real use shows constant panel-hopping.
 
+Revisited 2026-10-09 for one axis: real use of the layered Atlas view showed the hop (the
+picture says *untagged*, the tag is in Triage), so the Atlas inspector writes the layer —
+layered-view.md §3.1. The dossier stays read-only; system, stage and canonical name stay here.
+
 ## 8. Open items
 
 1. **Panel name.** "Triage" proposed — it names the activity, matches §6's verb

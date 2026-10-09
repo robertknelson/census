@@ -4,6 +4,21 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-09 — The layer tagged from the Atlas inspector
+
+**Breaking "Triage keeps the pen" — how far.** Options: (a) the inspector edits the whole
+claim (system, stages, canonical name, layer); (b) the layer only; (c) say no and keep the
+hop. Call: (b). Reason: triage-workbench.md §7 named panel-hopping as the revisit trigger
+and he reported it from the real estate; the layer is the one axis the layered picture
+shows and Triage does not, while the other axes already have their home and a second full
+editor would mean two bulk gestures to keep honest. The shared leaf-walk
+(`entity-tags-edit.mjs`) is lifted out of Triage, not copied, so one writer cannot drift
+from the other.
+
+**Inspector first, drag-drop later** (his "or maybe drag drop?"). The row is precise and
+verifiable in one slice; a drop on the Browser band cannot say web or spa without a
+follow-up, and the layered view has no drag at all today. Logged in layered-view.md §9.
+
 ## 2026-10-09 — Fleet changes From → To window
 
 **What a window compares, per machine.** Options: (a) the newest collected day on or before

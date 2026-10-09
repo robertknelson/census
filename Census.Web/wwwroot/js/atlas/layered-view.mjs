@@ -199,7 +199,7 @@ export class LayeredView {
                 ? [`${d.variants.length} endpoint${d.variants.length === 1 ? '' : 's'}`, ...(d.serviceStages ?? [])]
                 : [name !== d.name ? d.name : null, d.machine].filter(Boolean);
             const sub = inst.row === 'unplaced'
-                ? `<text class="atl-card-sub atl-card-sub-warn" x="${-s.cardW / 2 + 32}" y="13">tag a layer in Triage</text>`
+                ? `<text class="atl-card-sub atl-card-sub-warn" x="${-s.cardW / 2 + 32}" y="13">untagged — click to tag a layer</text>`
                 : subParts.length ? `<text class="atl-card-sub" x="${-s.cardW / 2 + 32}" y="13">${escapeHtml(cut(subParts.join(' · '), s.subChars))}</text>` : '';
             const corner = unfamiliar ? `<text class="atl-card-corner" x="${s.cardW / 2 - 8}" y="${-s.cardH / 2 + 12}">${escapeHtml(inst.layer)}</text>` : '';
             // The browser card (§10.1): a browser-shaped block in the browser band over its

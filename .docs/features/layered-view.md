@@ -108,10 +108,37 @@ placed by kind, and a tag that restates an observation is the sin R2 guards agai
 
 **Triage carries the field:** a *layer* input in the assert gesture beside canonical name;
 edit overwrites, emptied removes, same as the canonical name (canonical-names.md §7.4).
-`CleanServes` trims it and keeps it. Triage keeps the pen; Atlas writes no tags.
+`CleanServes` trims it and keeps it. Triage keeps the pen for classifying; the Atlas inspector
+writes this one axis too (§3.1, 2026-10-09).
 
 **The overview** (`/api/systems/overview`) adds `layersInUse` per system, for the builder
 card and the panel's suggestions.
+
+### 3.1 The layer from the inspector (2026-10-09, Robert: "node says 'tag a layer in triage'. Can we make a way to tag it here on this view, maybe in node details?")
+
+The first real-estate use produced exactly the panel-hopping triage-workbench.md §7 named
+as its revisit condition: the layered picture says *untagged*, the tag lives three clicks
+away in Triage, and the picture is where the gap is seen. So the inspector carries **the
+layer, and only the layer**: a `layer` row on a concrete member application of the viewed
+system — the value, chips for `web`, `spa`, `api` and the system's `layersInUse`, a *by*
+field (the same remembered `census-asserted-by`), Save. The write is Triage's edit for this
+one axis, through the leaf-walk both now share (`estate/entity-tags-edit.mjs`): the claim on
+the viewed system takes the value (emptied removes it), the entity's other claims take it
+where they say nothing (§1.4), `assertedBy`/`assertedAt` land on the claim, freshest file is
+the base. Then the graph is re-read and the node re-selected, so the card moves out of the
+unplaced row under the reader's eye. The card itself now says *untagged — click to tag a
+layer*.
+
+Not editable here: canonical nodes (grouped; the write would fan out to every variant —
+the layered strategy reads ungrouped, so the case does not arise there), service capsules,
+declared entities and databases (placed by kind), and every other axis — system, stage,
+canonical name stay Triage's. system-view.md §1's division of labour carries the exception.
+
+Verified headless on the demo with one MyWeb dev site stripped of its layer: the card in
+Unplaced reading *untagged — click to tag a layer*; the inspector's layer row with the three
+chips, *by robert*, and the warning line; after Save, the scratch tags file carrying
+`"layer": "web"` with today's provenance, the card in the Server band under a browser card,
+the inspector re-selected with the *web* chip on and the warning gone.
 
 ## 4. The 2D strategy — `layered`
 
@@ -222,6 +249,11 @@ is what makes it a drawing slice rather than a modelling one.
 - Group by host in 3D: machines as transparent shells around their nodes on a plane.
 - The SPA config collector (§1.1a).
 - A per-system layer count on the registry panel beside crossings and unjudged.
+- **Drag a card onto a band to tag its layer** (his 2026-10-09 "or maybe drag drop?"). The
+  inspector row (§3.1) is the precise pen; the drag is the gesture. Open question before
+  building: the Browser band means either `web` or `spa`, so a drop there needs a follow-up
+  choice, and the layered view has no drag today (placement is pure). Build when the
+  inspector row proves too slow on the real estate.
 
 **The 2D refinement round — shelved 2026-10-09 ("let's shelve this, but we must come back
 to it"), then opened the same day as §10 the management register and built ("follow your

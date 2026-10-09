@@ -17,6 +17,9 @@ NOT separate: the stores. Atlas reads the same snapshots, tags, declared
 entities and registry that Triage writes; the truth never forks. Division of
 labor: **Estate/Triage keeps the pen for classifying entities; Atlas owns
 system identity (the registry editor) and the views.**
+One exception since 2026-10-09: the Atlas inspector writes the **layer** tag
+on a member application (layered-view.md §3.1) — the one axis the layered
+picture is about, seen there and nowhere else. Every other axis stays Triage's.
 
 ## 2. One substrate, many strategies
 

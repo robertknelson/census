@@ -998,3 +998,19 @@ machine with a year of nights is a year of diffs, so the server stops at
 Verified headless on DEVWEBBOX (two collected days): *1 of 1 night changed*, the row
 *2026-07-30 → 2026-07-31 ~1 machine, ~1 drives*, expanded to the OS build and C: free-space
 changes; the Week range reads *No second collected day in this range* on a one-day machine.
+
+**Fleet changes gets a From → To window (2026-10-09, Robert: "Census Changes fleet changes
+also needs a day from-to date range picker"):** two date inputs head the panel. Empty, the
+feed is what it was — each machine's latest collection against the one before. Both set,
+`GET /api/changes?from=yyyy-MM-dd&to=yyyy-MM-dd` diffs, per machine, **its first collected
+day on or after From against its last on or before To**; a machine with fewer than two
+collected days inside the window is not in the feed, and each machine's row still says the
+two days it was compared on. One input set and the other empty does nothing yet; From after
+To reads *From is after To* in the panel and 400s at the API; *Latest two* clears the window.
+The window semantic (first-in-window vs last-in-window, not nearest-before-From) is in
+`calls-made-for-you.md`.
+
+Verified headless on the demo: empty inputs — the ten machines as before; 07-31 → 08-01 —
+BUILDSRV01 alone, the only machine collected on both of those days; 08-02 → 08-05 — *No
+changes between 2026-08-02 and 2026-08-05 — or no machine collected twice inside those
+days*; 08-02 → 08-01 — *From is after To*.

@@ -4,6 +4,20 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-09 — Fleet changes From → To window
+
+**What a window compares, per machine.** Options: (a) the newest collected day on or before
+From against the newest on or before To — the as-of reading, which pulls in a day from
+before the window when the machine was not collected on From; (b) the first collected day
+inside the window against the last inside it — the window reading. Call: (b). Reason: the
+question is "what changed between these days", and a machine that was collected only once
+inside the window has nothing to say about that and drops out; (a) would quietly answer a
+wider question than the one asked. Either is a one-line change in `ChangesController`.
+
+**Empty inputs keep the old feed** (latest vs the one before) rather than seeding From and
+To with the fleet's two newest days: the machines' newest days differ (BUILDSRV01 is a day
+ahead of the rest on the demo), so no single pair of dates says what the default feed says.
+
 ## 2026-10-09 — his notes round (round-2026-10-09.md)
 
 **Cross-cutting systems (cross-cutting-systems.md), three calls stated in the proposal and

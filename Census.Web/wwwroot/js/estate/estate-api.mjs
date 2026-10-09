@@ -92,8 +92,9 @@ export function fetchCertificates(asOf) {
     return getJson(`/api/certificates${asOf ? `?asOf=${encodeURIComponent(asOf)}` : ''}`);
 }
 
-export function fetchChanges() {
-    return getJson('/api/changes');
+export function fetchChanges(days) {
+    const query = days ? `?from=${encodeURIComponent(days.from)}&to=${encodeURIComponent(days.to)}` : '';
+    return getJson(`/api/changes${query}`);
 }
 
 export function fetchSoftware() {

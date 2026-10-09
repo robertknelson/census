@@ -239,3 +239,106 @@ the real estate when the round opens:**
 - Every plane is as wide as the union of columns, so a two-member plane shows four empty
   slots. Honest, but sparse; a per-plane compaction would break the slot rule, so any change
   is a drawing change (narrower slots, or the empty columns drawn fainter).
+
+## 10. The management register — the shape of the refinement round (2026-10-09, Robert: "yes, write it into the spec")
+
+**The audience, in his words:** "the audience will not be so technical … I'm targeting
+management with the 2D layered views … not really blocky per se, just that the nodes can
+be larger, the layers can be more defined, almost like horizontal swimlanes (but not
+exactly swimlanes)." The physics view is for the person who will fix the thing; the layered
+view is for the person who needs the shape of a system in thirty seconds. Mermaid appeals to
+that reader because it draws boxes with words in them. So: **the `layered` strategy becomes
+that picture outright — no second mode, no "management" toggle.** One system, two drawings:
+physics for the technical reader, layered for the rest.
+
+Everything in this section is **drawing**. `layered-placement.mjs` is unchanged: plane, row
+and slot still come from it, the slot rule (§2) still holds, and the 3D view (§8, parked)
+inherits the same placement when it is un-parked. The five shelved observations above are
+resolved by this register, each noted where it falls.
+
+### 10.1 Cards, not glyphs
+
+- A node is a **card**: a rounded block, `--atl-lay-card-w` × `--atl-lay-card-h` (settings;
+  first cut 168 × 56), filled on the panel colour, a 1.5px border, the kind shown as a small
+  icon at the left edge (the same database / application / external / declared shapes the
+  key already has, at 12px) so the key still applies.
+- **The name is words.** First line: the canonical name when the claim has one; else the
+  association's system name when the node is the only member of that system on its plane;
+  else the observed name. Hostname, path, and machine go to a second line in small muted
+  type (`--atl-lay-card-sub`, 10px, one line, ellipsis) — never to the first line. A card
+  whose first line fell back to a hostname reads as such; it is the *tag a canonical name*
+  hint, not hidden. (Closes the 22-character cut: the first line is a name, and the second
+  line is allowed to be cut because the inspector has the whole.)
+- **The browser is a card too**, in the browser band: a browser-shaped block (a thin top bar
+  with three dots, the body carrying the site's name in words) over its server card, joined
+  by the stem as now; a spa's stem keeps its *calls unobserved* dash and the card says *spa*
+  in the corner. To this reader "the website" is the thing.
+- **Honesty marks in the same register:** a declared-not-observed card has a dashed border;
+  a ghosted card (stage filter) fades the same way the glyph did; the `+n` other-systems
+  badge sits in the card's top-right corner; the *unplaced* band keeps its warn badge, now
+  as the card's second line: *tag a layer in Triage*.
+- Slot width becomes the card width plus a gutter (`--atl-lay-slot` = card + 24); row
+  height becomes the card height plus room for the stem and badges (`--atl-lay-row` =
+  card + 60). Natural size and horizontal scroll stay (the call of 2026-10-08). Larger
+  cards make a sparse plane read as deliberate space rather than emptiness — the empty
+  columns are not drawn fainter; they are simply wider and calmer. (Closes "sparse".)
+
+### 10.2 Bands, not row labels
+
+- The three rows become **bands that run the full width of the picture**, behind every
+  plane: Browser, Server, Data, and Unplaced when it is in use. Each band is a soft
+  alternating fill (`--atl-lay-band`, `--atl-lay-band-alt`) with its name **once, on the
+  left, rotated or stacked** in a label column (`--atl-lay-band-label`, 56px) outside the
+  first plane — not repeated on every plane as now.
+- The **stage planes become columns drawn over the bands**: a header cell at the top with
+  the stage dot and name in a larger type (`--atl-lay-stage-font`, 15px), a vertical rule
+  on each side running the full height, and no slab fill of their own. Downstream keeps its
+  strip to the right of each plane's members, inside the same bands, separated by a thin
+  dotted rule and a small *downstream* caption in the header cell.
+- That is the swimlane feel without the swimlane rule: a thing may stand on two planes
+  (two stages) and does; a band is a layer, not an owner.
+
+### 10.3 Lines: fewer, heavier, routed
+
+- **One line per pair of cards.** Several configured calls between the same two nodes (two
+  connection strings to one database) collapse to one line carrying the count as a small
+  pill at its midpoint (*×3*); the inspector lists them. The loudest verdict and the loudest
+  crossing win the line's class, as the canonical merge already does.
+- **Lines leave and enter a card's edge**, not its centre: the exit point is the midpoint of
+  the card side facing the target (bottom for a lower row, right for the side strip). No
+  line crosses its own card's label again. (Closes "lines through labels".)
+- **A crossing is routed, not shot.** A line whose ends are on different planes leaves the
+  caller's card downward into the gap under the bands (`--atl-lay-route`, 28px below the
+  last band), runs horizontally along it, and rises into the target's plane — an orthogonal
+  route with rounded corners, red, dashed when derived, muted when accepted, as now. It
+  touches no intermediate plane. Two crossings sharing the gap stack by 8px. (Closes
+  "crossing lines through intermediate planes".) Same-plane lines stay straight.
+- Line weight is a setting (`--atl-lay-line`, 2px; crossings 2.5px). Arrowheads: none,
+  still — direction reads from the bands (callers above callees) and from the crossing's
+  colour; a management reader does not need them and they clutter.
+
+### 10.4 What the picture does not do
+
+- It does not invent a layer: untagged applications sit in the Unplaced band, large and
+  labelled, until Triage says web / spa / api. The picture's completeness is the tagging's.
+- It does not align what has no canonical name. A site's dev, val and prod cards stand in
+  one column only when they share a canonical name (§1.5's rule, kept). The register makes
+  the gap more visible, not less — three cards called `myweb.dev…`, `myweb.val…`,
+  `myweb…` in three columns are the picture saying *tag me*. (The shelved question — should
+  a stage-stripped name stand in? — stays **no**: that is inference from naming.)
+- It does not hide: ghost never hide, declared dashed, every neighbour drawn.
+
+### 10.5 Build order, when the round opens
+
+1. Cards and the name rule (10.1) — the largest change in reading, smallest in code: the
+   node template in `layered-view.mjs` and the settings in `atlas.css`.
+2. Bands and the plane header (10.2).
+3. Edge collapse and edge-to-edge endpoints (10.3, first two bullets).
+4. Crossing routing (10.3, third bullet) — the only new geometry.
+5. Headless shots of MyWeb and YourWeb at each step; `Test-LayeredPlacement.mjs` unchanged
+   (placement is untouched) plus a small node test for the edge collapse and the route
+   points once they are pure functions.
+
+**Open:** whether the Atlas key gets a second column for the layered register (card shapes
+beside glyph shapes) or the layered tab draws its own key. Lean: the key gains a *layered*
+group with the card and the browser card, so one key still serves every tab.

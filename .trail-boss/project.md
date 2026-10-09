@@ -760,3 +760,6 @@ relates: []
   the Services switch, the capsule shape, the Services band, the card's badge / suggestion /
   checkbox; the Telemetry + LOGBOX fixture; Test-StageCrossings re-pinned 25/25, placement
   19/19; six headless shots. Three calls logged. The step-7 discussion is closed.
+- 2026-10-09, close — "write a little set of instructions … and then push": `.docs/after-pull-2026-10-09.md`
+  (lookups once, question 14, AppTrak cross-cutting, canonical names then Layered, where
+  each note landed, what was not timed). **Pushed to origin/main** on his word, twenty commits.

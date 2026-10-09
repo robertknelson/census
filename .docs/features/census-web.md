@@ -955,3 +955,27 @@ The round note is `.docs/round-2026-10-09.md`. Estate slices land here as they a
 "yes"): critical red, high and medium amber, low ink; the dot stays. `estate.css`,
 `.est-finding-title.is-<severity>`. Verified headless on APPSRV01 (critical, high, medium,
 low in one list).
+
+**Step 3 — Compare's controls and the dossier at a chosen day (built and verified the same
+day):**
+
+- **Compare** (his 3, 4a: "a Day selector where the user may select the day (NOT day range)
+  and it defaults to the most current"). A tools row under the panel head: the six aspects
+  as checkboxes (OS, Hardware, Drives, .NET, Installed apps, SQL Server — the last one
+  checked cannot be unchecked), *Differing rows only* (on; off shows every row, the identical
+  ones muted), and a *Day* select: *newest*, then every day any of the machines was collected,
+  newest first, seeded from the estate's as-of. Each column shows its machine's newest
+  collection on or before the chosen day and **says which day under the machine name** —
+  `CompareResultDto.Dates`, new, from the controller's snapshot refs. Aspects and the day
+  refetch; the differing toggle re-renders.
+- **The dossier at a chosen day** (his 5: "default to most recent observed, but should have
+  a selectable day observed"). A *Day observed* select heads the snapshot part of the
+  dossier (Identity & hardware, Software, Hosting, SQL — everything from the envelope);
+  *(newest)* marks the latest, the row says *not the newest — the latest collection is …*
+  when an older day is shown, and the panel subtitle reads *showing 2026-07-30*. Findings,
+  Assignment, Baseline and History are not per-day and stay. The hash carries it
+  (`#machine=DEVWEBBOX&day=2026-07-30`) so a look can be shared; closing the panel clears it.
+
+Verified headless on the demo: DEVWEBBOX · PRODWEBBOX with one difference under Installed
+software and every other aspect identical; the same pair with every row shown and the
+identical rows muted; DEVWEBBOX at 2026-07-30 with the History range still 07-30 → 07-31.

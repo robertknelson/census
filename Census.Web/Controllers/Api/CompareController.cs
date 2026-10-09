@@ -32,9 +32,13 @@ public class CompareController(CensusStore censusStore) : ControllerBase
                 .ToList();
         if (aspectList.Count == 0) return BadRequest($"No valid aspects. Valid: {string.Join(", ", CompareEngine.AllAspects)}");
 
-        var envelopes = machineList
-            .Select(m => asOfDate is { } day ? censusStore.GetSnapshotAsOf(m, day) : censusStore.GetLatestSnapshot(m))
+        var refs = machineList
+            .Select(m => asOfDate is { } day ? censusStore.GetSnapshotRefAsOf(m, day) : censusStore.GetSnapshotRefs(m).LastOrDefault())
             .ToList();
-        return Ok(CompareEngine.Compute(machineList, envelopes, aspectList));
+        var envelopes = refs.Select(r => r is null ? null : censusStore.GetSnapshot(r.MachineDir, r.Date)).ToList();
+        return Ok(CompareEngine.Compute(machineList, envelopes, aspectList) with
+        {
+            Dates = refs.Select(r => r?.Date.ToString("yyyy-MM-dd")).ToList(),
+        });
     }
 }

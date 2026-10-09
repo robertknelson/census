@@ -22,6 +22,8 @@ public record CompareGroupDto
 public record CompareResultDto
 {
     public List<string> Machines { get; init; } = [];
+    /// <summary>Per machine, the collected day the column shows (newest on or before asOf), null without data.</summary>
+    public List<string> Dates { get; init; } = [];
     public List<string> MachinesWithoutData { get; init; } = [];
     public List<CompareGroupDto> Groups { get; init; } = [];
 }

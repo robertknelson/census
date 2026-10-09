@@ -1382,6 +1382,23 @@ html, body {
 
 /* --- compare table ------------------------------------------------------------------ */
 
+/* Compare's controls (round-2026-10-09 §1b) and the dossier's day row (§1c). */
+.est-compare-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+    padding: 0 0 0.9rem;
+    margin-bottom: 0.9rem;
+    border-bottom: 1px solid var(--est-line-soft);
+}
+.est-compare-aspects { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; }
+.est-check { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--est-ink); cursor: pointer; }
+.est-check input { margin: 0; accent-color: var(--est-ink); }
+.est-check-strong { font-weight: 600; }
+.est-compare-date { display: block; font-family: var(--est-font); font-size: 0.68rem; font-weight: 400; color: var(--est-muted); }
+.est-row-same td { color: var(--est-muted); }
+.est-day-row { display: flex; align-items: center; gap: 0.8rem; font-size: 0.78rem; padding: 0.4rem 0 0.9rem; }
 .est-compare-scroll { overflow-x: auto; }
 
 .est-compare {

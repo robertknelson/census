@@ -20,6 +20,12 @@ function escapeHtml(value) {
     })[ch]);
 }
 
+// The Compare panel's aspects, in the order the Classic page had them (CompareEngine.AllAspects).
+const COMPARE_ASPECTS = [
+    { id: 'os', label: 'OS' }, { id: 'hardware', label: 'Hardware' }, { id: 'drives', label: 'Drives' },
+    { id: 'dotnet', label: '.NET' }, { id: 'apps', label: 'Installed apps' }, { id: 'sqlserver', label: 'SQL Server' },
+];
+
 const CLASS_LABELS = {
     DatabaseServer: 'Database server',
     WebServer: 'Web server',
@@ -51,6 +57,8 @@ class EstatePage {
         (params.get('stages') ?? '').split(',').filter(Boolean).forEach((s) => this.selectedStages.add(s));
         (params.get('classes') ?? '').split(',').filter(Boolean).forEach((c) => this.selectedClasses.add(c));
         this.asOf = params.get('asOf') || null;
+        this.hashMachine = params.get('machine') || null;
+        this.hashDay = params.get('day') || null;
     }
 
     writeHash() {
@@ -59,6 +67,10 @@ class EstatePage {
         if (this.selectedStages.size) params.set('stages', [...this.selectedStages].join(','));
         if (this.selectedClasses.size) params.set('classes', [...this.selectedClasses].join(','));
         if (this.asOf) params.set('asOf', this.asOf);
+        if (this.panel?.type === 'details') {
+            params.set('machine', this.panel.machine);
+            if (this.panel.day) params.set('day', this.panel.day);
+        }
         const hash = params.toString();
         history.replaceState(null, '', hash ? `#${hash}` : window.location.pathname);
     }
@@ -213,6 +225,11 @@ class EstatePage {
         const known = new Set(this.data.owners.map((o) => o.value));
         [...this.selectedOwners].filter((o) => !known.has(o)).forEach((o) => this.selectedOwners.delete(o));
         this.renderAll();
+        if (this.hashMachine) {
+            const { hashMachine, hashDay } = this;
+            this.hashMachine = this.hashDay = null;
+            this.openDetails(hashMachine, hashDay);
+        }
 
         // Cert horizon only moves with collection, not with edits — one fetch per load.
         fetchCertificates(this.asOf).then((certs) => {
@@ -511,8 +528,10 @@ class EstatePage {
     }
 
     closePanel() {
+        const wasDetails = this.panel?.type === 'details';
         this.panel = null;
         this.fleetPanel = null;
+        if (wasDetails) this.writeHash();
         this.root.querySelector('.est').classList.remove('is-panel-open');
         this.panelEl.classList.remove('is-open');
         this.backdropEl.hidden = true;
@@ -687,10 +706,15 @@ class EstatePage {
         this.fleetPanel.mount(this.panelEl.querySelector('[data-ref="queue"]'));
     }
 
-    async openDetails(machineName) {
+    // day: a collected yyyy-MM-dd to show Software, Hosting and the facts from; null = newest.
+    // Findings, Assignment, Baseline and History are not per-day and keep their place.
+    async openDetails(machineName, day = null) {
         const m = this.data.machines.find((x) => x.machine === machineName);
         if (!m) return;
-        this.panel = { type: 'details', machine: machineName };
+        if (day === m.latestDate) day = null;
+        this.panel = { type: 'details', machine: machineName, day };
+        this.writeHash();
+        const shownDay = day ?? m.latestDate;
 
         const classLabel = CLASS_LABELS[m.class] ?? m.class;
         const provenance = m.classSource === 'asserted'
@@ -719,12 +743,17 @@ class EstatePage {
                 </div>`).join('');
 
         const dossierPlaceholder = m.hasData
-            ? '<div data-ref="dossier"><p class="est-status">Loading full snapshot…</p></div>'
+            ? `<section class="est-day-row">
+                   <label class="est-asof"><span>day observed</span>
+                       <select class="est-edit-input" data-ref="day-select"><option value="${escapeHtml(shownDay)}">${escapeHtml(shownDay)}</option></select></label>
+                   ${day ? `<span class="est-muted">not the newest — the latest collection is ${escapeHtml(m.latestDate)}</span>` : '<span class="est-muted">the newest collection</span>'}
+               </section>
+               <div data-ref="dossier"><p class="est-status">Loading full snapshot…</p></div>`
             : `<section><h3>Snapshot</h3><p class="est-status">Never collected — nothing beyond the assignment is known about this machine.</p></section>`;
 
         this.panelShell(
             `${glyphSvg(m.class, 22)} <span class="est-mono">${escapeHtml(m.machine)}</span>`,
-            `${escapeHtml(classLabel)} · ${provenance}${m.latestDate ? ` · <span class="est-muted">collected ${escapeHtml(m.latestDate)}</span>` : ''}`,
+            `${escapeHtml(classLabel)} · ${provenance}${m.latestDate ? ` · <span class="est-muted">${day ? 'showing' : 'collected'} ${escapeHtml(shownDay)}</span>` : ''}`,
             `
             <section>
                 <h3>Findings</h3>
@@ -770,6 +799,12 @@ class EstatePage {
 
         fetchMachineDates(m.machine).then((dates) => {
             if (this.panel?.type !== 'details' || this.panel.machine !== machineName) return;
+            const daySelect = this.panelEl.querySelector('[data-ref="day-select"]');
+            if (daySelect) {
+                daySelect.innerHTML = [...dates].reverse().map((d) => `<option value="${escapeHtml(d)}" ${d === shownDay ? 'selected' : ''}>${escapeHtml(d)}${d === m.latestDate ? ' (newest)' : ''}</option>`).join('');
+                daySelect.disabled = dates.length < 2;
+                daySelect.addEventListener('change', (e) => this.openDetails(machineName, e.target.value));
+            }
             const historyEl = this.panelEl.querySelector('[data-ref="history"]');
             if (!historyEl) return;
             if (dates.length < 2) {
@@ -787,7 +822,7 @@ class EstatePage {
         try {
             // Tags failing must not take the dossier down with them — the snapshot still renders.
             [snapshot, entityTags] = await Promise.all([
-                fetchSnapshot(m.machine, m.latestDate),
+                fetchSnapshot(m.machine, shownDay),
                 fetchEntityTags(m.machine).catch(() => null),
             ]);
         } catch (err) {
@@ -803,37 +838,94 @@ class EstatePage {
         bindDossier(slot);
     }
 
+    // The Compare panel (round-2026-10-09 §1b): the six aspects as checkboxes, "differing rows
+    // only" (off shows every row, the identical ones muted), and a Day select over every day
+    // any of the machines was collected, newest first — each column shows its machine's newest
+    // collection on or before that day, and says which under its name. The estate's as-of seeds
+    // the day; the panel's choice is its own.
     async openCompare(machineNames) {
-        this.panel = { type: 'compare', machines: machineNames };
+        this.panel = {
+            type: 'compare', machines: machineNames,
+            aspects: [...COMPARE_ASPECTS.map((a) => a.id)], differingOnly: true, day: this.asOf, days: null, result: null,
+        };
         this.panelShell(
             `Compare <span class="est-mono">${machineNames.map(escapeHtml).join(' · ')}</span>`,
-            'Differing rows only — volatile rows shown muted, never counted against equality',
-            '<p class="est-status">Comparing…</p>');
+            'Volatile rows shown muted, never counted against equality',
+            `<div class="est-compare-tools" data-ref="compare-tools"></div><div data-ref="compare-body"><p class="est-status">Comparing…</p></div>`);
         // Size the panel to its columns: label column + one per machine, capped at 94vw.
         // Beyond the cap, the table scrolls with the label column pinned.
         const autoWidth = Math.max(860, 256 + machineNames.length * 220 + 90);
         this.panelEl.style.width = `min(${autoWidth}px, 94vw)`;
         this.openPanel();
+        this.renderCompareTools();
 
+        Promise.all(machineNames.map((m) => fetchMachineDates(m).catch(() => []))).then((lists) => {
+            if (this.panel?.type !== 'compare') return;
+            this.panel.days = [...new Set(lists.flat())].sort().reverse();
+            this.renderCompareTools();
+        });
+        await this.fetchCompare();
+    }
+
+    async fetchCompare() {
+        const p = this.panel;
+        const body = this.panelEl.querySelector('[data-ref="compare-body"]');
+        body.innerHTML = '<p class="est-status">Comparing…</p>';
         let result;
         try {
-            result = await fetchCompare(machineNames, [], this.asOf);
+            result = await fetchCompare(p.machines, p.aspects, p.day);
         } catch (err) {
-            this.panelEl.querySelector('.est-panel-body').innerHTML =
-                `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
+            if (this.panel === p) body.innerHTML = `<p class="est-status est-error">${escapeHtml(err.message)}</p>`;
             return;
         }
-        if (this.panel?.type !== 'compare') return;
+        if (this.panel !== p) return;
+        p.result = result;
+        this.renderCompare();
+    }
 
-        const header = `<tr><th></th>${result.machines.map((m) => `<th class="est-mono">${escapeHtml(m)}</th>`).join('')}</tr>`;
+    renderCompareTools() {
+        const p = this.panel;
+        const tools = this.panelEl.querySelector('[data-ref="compare-tools"]');
+        if (!tools) return;
+        const dayOptions = p.days === null
+            ? `<option value="${escapeHtml(p.day ?? '')}">${p.day ? escapeHtml(p.day) : 'newest'}</option>`
+            : [`<option value="" ${p.day ? '' : 'selected'}>newest</option>`,
+               ...p.days.map((d) => `<option value="${escapeHtml(d)}" ${d === p.day ? 'selected' : ''}>${escapeHtml(d)}</option>`)].join('');
+        tools.innerHTML = `
+            <div class="est-compare-aspects">
+                ${COMPARE_ASPECTS.map((a) => `
+                    <label class="est-check"><input type="checkbox" data-aspect="${a.id}" ${p.aspects.includes(a.id) ? 'checked' : ''}> ${a.label}</label>`).join('')}
+            </div>
+            <label class="est-check est-check-strong"><input type="checkbox" data-ref="differing" ${p.differingOnly ? 'checked' : ''}> Differing rows only</label>
+            <label class="est-asof"><span>day</span><select class="est-edit-input" data-ref="compare-day" ${p.days === null ? 'disabled' : ''}>${dayOptions}</select></label>`;
+        tools.querySelectorAll('[data-aspect]').forEach((cb) => cb.addEventListener('change', () => {
+            const chosen = [...tools.querySelectorAll('[data-aspect]:checked')].map((x) => x.dataset.aspect);
+            if (!chosen.length) { cb.checked = true; return; }
+            p.aspects = COMPARE_ASPECTS.map((a) => a.id).filter((id) => chosen.includes(id));
+            this.fetchCompare();
+        }));
+        tools.querySelector('[data-ref="differing"]').addEventListener('change', (e) => {
+            p.differingOnly = e.target.checked;
+            if (p.result) this.renderCompare();
+        });
+        tools.querySelector('[data-ref="compare-day"]').addEventListener('change', (e) => {
+            p.day = e.target.value || null;
+            this.fetchCompare();
+        });
+    }
+
+    renderCompare() {
+        const p = this.panel;
+        const result = p.result;
+        const header = `<tr><th></th>${result.machines.map((m, i) => `<th class="est-mono">${escapeHtml(m)}<span class="est-compare-date">${result.dates?.[i] ? escapeHtml(result.dates[i]) : 'no data'}</span></th>`).join('')}</tr>`;
         const groups = result.groups.map((g) => {
             const verdict = g.identical
                 ? '<span class="est-verdict est-verdict-ok">identical</span>'
                 : `<span class="est-verdict est-verdict-diff">${g.differCount} difference${g.differCount === 1 ? '' : 's'}</span>`;
             const rows = g.rows
-                .filter((r) => r.differs)
+                .filter((r) => r.differs || !p.differingOnly)
                 .map((r) => `
-                    <tr class="${r.volatile ? 'est-row-volatile' : ''}">
+                    <tr class="${r.volatile ? 'est-row-volatile' : ''} ${r.differs ? '' : 'est-row-same'}">
                         <td class="est-row-label">${escapeHtml(r.label)}${r.volatile ? ' <span class="est-muted">(volatile)</span>' : ''}</td>
                         ${r.values.map((v) => `<td>${v === null ? '<span class="est-muted">—</span>' : escapeHtml(v)}</td>`).join('')}
                     </tr>`).join('');
@@ -844,7 +936,7 @@ class EstatePage {
                 </tbody>`;
         }).join('');
 
-        this.panelEl.querySelector('.est-panel-body').innerHTML = `
+        this.panelEl.querySelector('[data-ref="compare-body"]').innerHTML = `
             <div class="est-compare-scroll">
                 <table class="est-compare"><thead>${header}</thead>${groups}</table>
             </div>`;

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull, open Atlas on the real estate: confirm the PROD-to-DEV edge reads "crossing, down" with the finding on the site''s machine; tag web / spa / api on the applications of one system in Triage and open it Layered. Bring back what reads wrong in the layered view — he wants to refine 2D before any 3D (parked). Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Work his stream-of-consciousness notes from using Census and Move It (2026-10-09). SHELVED, must return: the layered 2D refinement round — five things that read wrong are logged in layered-view.md §9. 3D parked behind it. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -721,3 +721,9 @@ relates: []
 
 ### 2026-07-31
 -
+
+- 2026-10-09 — while he wrote notes: ran the layered placement over every demo system; found
+  and fixed two same-name nodes on one plane drawing on top of each other (bd90df0). Five
+  more things that read wrong (crossing lines through intermediate planes, lines through
+  labels, 22-char cut, no-canonical-name columns, sparse planes) logged in layered-view.md §9.
+  **Shelved on his ruling, "we must come back to it."** Next: his notes from Census and Move It.

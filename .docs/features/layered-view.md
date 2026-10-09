@@ -222,3 +222,20 @@ is what makes it a drawing slice rather than a modelling one.
 - Group by host in 3D: machines as transparent shells around their nodes on a plane.
 - The SPA config collector (§1.1a).
 - A per-system layer count on the registry panel beside crossings and unjudged.
+
+**The 2D refinement round — shelved 2026-10-09, his ruling: "let's shelve this, but we must
+come back to it." What read wrong in the demo screenshots, to merge with his own notes from
+the real estate when the round opens:**
+
+- A crossing line cuts straight across the planes between its ends: PROD → DEV runs through
+  val's server row and over its labels. Routing (around planes, or along the gap) is the fix.
+- A line leaves a node's centre and runs through the node's own label below it whenever the
+  target is lower and to the side. Start lines at the shape's edge, or route.
+- Labels cut at 22 characters; `yourweb.dev.example.com/` already loses its tail. Make the
+  cut a setting, or widen the slot with it.
+- Without a canonical name an application takes its own column, so a site's dev, val and
+  prod variants do not line up — most of a real estate until canonical names are tagged
+  (§1.5 chose this; the question is whether a stage-stripped name should stand in).
+- Every plane is as wide as the union of columns, so a two-member plane shows four empty
+  slots. Honest, but sparse; a per-plane compaction would break the slot rule, so any change
+  is a drawing change (narrower slots, or the empty columns drawn fainter).

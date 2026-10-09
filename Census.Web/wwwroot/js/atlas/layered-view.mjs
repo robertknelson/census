@@ -10,6 +10,7 @@
 import { stageColor } from './stage-colors.mjs';
 import { nodeShape, shapeSvg } from './physics-view.mjs';
 import { place, UNSTAGED } from './layered-placement.mjs';
+import { pairEdges, loudest, linePath, laneY } from './layered-lines.mjs';
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -238,43 +239,25 @@ export class LayeredView {
     }
 
     // --- lines (§10.3): one per pair of cards, edge to edge, crossings routed under the bands ---
+    // The geometry is layered-lines.mjs (pure, pinned by tests/Test-LayeredLines.mjs); this
+    // only dresses each pair in its classes and draws it.
 
-    // Edges grouped by their two ends; the loudest verdict and crossing win the line's class.
     pairs() {
-        const groups = new Map();
-        this.graph.edges.forEach((e, i) => {
-            const ends = this.placement.endpoints(e);
-            if (!ends) return;
-            const key = `${e.sourceId}\u0000${e.targetId}`;
-            if (!groups.has(key)) groups.set(key, { ends, edges: [], indexes: [] });
-            groups.get(key).edges.push(e);
-            groups.get(key).indexes.push(i);
-        });
-        return [...groups.values()];
+        return pairEdges(this.graph.edges, (e) => this.placement.endpoints(e));
     }
 
     crossingLanes() {
         return this.pairs().filter((g) => g.ends[0].plane !== g.ends[1].plane).length;
     }
 
-    // Where a line leaves a card: the midpoint of the side facing the other end.
-    port(inst, toward) {
-        const c = this.centre(inst), s = this.s;
-        if (toward.y > c.y + s.cardH / 2) return { x: c.x, y: c.y + s.cardH / 2 };
-        if (toward.y < c.y - s.cardH / 2) return { x: c.x, y: c.y - s.cardH / 2 };
-        return toward.x >= c.x ? { x: c.x + s.cardW / 2, y: c.y } : { x: c.x - s.cardW / 2, y: c.y };
-    }
-
     renderEdges() {
         const s = this.s;
-        const routeBase = this.bandTop() + this.placement.rows.length * s.row;
+        const size = { w: s.cardW, h: s.cardH };
+        const bandsBottom = this.bandTop() + this.placement.rows.length * s.row;
         let lane = 0;
         return this.pairs().map((g) => {
             const [a, b] = g.ends;
-            const ca = this.centre(a), cb = this.centre(b);
-            const loud = (list, pick) => list.map(pick).filter(Boolean);
-            const verdict = loud(g.edges, (e) => e.verdict).sort()[0] ?? g.edges[0].verdict;
-            const crossingEdge = g.edges.find((e) => e.crossing && !e.accepted) ?? g.edges.find((e) => e.crossing);
+            const { verdict, crossing: crossingEdge } = loudest(g.edges);
             const crossing = !crossingEdge ? ''
                 : crossingEdge.accepted ? ' atl-edge-crossing atl-edge-accepted'
                 : crossingEdge.crossingBasis === 'derived' ? ' atl-edge-crossing atl-edge-derived'
@@ -285,20 +268,8 @@ export class LayeredView {
                 : sf === 'ghost' || tf === 'ghost' ? ' atl-edge-bleed' : '';
             const kinds = [...new Set(g.edges.map((e) => e.kind))].map((k) => `atl-edgekind-${escapeHtml(k)}`).join(' ');
             const classes = `atl-edge atl-edge-${escapeHtml(verdict)} ${kinds}${crossing}${fade}`;
-            let d, mid;
-            if (a.plane === b.plane) {
-                const pa = this.port(a, cb), pb = this.port(b, ca);
-                d = `M ${pa.x} ${pa.y} L ${pb.x} ${pb.y}`;
-                mid = { x: (pa.x + pb.x) / 2, y: (pa.y + pb.y) / 2 };
-            } else {
-                // Routed (§10.3): down from the caller into the gap under the bands, along, up into
-                // the target's plane — touching no plane in between.
-                const y = routeBase + s.route * (1 + lane++) - s.route / 2;
-                const pa = { x: ca.x, y: ca.y + s.cardH / 2 }, pb = { x: cb.x, y: cb.y + s.cardH / 2 };
-                const r = 10, dir = pb.x > pa.x ? 1 : -1;
-                d = `M ${pa.x} ${pa.y} V ${y - r} Q ${pa.x} ${y} ${pa.x + dir * r} ${y} H ${pb.x - dir * r} Q ${pb.x} ${y} ${pb.x} ${y - r} V ${pb.y}`;
-                mid = { x: (pa.x + pb.x) / 2, y };
-            }
+            const routeY = a.plane === b.plane ? null : laneY(bandsBottom, s.route, lane++);
+            const { d, mid } = linePath({ plane: a.plane, centre: this.centre(a) }, { plane: b.plane, centre: this.centre(b) }, size, routeY);
             const count = g.edges.length > 1 ? `
                 <g class="atl-lay-count" transform="translate(${mid.x},${mid.y})"><rect x="-13" y="-8" width="26" height="16" rx="8"></rect><text y="4">×${g.edges.length}</text></g>` : '';
             const idx = g.indexes.join(',');

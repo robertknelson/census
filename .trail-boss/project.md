@@ -750,3 +750,6 @@ relates: []
   `layered-view.mjs` rewritten as cards, bands, planes-as-columns, one routed line per pair;
   placement untouched (17/17); key rows added; verified headless on MyWeb and YourWeb and on
   the Atlas page. The lean taken on the one open item (the key gains rows, no second key).
+- 2026-10-09, last — "so how do we address the 'honest gap'?" → the register's lines lifted
+  into `layered-lines.mjs` (pure) with `tests/Test-LayeredLines.mjs` 16/16; the YourWeb shot
+  byte-identical before and after. Nothing is drawn without a pin now.

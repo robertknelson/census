@@ -222,8 +222,6 @@ is what makes it a drawing slice rather than a modelling one.
 - Group by host in 3D: machines as transparent shells around their nodes on a plane.
 - The SPA config collector (§1.1a).
 - A per-system layer count on the registry panel beside crossings and unjudged.
-- Lift `pairs()` and `port()` out of the view into pure functions so the edge collapse and
-  the route points get node pins like the placement has.
 
 **The 2D refinement round — shelved 2026-10-09 ("let's shelve this, but we must come back
 to it"), then opened the same day as §10 the management register and built ("follow your
@@ -367,6 +365,13 @@ observed name and machine underneath, the PROD → DEV crossing routed under the
 dev's downstream strip; YourWeb — the spa's browser card saying *spa · calls unobserved*,
 prod's two uncanonical web apps falling back to hostnames side by side (the picture saying
 *tag me*), RefData ×2 on ref, three crossings in three lanes under the bands, the derived
-one dashed; the Atlas page with the key's new rows. No node test for the pair grouping and
-the ports yet — they read the placement through the view, so the shots are the proof; a
-pure extraction is noted in §9.
+one dashed; the Atlas page with the key's new rows.
+
+**The lines are pure too** (his "so how do we address the 'honest gap'?", same day):
+`layered-lines.mjs` holds `pairEdges` (edges sharing two ends share a line; an undrawn end
+drops the edge), `loudest` (the verdict that sorts first; an unaccepted crossing over an
+accepted one), `port` (the card side facing the other end), `linePath` (straight on one
+plane, routed under the bands between planes, with the pill's point) and `laneY`.
+`tests/Test-LayeredLines.mjs` pins them, **16/16**, beside the placement's 17. The view only
+dresses each pair in its classes. Proof the extraction changed nothing: the YourWeb
+screenshot before and after is byte-identical.

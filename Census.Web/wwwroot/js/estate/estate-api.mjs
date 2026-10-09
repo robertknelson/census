@@ -35,6 +35,10 @@ export function fetchMachineDates(machine) {
     return getJson(`/api/machines/${encodeURIComponent(machine)}/dates`);
 }
 
+export function fetchMachineChanges(machine, range) {
+    return getJson(`/api/machines/${encodeURIComponent(machine)}/changes?range=${encodeURIComponent(range)}`);
+}
+
 export function fetchMachineDiff(machine, fromDate, toDate) {
     const params = new URLSearchParams({ from: fromDate, to: toDate });
     return getJson(`/api/machines/${encodeURIComponent(machine)}/diff?${params}`);

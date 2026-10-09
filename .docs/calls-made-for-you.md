@@ -4,6 +4,28 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-09 — his notes round (round-2026-10-09.md)
+
+**The History list caps "all" rather than caching.** Options: compute every pair on the fly
+(a year of nights is a year of gz reads and diffs per click); cache diffs per day pair in
+memory; cap. Call: cap at `Census:ChangesNightsMax` (120) newest first, and say so in the
+header. Reason: a reader wanting older nights narrows the range; a cache is a slice of its
+own if the real estate makes "all" slow inside the cap.
+
+**The chip's due-soon window is a setting**, `MoveIt:DueSoonDays` (7), per the standing
+rule that a doubtful number becomes a setting.
+
+**A released build claim is an event, kind `build-released`.** Options: delete the row
+silently; keep the row with a `ReleasedAt`; delete and record an event. Call: delete the
+`ReleaseBuild` row and write a `ReleaseEvent` with the build and the note. Reason: the table's
+contract is "attributions are never deleted here" for the manifest loader; the page's act is
+a human decision and belongs on the record where the other human decisions are, and the
+location rule keeps answering from whatever claims remain.
+
+**The week page has no Full week | Weekdays segment.** The round note said it would take the
+calendar's; it is a rolling seven days ending on a date, not a week grid, so there is nothing
+to drop. Noted in move-it.md §29.
+
 ## 2026-10-08 — the layered view, built (layered-view.md)
 
 **The picture draws at its natural size and the canvas scrolls sideways,** rather than

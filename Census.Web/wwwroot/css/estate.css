@@ -1260,6 +1260,24 @@ html, body {
 
 /* --- history ------------------------------------------------------------------------ */
 
+/* History's two tabs and the List tab (census-web.md §16). */
+.est-history-tabs { display: inline-flex; gap: 0.15rem; margin-bottom: 0.7rem; border-bottom: 1px solid var(--est-line-soft); }
+.est-history-tab { padding: 0.25rem 0.6rem; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--est-muted); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.est-history-tab:hover { color: var(--est-ink); }
+.est-history-tab.is-active { color: var(--est-ink); font-weight: 650; border-bottom-color: var(--est-ink); }
+.est-history-ranges { display: inline-flex; border: 1px solid var(--est-line); border-radius: 6px; overflow: hidden; }
+.est-history-range { padding: 0.15rem 0.6rem; border: 0; background: none; color: var(--est-muted); font: inherit; font-size: 0.78rem; cursor: pointer; }
+.est-history-range + .est-history-range { border-left: 1px solid var(--est-line); }
+.est-history-range.is-active { background: var(--est-ink); color: #fff; }
+.est-history-night { border: 1px solid var(--est-line-soft); border-radius: 6px; margin-bottom: 0.4rem; }
+.est-history-night-head { display: flex; align-items: baseline; gap: 0.6rem; width: 100%; padding: 0.4rem 0.6rem; border: 0; background: none; color: var(--est-ink); font: inherit; font-size: 0.84rem; text-align: left; cursor: pointer; }
+.est-history-night-head:hover { background: var(--est-line-soft); }
+.est-history-night-caret { display: inline-block; width: 0.8rem; color: var(--est-muted); transition: transform 0.15s; }
+.est-history-night.is-open .est-history-night-caret { transform: rotate(90deg); }
+.est-history-night-counts { color: var(--est-muted); }
+.est-history-night-counts [class*="est-history-sym-"] { padding: 0 0.25rem; border-radius: 3px; font-family: var(--est-mono); font-weight: 700; }
+.est-history-night-body { padding: 0.2rem 0.6rem 0.5rem 2rem; border-top: 1px solid var(--est-line-soft); }
+
 .est-history-controls {
     display: flex;
     align-items: center;

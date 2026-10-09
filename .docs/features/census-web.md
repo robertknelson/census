@@ -979,3 +979,22 @@ day):**
 Verified headless on the demo: DEVWEBBOX · PRODWEBBOX with one difference under Installed
 software and every other aspect identical; the same pair with every row shown and the
 identical rows muted; DEVWEBBOX at 2026-07-30 with the History range still 07-30 → 07-31.
+
+**Step 4 — History: Comparison and List (built and verified the same day):**
+
+His 2: "a listing of overnights with changes, and expandable details. History could have two
+tabs: Comparison (default) and List (week, month, all)." The dossier's History section has
+the two tabs. *Comparison* is the From → To diff as before. *List* asks
+`GET /api/machines/{m}/changes?range=week|month|all` — every consecutive pair of collected
+days in the range (measured back from the newest collected day), diffed with the engine
+Comparison uses, **only the nights whose diff is not empty**, newest first, each with a count
+per section (*~1 machine, +2 installed software, ~1 drives*). A row expands to the full diff
+(one `diff` call, on first open). The header says *3 of 28 nights changed*. "All" on a
+machine with a year of nights is a year of diffs, so the server stops at
+`Census:ChangesNightsMax` pairs (default 120), newest first, and the header says *the newest
+120 only; narrow the range for older* — `calls-made-for-you.md`. `MachineNightsDto`
+(the name `MachineChangesDto` was already the changes feed's).
+
+Verified headless on DEVWEBBOX (two collected days): *1 of 1 night changed*, the row
+*2026-07-30 → 2026-07-31 ~1 machine, ~1 drives*, expanded to the OS build and C: free-space
+changes; the Week range reads *No second collected day in this range* on a one-day machine.

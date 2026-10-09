@@ -592,6 +592,7 @@ move is a cut-and-paste. Everything idempotent. Calls made while building them a
 | `apptrak/sql/manifest/workitem-retitle.sql` | both | §16: title in place, by Id |
 | `apptrak/sql/questions/01`–`12-*.sql` | both | one read-only `.sql` per Appendix A question (rule 9); the board and the inbox read these |
 | `apptrak/sql/questions/13-feature-picture.sql` | both | §17: everything about a feature as one JSON document, filterable |
+| `apptrak/sql/questions/14-why-not-seen.sql` | real | §29 step 6: why one item reads "Built, not seen" — set `@WorkItemId`, six result sets, the broken link is the answer |
 | `apptrak/sql/manifest/release-delete.sql` | both | §17: stabilization only — a release and everything asserted under it |
 | `apptrak/Invoke-AppTrakQuestions.ps1` | both | runs every question; against fixtures it is the proof, against real data it is the first board |
 | `.docs/move-it-morning-guide.md` | real | the step-by-step for the first real-environment run: recon, DDL, backfill, first board, processor rule, report-back |
@@ -2146,6 +2147,20 @@ build, was a spike"*), release again (unchanged), release without a name (400 *S
 it.*), move `20260820.4` to the hotfix and back (*released, inserted on the other* both ways).
 Verified headless on `/moveit/release/3`: the history fold open; the Release action's inline
 who / why; the seen list with *unclaimed* and *claimed by Sprint 42* rows.
+
+**Step 6 — the diagnostic for "Built, not seen that WAS at DEV" (his 11):**
+`questions/14-why-not-seen.sql`, `@WorkItemId` at the top, read-only, six result sets: the
+item's build string with its length and bytes; the release's claimed builds compared to it
+(exact / same after trim / same ignoring case / different); every deployment of those
+builds with what superseded each; what is at each stage now with a plain reading — *the
+item build itself*, *current is newer and claimed by the release: the item IS here*,
+*current is newer but NOT claimed by the release: claim it on the release page*, *current is
+OLDER (a rollback)*; near misses (builds containing or contained by the item's, the typo
+finder); the application's endpoints. On the fixtures item 301 is his case in miniature:
+`20260805.1` reached DEV on 5 Aug, was superseded on 20 Aug by `20260820.4`, and the item
+reads at DEV only because the release claims the newer build — the fourth set says so in
+words. He runs it against the real AppTrak and brings back the rows, or the answer. The
+questions runner runs it with `@WorkItemId = 0` and gets six empty sets, by design.
 
 ## Appendix A — questions the data could answer
 

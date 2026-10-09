@@ -4,6 +4,22 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-09 — Move It rail: several applications
+
+**Rail-wide, not Where is it alone.** He named Where is it. The rail is one component and
+the choice is remembered once for every Move It page (move-it.md §26.2), so a set on one
+page and a single on the others would either fork the rail or break the carry-over. Call:
+the set everywhere; every page scopes to *any of the chosen*.
+
+**A plain click toggles; no Ctrl-click.** Options: click replaces and Ctrl-click adds (the
+file-list convention); click toggles and *All applications* resets (the facet convention).
+Call: toggle. Reason: it is a filter list with an explicit All, the same gesture the
+registers' facets already use, and Ctrl is invisible to a reader who was not told.
+
+**Where a page needs one application** (the Coming up form's preselect, History's New
+release): the single chosen one if exactly one is chosen, otherwise none — never the first
+of several.
+
 ## 2026-10-09 — The layer tagged from the Atlas inspector
 
 **Breaking "Triage keeps the pen" — how far.** Options: (a) the inspector edits the whole

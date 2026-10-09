@@ -19,13 +19,13 @@ class ReleasesPage {
         this.pageSize = config.pageSize ?? 50;
         this.shippedDays = config.shippedDays ?? 14;
         this.now = Date.now();
-        this.app = null;
+        this.apps = [];
         this.renderShell();
         this.load();
     }
 
     renderShell() {
-        this.rail = new AppRail((id) => { this.app = id; this.renderRows(); });
+        this.rail = new AppRail((ids) => { this.apps = ids; this.renderRows(); });
         this.root.innerHTML = `
             ${renderTabs('releases')}
             <div class="mi-shell" data-ref="shell">
@@ -58,7 +58,7 @@ class ReleasesPage {
             return;
         }
         this.lanes = buildLanes(this.stages);
-        this.app = AppRail.remembered(this.applications);
+        this.apps = AppRail.remembered(this.applications);
         this.register = new Register(this.registerConfig()).mount(this.regHeadEl, this.mainEl);
         this.renderRows();
     }
@@ -98,8 +98,8 @@ class ReleasesPage {
 
     renderRows() {
         this.rows = this.buildRows();
-        const inScope = (r) => this.app == null || r.release.ApplicationId === this.app;
-        this.rail.render(this.applications, this.app,
+        const inScope = (r) => this.apps.length === 0 || this.apps.includes(r.release.ApplicationId);
+        this.rail.render(this.applications, this.apps,
             (id) => this.rows.filter((r) => !r.card.abandoned && (id == null || r.release.ApplicationId === id)).length);
         this.register.setRows(this.rows.filter(inScope));
     }

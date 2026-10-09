@@ -22,7 +22,7 @@ class MoveItPage {
         this.root = document.getElementById(config.rootId ?? 'moveit-root');
         this.shippedDays = config.shippedDays ?? 14;
         this.dueSoonDays = config.dueSoonDays ?? 7;
-        this.app = null;                  // ApplicationId filter, null = all
+        this.apps = [];                   // ApplicationId filter, empty = all
         this.view = new URLSearchParams(window.location.search).get('view') === 'releases' ? 'releases' : 'items';
         this.now = Date.now();
         this.counts = new CountsPanel();
@@ -34,8 +34,8 @@ class MoveItPage {
     }
 
     renderShell() {
-        this.rail = new AppRail((id) => {
-            this.app = id;
+        this.rail = new AppRail((ids) => {
+            this.apps = ids;
             this.closeDetail();
             this.renderFilter();
             this.render();
@@ -102,7 +102,7 @@ class MoveItPage {
             return;
         }
         this.lanes = buildLanes(this.stages);
-        this.app = AppRail.remembered(this.applications);
+        this.apps = AppRail.remembered(this.applications);
         this.renderFilter();
         this.render();
     }
@@ -119,12 +119,12 @@ class MoveItPage {
         const counted = this.view === 'releases'
             ? this.releases.filter((r) => r.HighestStage !== 'abandoned')
             : this.items.filter((i) => i.Status !== 'removed');
-        this.rail.render(this.applications, this.app,
+        this.rail.render(this.applications, this.apps,
             (id) => (id == null ? counted : counted.filter((row) => row.ApplicationId === id)).length);
     }
 
     scoped() {
-        const inScope = (row) => this.app == null || row.ApplicationId === this.app;
+        const inScope = (row) => this.apps.length === 0 || this.apps.includes(row.ApplicationId);
         return {
             lanes: this.lanes,
             now: this.now,
@@ -143,10 +143,10 @@ class MoveItPage {
         data.laneCounts = this.counts.laneCounts(data);
         this.counts.render(this.countsEl, data);
         this.coming.hide(this.view !== 'items');
-        if (this.view === 'items') this.comingUp.render(this.comingEl, { applications: this.applications, lists: this.lists, applicationId: this.app });
+        if (this.view === 'items') this.comingUp.render(this.comingEl, { applications: this.applications, lists: this.lists, applicationId: this.apps.length === 1 ? this.apps[0] : null });
         const empty = this.view === 'releases' ? data.releases.length === 0 : data.items.length === 0;
         if (empty) {
-            this.mainEl.innerHTML = '<p class="mi-status">Nothing is recorded for this application yet. Releases and their features and fixes are named on the History page; the board fills in from there.</p>';
+            this.mainEl.innerHTML = `<p class="mi-status">Nothing is recorded for ${this.apps.length > 1 ? 'these applications' : 'this application'} yet. Releases and their features and fixes are named on the History page; the board fills in from there.</p>`;
             return;
         }
         (this.view === 'releases' ? this.releaseBoard : this.board).render(this.mainEl, data);

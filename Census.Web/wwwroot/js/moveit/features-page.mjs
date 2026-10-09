@@ -22,14 +22,14 @@ class FeaturesPage {
         this.pageSize = config.pageSize ?? 50;
         this.shippedDays = config.shippedDays ?? 14;
         this.now = Date.now();
-        this.app = null;
+        this.apps = [];
         this.comingUp = new ComingUpForm(() => this.reload());
         this.renderShell();
         this.load();
     }
 
     renderShell() {
-        this.rail = new AppRail((id) => { this.app = id; this.closeDetail(); this.renderRows(); });
+        this.rail = new AppRail((ids) => { this.apps = ids; this.closeDetail(); this.renderRows(); });
         this.coming = new PopOver({ id: 'mi-coming', align: 'right', wide: true });
         this.root.innerHTML = `
             ${renderTabs('features')}
@@ -70,7 +70,7 @@ class FeaturesPage {
         }
         this.lanes = buildLanes(this.stages);
         this.top = topLane(this.lanes);
-        this.app = AppRail.remembered(this.applications);
+        this.apps = AppRail.remembered(this.applications);
         this.register = new Register(this.registerConfig()).mount(this.regHeadEl, this.mainEl);
         this.renderRows();
         const sel = this.register.selectedRow();
@@ -113,10 +113,10 @@ class FeaturesPage {
 
     renderRows() {
         this.rows = this.buildRows();
-        const inScope = (r) => this.app == null || r.item.ApplicationId === this.app;
-        this.rail.render(this.applications, this.app,
+        const inScope = (r) => this.apps.length === 0 || this.apps.includes(r.item.ApplicationId);
+        this.rail.render(this.applications, this.apps,
             (id) => this.rows.filter((r) => !r.removed && (id == null || r.item.ApplicationId === id)).length);
-        this.comingUp.render(this.comingEl, { applications: this.applications, lists: this.lists, applicationId: this.app });
+        this.comingUp.render(this.comingEl, { applications: this.applications, lists: this.lists, applicationId: this.apps.length === 1 ? this.apps[0] : null });
         this.register.setRows(this.rows.filter(inScope));
     }
 

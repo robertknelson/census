@@ -15,7 +15,7 @@ import { PopOver } from './pop-over.mjs';
 class HistoryPage {
     init(config = {}) {
         this.root = document.getElementById(config.rootId ?? 'moveit-root');
-        this.app = null;
+        this.apps = [];
         this.now = Date.now();
         this.settings = { staleDays: config.staleDays ?? 14, comingDays: config.comingDays ?? 60 };
         this.form = new NameBuildForm(() => this.reload());
@@ -24,8 +24,8 @@ class HistoryPage {
     }
 
     renderShell() {
-        this.rail = new AppRail((id) => {
-            this.app = id;
+        this.rail = new AppRail((ids) => {
+            this.apps = ids;
             this.renderFilter();
             this.render();
         });
@@ -52,7 +52,7 @@ class HistoryPage {
         this.entryEl = ref('entry');
         this.rail.mount(ref('shell'), ref('showing'));
         this.needs.mount(this.root);
-        ref('new').addEventListener('click', () => this.openForm({ applicationId: this.app, build: null }));
+        ref('new').addEventListener('click', () => this.openForm({ applicationId: this.apps.length === 1 ? this.apps[0] : null, build: null }));
     }
 
     async load() {
@@ -68,7 +68,7 @@ class HistoryPage {
         }
         this.stageSort = new Map(this.stages.map((s) => [s.Stage.toLowerCase(), s.Sort]));
         this.devSort = Math.min(...this.stages.map((s) => s.Sort));
-        this.app = AppRail.remembered(this.applications);
+        this.apps = AppRail.remembered(this.applications);
         this.renderFilter();
         this.render();
     }
@@ -99,16 +99,16 @@ class HistoryPage {
     // The rail counts the inbox: unnamed builds past DEV, per application.
     renderFilter() {
         const unnamed = this.history.filter((r) => this.isInbox(r));
-        this.rail.render(this.applications, this.app,
+        this.rail.render(this.applications, this.apps,
             (id) => (id == null ? unnamed : unnamed.filter((r) => r.ApplicationId === id)).length);
     }
 
     render() {
-        const rows = this.history.filter((r) => this.app == null || r.ApplicationId === this.app);
+        const rows = this.history.filter((r) => this.apps.length === 0 || this.apps.includes(r.ApplicationId));
         const needs = findNeeds({
             releases: this.status, items: this.items, events: this.events, approvals: this.approvals,
             history: this.history, applications: this.applications, stages: this.stages, isInbox: (r) => this.isInbox(r),
-        }, this.settings, this.now).filter((n) => this.app == null || n.applicationId === this.app);
+        }, this.settings, this.now).filter((n) => this.apps.length === 0 || this.apps.includes(n.applicationId));
         this.needs.setButton(needs.length ? `Needs a word <span class="mi-pop-count">${needs.length}</span>` : 'Nothing needs a word', needs.length ? 'is-warn' : '');
         this.needs.setBody(renderNeeds(needs));
         if (rows.length === 0) {

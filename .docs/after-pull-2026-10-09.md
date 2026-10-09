@@ -72,6 +72,7 @@ typo finder. Bring back the rows or the answer.
 |---|---|
 | 1 findings colour | Estate → a machine with a critical finding → the title is red |
 | — Fleet changes window | Estate → Changes → **From** / **To** above the feed; empty is the old feed, *Latest two* clears |
+| — Rail multi-select | Move It → any page → click several applications in the rail; the header names them, × clears; the choice carries between the pages |
 | — Layer from Atlas | Atlas → a Layered tab → click an *untagged* card → the inspector's **layer** row: chip or type, *by*, **Save**; the card moves into its band |
 | 2 History list | Estate → machine → History → **List** tab → Week / Month / All |
 | 3, 4a Compare | Estate → select two machines → Compare → aspects, *Differing rows only*, **Day** |

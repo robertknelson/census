@@ -43,7 +43,7 @@ class CalendarPage {
     init(config = {}) {
         this.root = document.getElementById(config.rootId ?? 'moveit-root');
         this.stage = null;
-        this.app = null;
+        this.apps = [];
         this.selected = null;
         this.view = localStorage.getItem(VIEW_KEY) === 'weekdays' ? 'weekdays' : 'full';
         const today = new Date();
@@ -55,7 +55,7 @@ class CalendarPage {
     }
 
     renderShell() {
-        this.rail = new AppRail((id) => { this.app = id; this.refresh(); });
+        this.rail = new AppRail((ids) => { this.apps = ids; this.refresh(); });
         this.key = new PopOver({ id: 'cal-key' });
         this.root.innerHTML = `
             ${renderTabs('calendar')}
@@ -135,7 +135,7 @@ class CalendarPage {
             return;
         }
         this.appsById = new Map(this.applications.map((a) => [a.ApplicationId, a]));
-        this.app = AppRail.remembered(this.applications);
+        this.apps = AppRail.remembered(this.applications);
         this.stageSort = new Map(this.stages.map((s) => [s.Stage, s.Sort]));
         const topSort = Math.max(...this.stages.map((s) => s.Sort));
         this.topStages = this.stages.filter((s) => s.Sort === topSort).map((s) => s.Stage);
@@ -180,7 +180,7 @@ class CalendarPage {
             this.stage = b.dataset.stage === '' ? null : b.dataset.stage;
             this.refresh();
         }));
-        this.rail.render(this.applications, this.app);
+        this.rail.render(this.applications, this.apps);
     }
 
     refresh() {
@@ -216,7 +216,7 @@ class CalendarPage {
 
     // Unstaged events (a hold, a resume) belong to the release, not a stage: All only.
     passes(e) {
-        if (this.app != null && e.ApplicationId !== this.app) return false;
+        if (this.apps.length > 0 && !this.apps.includes(e.ApplicationId)) return false;
         if (this.stage == null) return true;
         if (e.Kind === 'planned') return this.topStages.includes(this.stage);
         return e.Stage === this.stage;

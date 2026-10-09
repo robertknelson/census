@@ -1847,7 +1847,8 @@ real server.
   *+N more*.
 - **The application choice carries between pages.** Calendar, Where is it and History share
   one remembered choice (per browser, like the rail's collapse); a remembered application
-  that no longer exists falls back to All; × clears it everywhere.
+  that no longer exists falls back to All; × clears it everywhere. Since 2026-10-09 the
+  choice is a set (§26.3): the remembered key is `moveit.rail.apps`, a JSON array.
 - **Division's step header** — number and name on one line, the caption small beneath:
   101px → 65px, and it is sticky, so that is height back for the whole scroll.
 - **The week's cards** take their own height instead of stretching to the tallest in the
@@ -1858,6 +1859,26 @@ Aug 31 read *2 releases on hold* in one band, and Aug 29/30 showed two chips eac
 had shown only *+2 more*; WidgetCore chosen on Calendar opened History and Where is it on
 WidgetCore, and × returned all three to All; Division's step header measured 65px; the week
 ending Aug 31 drew its first cards at 92px, 92px and 296px.
+
+### 26.3 Several applications at once (2026-10-09, Robert: "Move it where is it: left sidebar filter should allow multi select")
+
+The rail's choice is a **set**. A click on an application toggles it in or out; *All
+applications* clears; the header line names every chosen application in order of choosing
+(*Application 3, Application 4* ×) and × clears. Each chosen row is filled as the one chosen
+row was. The find box still never hides a chosen row.
+
+The rail is one component with one remembered choice shared by every Move It page (§26.2),
+so the set is rail-wide, not Where is it's alone: Where is it, Features, Releases, History
+and Calendar all scope to *any of the chosen*. The per-row counts beside the names are
+unchanged — a count is per application whatever is chosen. Where the page needs one
+application — the *Coming up* form's preselected application, History's *New release* — it
+takes the single chosen one and otherwise leaves the field for the reader, as All did.
+`AppRail.remembered` returns the surviving ids as an array; a stale single-id key is ignored.
+
+Verified headless 2026-10-09 against the local AppTrak (Development profile): Where is it
+with Application 3 and Application 4 clicked — both rows filled in the rail, the board down
+to those two rows, the counts strip rescoped (*3 past target*), the header *Application 3,
+Application 4* with ×; the Features page opened on the same remembered pair.
 
 ## 27. The board on a stage list with no order (2026-10-07, Robert: "build")
 

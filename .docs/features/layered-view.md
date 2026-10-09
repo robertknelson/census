@@ -222,10 +222,13 @@ is what makes it a drawing slice rather than a modelling one.
 - Group by host in 3D: machines as transparent shells around their nodes on a plane.
 - The SPA config collector (§1.1a).
 - A per-system layer count on the registry panel beside crossings and unjudged.
+- Lift `pairs()` and `port()` out of the view into pure functions so the edge collapse and
+  the route points get node pins like the placement has.
 
-**The 2D refinement round — shelved 2026-10-09, his ruling: "let's shelve this, but we must
-come back to it." What read wrong in the demo screenshots, to merge with his own notes from
-the real estate when the round opens:**
+**The 2D refinement round — shelved 2026-10-09 ("let's shelve this, but we must come back
+to it"), then opened the same day as §10 the management register and built ("follow your
+lean, unless it is a pivotal decision. go"). What read wrong in the demo screenshots, each
+now answered in §10:**
 
 - A crossing line cuts straight across the planes between its ends: PROD → DEV runs through
   val's server row and over its labels. Routing (around planes, or along the gap) is the fix.
@@ -240,7 +243,7 @@ the real estate when the round opens:**
   slots. Honest, but sparse; a per-plane compaction would break the slot rule, so any change
   is a drawing change (narrower slots, or the empty columns drawn fainter).
 
-## 10. The management register — the shape of the refinement round (2026-10-09, Robert: "yes, write it into the spec")
+## 10. The management register — the shape of the refinement round (2026-10-09, Robert: "yes, write it into the spec"; "follow your lean, unless it is a pivotal decision. go" — built and verified the same day)
 
 **The audience, in his words:** "the audience will not be so technical … I'm targeting
 management with the 2D layered views … not really blocky per se, just that the nodes can
@@ -339,6 +342,31 @@ resolved by this register, each noted where it falls.
    (placement is untouched) plus a small node test for the edge collapse and the route
    points once they are pure functions.
 
-**Open:** whether the Atlas key gets a second column for the layered register (card shapes
-beside glyph shapes) or the layered tab draws its own key. Lean: the key gains a *layered*
-group with the card and the browser card, so one key still serves every tab.
+**Open → his "follow your lean":** the Atlas key gains two rows under *kind — shape* when
+the tab is layered (the card, the browser card) and two under *layers — bands* (the ×n
+pill, the routed crossing), so one key still serves every tab.
+
+### 10.6 Built (2026-10-09)
+
+`layered-view.mjs` rewritten as drawing only — `layered-placement.mjs` and its 17 pins are
+untouched. Settings on `.atl-svg`: card 168 × 56, gutter 24, row room 60, gap 60, side 48,
+pad 40, band label 56, header 40, route 28, name 18 chars, sub 30 chars, line 2, two band
+fills. Cards carry the kind icon (the physics shapes at 0.55), the name rule of 10.1, the
+sub line (observed name · machine, or *tag a layer in Triage* in the unplaced band), the
+layer in the corner when it is not web / spa / api, and the `+n` badge at the top-right.
+Bands run from the label column to the last plane; planes are a header cell plus two rules
+and the dotted side split with a *downstream* caption. Lines are one `<path>` per pair of
+cards from the facing edge (`port`), with a ×n pill when the pair carries several calls;
+a pair on different planes is routed down, along the gap below the bands (one lane per
+crossing, 28px apart) and up to the target's bottom edge. Selection matches any pair whose
+`data-edges` holds the inspector's edge index.
+
+**Verified headless on the demo:** MyWeb — dev, val, prod planes over three bands, the
+browser card over each web app, MyDB and AppDB cards named by canonical name with the
+observed name and machine underneath, the PROD → DEV crossing routed under the bands into
+dev's downstream strip; YourWeb — the spa's browser card saying *spa · calls unobserved*,
+prod's two uncanonical web apps falling back to hostnames side by side (the picture saying
+*tag me*), RefData ×2 on ref, three crossings in three lanes under the bands, the derived
+one dashed; the Atlas page with the key's new rows. No node test for the pair grouping and
+the ports yet — they read the placement through the view, so the shots are the proof; a
+pure extraction is noted in §9.

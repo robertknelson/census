@@ -323,12 +323,15 @@ class AtlasPage {
                 ${row(kind('cloud'), 'external entity')}
                 ${row(kind('diamond'), 'declared kind (task, …)')}
                 ${row(kind('dot'), 'endpoint')}
-                ${layered ? row(kind('triangle'), 'browser tier — a web or spa app, seen from the browser') : ''}
+                ${layered ? row(`<svg class="atl-key-swatch" viewBox="-13 -11 26 22" aria-hidden="true"><g class="atl-node atl-member atl-card"><rect class="atl-shape" x="-12" y="-7" width="24" height="14" rx="3"></rect></g></svg>`, 'card — one thing, named in words; the icon is its kind') : ''}
+                ${layered ? row(`<svg class="atl-key-swatch" viewBox="-13 -11 26 22" aria-hidden="true"><g class="atl-lay-browser"><rect class="atl-shape" x="-12" y="-8" width="24" height="16" rx="3"></rect><path class="atl-lay-browser-bar" d="M -12 -3 H 12"></path></g></svg>`, 'browser — a web or spa app, seen from the browser') : ''}
             </div>
             ${layered ? `<div>
-                <div class="atl-key-ghead">layers — rows</div>
-                ${LAYER_ROWS.map((r) => row('<span class="atl-key-mark">—</span>', r === 'unplaced' ? 'unplaced — no layer tag yet' : r === 'browser' ? 'browser — drawn above web and spa apps' : r === 'server' ? 'server — web, spa, api, declared kinds' : 'data — databases, by kind')).join('')}
+                <div class="atl-key-ghead">layers — bands</div>
+                ${LAYER_ROWS.map((r) => row('<span class="atl-key-mark">—</span>', r === 'unplaced' ? 'unplaced — no layer tag yet' : r === 'browser' ? 'browser — the website, over its web or spa app' : r === 'server' ? 'server — web, spa, api, declared kinds' : 'data — databases, by kind')).join('')}
                 ${row('<span class="atl-key-mark atl-lay-key-stem">┊</span>', 'spa — calls unobserved (no line is guessed)')}
+                ${row('<span class="atl-key-mark atl-lay-key-stem">×n</span>', 'one line per pair — ×n says how many calls it carries')}
+                ${row('<span class="atl-key-mark atl-lay-key-stem">⌐</span>', 'a crossing is routed under the bands, never through a plane')}
             </div>` : ''}
             ${stages ? `<div>
                 <div class="atl-key-ghead">stages</div>

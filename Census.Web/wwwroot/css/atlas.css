@@ -229,27 +229,53 @@
    strategy as unitless numbers: slot width, row height, the gap between stage planes, the
    side strip's gutter, the browser glyph's size, the outer padding. */
 .atl-svg {
-    --atl-lay-slot: 132;
-    --atl-lay-row: 112;
+    /* The management register (layered-view.md §10): cards, bands, routed lines. */
+    --atl-lay-card-w: 168;
+    --atl-lay-card-h: 56;
+    --atl-lay-gutter: 24;
+    --atl-lay-row-room: 60;
     --atl-lay-gap: 60;
     --atl-lay-side: 48;
-    --atl-lay-glyph: 15;
-    --atl-lay-pad: 56;
+    --atl-lay-pad: 40;
+    --atl-lay-band-label: 56;
+    --atl-lay-header: 40;
+    --atl-lay-route: 28;
+    --atl-lay-card-chars: 18;
+    --atl-lay-card-sub-chars: 30;
+    --atl-lay-line: 2;
+    --atl-lay-band: #f7f8fa;
+    --atl-lay-band-alt: #eef1f5;
 }
 /* The planes draw at their natural size and the canvas scrolls — a wide estate is wide;
    shrinking it to fit would make the labels unreadable, stretching it wastes the screen. */
 .atl-canvas:has(> .atl-lay) { overflow: auto; }
 .atl-svg.atl-lay { width: auto; height: auto; max-width: none; display: block; margin: 0 auto; }
-.atl-lay-slab { fill: var(--atl-panel); stroke: var(--atl-line); stroke-width: 1; }
-.atl-lay-stage { font: 600 15px/1 var(--atl-mono); fill: var(--atl-current); }
-.atl-lay-rowlabel { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; fill: var(--atl-muted); }
-.atl-lay-rowline { stroke: var(--atl-line); stroke-dasharray: 2 4; }
-.atl-lay-sideline { stroke: var(--atl-line); stroke-width: 1.5; }
-.atl-lay-badge { font-size: 10px; fill: var(--atl-muted); text-anchor: middle; }
-.atl-lay-badge-warn { fill: var(--atl-warn); }
-.atl-lay-browser .atl-shape { fill: #e8effc; stroke: var(--atl-accent); stroke-width: 1.6; }
-.atl-lay-stem { stroke: var(--atl-accent); stroke-width: 1.4; }
+.atl-lay-band-fill { fill: var(--atl-lay-band); }
+.atl-lay-band.is-alt .atl-lay-band-fill { fill: var(--atl-lay-band-alt); }
+.atl-lay-band.is-unplaced .atl-lay-band-fill { fill: #fbf3e4; }
+.atl-lay-band-label { font-size: 12px; font-weight: 650; letter-spacing: 0.12em; text-transform: uppercase; fill: var(--atl-muted); text-anchor: middle; }
+.atl-lay-header { fill: var(--atl-panel); stroke: var(--atl-line); stroke-width: 1; }
+.atl-lay-stage { font: 650 15px/1 var(--atl-mono); fill: var(--atl-current); }
+.atl-lay-caption { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--atl-muted); }
+.atl-lay-rule { stroke: var(--atl-line); stroke-width: 1.5; }
+.atl-lay-sideline { stroke: var(--atl-line); stroke-width: 1.2; stroke-dasharray: 2 4; }
+.atl-card .atl-shape { stroke-width: 1.5; }
+.atl-card .atl-card-icon .atl-shape { stroke-width: 2.2; }
+.atl-card-name { font-size: 13px; font-weight: 650; fill: var(--atl-ink, #1f2937); }
+.atl-card-sub { font-size: 10px; fill: var(--atl-muted); }
+.atl-card-sub-warn { fill: var(--atl-warn); font-weight: 600; }
+.atl-card-corner { font-size: 9.5px; fill: var(--atl-muted); text-anchor: end; text-transform: uppercase; letter-spacing: 0.06em; }
+.atl-lay-browser .atl-shape { fill: #e8effc; stroke: var(--atl-accent); stroke-width: 1.5; }
+.atl-lay-browser-bar { stroke: var(--atl-accent); stroke-width: 1; opacity: 0.6; }
+.atl-lay-browser-dot { fill: var(--atl-accent); opacity: 0.7; }
+.atl-lay-stem { stroke: var(--atl-accent); stroke-width: 1.6; }
 .atl-lay-stem-unobserved { stroke: var(--atl-muted); stroke-dasharray: 2 4; }
+.atl-lay .atl-edge { stroke-width: var(--atl-lay-line); stroke-linejoin: round; stroke-linecap: round; }
+.atl-lay .atl-edge-crossing { stroke-width: calc(var(--atl-lay-line) + 0.5); }
+.atl-lay .atl-edge-crossing.atl-edge-accepted { stroke-width: var(--atl-lay-line); }
+.atl-lay path.atl-selected { stroke-width: calc(var(--atl-lay-line) + 2); }
+.atl-lay-count rect { fill: var(--atl-panel); stroke: #9aa4b1; stroke-width: 1; }
+.atl-lay-count text { font-size: 10px; font-weight: 650; fill: var(--atl-muted); text-anchor: middle; }
 .atl-lay-key-stem { color: var(--atl-muted); font-weight: 700; }
 .atl-seg.is-disabled { opacity: 0.5; }
 .atl-seg button:disabled { cursor: default; }

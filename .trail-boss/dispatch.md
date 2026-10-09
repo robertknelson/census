@@ -26,6 +26,15 @@ ignite: start-census.bat
 
 ## The latest feature added
 
+**The layered picture is drawn for management now.** Each thing is a card with its name in
+words and the technical name in small print underneath; the layers are bands that run
+across the whole page, labelled once on the left; the stages are columns over them; a
+website is a browser-shaped card over its server. One line per pair of things, with a
+count when there are several calls. A connection into the wrong stage is drawn in red and
+routed underneath the bands so it never cuts across another stage's column. Nothing is
+hidden and nothing is guessed: an application nobody has placed sits in an *unplaced* band,
+and a thing with no canonical name shows its technical name until someone gives it one.
+
 **Your notes from using it, built.** The twenty-two things you wrote down after a day on the
 real estate are in, except the one you asked to discuss last. The board's PROD column now
 always shows what is live for each application, and every card says the day it got there
@@ -73,9 +82,8 @@ the new query on the item that reads *not seen* and bring back its answer.
 system — the callers of your members, and a logging system everything calls. Nothing is
 built for it; the round note holds a position to argue with.
 
-**Shelved, to come back to:** the flat layered picture, now specced for its real audience —
-management: bigger named cards, layers as bands across the page, fewer and cleaner lines.
-The 3D version stays parked behind it.
+**Look at the layered picture on the real estate** once a system's canonical names are
+tagged; it is drawn for management now (below). The 3D version stays parked behind it.
 
 **Then the Move It round:** one SQL statement, yours, then the nine steps in
 `.docs/move-it-round-2026-10-07.md` on your real data.

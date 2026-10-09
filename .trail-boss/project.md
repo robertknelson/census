@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Work his stream-of-consciousness notes from using Census and Move It (2026-10-09). SHELVED, must return: the layered 2D refinement round — five things that read wrong are logged in layered-view.md §9. 3D parked behind it. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Pull and look: his 22-note round is built through step 6 (round-2026-10-09.md; move-it.md §29, census-web.md §16). Re-run apptrak/sql/003-lookups.sql on the real AppTrak before the first build release. Run questions/14-why-not-seen.sql on the item that reads not seen. Open step 7, the Atlas scope discussion (round note §3) — a discussion, not a build. SHELVED, must return: the layered 2D refinement (layered-view.md §9); 3D parked behind it. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -727,3 +727,15 @@ relates: []
   more things that read wrong (crossing lines through intermediate planes, lines through
   labels, 22-char cut, no-canonical-name columns, sparse planes) logged in layered-view.md §9.
   **Shelved on his ruling, "we must come back to it."** Next: his notes from Census and Move It.
+- 2026-10-09, the round — his 22 notes from using Census and Move It on the real estate,
+  absorbed into `.docs/round-2026-10-09.md`; four answered from the record (registry, grouping,
+  built-not-seen, hatched days), nine questions answered by him in one line each, one held
+  ("hold the thought, we'll tackle this last"). "go go go!" → six slices, each committed and
+  verified headless: findings titles by severity; Releases column order and facet cells;
+  calendar Sun–Sat with Full week | Weekdays and arrivals as a sentence; the board's PROD lane
+  keeps each application's latest shipped item and chips say when they arrived and when they
+  are due; Compare's aspects, differing toggle and dated Day select; the dossier at a chosen
+  day; History's List tab (nights that changed); the release page's deployment history,
+  claim / release / move with a `build-released` event; question 14 for his not-seen item.
+  Tests: Test-BoardLanes 7/7, Test-MoveItQuestions 33/33 (seven new), Test-LayeredPlacement
+  17/17. **Thirteen local commits, not pushed.** Step 7 (Atlas scope) is his to open.

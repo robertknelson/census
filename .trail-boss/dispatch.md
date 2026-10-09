@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Atlas flags cross-stage calls and draws systems as layered stage planes; committed, not pushed"
-resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
+summary: "His 22 notes from the real estate built into Census and Move It, six slices; committed, not pushed"
+resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; re-run apptrak/sql/003-lookups.sql on the real AppTrak once (new event kind); tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -25,6 +25,20 @@ ignite: start-census.bat
 ---
 
 ## The latest feature added
+
+**Your notes from using it, built.** The twenty-two things you wrote down after a day on the
+real estate are in, except the one you asked to discuss last. The board's PROD column now
+always shows what is live for each application, and every card says the day it got there
+and when it is due. Compare lets you pick which parts to compare, show every row or only the
+differences, and pick the day. A machine's page can be read as of any collected day, and its
+History has a new List: just the nights something changed, each one opening to show what.
+The calendar runs Sunday to Saturday with a weekdays-only view that still tells you what
+happened over the weekend. A release's page shows every place each of its builds has ever
+been, lets you claim a build the pings saw, and lets you release or move a claim with a
+record of who did it and why. Findings are coloured by how bad they are; the filter groups
+are easier to tell apart; the columns are in the order you asked. There is also a query to
+run against the real tracking database for the build that was at DEV but reads as never
+seen; it says which link is broken.
 
 **Atlas can draw a system the way the old architecture diagrams did.** Pick *Layered* and
 each stage becomes a panel, dev through prod, with three rows on every panel: the browser
@@ -51,13 +65,16 @@ application sits in, and it would not have caught this on its own.
 
 ## What's next
 
-**Pull and look at the real estate in Atlas.** Tag the site and the service if they are
-not tagged yet; the edge should read *crossing, down* and the finding should sit on the
-site's machine. Accept the crossings that are meant.
+**Pull and use it.** Before the first time you release a build claim on the real tracking
+database, run the lookups script once (it adds the new event kind and nothing else). Run
+the new query on the item that reads *not seen* and bring back its answer.
 
-**Tag one real system's applications** (web, spa or api, in Triage), open it Layered, and
-bring back what reads wrong — he wants to refine the flat picture first. The 3D version
-is parked until then.
+**The one note held for discussion:** which neighbouring systems Atlas should draw around a
+system — the callers of your members, and a logging system everything calls. Nothing is
+built for it; the round note holds a position to argue with.
+
+**Shelved, to come back to:** the flat layered picture's refinements (five noted). The 3D
+version stays parked behind it.
 
 **Then the Move It round:** one SQL statement, yours, then the nine steps in
 `.docs/move-it-round-2026-10-07.md` on your real data.

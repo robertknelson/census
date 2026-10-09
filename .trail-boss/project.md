@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull and look: his 22-note round is built through step 6 (round-2026-10-09.md; move-it.md §29, census-web.md §16). Re-run apptrak/sql/003-lookups.sql on the real AppTrak before the first build release. Run questions/14-why-not-seen.sql on the item that reads not seen. Open step 7, the Atlas scope discussion (round note §3) — a discussion, not a build. SHELVED, must return: the layered 2D refinement (layered-view.md §9); 3D parked behind it. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Pull and look: his 22-note round is built through step 6 (round-2026-10-09.md; move-it.md §29, census-web.md §16). Re-run apptrak/sql/003-lookups.sql on the real AppTrak before the first build release. Run questions/14-why-not-seen.sql on the item that reads not seen. Open step 7, the Atlas scope discussion (round note §3) — a discussion, not a build. SHELVED, must return: the layered 2D refinement — its shape is now specced as layered-view.md §10, the management register (cards, bands, routed lines), build order inside; 3D parked behind it. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -739,3 +739,10 @@ relates: []
   claim / release / move with a `build-released` event; question 14 for his not-seen item.
   Tests: Test-BoardLanes 7/7, Test-MoveItQuestions 33/33 (seven new), Test-LayeredPlacement
   17/17. **Thirteen local commits, not pushed.** Step 7 (Atlas scope) is his to open.
+- 2026-10-09, later — the layered view's audience named: management, not the engineer
+  ("the nodes can be larger, the layers can be more defined, almost like horizontal
+  swimlanes (but not exactly swimlanes)"). Position taken and ratified ("yes, write it into
+  the spec"): the layered strategy *is* that picture, no second mode. `layered-view.md` §10:
+  cards with names in words, full-width bands with the label once, planes as columns over
+  them, one heavier line per pair, edge-to-edge endpoints, crossings routed along the gap
+  below the bands. Placement untouched. Spec only; the round stays shelved until he opens it.

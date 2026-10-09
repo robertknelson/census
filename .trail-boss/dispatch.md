@@ -73,8 +73,9 @@ the new query on the item that reads *not seen* and bring back its answer.
 system — the callers of your members, and a logging system everything calls. Nothing is
 built for it; the round note holds a position to argue with.
 
-**Shelved, to come back to:** the flat layered picture's refinements (five noted). The 3D
-version stays parked behind it.
+**Shelved, to come back to:** the flat layered picture, now specced for its real audience —
+management: bigger named cards, layers as bands across the page, fewer and cleaner lines.
+The 3D version stays parked behind it.
 
 **Then the Move It round:** one SQL statement, yours, then the nine steps in
 `.docs/move-it-round-2026-10-07.md` on your real data.

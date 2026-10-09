@@ -59,7 +59,11 @@ them in depth.
 planes, so the stage variants of one thing line up front to back and read as one column
 through the depth. A crossing (red, inherited) is a line that leaves that lattice — which
 is why it shows. A canonical name makes the alignment; without one the observed name
-stands in (§1.5).
+stands in (§1.5). Two nodes sharing a name on one plane (the same database on two servers
+of one stage — `Shared_REF` on DEVSQLBOX and PRODSQLBOX in the demo) are both present, so
+they stand side by side within the name's column: each node keeps one offset on every
+plane it is on, and the column is only as wide as its most crowded plane (found and fixed
+2026-10-09; the first cut drew them on top of each other).
 
 **Rows and what lands in each:**
 

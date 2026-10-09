@@ -31,6 +31,8 @@ const graph = {
         db('d-dev', 'MyDB_DEV', 'DEVSQL', ['dev'], 'MyDB'),
         db('d-prod', 'MyDB', 'PRODSQL', ['prod'], 'MyDB'),
         db('d-both', 'Shared', 'PRODSQL', ['dev', 'prod'], 'Shared'),
+        // the same canonical name on a second server of the same stage — both present, side by side
+        db('d-both-2', 'Shared', 'DEVSQL', ['dev'], 'Shared'),
         // a downstream service of another system, staged qa — a plane the members never named
         { id: 'peer', kind: 'application', name: 'billing/api', machine: 'WEB01', member: false, offSystem: true, unclassified: false,
           serves: [{ system: 'BillingSvc', stages: ['qa'], layer: 'api' }] },
@@ -64,6 +66,8 @@ console.log('Slots — the same column on every plane');
 assert('MyDB_DEV on dev and MyDB on prod share a slot by canonical name', inst('d-dev').slot === inst('d-prod').slot, `${inst('d-dev').slot} vs ${inst('d-prod').slot}`);
 assert('Shared (dev+prod) stands on both planes, same slot', inst('d-both', 'dev') && inst('d-both', 'prod') && inst('d-both', 'dev').slot === inst('d-both', 'prod').slot);
 assert('the web app keeps one slot across dev and prod', inst('a-dev').slot === inst('a-prod').slot);
+assert('two sharers of one key on one plane take different slots', inst('d-both', 'dev').slot !== inst('d-both-2', 'dev').slot, `${inst('d-both', 'dev').slot} vs ${inst('d-both-2', 'dev').slot}`);
+assert('  and the key is only as wide as its most crowded plane (data row: MyDB + Shared×2 = 3)', p.mainWidth === 3, p.mainWidth);
 
 console.log('The side strip');
 assert('a downstream service sits in the side strip on its own stage\'s plane', inst('peer').region === 'side' && inst('peer').stage === 'qa' && inst('peer').row === 'server');

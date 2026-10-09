@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "The notes round, the management-register picture and the cross-cutting fold are in and pushed; .docs/after-pull-2026-10-09.md says what to run"
+summary: "Notes round, management-register picture and cross-cutting fold pushed; after-pull-2026-10-09.md says what to run"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; re-run apptrak/sql/003-lookups.sql on the real AppTrak once (new event kind); tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:

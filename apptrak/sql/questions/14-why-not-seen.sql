@@ -2,8 +2,10 @@
 --    (move-it.md §29, his 11: a build that WAS deployed to DEV, superseded a month later, and
 --    the item still reads not seen. "not sure how to assist, since you cannot see the data.")
 --
--- Set @WorkItemId and run against the real AppTrak. Read-only. Six result sets, each one of
--- the links the location rule (01) needs; the broken one is the answer:
+-- Set @WorkItemId (or @Title) and run against the real AppTrak. Read-only. An item that does
+-- not match says so in one row and lists the items to pick from (2026-10-09: "six resultsets,
+-- all empty" — no page showed the Id then; the detail panel does now). Otherwise six result
+-- sets, each one of the links the location rule (01) needs; the broken one is the answer:
 --   1. the item — its build string, length and bytes (a trailing space or a look-alike
 --      character is invisible in a grid; the hex is not)
 --   2. the release's claimed builds (ReleaseBuild), with how each compares to the item's build:
@@ -16,13 +18,34 @@
 --   6. the endpoints registered for the application — a changed EndpointId at DEV means the old
 --      deployment rows hang off an endpoint nothing current matches
 
-DECLARE @WorkItemId int = 0;   -- <- the item
+DECLARE @WorkItemId int = 0;              -- <- the item's Id (the detail panel shows it as #Id) ...
+DECLARE @Title nvarchar(200) = NULL;      -- ... or part of its title instead, e.g. N'%ledger%'
 
 SET NOCOUNT ON;
+
+-- A title resolves to the one item it matches; several matches or none are said, not guessed.
+IF @Title IS NOT NULL AND (SELECT COUNT(*) FROM moveit.WorkItem WHERE Title LIKE @Title) = 1
+    SELECT @WorkItemId = Id FROM moveit.WorkItem WHERE Title LIKE @Title;
 
 DECLARE @ApplicationId int, @ReleaseId int, @Build nvarchar(50);
 SELECT @ApplicationId = w.ApplicationId, @ReleaseId = w.ReleaseId, @Build = w.IncludedInBuild
 FROM moveit.WorkItem w WHERE w.Id = @WorkItemId;
+
+-- 0. no such item: say so, and offer the nearest — six empty grids answer nothing
+IF @ApplicationId IS NULL
+BEGIN
+    SELECT CASE WHEN @Title IS NOT NULL THEN 'no single work item has a title like ' + @Title + ': '
+                ELSE 'no work item has Id ' + CAST(@WorkItemId AS varchar(10)) + ': ' END
+           + CAST((SELECT COUNT(*) FROM moveit.WorkItem) AS varchar(10)) + ' items exist, Ids '
+           + ISNULL(CAST((SELECT MIN(Id) FROM moveit.WorkItem) AS varchar(10)), '-') + ' to '
+           + ISNULL(CAST((SELECT MAX(Id) FROM moveit.WorkItem) AS varchar(10)), '-')
+           + '. Set @WorkItemId to one of the Ids below (the detail panel shows it as #Id), or @Title to a pattern matching one title.' AS Problem;
+    SELECT TOP 50 w.Id AS WorkItemId, w.Title, w.Kind, w.ApplicationId, r.Name AS [Release], w.IncludedInBuild, w.CreatedAt
+    FROM moveit.WorkItem w LEFT JOIN moveit.Release r ON r.Id = w.ReleaseId
+    WHERE @Title IS NULL OR w.Title LIKE @Title
+    ORDER BY w.CreatedAt DESC, w.Id DESC;
+    RETURN;
+END;
 
 -- 1. the item
 SELECT w.Id AS WorkItemId, w.Title, w.Kind, w.ApplicationId, w.ReleaseId, r.Name AS [Release],

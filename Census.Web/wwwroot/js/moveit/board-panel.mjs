@@ -154,7 +154,7 @@ export function renderDetail(item, release, app, now, lanes = []) {
     const shipped = top != null && laneFor(item.Status, lanes) === top.id;
     return `
         <h2 class="mi-detail-title">${escapeHtml(item.Title)}</h2>
-        <p class="mi-detail-sub">${escapeHtml(item.Kind)} ${item.Release ? `in ${escapeHtml(item.Release)} ` : ''}for ${escapeHtml(appLabel(app))}${heard ? ', not in a release yet' : ''}</p>
+        <p class="mi-detail-sub">${escapeHtml(item.Kind)} ${item.Release ? `in ${escapeHtml(item.Release)} ` : ''}for ${escapeHtml(appLabel(app))}${heard ? ', not in a release yet' : ''} <span class="mi-detail-id" title="moveit.WorkItem.Id — what questions/14-why-not-seen.sql asks for">#${item.WorkItemId}</span></p>
         <dl class="mi-detail-grid">
             ${row('Where', `<span class="mi-stage" style="--lane: ${stageHue(item.Status)}">${escapeHtml(item.Status)}</span>${item.Evidence ? ` <span class="mi-muted">${escapeHtml(item.Evidence)}</span>` : ''}`)}
             ${row(heard ? 'Heard' : shipped ? 'Shipped' : 'Since', item.Since ? `${shortDate(item.Since)}, ${days(since)}${shipped ? ' ago' : ''}` : null)}

@@ -2186,6 +2186,15 @@ reads at DEV only because the release claims the newer build — the fourth set 
 words. He runs it against the real AppTrak and brings back the rows, or the answer. The
 questions runner runs it with `@WorkItemId = 0` and gets six empty sets, by design.
 
+**Question 14 after his first run (2026-10-09, "six resultsets, all empty"):** the first set
+is the item by Id, so six empties mean the Id matched nothing — and no page showed a work
+item's Id. Now the detail panel on Where is it and Features ends its kind line with *#Id*
+(`WorkItem.Id`, muted, mono), the script takes `@Title` (a LIKE pattern that must match one
+title) as the alternative, and a miss returns one row saying so with the item list under it
+instead of six empty grids. Verified on the demo: Id 0 → *no work item has Id 0: 19 items
+exist, Ids 101 to 1103 …* with the list; `%Audit%` → *no single work item …* with the two
+Audit items; `%Audit viewer%` → the six sets for item 501.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

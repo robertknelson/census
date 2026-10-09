@@ -177,6 +177,7 @@
 .mi-detail-close:hover { color: var(--mi-ink); }
 .mi-detail-title { font: 600 18px/1.25 var(--mi-display); padding-right: 1.5rem; }
 .mi-detail-sub { color: var(--mi-muted); margin: 0.3rem 0 1rem; }
+.mi-detail-id { font-family: var(--mi-mono, ui-monospace, monospace); font-size: 12px; color: var(--mi-muted); margin-left: 0.4rem; }
 .mi-detail-h3 { font: 600 12px/1 var(--mi-font); color: var(--mi-muted); margin: 1.25rem 0 0.5rem; padding-top: 1rem; border-top: 1px solid var(--mi-rule-soft); }
 .mi-detail-grid { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.4rem 0.75rem; }
 .mi-dt { color: var(--mi-muted); }

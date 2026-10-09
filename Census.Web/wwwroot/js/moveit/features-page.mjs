@@ -241,7 +241,7 @@ class FeaturesPage {
         const links = [...(d?.links?.needs ?? []).map((l) => ({ ...l, dir: 'needs' })), ...(d?.links?.neededBy ?? []).map((l) => ({ ...l, dir: 'needed by' }))];
         return `
             <h2 class="mi-detail-title">${escapeHtml(item.Title)}</h2>
-            <p class="mi-detail-sub">${escapeHtml(item.Kind)}${item.Release ? ` in ${escapeHtml(item.Release)}` : ''} for ${escapeHtml(appLabel(r.app))}</p>
+            <p class="mi-detail-sub">${escapeHtml(item.Kind)}${item.Release ? ` in ${escapeHtml(item.Release)}` : ''} for ${escapeHtml(appLabel(r.app))} <span class="mi-detail-id" title="moveit.WorkItem.Id — what questions/14-why-not-seen.sql asks for">#${item.WorkItemId}</span></p>
             <p class="rg-now">Now: ${r.removed ? '<span class="mi-muted">removed</span>' : `<span class="mi-stage" style="--lane: ${stageHue(item.Status)}">${escapeHtml(item.Status)}</span>`}${item.Evidence ? ` <span class="mi-muted">${escapeHtml(item.Evidence)}</span>` : ''}${item.Since ? ` <span class="mi-muted">· since ${escapeHtml(shortDate(item.Since))}, ${days(daysAgo(item.Since, this.now))}${r.shipped ? ' ago' : ''}</span>` : ''}</p>
             ${d ? '' : '<p class="mi-status">The story could not be loaded for this item.</p>'}
             <ol class="rg-story">

@@ -45,13 +45,18 @@ kebab row per kind. Manifests you hand-write from now on say `depends-on`.
 
 ## 3. The item that reads "Built, not seen"
 
-Open `apptrak\sql\questions\14-why-not-seen.sql`, set the id at the top:
+Open `apptrak\sql\questions\14-why-not-seen.sql`, set the id at the top — the item's detail
+panel on Where is it or Features now shows it as **#Id** next to the kind line (your run came
+back "six resultsets, all empty": no page showed the Id then, so the number was a guess) —
+or set a title pattern instead:
 
 ```sql
 DECLARE @WorkItemId int = <the item's id>;
+DECLARE @Title nvarchar(200) = NULL;        -- or N'%part of the title%'
 ```
 
-Run it (SSMS or sqlcmd). Six result sets; read them top to bottom. The fourth has a
+Run it (SSMS or sqlcmd). If neither matches one item, one row says so and a second lists the
+items to pick from. Otherwise six result sets; read them top to bottom. The fourth has a
 *Reading* column that says in words whether the item is carried forward at each stage and,
 if not, why: the newer build at the stage is not claimed by the release (claim it on the
 release page), or the current build is older (a rollback), or the item's build was never

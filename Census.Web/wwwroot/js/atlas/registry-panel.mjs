@@ -68,12 +68,15 @@ export class RegistryPanel {
             // stage-crossings.md §3.5: crossings touching a member, and the honest remainder.
             ...(r.crossings ? [`<span class="atl-drift-bad">${r.crossings} stage crossing${r.crossings === 1 ? '' : 's'}</span>`] : []),
             ...(r.unjudgedEdges ? [`<span class="atl-muted">${r.unjudgedEdges} edge${r.unjudgedEdges === 1 ? '' : 's'} unjudged — an end unstaged</span>`] : []),
+            // cross-cutting-systems.md §2: the count is observed, the flag is his.
+            ...(!r.crossCutting && r.calledBy >= 2 ? [`<span class="atl-drift-warn">called by ${r.calledBy} systems — cross-cutting? <button class="atl-btn atl-btn-sm" data-mark-cross="${escapeHtml(r.name)}">Mark</button></span>`] : []),
         ].join(' · ');
         return `
             <div class="atl-card">
                 <div class="atl-card-head">
                     <span class="atl-mono">${escapeHtml(r.name)}</span>
                     <span>
+                        ${r.crossCutting ? `<span class="atl-badge" title="A system every system calls; in other systems' graphs its endpoints fold into one capsule per stage">cross-cutting${r.calledBy ? ` · called by ${r.calledBy}` : ''}</span>` : ''}
                         ${r.memberCount === 0 ? '<span class="atl-drift-warn">no entity serves this</span>' : `<span class="atl-muted">${r.memberCount} member${r.memberCount === 1 ? '' : 's'}</span>`}
                         <button class="atl-btn" data-edit="${escapeHtml(r.name)}">Edit</button>
                     </span>
@@ -99,6 +102,8 @@ export class RegistryPanel {
                     <input class="atl-input" data-field="expected" value="${escapeHtml((r.expectedStages ?? []).join(', '))}" placeholder="comma-separated; empty = no claim"></div>
                 <div class="atl-row"><span class="atl-key">note</span>
                     <input class="atl-input" data-field="note" value="${escapeHtml(r.note ?? '')}"></div>
+                <div class="atl-row"><span class="atl-key">cross-cutting</span>
+                    <label class="atl-muted"><input type="checkbox" data-field="crossCutting" ${r.crossCutting ? 'checked' : ''}> every system calls it (logging, health, auth) — fold its endpoints into one capsule per stage in other systems' graphs</label></div>
                 <div class="atl-row">
                     <button class="atl-btn atl-btn-primary" data-save="${escapeHtml(r.name)}">Save</button>
                     <button class="atl-btn" data-cancel>Cancel</button>
@@ -136,10 +141,16 @@ export class RegistryPanel {
                     description: read('description') || undefined,
                     expectedStages: expected.length ? expected : undefined,
                     note: read('note') || undefined,
+                    crossCutting: form.querySelector('[data-field="crossCutting"]').checked || undefined,
                     assertedAt: new Date().toISOString().slice(0, 10),
                 };
             });
         });
+
+        on('[data-mark-cross]', 'click', (e) => this.persist((config) => {
+            const name = Object.keys(config.systems).find((k) => k.toLowerCase() === e.target.dataset.markCross.toLowerCase()) ?? e.target.dataset.markCross;
+            config.systems[name] = { ...(config.systems[name] ?? {}), crossCutting: true, assertedAt: new Date().toISOString().slice(0, 10) };
+        }));
 
         on('[data-unregister]', 'click', (e) => this.persist((config) => {
             const name = Object.keys(config.systems).find((k) => k.toLowerCase() === e.target.dataset.unregister.toLowerCase());

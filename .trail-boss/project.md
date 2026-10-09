@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull and look: his 22-note round is built through step 6 (round-2026-10-09.md; move-it.md §29, census-web.md §16). Re-run apptrak/sql/003-lookups.sql on the real AppTrak before the first build release. Run questions/14-why-not-seen.sql on the item that reads not seen. Open step 7, the Atlas scope discussion (round note §3) — a discussion, not a build. The layered view is now the management register (layered-view.md §10, built): look at it on the real estate once canonical names are tagged, bring back what reads wrong. 3D parked behind it. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Pull and look. Register AppTrak on the real estate''s registry card and tick cross-cutting (or press Mark on its suggestion): every site''s graph then folds it into one capsule per stage; Services: Unfolded brings the endpoints back. Re-run apptrak/sql/003-lookups.sql once before the first build release; run questions/14-why-not-seen.sql on the not-seen item; tag canonical names on one system and open it Layered. 3D parked. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -753,3 +753,10 @@ relates: []
 - 2026-10-09, last — "so how do we address the 'honest gap'?" → the register's lines lifted
   into `layered-lines.mjs` (pure) with `tests/Test-LayeredLines.mjs` 16/16; the YourWeb shot
   byte-identical before and after. Nothing is drawn without a pin now.
+- 2026-10-09, evening — item 8, the cross-cutting concern (AppTrak in every site's graph):
+  position taken (a `crossCutting` flag on the registry card, a fold into one capsule per
+  stage, never a hide, nothing inferred from counts), "go" → built as
+  `cross-cutting-systems.md`: the fold in the graph controller reusing the canonical merge,
+  the Services switch, the capsule shape, the Services band, the card's badge / suggestion /
+  checkbox; the Telemetry + LOGBOX fixture; Test-StageCrossings re-pinned 25/25, placement
+  19/19; six headless shots. Three calls logged. The step-7 discussion is closed.

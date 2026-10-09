@@ -29,6 +29,7 @@
     { "name": "VALWEBBOX",     "bucket": "corp", "expected": true,  "notes": "stage topology: VAL web tier" },
     { "name": "PRODWEBBOX",    "bucket": "corp", "expected": true,  "notes": "stage topology: PROD web tier" },
     { "name": "DEVSQLBOX",     "bucket": "corp", "expected": true,  "notes": "stage topology: serves DEV and VAL both - the shared box" },
-    { "name": "PRODSQLBOX",    "bucket": "corp", "expected": true,  "notes": "stage topology: PROD database tier" }
+    { "name": "PRODSQLBOX",    "bucket": "corp", "expected": true,  "notes": "stage topology: PROD database tier" },
+    { "name": "LOGBOX",        "bucket": "corp", "expected": true,  "notes": "stage topology: the Telemetry service, one site per stage - the cross-cutting fixture" }
   ]
 }

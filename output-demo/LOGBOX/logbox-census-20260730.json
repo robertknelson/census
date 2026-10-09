@@ -1,0 +1,640 @@
+{
+  "schemaVersion": 1,
+  "collectorVersion": "1.0.0",
+  "computerName": "LOGBOX",
+  "collectedUtc": "2026-07-30T03:26:02.0000000Z",
+  "identity": {
+    "status": "ok",
+    "data": {
+      "domain": "corp.example.com",
+      "manufacturer": "Microsoft Corporation",
+      "model": "Virtual Machine",
+      "smbiosUuid": "4c4c4544-1006-3610-8052-b7c04f560006",
+      "machineGuid": "c6d7e8f9-0ab5-4c67-d182-9bacbdcedf06",
+      "biosSerialNumber": "LOGSRV01",
+      "isVirtual": true,
+      "hypervisorSignals": [
+        "Hyper-V"
+      ],
+      "cpuSockets": 1,
+      "cpuCores": 2,
+      "cpuLogicalProcessors": 4
+    },
+    "durationMs": 279
+  },
+  "memory": {
+    "status": "ok",
+    "data": {
+      "totalPhysicalMemoryBytes": 8589934592,
+      "totalPhysicalMemoryGB": 8
+    },
+    "durationMs": 8
+  },
+  "os": {
+    "status": "ok",
+    "data": {
+      "productName": "Windows Server 2022 Standard",
+      "editionId": "ServerStandard",
+      "installationType": "Server",
+      "currentBuild": "20348",
+      "ubr": 3630,
+      "displayVersion": "21H2",
+      "architecture": "64-bit",
+      "installDate": "2025-01-14T09:10:00.0000000-05:00",
+      "lastBootUpTime": "2026-07-12T03:05:00.0000000-04:00",
+      "pendingReboot": false,
+      "pendingRebootReasons": []
+    },
+    "durationMs": 88
+  },
+  "updates": {
+    "status": "ok",
+    "data": {
+      "currentBuild": "20348",
+      "ubr": 3630,
+      "lastDetectSuccessTime": "2026-07-30 02:10:00",
+      "lastInstallSuccessTime": "2026-07-14 03:05:00"
+    },
+    "durationMs": 39
+  },
+  "dotnet": {
+    "status": "ok",
+    "data": {
+      "frameworkReleaseId": 533320,
+      "coreRuntimes": [
+        "Microsoft.AspNetCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+        "Microsoft.NETCore.App 8.0.27 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]"
+      ],
+      "sdks": []
+    },
+    "durationMs": 42
+  },
+  "drives": {
+    "status": "ok",
+    "data": {
+      "drives": [
+        {
+          "driveLetter": "C",
+          "label": "OS",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 107374182400,
+          "freeBytes": 75161927680,
+          "usedBytes": 32212254720,
+          "percentFree": 70.0
+        },
+        {
+          "driveLetter": "D",
+          "label": "Web",
+          "fileSystem": "NTFS",
+          "driveType": "Fixed",
+          "healthStatus": "Healthy",
+          "sizeBytes": 107374182400,
+          "freeBytes": 64424509440,
+          "usedBytes": 42949672960,
+          "percentFree": 60.0
+        }
+      ]
+    },
+    "durationMs": 218
+  },
+  "apps": {
+    "status": "ok",
+    "data": {
+      "count": 2,
+      "entries": [
+        {
+          "displayName": "Microsoft ODBC Driver 17 for SQL Server",
+          "displayVersion": "17.10.6.1",
+          "publisher": "Microsoft Corporation",
+          "installDate": "20250114",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": null
+        },
+        {
+          "displayName": "Symantec Endpoint Protection",
+          "displayVersion": "12.1.7454.7000",
+          "publisher": "Symantec Corporation",
+          "installDate": "20250114",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": null
+        }
+      ]
+    },
+    "durationMs": 690
+  },
+  "iis": {
+    "status": "ok",
+    "data": {
+      "server": {
+        "versionString": "10.0.20348.1",
+        "majorVersion": 10,
+        "pathWwwRoot": "C:\\inetpub\\wwwroot",
+        "configPath": "C:\\Windows\\System32\\inetsrv\\config\\applicationHost.config",
+        "configLastWriteUtc": "2026-07-02T10:14:07Z",
+        "configSha256": "7f1c4a7a08c4457a4a53a425a43eae416559fae4b60a4841f86a11b01a7427f7"
+      },
+      "sites": [
+        {
+          "name": "telemetry.dev.example.com",
+          "id": "2",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "D:\\sites\\telemetry.dev.example.com",
+            "expanded": "D:\\sites\\telemetry.dev.example.com",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:telemetry.dev.example.com",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "telemetry.dev.example.com",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            },
+            {
+              "protocol": "https",
+              "bindingInformation": "*:443:telemetry.dev.example.com",
+              "ip": "*",
+              "port": 443,
+              "hostHeader": "telemetry.dev.example.com",
+              "parsed": true,
+              "sslFlags": "1",
+              "certificateHash": "D939D654803E4F08A0703996289A036FC9145E77",
+              "certificateStoreName": "My"
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "D:\\logs\\W3SVC2",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "D:\\logs\\W3SVC2",
+              "exists": true,
+              "fileCount": 6,
+              "totalBytes": 9216,
+              "oldestUtc": "2026-06-01T00:02:19Z",
+              "newestUtc": "2026-07-31T23:50:00Z",
+              "last24hBytes": 2048,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        },
+        {
+          "name": "telemetry.val.example.com",
+          "id": "3",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "D:\\sites\\telemetry.val.example.com",
+            "expanded": "D:\\sites\\telemetry.val.example.com",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:telemetry.val.example.com",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "telemetry.val.example.com",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            },
+            {
+              "protocol": "https",
+              "bindingInformation": "*:443:telemetry.val.example.com",
+              "ip": "*",
+              "port": 443,
+              "hostHeader": "telemetry.val.example.com",
+              "parsed": true,
+              "sslFlags": "1",
+              "certificateHash": "3E1E2ABD7847123D3AEACB7485EC7703FFAB246D",
+              "certificateStoreName": "My"
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "D:\\logs\\W3SVC3",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "D:\\logs\\W3SVC3",
+              "exists": true,
+              "fileCount": 6,
+              "totalBytes": 9216,
+              "oldestUtc": "2026-06-01T00:02:19Z",
+              "newestUtc": "2026-07-31T23:50:00Z",
+              "last24hBytes": 2048,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        },
+        {
+          "name": "telemetry.example.com",
+          "id": "4",
+          "serverAutoStart": "true",
+          "physicalPath": {
+            "raw": "D:\\sites\\telemetry.example.com",
+            "expanded": "D:\\sites\\telemetry.example.com",
+            "expandable": true
+          },
+          "bindings": [
+            {
+              "protocol": "http",
+              "bindingInformation": "*:80:telemetry.example.com",
+              "ip": "*",
+              "port": 80,
+              "hostHeader": "telemetry.example.com",
+              "parsed": true,
+              "sslFlags": null,
+              "certificateHash": null,
+              "certificateStoreName": null
+            },
+            {
+              "protocol": "https",
+              "bindingInformation": "*:443:telemetry.example.com",
+              "ip": "*",
+              "port": 443,
+              "hostHeader": "telemetry.example.com",
+              "parsed": true,
+              "sslFlags": "1",
+              "certificateHash": "E3FF717611B8488F29A37FA8BED863D04BC2CC9F",
+              "certificateStoreName": "My"
+            }
+          ],
+          "logFile": {
+            "enabled": "true",
+            "directory": {
+              "raw": "%SystemDrive%\\inetpub\\logs\\LogFiles",
+              "expanded": "D:\\logs\\W3SVC4",
+              "expandable": true
+            },
+            "directorySource": "siteDefaults",
+            "logFormat": "W3C",
+            "period": "Daily",
+            "truncateSize": null,
+            "logTargetW3C": "File",
+            "centralLogFileMode": "Site",
+            "stats": {
+              "enumerationStatus": "ok",
+              "resolvedDirectory": "D:\\logs\\W3SVC4",
+              "exists": true,
+              "fileCount": 6,
+              "totalBytes": 9216,
+              "oldestUtc": "2026-06-01T00:02:19Z",
+              "newestUtc": "2026-07-31T23:50:00Z",
+              "last24hBytes": 2048,
+              "truncated": false,
+              "enumerationCap": 5000
+            }
+          }
+        }
+      ],
+      "appPools": [
+        {
+          "name": "TelemetryPool",
+          "managedRuntimeVersion": "",
+          "managedRuntimeVersionSource": "pool",
+          "managedPipelineMode": "Integrated",
+          "identityType": "ApplicationPoolIdentity",
+          "identityTypeSource": "pool",
+          "userName": null
+        }
+      ],
+      "applications": [
+        {
+          "siteName": "telemetry.dev.example.com",
+          "path": "/",
+          "physicalPath": {
+            "raw": "D:\\sites\\telemetry.dev.example.com",
+            "expanded": "D:\\sites\\telemetry.dev.example.com",
+            "expandable": true
+          },
+          "applicationPool": "TelemetryPool",
+          "poolManagedRuntimeVersion": "",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "ApplicationPoolIdentity",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "",
+            "aspNetCore": {
+              "processPath": "dotnet",
+              "arguments": ".\\Telemetry.dll",
+              "hostingModel": "inprocess",
+              "environmentVariables": {}
+            },
+            "hasAppSettingsJson": true,
+            "hasRuntimeConfigJson": true
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "location"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "location"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "D:\\sites\\telemetry.dev.example.com",
+                "expanded": "D:\\sites\\telemetry.dev.example.com",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "D:\\sites\\telemetry.dev.example.com\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "ok",
+              "path": "D:\\sites\\telemetry.dev.example.com\\appsettings.json"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "telemetry.val.example.com",
+          "path": "/",
+          "physicalPath": {
+            "raw": "D:\\sites\\telemetry.val.example.com",
+            "expanded": "D:\\sites\\telemetry.val.example.com",
+            "expandable": true
+          },
+          "applicationPool": "TelemetryPool",
+          "poolManagedRuntimeVersion": "",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "ApplicationPoolIdentity",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "",
+            "aspNetCore": {
+              "processPath": "dotnet",
+              "arguments": ".\\Telemetry.dll",
+              "hostingModel": "inprocess",
+              "environmentVariables": {}
+            },
+            "hasAppSettingsJson": true,
+            "hasRuntimeConfigJson": true
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "location"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "location"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "D:\\sites\\telemetry.val.example.com",
+                "expanded": "D:\\sites\\telemetry.val.example.com",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "D:\\sites\\telemetry.val.example.com\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "ok",
+              "path": "D:\\sites\\telemetry.val.example.com\\appsettings.json"
+            }
+          },
+          "status": "ok"
+        },
+        {
+          "siteName": "telemetry.example.com",
+          "path": "/",
+          "physicalPath": {
+            "raw": "D:\\sites\\telemetry.example.com",
+            "expanded": "D:\\sites\\telemetry.example.com",
+            "expandable": true
+          },
+          "applicationPool": "TelemetryPool",
+          "poolManagedRuntimeVersion": "",
+          "poolManagedPipelineMode": "Integrated",
+          "poolIdentityType": "ApplicationPoolIdentity",
+          "poolUserName": null,
+          "enabledProtocols": "http",
+          "runtime": {
+            "poolManagedRuntimeVersion": "",
+            "aspNetCore": {
+              "processPath": "dotnet",
+              "arguments": ".\\Telemetry.dll",
+              "hostingModel": "inprocess",
+              "environmentVariables": {}
+            },
+            "hasAppSettingsJson": true,
+            "hasRuntimeConfigJson": true
+          },
+          "auth": {
+            "anonymousAuthentication": {
+              "enabled": true,
+              "userName": "IUSR",
+              "source": "location"
+            },
+            "windowsAuthentication": {
+              "enabled": false,
+              "userName": null,
+              "source": "location"
+            }
+          },
+          "virtualDirectories": [
+            {
+              "path": "/",
+              "physicalPath": {
+                "raw": "D:\\sites\\telemetry.example.com",
+                "expanded": "D:\\sites\\telemetry.example.com",
+                "expandable": true
+              },
+              "userName": null,
+              "logonMethod": null
+            }
+          ],
+          "configFiles": {
+            "webConfig": {
+              "status": "ok",
+              "path": "D:\\sites\\telemetry.example.com\\web.config"
+            },
+            "appSettingsJson": {
+              "status": "ok",
+              "path": "D:\\sites\\telemetry.example.com\\appsettings.json"
+            }
+          },
+          "status": "ok"
+        }
+      ],
+      "dependencies": []
+    },
+    "durationMs": 1180
+  },
+  "certificates": {
+    "status": "ok",
+    "data": {
+      "certificates": [
+        {
+          "subject": "CN=telemetry.dev.example.com",
+          "sanDnsNames": [
+            "telemetry.dev.example.com"
+          ],
+          "issuer": "CN=Corp Issuing CA 1, DC=corp, DC=example, DC=com",
+          "thumbprint": "D939D654803E4F08A0703996289A036FC9145E77",
+          "notBefore": "2025-06-01T00:00:00.0000000-04:00",
+          "notAfter": "2027-06-01T00:00:00.0000000-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": 288,
+          "boundTo": [
+            "telemetry.dev.example.com:443"
+          ]
+        },
+        {
+          "subject": "CN=telemetry.val.example.com",
+          "sanDnsNames": [
+            "telemetry.val.example.com"
+          ],
+          "issuer": "CN=Corp Issuing CA 1, DC=corp, DC=example, DC=com",
+          "thumbprint": "3E1E2ABD7847123D3AEACB7485EC7703FFAB246D",
+          "notBefore": "2025-06-01T00:00:00.0000000-04:00",
+          "notAfter": "2027-06-01T00:00:00.0000000-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": 288,
+          "boundTo": [
+            "telemetry.val.example.com:443"
+          ]
+        },
+        {
+          "subject": "CN=telemetry.example.com",
+          "sanDnsNames": [
+            "telemetry.example.com"
+          ],
+          "issuer": "CN=Corp Issuing CA 1, DC=corp, DC=example, DC=com",
+          "thumbprint": "E3FF717611B8488F29A37FA8BED863D04BC2CC9F",
+          "notBefore": "2025-06-01T00:00:00.0000000-04:00",
+          "notAfter": "2027-06-01T00:00:00.0000000-04:00",
+          "keySize": 2048,
+          "daysUntilExpiry": 288,
+          "boundTo": [
+            "telemetry.example.com:443"
+          ]
+        }
+      ],
+      "rdpQueryError": null,
+      "httpSysQueryError": null
+    },
+    "durationMs": 58
+  },
+  "sqlServer": {
+    "status": "not-present",
+    "reason": "HKLM:\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\Instance Names\\SQL absent",
+    "durationMs": 4
+  },
+  "aliases": {
+    "status": "ok",
+    "data": {
+      "aliases": [
+        {
+          "kind": "netbios",
+          "value": "LOGBOX",
+          "source": "identity"
+        },
+        {
+          "kind": "fqdn",
+          "value": "logbox.corp.example.com",
+          "source": "identity"
+        },
+        {
+          "kind": "machineGuid",
+          "value": "c6d7e8f9-0ab5-4c67-d182-9bacbdcedf06",
+          "source": "identity"
+        },
+        {
+          "kind": "ipv4",
+          "value": "10.0.1.30",
+          "source": "network"
+        },
+        {
+          "kind": "bindingHostHeader",
+          "value": "telemetry.dev.example.com",
+          "source": "iis"
+        },
+        {
+          "kind": "bindingHostHeader",
+          "value": "telemetry.val.example.com",
+          "source": "iis"
+        },
+        {
+          "kind": "bindingHostHeader",
+          "value": "telemetry.example.com",
+          "source": "iis"
+        }
+      ],
+      "sources": {
+        "identity": "ok",
+        "sqlserver": "not-present",
+        "iis": "ok",
+        "certificates": "ok",
+        "network": "ok"
+      }
+    },
+    "durationMs": 40
+  },
+  "requestedName": "logbox",
+  "roles": [
+    "WebServer"
+  ]
+}

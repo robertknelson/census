@@ -28,6 +28,17 @@
       "description": "Registered before anything was classified - the zero-member smell",
       "assertedBy": "robert",
       "assertedAt": "2026-08-20"
+    },
+    "Telemetry": {
+      "description": "Logging, health and auth tokens - every web site calls it (the cross-cutting fixture)",
+      "expectedStages": [
+        "dev",
+        "val",
+        "prod"
+      ],
+      "crossCutting": true,
+      "assertedBy": "robert",
+      "assertedAt": "2026-10-09"
     }
   }
 }

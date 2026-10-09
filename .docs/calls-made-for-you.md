@@ -6,6 +6,19 @@ call, the reason. Reverse any of them by saying so.
 
 ## 2026-10-09 — his notes round (round-2026-10-09.md)
 
+**Cross-cutting systems (cross-cutting-systems.md), three calls stated in the proposal and
+not objected to:** the fold applies under both groupings and unfolding is its own switch
+(a grouping is about canonical names, a fold is about another system's role); blast
+radius and findings stay flat (the fold is a drawing concern, the audit surfaces read the
+composed estate); the capsule id is a JSON array like every node id and acceptances stay
+keyed on the inner edge (judged before the fold). **One more made in the build:** a capsule
+is per *stage set* (`dev+val` is its own capsule), not per member stage — the simplest
+honest key; §7 notes the alternative if the real estate has two-stage endpoints.
+
+**The demo's cross-cutting system is called Telemetry on a box called LOGBOX** rather than
+AppTrak: AppTrak is the real tracking database Move It reads, and a fixture carrying its
+name would read as real. Same shape — logging and health over http, one site per stage.
+
 **The History list caps "all" rather than caching.** Options: compute every pair on the fly
 (a year of nights is a year of gz reads and diffs per click); cache diffs per day pair in
 memory; cap. Call: cap at `Census:ChangesNightsMax` (120) newest first, and say so in the

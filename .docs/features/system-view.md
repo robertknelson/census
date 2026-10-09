@@ -193,6 +193,11 @@ register-an-unregistered gesture.
 > browser / server / data rows, downstream services to the side — beside physics; chosen in
 > the builder or the toolbar's Layout segment; observed grouping only.
 >
+> **2026-10-09:** cross-cutting systems fold (`cross-cutting-systems.md`): the MyWeb
+> observed graph now carries **13** edges and **6** off-system nodes — the three Telemetry
+> capsules beside the three YourWeb neighbours — and `?fold=false` shows the three
+> Telemetry sites themselves. Pinned in `Test-StageCrossings.ps1`.
+>
 > **2026-10-08:** the MyWeb edge count is **10** since the stage-crossings fixture
 > (`stage-crossings.md` §6) added a PROD → DEV http edge; members and neighbors unchanged.
 > The composition behind this API now lives in `GraphComposer` (same section).

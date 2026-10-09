@@ -495,6 +495,38 @@
           "secretsPresent": false,
           "parseStatus": "ok",
           "sha256": "6bf22ed13a6bcc51b84b3877c475b33997bf8472e5dadd635a182e6496d5a5f3"
+        },
+        {
+          "siteName": "myweb.val.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "http",
+          "name": "Telemetry:BaseUrl",
+          "scheme": "https",
+          "host": "telemetry.val.example.com",
+          "rawHost": "telemetry.val.example.com",
+          "isLocal": false,
+          "port": 443,
+          "path": "/api/log",
+          "hadCredentials": false,
+          "hadQuery": false,
+          "sha256": "7d3cda4088104162961a60781856599db51cef08cecb83af5ffcdf0889e915ef"
+        },
+        {
+          "siteName": "yourweb.val.example.com",
+          "appPath": "/",
+          "sourceFile": "appsettings.json",
+          "kind": "http",
+          "name": "Telemetry:BaseUrl",
+          "scheme": "https",
+          "host": "telemetry.dev.example.com",
+          "rawHost": "telemetry.dev.example.com",
+          "isLocal": false,
+          "port": 443,
+          "path": "/api/log",
+          "hadCredentials": false,
+          "hadQuery": false,
+          "sha256": "9990325cd52c3797a7dbfb49044e5deade197a8b8498b16e4d835457f576e02b"
         }
       ]
     },

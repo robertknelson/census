@@ -1,4 +1,4 @@
-﻿<#
+<#
     Creates the three-stage WebApp->DB topology: five machines whose only reason to exist is
     the SHAPE of the dependency graph between them.
 
@@ -586,6 +586,99 @@ function WebEnvelope {
     }
 }
 
+# cross-cutting-systems.md §5: one box, one site per stage of the Telemetry service every web
+# site logs to. No dependencies of its own - it is the target, not a caller.
+function ServiceEnvelope {
+    param([string]$Name, [string]$Ipv4, [string]$Guid, [string]$Smbios, [string]$Serial,
+          [string[]]$Hosts, [string]$CollectedUtc, [int]$Ubr, [long]$CFree)
+
+    $lower = $Name.ToLowerInvariant()
+    $hashes = @{}
+    foreach ($h in $Hosts) { $hashes[$h] = (FakeSha "cert|$h").Substring(0, 40).ToUpperInvariant() }
+    $i = 0
+    $sites = @(foreach ($h in $Hosts) { $i++; Site $h "$($i + 1)" "D:\sites\$h" $hashes[$h] 6 9216 '2026-07-31T23:50:00Z' 2048 })
+    $apps = @(foreach ($h in $Hosts) { WebApplication $h "D:\sites\$h" 'TelemetryPool' $null })
+    $certs = @(foreach ($h in $Hosts) { Cert "CN=$h" @($h) $hashes[$h] '2027-06-01T00:00:00.0000000-04:00' 288 @("${h}:443") })
+    $hostAliases = @(foreach ($h in $Hosts) { Alias 'bindingHostHeader' $h 'iis' })
+
+    [ordered]@{
+        schemaVersion    = 1
+        collectorVersion = '1.0.0'
+        computerName     = $Name
+        collectedUtc     = $CollectedUtc
+        identity = Category ([ordered]@{
+            domain               = 'corp.example.com'
+            manufacturer         = 'Microsoft Corporation'
+            model                = 'Virtual Machine'
+            smbiosUuid           = $Smbios
+            machineGuid          = $Guid
+            biosSerialNumber     = $Serial
+            isVirtual            = $true
+            hypervisorSignals    = @('Hyper-V')
+            cpuSockets           = 1
+            cpuCores             = 2
+            cpuLogicalProcessors = 4
+        }) 279
+        memory = Category ([ordered]@{ totalPhysicalMemoryBytes = 8589934592; totalPhysicalMemoryGB = 8 }) 8
+        os = Category ([ordered]@{
+            productName          = 'Windows Server 2022 Standard'
+            editionId            = 'ServerStandard'
+            installationType     = 'Server'
+            currentBuild         = '20348'
+            ubr                  = $Ubr
+            displayVersion       = '21H2'
+            architecture         = '64-bit'
+            installDate          = '2025-01-14T09:10:00.0000000-05:00'
+            lastBootUpTime       = '2026-07-12T03:05:00.0000000-04:00'
+            pendingReboot        = $false
+            pendingRebootReasons = @()
+        }) 88
+        updates = Category ([ordered]@{
+            currentBuild           = '20348'
+            ubr                    = $Ubr
+            lastDetectSuccessTime  = '2026-07-30 02:10:00'
+            lastInstallSuccessTime = '2026-07-14 03:05:00'
+        }) 39
+        dotnet = Category ([ordered]@{
+            frameworkReleaseId = 533320
+            coreRuntimes       = @(
+                'Microsoft.AspNetCore.App 8.0.27 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]',
+                'Microsoft.NETCore.App 8.0.27 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]'
+            )
+            sdks               = @()
+        }) 42
+        drives = Category ([ordered]@{ drives = @(
+            (Drive 'C' 'OS'   107374182400 $CFree),
+            (Drive 'D' 'Web'  107374182400 64424509440)
+        ) }) 218
+        apps = Category ([ordered]@{ count = $commonApps.Count; entries = $commonApps }) 690
+        iis = Category ([ordered]@{
+            server = IisServer '2026-07-02T10:14:07Z' "iis|$Name"
+            sites  = $sites
+            appPools = @( (Pool 'TelemetryPool' 'ApplicationPoolIdentity' $null) )
+            applications = $apps
+            dependencies = @()
+        }) 1180
+        certificates = Category ([ordered]@{
+            certificates = $certs
+            rdpQueryError     = $null
+            httpSysQueryError = $null
+        }) 58
+        sqlServer = Absent $sqlAbsent 4
+        aliases = Category ([ordered]@{
+            aliases = @(
+                (Alias 'netbios' $Name 'identity'),
+                (Alias 'fqdn' "$lower.corp.example.com" 'identity'),
+                (Alias 'machineGuid' $Guid 'identity'),
+                (Alias 'ipv4' $Ipv4 'network')
+            ) + $hostAliases
+            sources = $aliasSourcesWeb
+        }) 40
+        requestedName = $lower
+        roles         = @('WebServer')
+    }
+}
+
 function SqlEnvelope {
     param([string]$Name, [string]$Ipv4, [string]$Guid, [string]$Smbios, [string]$Serial,
           $Databases, $Files, [string]$Backup, $ExtraApps,
@@ -695,28 +788,38 @@ $ubrDay2 = 3807
 $prodCrossing = @( (HttpEdge 'myweb.example.com' 'Services:Lookup:BaseUrl' 'https' 'yourweb.dev.example.com' 443 '/api/lookup') )
 $devCrossing  = @( (DbEdge 'yourweb.dev.example.com' 'ReportsDb' 'SQL02' 'Gateway') )
 
+# cross-cutting-systems.md §5: every web site logs to the Telemetry service of its own stage -
+# except VAL YourWeb, configured against Telemetry's DEV site (down; the kind of wound the fold
+# must not hide).
+$devTelemetry  = @( (HttpEdge 'myweb.dev.example.com'  'Telemetry:BaseUrl' 'https' 'telemetry.dev.example.com' 443 '/api/log'),
+                    (HttpEdge 'yourweb.dev.example.com' 'Telemetry:BaseUrl' 'https' 'telemetry.dev.example.com' 443 '/api/log') )
+$valTelemetry  = @( (HttpEdge 'myweb.val.example.com'  'Telemetry:BaseUrl' 'https' 'telemetry.val.example.com' 443 '/api/log'),
+                    (HttpEdge 'yourweb.val.example.com' 'Telemetry:BaseUrl' 'https' 'telemetry.dev.example.com' 443 '/api/log') )
+$prodTelemetry = @( (HttpEdge 'myweb.example.com'      'Telemetry:BaseUrl' 'https' 'telemetry.example.com'     443 '/api/log'),
+                    (HttpEdge 'yourweb.example.com'    'Telemetry:BaseUrl' 'https' 'telemetry.example.com'     443 '/api/log') )
+
 $targets = @(
     @{ File = 'DEVWEBBOX\devwebbox-census-20260730.json'
        Envelope = WebEnvelope 'DEVWEBBOX' '10.0.1.10' 'd1e2f3a4-5b60-4712-8c3d-4e5f60718a01' `
            '4c4c4544-1001-3610-8052-b7c04f560001' 'DEVWEB01' `
            'myweb.dev.example.com' 'yourweb.dev.example.com' 'DEVSQLBOX' 'MyDB_DEV' 'MyDatabase_DEV' 'YourDB_DEV' 'Shared_REF' @() `
-           '2026-07-30T03:20:11.0000000Z' $ubrDay1 64424509440 12 18432 $devCrossing }
+           '2026-07-30T03:20:11.0000000Z' $ubrDay1 64424509440 12 18432 ($devCrossing + $devTelemetry) }
     @{ File = 'DEVWEBBOX\devwebbox-census-20260731.json'
        Envelope = WebEnvelope 'DEVWEBBOX' '10.0.1.10' 'd1e2f3a4-5b60-4712-8c3d-4e5f60718a01' `
            '4c4c4544-1001-3610-8052-b7c04f560001' 'DEVWEB01' `
            'myweb.dev.example.com' 'yourweb.dev.example.com' 'DEVSQLBOX' 'MyDB_DEV' 'MyDatabase_DEV' 'YourDB_DEV' 'Shared_REF' @() `
-           '2026-07-31T03:20:38.0000000Z' $ubrDay2 61203283968 13 20480 $devCrossing }
+           '2026-07-31T03:20:38.0000000Z' $ubrDay2 61203283968 13 20480 ($devCrossing + $devTelemetry) }
 
     @{ File = 'VALWEBBOX\valwebbox-census-20260730.json'
        Envelope = WebEnvelope 'VALWEBBOX' '10.0.1.11' 'e2f3a4b5-6c71-4823-9d4e-5f60718a9b02' `
            '4c4c4544-1002-3610-8052-b7c04f560002' 'VALWEB01' `
            'myweb.val.example.com' 'yourweb.val.example.com' 'DEVSQLBOX' 'MyDB_VAL' 'MyDatabase_VAL' 'YourDB_VAL' 'Shared_REF' @() `
-           '2026-07-30T03:22:04.0000000Z' $ubrDay1 59055800320 9 13312 }
+           '2026-07-30T03:22:04.0000000Z' $ubrDay1 59055800320 9 13312 $valTelemetry }
     @{ File = 'VALWEBBOX\valwebbox-census-20260731.json'
        Envelope = WebEnvelope 'VALWEBBOX' '10.0.1.11' 'e2f3a4b5-6c71-4823-9d4e-5f60718a9b02' `
            '4c4c4544-1002-3610-8052-b7c04f560002' 'VALWEB01' `
            'myweb.val.example.com' 'yourweb.val.example.com' 'DEVSQLBOX' 'MyDB_VAL' 'MyDatabase_VAL' 'YourDB_VAL' 'Shared_REF' @() `
-           '2026-07-31T03:22:29.0000000Z' $ubrDay2 57042534400 10 15360 }
+           '2026-07-31T03:22:29.0000000Z' $ubrDay2 57042534400 10 15360 $valTelemetry }
 
     # stage-crossings.md 6: the wound. PROD MyWeb configured to call the DEV YourWeb site (down,
     # over http, resolved through DEVWEBBOX's binding); DEV YourWeb reading an untagged database
@@ -725,12 +828,24 @@ $targets = @(
        Envelope = WebEnvelope 'PRODWEBBOX' '10.0.1.12' 'f3a4b5c6-7d82-4934-ae5f-60718a9bac03' `
            '4c4c4544-1003-3610-8052-b7c04f560003' 'PRODWEB01' `
            'myweb.example.com' 'yourweb.example.com' 'PRODSQLBOX' 'MyDB' 'AppData01' 'YourDB' 'Shared_REF' $urlRewrite `
-           '2026-07-30T03:24:47.0000000Z' $ubrDay1 51539607552 41 96256 $prodCrossing }
+           '2026-07-30T03:24:47.0000000Z' $ubrDay1 51539607552 41 96256 ($prodCrossing + $prodTelemetry) }
     @{ File = 'PRODWEBBOX\prodwebbox-census-20260731.json'
        Envelope = WebEnvelope 'PRODWEBBOX' '10.0.1.12' 'f3a4b5c6-7d82-4934-ae5f-60718a9bac03' `
            '4c4c4544-1003-3610-8052-b7c04f560003' 'PRODWEB01' `
            'myweb.example.com' 'yourweb.example.com' 'PRODSQLBOX' 'MyDB' 'AppData01' 'YourDB' 'Shared_REF' $urlRewrite `
-           '2026-07-31T03:25:12.0000000Z' $ubrDay2 48318382080 43 101376 $prodCrossing }
+           '2026-07-31T03:25:12.0000000Z' $ubrDay2 48318382080 43 101376 ($prodCrossing + $prodTelemetry) }
+
+    # cross-cutting-systems.md §5: the Telemetry service, one site per stage on one box.
+    @{ File = 'LOGBOX\logbox-census-20260730.json'
+       Envelope = ServiceEnvelope 'LOGBOX' '10.0.1.30' 'c6d7e8f9-0ab5-4c67-d182-9bacbdcedf06' `
+           '4c4c4544-1006-3610-8052-b7c04f560006' 'LOGSRV01' `
+           @('telemetry.dev.example.com', 'telemetry.val.example.com', 'telemetry.example.com') `
+           '2026-07-30T03:26:02.0000000Z' $ubrDay1 75161927680 }
+    @{ File = 'LOGBOX\logbox-census-20260731.json'
+       Envelope = ServiceEnvelope 'LOGBOX' '10.0.1.30' 'c6d7e8f9-0ab5-4c67-d182-9bacbdcedf06' `
+           '4c4c4544-1006-3610-8052-b7c04f560006' 'LOGSRV01' `
+           @('telemetry.dev.example.com', 'telemetry.val.example.com', 'telemetry.example.com') `
+           '2026-07-31T03:26:30.0000000Z' $ubrDay2 74088185856 }
 
     @{ File = 'DEVSQLBOX\devsqlbox-census-20260730.json'
        Envelope = SqlEnvelope 'DEVSQLBOX' '10.0.1.20' 'a4b5c6d7-8e93-4a45-bf60-718a9bacbd04' `

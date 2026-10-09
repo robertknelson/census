@@ -19,8 +19,9 @@ export function fetchSystemsConfig() {
     return getJson('/api/systems');
 }
 
-export function fetchSystemGraph(system, grouping = 'canonical') {
-    return getJson(`/api/system-graph/${encodeURIComponent(system)}?grouping=${encodeURIComponent(grouping)}`);
+// fold: cross-cutting systems' members fold into capsules (cross-cutting-systems.md §3) unless false.
+export function fetchSystemGraph(system, grouping = 'canonical', fold = true) {
+    return getJson(`/api/system-graph/${encodeURIComponent(system)}?grouping=${encodeURIComponent(grouping)}&fold=${fold ? 'true' : 'false'}`);
 }
 
 export function fetchStageCrossings() {

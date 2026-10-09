@@ -25,6 +25,11 @@ public record SystemRecord
     public List<string> ExpectedStages { get; init; }
 
     public string Note { get; init; }
+
+    /// <summary>A system every other system calls — logging, health, auth (cross-cutting-systems.md).
+    /// Asserted here, never inferred; in other systems' graphs its members fold into one capsule per stage.</summary>
+    public bool? CrossCutting { get; init; }
+
     public string AssertedBy { get; init; }
     public string AssertedAt { get; init; }
 

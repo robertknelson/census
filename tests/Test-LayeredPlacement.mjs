@@ -38,6 +38,9 @@ const graph = {
           serves: [{ system: 'BillingSvc', stages: ['qa'], layer: 'api' }] },
         // an unclassified neighbour: no stage anywhere
         { id: 'stray', kind: 'database', name: 'Stray', machine: 'SQL09', member: false, offSystem: false, unclassified: true, serves: [] },
+        // a cross-cutting system's capsule (cross-cutting-systems.md §4)
+        { id: 'svc', kind: 'service', name: 'Telemetry', machine: 'LOGBOX', member: false, offSystem: true, unclassified: false, service: true,
+          serviceStages: ['prod'], variants: [{}, {}], serves: [{ system: 'Telemetry', stages: ['prod'], layer: 'api' }] },
     ],
     edges: [
         { sourceId: 'a-dev', targetId: 'd-dev' },
@@ -72,6 +75,10 @@ assert('  and the key is only as wide as its most crowded plane (data row: MyDB 
 console.log('The side strip');
 assert('a downstream service sits in the side strip on its own stage\'s plane', inst('peer').region === 'side' && inst('peer').stage === 'qa' && inst('peer').row === 'server');
 assert('an unstaged neighbour sits on the unstaged plane', inst('stray').stage === UNSTAGED && inst('stray').region === 'side');
+
+console.log('Services');
+assert('a capsule lands in the services row, main region, on its stage\'s plane', inst('svc').row === 'services' && inst('svc').region === 'main' && inst('svc').stage === 'prod', `${inst('svc').row}/${inst('svc').region}/${inst('svc').stage}`);
+assert('the services row is listed only because a capsule is in it', p.rows.includes('services') && !place({ ...graph, nodes: graph.nodes.filter((n) => n.id !== 'svc') }).rows.includes('services'));
 
 console.log('Edge endpoints');
 const shared = p.endpoints(graph.edges[1]);

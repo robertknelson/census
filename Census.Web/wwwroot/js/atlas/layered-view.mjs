@@ -123,6 +123,7 @@ export class LayeredView {
 
     nameOf(inst) {
         const d = inst.node;
+        if (d.service) return d.name;
         const system = this.graph.system.toLowerCase();
         const own = d.serves.find((a) => (a.system ?? '').toLowerCase() === system);
         const canonical = own?.canonicalName ?? d.serves.map((a) => a.canonicalName).find((c) => c);
@@ -194,7 +195,9 @@ export class LayeredView {
             ].filter(Boolean).join(' ');
             const name = this.nameOf(inst);
             const unfamiliar = inst.layer && !['web', 'spa', 'api'].includes(inst.layer.toLowerCase());
-            const subParts = [name !== d.name ? d.name : null, d.machine].filter(Boolean);
+            const subParts = d.service
+                ? [`${d.variants.length} endpoint${d.variants.length === 1 ? '' : 's'}`, ...(d.serviceStages ?? [])]
+                : [name !== d.name ? d.name : null, d.machine].filter(Boolean);
             const sub = inst.row === 'unplaced'
                 ? `<text class="atl-card-sub atl-card-sub-warn" x="${-s.cardW / 2 + 32}" y="13">tag a layer in Triage</text>`
                 : subParts.length ? `<text class="atl-card-sub" x="${-s.cardW / 2 + 32}" y="13">${escapeHtml(cut(subParts.join(' · '), s.subChars))}</text>` : '';
@@ -220,10 +223,11 @@ export class LayeredView {
             ${browser}
             <g data-node="${escapeHtml(d.id)}" class="${classes}" transform="translate(${x},${y})">
                 <rect class="atl-shape" x="${-s.cardW / 2}" y="${-s.cardH / 2}" width="${s.cardW}" height="${s.cardH}" rx="8"></rect>
-                <g class="atl-card-icon" transform="translate(${-s.cardW / 2 + 17}, 0) scale(0.55)">${shapeSvg(nodeShape(d), 21)}</g>
+                <g class="atl-card-icon" transform="translate(${-s.cardW / 2 + 17}, 0) scale(${d.service ? 0.3 : 0.55})">${shapeSvg(nodeShape(d), 21)}</g>
                 <text class="atl-card-name" x="${-s.cardW / 2 + 32}" y="${sub ? -3 : 5}">${escapeHtml(cut(name, s.nameChars))}</text>
                 ${sub}${corner}
-                ${alsoServes > 0 ? `<text class="atl-also" x="${s.cardW / 2 - 6}" y="${-s.cardH / 2 - 4}">+${alsoServes}</text>` : ''}
+                ${alsoServes > 0 && !d.service ? `<text class="atl-also" x="${s.cardW / 2 - 6}" y="${-s.cardH / 2 - 4}">+${alsoServes}</text>` : ''}
+                ${d.service ? `<text class="atl-also" x="${s.cardW / 2 - 6}" y="${-s.cardH / 2 - 4}">×${d.variants.length}</text>` : ''}
             </g>`;
         }).join('');
 

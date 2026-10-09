@@ -37,6 +37,10 @@ public record SystemOverviewDto
     /// <summary>Edges touching a member that cross stages and are not accepted, and edges an unstaged end left unjudged (stage-crossings.md §3.5).</summary>
     public int Crossings { get; init; }
     public int UnjudgedEdges { get; init; }
+
+    /// <summary>The card's cross-cutting flag (cross-cutting-systems.md §2), and how many distinct other systems have a member edge into this one — the suggestion's number.</summary>
+    public bool CrossCutting { get; init; }
+    public int CalledBy { get; init; }
 }
 
 [ApiController]
@@ -109,8 +113,10 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 MissingExpectedStages = expected.Where(e => !stagesInUse.Contains(e, StringComparer.OrdinalIgnoreCase)).ToList(),
                 UnexpectedStages = record.ExpectedStages is null ? []
                     : stagesInUse.Where(s => !expected.Contains(s, StringComparer.OrdinalIgnoreCase)).ToList(),
-                Crossings = edgeCounts.GetValueOrDefault(name).Crossings,
-                UnjudgedEdges = edgeCounts.GetValueOrDefault(name).Unjudged,
+                Crossings = edgeCounts.GetValueOrDefault(name)?.Crossings ?? 0,
+                UnjudgedEdges = edgeCounts.GetValueOrDefault(name)?.Unjudged ?? 0,
+                CrossCutting = record.CrossCutting == true,
+                CalledBy = edgeCounts.GetValueOrDefault(name)?.Callers.Count ?? 0,
             });
         }
         foreach (var (name, usage) in inUse.Where(u => !registry.Systems.ContainsKey(u.Key)))
@@ -124,8 +130,9 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
                 LayersInUse = usage.Layers,
                 CanonicalNameCount = usage.CanonicalNames.Count,
                 NamedMemberCount = usage.Named,
-                Crossings = edgeCounts.GetValueOrDefault(name).Crossings,
-                UnjudgedEdges = edgeCounts.GetValueOrDefault(name).Unjudged,
+                Crossings = edgeCounts.GetValueOrDefault(name)?.Crossings ?? 0,
+                UnjudgedEdges = edgeCounts.GetValueOrDefault(name)?.Unjudged ?? 0,
+                CalledBy = edgeCounts.GetValueOrDefault(name)?.Callers.Count ?? 0,
             });
         }
 
@@ -144,8 +151,15 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
         public HashSet<string> CanonicalNames = new(StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <summary>Per system, the edges touching a member that cross stages unaccepted, and the ones left unjudged (stage-crossings.md §3.5).</summary>
-    private Dictionary<string, (int Crossings, int Unjudged)> CountEdges()
+    private sealed class EdgeStats
+    {
+        public int Crossings;
+        public int Unjudged;
+        public HashSet<string> Callers = new(StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Per system, the edges touching a member that cross stages unaccepted, the ones left unjudged (stage-crossings.md §3.5), and the distinct other systems whose members call it (cross-cutting-systems.md §2).</summary>
+    private Dictionary<string, EdgeStats> CountEdges()
     {
         var snapshots = new List<(string Machine, CensusEnvelope Envelope)>();
         foreach (var dir in censusStore.GetMachineDirs())
@@ -154,17 +168,22 @@ public class SystemsController(SystemsStore systemsStore, EntityTagsStore entity
             if (envelope is not null) snapshots.Add((dir, envelope));
         }
         var estate = graphComposer.Compose(snapshots, entityTagsStore.Load(), declaredEntitiesStore.Load());
-        var counts = new Dictionary<string, (int Crossings, int Unjudged)>(StringComparer.OrdinalIgnoreCase);
+        var counts = new Dictionary<string, EdgeStats>(StringComparer.OrdinalIgnoreCase);
+        EdgeStats Of(string system) => counts.TryGetValue(system, out var c) ? c : counts[system] = new EdgeStats();
         foreach (var edge in estate.Edges)
         {
+            var sourceSystems = estate.Nodes[edge.SourceId].Serves.Select(a => a.System).Where(x => !string.IsNullOrEmpty(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            var targetSystems = estate.Nodes[edge.TargetId].Serves.Select(a => a.System).Where(x => !string.IsNullOrEmpty(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            foreach (var target in targetSystems)
+                foreach (var source in sourceSystems.Where(x => !string.Equals(x, target, StringComparison.OrdinalIgnoreCase)))
+                    Of(target).Callers.Add(source);
             var crossing = edge.Crossing is not null && edge.Accepted is null;
             if (!crossing && !edge.Unjudged) continue;
-            var systems = estate.Nodes[edge.SourceId].Serves.Concat(estate.Nodes[edge.TargetId].Serves)
-                .Select(a => a.System).Where(s => !string.IsNullOrEmpty(s)).Distinct(StringComparer.OrdinalIgnoreCase);
-            foreach (var system in systems)
+            foreach (var system in sourceSystems.Concat(targetSystems).Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                var c = counts.GetValueOrDefault(system);
-                counts[system] = (c.Crossings + (crossing ? 1 : 0), c.Unjudged + (edge.Unjudged ? 1 : 0));
+                var c = Of(system);
+                c.Crossings += crossing ? 1 : 0;
+                c.Unjudged += edge.Unjudged ? 1 : 0;
             }
         }
         return counts;

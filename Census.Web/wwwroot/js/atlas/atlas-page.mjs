@@ -267,7 +267,7 @@ class AtlasPage {
         let graph = this.graphs.get(tab.id);
         if (!graph) {
             try {
-                graph = await fetchSystemGraph(tab.system, tab.strategy === 'layered' ? 'observed' : (tab.grouping ?? 'canonical'));
+                graph = await fetchSystemGraph(tab.system, tab.strategy === 'layered' ? 'observed' : (tab.grouping ?? 'canonical'), tab.services !== 'unfolded');
             } catch (err) {
                 this.mainEl.innerHTML = `<p class="atl-status atl-error">${escapeHtml(err.message)}</p>`;
                 return;
@@ -323,6 +323,7 @@ class AtlasPage {
                 ${row(kind('cloud'), 'external entity')}
                 ${row(kind('diamond'), 'declared kind (task, …)')}
                 ${row(kind('dot'), 'endpoint')}
+                ${row(kind('capsule'), 'cross-cutting service — a system every system calls, folded per stage; ×n = endpoints inside')}
                 ${layered ? row(`<svg class="atl-key-swatch" viewBox="-13 -11 26 22" aria-hidden="true"><g class="atl-node atl-member atl-card"><rect class="atl-shape" x="-12" y="-7" width="24" height="14" rx="3"></rect></g></svg>`, 'card — one thing, named in words; the icon is its kind') : ''}
                 ${layered ? row(`<svg class="atl-key-swatch" viewBox="-13 -11 26 22" aria-hidden="true"><g class="atl-lay-browser"><rect class="atl-shape" x="-12" y="-8" width="24" height="16" rx="3"></rect><path class="atl-lay-browser-bar" d="M -12 -3 H 12"></path></g></svg>`, 'browser — a web or spa app, seen from the browser') : ''}
             </div>
@@ -419,6 +420,13 @@ class AtlasPage {
                     <button class="${layered || grouping === 'observed' ? 'is-active' : ''}" data-grouping="observed" ${layered ? 'disabled' : ''} title="Every observed entity stays its own node">${EVERY_ICON}Every entity</button>
                 </span>
             </div>
+            ${graph.services?.length ? `<div class="atl-tb-group" role="group" aria-label="Services">
+                <span class="atl-tb-label">Services</span>
+                <span class="atl-seg">
+                    <button class="${tab.services !== 'unfolded' ? 'is-active' : ''}" data-services="folded" title="Cross-cutting systems (${escapeHtml([...new Set(graph.services.map((x) => x.system))].join(', '))}) fold into one capsule per stage">Folded</button>
+                    <button class="${tab.services === 'unfolded' ? 'is-active' : ''}" data-services="unfolded" title="Every endpoint of a cross-cutting system drawn as itself">Unfolded</button>
+                </span>
+            </div>` : ''}
             <div class="atl-tb-group" role="group" aria-label="Layout">
                 <span class="atl-tb-label">Layout</span>
                 <span class="atl-seg">
@@ -457,6 +465,13 @@ class AtlasPage {
             // The name does not change: the tab's icon shows the grouping (§14).
             tab.grouping = chip.dataset.grouping;
             this.renderTabs();
+            this.graphs.delete(tab.id);
+            this.persistViews();
+            this.openView();
+        }));
+        this.toolbarEl.querySelectorAll('[data-services]').forEach((chip) => chip.addEventListener('click', () => {
+            if ((tab.services ?? 'folded') === chip.dataset.services) return;
+            tab.services = chip.dataset.services;
             this.graphs.delete(tab.id);
             this.persistViews();
             this.openView();
@@ -518,6 +533,7 @@ class AtlasPage {
                 ${v.phantom ? '<span class="atl-drift-bad">not observed</span>' : ''}
                 <span class="atl-muted">${escapeHtml([v.assertedBy, v.assertedAt].filter(Boolean).join(' · '))}</span></span></div>`).join('');
             const state = item.member ? '' :
+                item.service ? `<div class="atl-muted">cross-cutting service — ${item.variants.length} endpoint${item.variants.length === 1 ? '' : 's'} folded (${escapeHtml(item.name)}${item.serviceStages?.length ? ` · ${item.serviceStages.map(escapeHtml).join(', ')}` : ''}); the toolbar's Services switch unfolds them</div>` :
                 item.unclassified ? '<div class="atl-drift-warn">unclassified — nobody has said what this serves; classify it in Triage</div>' :
                 item.offSystem ? '<div class="atl-muted">serves other systems only — shown because an edge touches this view</div>' :
                 '';
@@ -528,12 +544,13 @@ class AtlasPage {
                 </div>
                 <div class="atl-row"><span class="atl-badge ${item.declared ? 'atl-badge-declared' : ''}">${escapeHtml(item.kind)}</span>
                     ${item.canonical ? `<span class="atl-badge">canonical · ${item.variants.length} variant${item.variants.length === 1 ? '' : 's'}</span>` : ''}
+                    ${item.service ? `<span class="atl-badge">cross-cutting · ${item.variants.length} endpoint${item.variants.length === 1 ? '' : 's'}</span>` : ''}
                     ${item.phantom ? '<span class="atl-drift-bad">not observed at this address — the edge\'s claim only</span>' : ''}
                 </div>
                 ${item.machine ? `<div class="atl-row atl-kv"><span class="atl-key">machine</span><span class="atl-mono">${escapeHtml(item.machine)}</span></div>` : ''}
-                ${item.canonical && (item.hosts ?? []).length > 1 ? `<div class="atl-row atl-kv"><span class="atl-key">hosts</span><span class="atl-mono">${item.hosts.map(escapeHtml).join(', ')}</span></div>` : ''}
+                ${(item.canonical || item.service) && (item.hosts ?? []).length > 1 ? `<div class="atl-row atl-kv"><span class="atl-key">hosts</span><span class="atl-mono">${item.hosts.map(escapeHtml).join(', ')}</span></div>` : ''}
                 ${item.container ? `<div class="atl-row atl-kv"><span class="atl-key">${item.kind === 'database' ? 'instance' : 'site'}</span><span class="atl-mono">${escapeHtml(item.container)}</span></div>` : ''}
-                ${serves || state}
+                ${item.service ? state : (serves || state)}
                 ${variants}
                 ${item.note ? `<div class="atl-muted">${escapeHtml(item.note)}</div>` : ''}
                 ${item.declared ? '<div class="atl-muted">Declared — asserted to exist, never corroborated.</div>' : ''}`;

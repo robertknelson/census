@@ -79,3 +79,12 @@ only *reads* the registry (picker suggestions). Hand-editing remains first-class
 missing expected stage (finding), one with an unexpected stage in use
 (finding), a zero-member entry (smell), an in-use unregistered value (listed,
 no finding), unknown-key round-trip, GET/PUT byte-stability.
+
+## Addendum 2026-10-09 — `crossCutting` on the card
+
+One more identity fact per card, `crossCutting: true` (cross-cutting-systems.md): a system
+every other system calls. Asserted, never inferred; the overview carries `calledBy` (the
+distinct other systems with a member edge into this one) and the panel suggests the flag at
+two or more, with a *Mark* button and a checkbox in the editor. The effect lives in the
+graph: in other systems' views its members fold into one capsule per stage. The card still
+never lists members.

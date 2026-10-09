@@ -26,6 +26,7 @@ function escapeHtml(value) {
 }
 
 export function nodeShape(n) {
+    if (n.service) return 'capsule';
     if (n.kind === 'database') return 'cylinder';
     if (n.kind === 'application') return 'globe';
     if (n.kind === 'endpoint') return 'dot';
@@ -60,6 +61,10 @@ export function shapeSvg(shape, r) {
             return `<path class="atl-shape" transform="scale(${s})" d="M -14 9 A 8.5 8.5 0 0 1 -12.5 -7.5 A 11.5 11.5 0 0 1 9 -9.5 A 8.5 8.5 0 0 1 14.5 9 Z"></path>`;
         }
         case 'dot': return `<circle class="atl-shape" r="${(r * 0.45).toFixed(1)}"></circle>`;
+        // A cross-cutting system's members folded per stage (cross-cutting-systems.md §4): a wide
+        // capsule, so it reads as a service rather than as one more peer of the members.
+        case 'capsule': return `<rect class="atl-shape" x="${(-r * 1.6).toFixed(1)}" y="${(-r * 0.55).toFixed(1)}" width="${(r * 3.2).toFixed(1)}" height="${(r * 1.1).toFixed(1)}" rx="${(r * 0.55).toFixed(1)}"></rect>
+            <path class="atl-detail" d="M ${(-r * 0.9).toFixed(1)} 0 H ${(r * 0.9).toFixed(1)}"></path>`;
         // The browser tier's glyph (layered-view.md §2) — his triangle; drawn by the layered
         // strategy above a web/spa app, and by the key.
         case 'triangle': return `<path class="atl-shape" d="M 0 ${-r * 0.85} L ${r * 0.95} ${r * 0.7} L ${-r * 0.95} ${r * 0.7} Z"></path>`;
@@ -233,7 +238,7 @@ export class PhysicsView {
                 ${shapeSvg(nodeShape(d), 21)}
                 ${stageDots}
                 ${alsoServes > 0 ? `<text class="atl-also" x="19" y="-19">+${alsoServes}</text>` : ''}
-                ${d.canonical ? `<text class="atl-also" x="-19" y="-19" text-anchor="end">×${d.variants.length}</text>` : ''}
+                ${d.canonical || d.service ? `<text class="atl-also" x="-19" y="-19" text-anchor="end">×${d.variants.length}</text>` : ''}
                 <text class="atl-label" y="38">${escapeHtml(d.name.length > 26 ? d.name.slice(0, 25) + '…' : d.name)}</text>
                 ${sublabel ? `<text class="atl-sublabel" y="52">${escapeHtml(sublabel.length > 40 ? sublabel.slice(0, 39) + '…' : sublabel)}</text>` : ''}
             </g>`;

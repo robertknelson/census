@@ -36,6 +36,10 @@ public record SystemGraphNodeDto
     /// <summary>Groups stage variants sharing this system's canonical name (canonical-names.md §4).</summary>
     public bool Canonical { get; init; }
 
+    /// <summary>A capsule: the members of a cross-cutting system folded per stage set (cross-cutting-systems.md §3); Variants holds them.</summary>
+    public bool Service { get; init; }
+    public List<string> ServiceStages { get; init; } = [];
+
     /// <summary>Distinct machines hosting the collapsed variants — the sublabel when Machine is null.</summary>
     public List<string> Hosts { get; init; } = [];
 
@@ -44,6 +48,13 @@ public record SystemGraphNodeDto
 
     public List<AssociationDto> Serves { get; init; } = [];
     public string Note { get; init; }
+}
+
+public record ServiceFoldDto
+{
+    public required string System { get; init; }
+    public List<string> Stages { get; init; } = [];
+    public int Members { get; init; }
 }
 
 public record CanonicalVariantDto
@@ -100,6 +111,10 @@ public record SystemGraphDto
     /// <summary>Crossing edges not accepted, and edges an unstaged end left unjudged — the toolbar's figures.</summary>
     public int Crossings { get; init; }
     public int UnjudgedEdges { get; init; }
+
+    /// <summary>The cross-cutting systems this graph touches, folded or not (cross-cutting-systems.md §3): the toolbar's switch.</summary>
+    public List<ServiceFoldDto> Services { get; init; } = [];
+    public bool Folded { get; init; }
 }
 
 /// <summary>
@@ -109,13 +124,15 @@ public record SystemGraphDto
 /// </summary>
 [ApiController]
 [Route("api/system-graph")]
-public class SystemGraphController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, GraphComposer graphComposer) : ControllerBase
+public class SystemGraphController(CensusStore censusStore, EntityTagsStore entityTagsStore, DeclaredEntitiesStore declaredEntitiesStore, SystemsStore systemsStore, GraphComposer graphComposer) : ControllerBase
 {
     /// <param name="grouping">canonical (default) collapses stage variants sharing a canonical
     /// name; observed leaves every entity as its own node — the canonical name stays a fact
     /// on the association, and the collapse becomes the view's choice (system-view.md §3).</param>
+    /// <param name="fold">true (default) folds the members of registry-flagged cross-cutting systems
+    /// into one capsule per stage set (cross-cutting-systems.md §3); false draws them as they are.</param>
     [HttpGet("{system}")]
-    public ActionResult<SystemGraphDto> Get(string system, [FromQuery] string grouping = "canonical")
+    public ActionResult<SystemGraphDto> Get(string system, [FromQuery] string grouping = "canonical", [FromQuery] string fold = "true")
     {
         var snapshots = new List<(string Machine, CensusEnvelope Envelope)>();
         foreach (var dir in censusStore.GetMachineDirs())
@@ -197,9 +214,68 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
             });
         }
 
+        // The cross-cutting fold (cross-cutting-systems.md §3): members of a system whose card says
+        // crossCutting — never the viewed system — fold into one capsule per stage set, with the
+        // folded members riding along as variants. The same idMap re-points their edges below.
+        var registry = systemsStore.Load().Systems;
+        var folding = !string.Equals(fold, "false", StringComparison.OrdinalIgnoreCase);
+        var services = new List<ServiceFoldDto>();
+        var capsules = new List<SystemGraphNodeDto>();
+        AssociationDto CrossClaim(SystemGraphNodeDto n) => n.Member ? null : n.Serves.FirstOrDefault(a =>
+            !string.IsNullOrEmpty(a.System)
+            && !string.Equals(a.System, system, StringComparison.OrdinalIgnoreCase)
+            && registry.TryGetValue(a.System, out var rec) && rec.CrossCutting == true);
+        foreach (var group in prunedNodes
+            .Where(n => !idMap.ContainsKey(n.Id))
+            .Select(n => (Node: n, Claim: CrossClaim(n)))
+            .Where(x => x.Claim is not null)
+            .GroupBy(x => (System: x.Claim.System.ToLowerInvariant(),
+                           Stages: string.Join("+", x.Claim.Stages.Select(st => st.ToLowerInvariant()).Distinct().OrderBy(st => st, StageOrder.Comparer)))))
+        {
+            var members = group.Select(x => x.Node).ToList();
+            var serviceName = group.First().Claim.System;
+            var stages = group.First().Claim.Stages.Select(st => st.ToLowerInvariant()).Distinct().OrderBy(st => st, StageOrder.Comparer).ToList();
+            services.Add(new ServiceFoldDto { System = serviceName, Stages = stages, Members = members.Count });
+            if (!folding) continue;
+            var id = GraphComposer.NodeId("service", group.Key.System, group.Key.Stages);
+            foreach (var m in members) idMap[m.Id] = id;
+            var hosts = members.Select(v => v.Machine).Where(m => m is not null)
+                .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(m => m, StringComparer.OrdinalIgnoreCase).ToList();
+            capsules.Add(new SystemGraphNodeDto
+            {
+                Id = id,
+                Kind = "service",
+                Name = serviceName,
+                Machine = hosts.Count == 1 ? hosts[0] : null,
+                Hosts = hosts,
+                Declared = members.All(v => v.Declared),
+                External = members.All(v => v.External),
+                Phantom = members.All(v => v.Phantom),
+                Member = false,
+                OffSystem = true,
+                Service = true,
+                ServiceStages = stages,
+                Serves = members.SelectMany(v => v.Serves).ToList(),
+                Variants = members.Select(v => new CanonicalVariantDto
+                {
+                    Kind = v.Kind,
+                    Name = v.Name,
+                    Container = v.Container,
+                    Machine = v.Machine,
+                    Declared = v.Declared,
+                    Phantom = v.Phantom,
+                    Stages = v.Serves.Where(a => string.Equals(a.System, serviceName, StringComparison.OrdinalIgnoreCase))
+                        .SelectMany(a => a.Stages).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(st => st, StageOrder.Comparer).ToList(),
+                    AssertedBy = v.Serves.FirstOrDefault(a => string.Equals(a.System, serviceName, StringComparison.OrdinalIgnoreCase))?.AssertedBy,
+                    AssertedAt = v.Serves.FirstOrDefault(a => string.Equals(a.System, serviceName, StringComparison.OrdinalIgnoreCase))?.AssertedAt,
+                }).ToList(),
+            });
+        }
+
         var finalNodes = prunedNodes
             .Where(n => !idMap.ContainsKey(n.Id))
             .Concat(canonicalNodes)
+            .Concat(capsules)
             .OrderBy(n => n.Machine ?? "~", StringComparer.OrdinalIgnoreCase)
             .ThenBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -223,7 +299,7 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
                 var merged = g.Count() == 1 ? g.First()
                     : loudest with
                     {
-                        Detail = $"{g.Count()} observed edges under this canonical pairing"
+                        Detail = $"{g.Count()} observed edges under this pairing"
                             + (string.IsNullOrEmpty(g.First().Detail) ? "" : $" — first: {g.First().Detail}"),
                     };
                 return [merged];
@@ -243,6 +319,8 @@ public class SystemGraphController(CensusStore censusStore, EntityTagsStore enti
                 .ToList(),
             Crossings = finalEdges.Count(e => e.Crossing is not null && e.Accepted is null),
             UnjudgedEdges = finalEdges.Count(e => e.Unjudged),
+            Services = services.OrderBy(x => x.System, StringComparer.OrdinalIgnoreCase).ThenBy(x => string.Join("+", x.Stages), StageOrder.Comparer).ToList(),
+            Folded = folding,
         });
     }
 }

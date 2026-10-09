@@ -374,6 +374,59 @@
           "assertedAt": "2026-10-08"
         }
       }
+    },
+    "LOGBOX": {
+      "telemetry.dev.example.com": {
+        "/": {
+          "serves": [
+            {
+              "system": "Telemetry",
+              "stages": [
+                "dev"
+              ],
+              "layer": "api",
+              "assertedBy": "robert",
+              "assertedAt": "2026-10-09"
+            }
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-10-09"
+        }
+      },
+      "telemetry.val.example.com": {
+        "/": {
+          "serves": [
+            {
+              "system": "Telemetry",
+              "stages": [
+                "val"
+              ],
+              "layer": "api",
+              "assertedBy": "robert",
+              "assertedAt": "2026-10-09"
+            }
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-10-09"
+        }
+      },
+      "telemetry.example.com": {
+        "/": {
+          "serves": [
+            {
+              "system": "Telemetry",
+              "stages": [
+                "prod"
+              ],
+              "layer": "api",
+              "assertedBy": "robert",
+              "assertedAt": "2026-10-09"
+            }
+          ],
+          "assertedBy": "robert",
+          "assertedAt": "2026-10-09"
+        }
+      }
     }
   }
 }

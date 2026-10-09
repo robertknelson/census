@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "His 22 notes from the real estate built into Census and Move It, six slices; committed, not pushed"
+summary: "A system every site calls now folds into one capsule per stage in Atlas; the whole notes round is in; not pushed"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; re-run apptrak/sql/003-lookups.sql on the real AppTrak once (new event kind); tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -25,6 +25,14 @@ ignite: start-census.bat
 ---
 
 ## The latest feature added
+
+**A system that everything calls no longer crowds every picture.** Mark it *cross-cutting*
+on its registry card (the panel suggests it when two or more systems call it) and, in any
+other system's graph, its endpoints fold into one capsule per stage: *Telemetry · prod*,
+with a count of what is inside. A site logging to the wrong stage still draws its red line
+into the wrong capsule, so the fold hides nothing that matters. A switch on the toolbar
+unfolds them. In the layered picture the capsules sit in a *Services* band under the data.
+Nothing is inferred: the flag is a statement you make once, on the card.
 
 **The layered picture is drawn for management now.** Each thing is a card with its name in
 words and the technical name in small print underneath; the layers are bands that run
@@ -78,9 +86,8 @@ application sits in, and it would not have caught this on its own.
 database, run the lookups script once (it adds the new event kind and nothing else). Run
 the new query on the item that reads *not seen* and bring back its answer.
 
-**The one note held for discussion:** which neighbouring systems Atlas should draw around a
-system — the callers of your members, and a logging system everything calls. Nothing is
-built for it; the round note holds a position to argue with.
+**Mark AppTrak cross-cutting** on its card the first time you open the registry on the
+real estate, and look at a site's graph before and after.
 
 **Look at the layered picture on the real estate** once a system's canonical names are
 tagged; it is drawn for management now (below). The 3D version stays parked behind it.

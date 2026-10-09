@@ -253,6 +253,9 @@
 .atl-lay-band-fill { fill: var(--atl-lay-band); }
 .atl-lay-band.is-alt .atl-lay-band-fill { fill: var(--atl-lay-band-alt); }
 .atl-lay-band.is-unplaced .atl-lay-band-fill { fill: #fbf3e4; }
+.atl-lay-band[data-band="services"] .atl-lay-band-fill { fill: #f1f3f8; }
+.atl-kind-capsule .atl-shape { stroke-width: 1.8; }
+.atl-kind-capsule .atl-detail { stroke-dasharray: 2 3; }
 .atl-lay-band-label { font-size: 12px; font-weight: 650; letter-spacing: 0.12em; text-transform: uppercase; fill: var(--atl-muted); text-anchor: middle; }
 .atl-lay-header { fill: var(--atl-panel); stroke: var(--atl-line); stroke-width: 1; }
 .atl-lay-stage { font: 650 15px/1 var(--atl-mono); fill: var(--atl-current); }

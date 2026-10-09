@@ -277,10 +277,10 @@ INSERT INTO moveit.ReleaseEvent (ReleaseId, Kind, Stage, Build, At, [By], Note, 
  (10,'deployed-asserted', 'UAT',  'J-1207',     (SELECT At FROM @D WHERE Day = 65), 'robert', NULL, 'demo-seed');
 
 INSERT INTO moveit.WorkItemLink (WorkItemId, LinkedWorkItemId, Kind, Note, CreatedBy) VALUES
- (401, 101, 'dependsOn', 'Dashboard reads the v2 rules endpoint',   'demo-seed'),
- (501, 302, 'dependsOn', 'Viewer reads the audit trail',            'demo-seed'),
- (701, 301, 'relatedTo', 'Same client ask, different apps',         'demo-seed'),
- (901, 601, 'dependsOn', 'Statements use the Q3 rate tables',       'demo-seed'),
- (1001,303, 'dependsOn', 'Letters need the timezone fix',           'demo-seed');
+ (401, 101, 'depends-on', 'Dashboard reads the v2 rules endpoint',   'demo-seed'),
+ (501, 302, 'depends-on', 'Viewer reads the audit trail',            'demo-seed'),
+ (701, 301, 'related-to', 'Same client ask, different apps',         'demo-seed'),
+ (901, 601, 'depends-on', 'Statements use the Q3 rate tables',       'demo-seed'),
+ (1001,303, 'depends-on', 'Letters need the timezone fix',           'demo-seed');
 
 PRINT 'moveit: 10 releases, 19 work items (3 with no release), 12 attributed builds, 18 events, 5 links';

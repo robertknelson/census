@@ -4,6 +4,17 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-09 — link-kinds renamed kebab-case (his ruling; reverses the 2026-09-17 "member identifiers unchanged" call)
+
+**Rename in place, not add beside.** 003 is insert-only by contract ("a member that exists
+is never changed"), so the rename is a separate one-off, `004-link-kinds-kebab.sql`, that
+updates the two lookup rows and every `WorkItemLink.Kind` and is a no-op once run. Option
+rejected: a tolerant reader (`Kind IN ('dependsOn', 'depends-on')`) in the questions — two
+spellings in the data forever for one find-and-replace saved.
+
+**Question column aliases stay** (`DependsOn`, `DependsOnApp`, `DependsOnStage` in
+03-order-violations): they are result-set names the PowerShell pins read, not identifiers.
+
 ## 2026-10-09 — Move It rail: several applications
 
 **Rail-wide, not Where is it alone.** He named Where is it. The rail is one component and

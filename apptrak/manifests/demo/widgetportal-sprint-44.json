@@ -11,7 +11,7 @@
       "builtBy": "dev-d",
       "includedInBuild": "20260910.1",
       "links": [
-        { "kind": "dependsOn", "application": 1, "release": "Sprint 44", "workItem": "Portfolio export v2", "note": "Portal downloads what WidgetCore exports" }
+        { "kind": "depends-on", "application": 1, "release": "Sprint 44", "workItem": "Portfolio export v2", "note": "Portal downloads what WidgetCore exports" }
       ]
     }
   ],

@@ -22,8 +22,8 @@ INSERT @m VALUES
     ('work-item-kinds',   'feature',           'Feature',             'New or changed behaviour',                                      10),
     ('work-item-kinds',   'fix',               'Fix',                 'Correction of a defect',                                        20),
 
-    ('link-kinds',        'dependsOn',         'Depends on',          'Directed: the linked item must be deployed first',              10),
-    ('link-kinds',        'relatedTo',         'Related to',          'Undirected: these go together',                                 20),
+    ('link-kinds',        'depends-on',        'Depends on',          'Directed: the linked item must be deployed first',              10),
+    ('link-kinds',        'related-to',        'Related to',          'Undirected: these go together',                                 20),
 
     ('event-kinds',       'approved',          'Approved',            'Client approval to deploy the named build to the named stage',  10),
     ('event-kinds',       'verified',          'Verified',            'Testing signed off in the named stage',                         20),

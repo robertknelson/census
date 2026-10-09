@@ -1,7 +1,7 @@
 -- Q: Which releases are ready for the client meeting? (App. A, architect; rule 7)
 --
 -- A release is a candidate when it has reached a pre-PROD stage (VAL or UAT), has no approval
--- yet, is not on hold or abandoned. It is READY when every dependsOn target of its work items
+-- yet, is not on hold or abandoned. It is READY when every depends-on target of its work items
 -- is at least as far along. Blockers lists the dependencies that are not.
 --
 -- Read-only.
@@ -68,7 +68,7 @@ ev AS (
 blockers AS (   -- dependencies below the release's own stage
     SELECT w.ReleaseId, l.LinkedWorkItemId, wt.Title, ISNULL(bt.Stage, 'nowhere') AS Stage
     FROM moveit.WorkItem w
-    JOIN moveit.WorkItemLink l ON l.WorkItemId = w.Id AND l.Kind = 'dependsOn'
+    JOIN moveit.WorkItemLink l ON l.WorkItemId = w.Id AND l.Kind = 'depends-on'
     JOIN moveit.WorkItem wt ON wt.Id = l.LinkedWorkItemId
     JOIN rel ON rel.ReleaseId = w.ReleaseId
     LEFT JOIN best bt ON bt.WorkItemId = l.LinkedWorkItemId AND bt.rn = 1

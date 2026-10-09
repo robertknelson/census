@@ -11,7 +11,7 @@
       "builtBy": "dev-a",
       "includedInBuild": "20260905.2",
       "links": [
-        { "kind": "dependsOn", "release": "Sprint 43", "workItem": "Portfolio API v3", "note": "Export reads the v3 endpoint" }
+        { "kind": "depends-on", "release": "Sprint 43", "workItem": "Portfolio API v3", "note": "Export reads the v3 endpoint" }
       ]
     },
     {

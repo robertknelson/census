@@ -475,7 +475,7 @@ CREATE TABLE moveit.WorkItemLink (                -- directed, feature-level dep
     Id               int IDENTITY   NOT NULL,
     WorkItemId       int            NOT NULL,   -- the dependent side
     LinkedWorkItemId int            NOT NULL,   -- the thing it needs
-    Kind             nvarchar(25)   NOT NULL,   -- SelectItem LinkKind: dependsOn | relatedTo
+    Kind             nvarchar(25)   NOT NULL,   -- SelectItem LinkKind: depends-on | related-to
     Note             nvarchar(255)  NULL,
     CreatedAt        datetimeoffset NOT NULL DEFAULT (sysdatetimeoffset()),
     CreatedBy        nvarchar(50)   NOT NULL,
@@ -491,9 +491,12 @@ a list is a header row (`MasterId = -1`, `Identifier` the list name,
 kebab-case) and its members carry `MasterId = header.Id`; `Grouping` is
 dropdown grouping only, left NULL; readers filter `IsShow = 1` and order by
 `Sort`. Move It's four: `release-kinds` featureset | hotfix; `work-item-kinds`
-feature | fix; `link-kinds` dependsOn | relatedTo; `event-kinds` approved |
+feature | fix; `link-kinds` depends-on | related-to; `event-kinds` approved |
 verified | hold | resumed | note | abandoned | deployed-asserted. The Kind
-columns store the member `Identifier`. **Stages are AppTrak's own `stage`
+columns store the member `Identifier`. The two link kinds were `dependsOn` and
+`relatedTo` until 2026-10-09 (Robert: "should be kebab cased", like every
+other member); `004-link-kinds-kebab.sql` renames them in place on a database
+that ran 003 before then — lookup rows and `WorkItemLink.Kind` alike. **Stages are AppTrak's own `stage`
 list**, read, never written; `Sort` is the sequence (DEV, VAL and UAT peers,
 PROD above). Adding a kind is data, not DDL. *Amended 2026-09-21 (§17):*
 only the list's **seen** stages count — a registered `health.HealthEndpoint`
@@ -539,7 +542,7 @@ or a `ReleaseEvent` names it — in the board and in every question's `stg`.
    everywhere, never counts as observed, never corroborated. Without it Move
    It says nothing about Team A for as long as a year.
 7. **A coordinated release is derived**: whatever set of releases across apps
-   is connected by `dependsOn`/`relatedTo` links. From it: order violation (a
+   is connected by `depends-on`/`related-to` links. From it: order violation (a
    dependent work item observed in a higher stage than its dependency —
    gateway in PROD, downstream in VAL); ready-to-approve (every dependency at
    least at VAL); where-is-the-whole-thing; orphaned dependency (linked
@@ -761,7 +764,7 @@ evidence, "looks correct", in 59 seconds — item 16.
    list's header identifier was assumed `'stage'`; Robert: `'stages'` (2026-09-17) (his three examples were
    `release-kinds`, `event-kinds`, `work-item-kinds`). If it is something else,
    it is one literal in nine files. Member identifiers stay as ratified
-   (`featureset`, `dependsOn`, …); if his hand-entered members differ, the
+   (`featureset`, `depends-on`, …); if his hand-entered members differ, the
    Kind columns' values differ with them — bring the list.
 
 ## 13. The board — the governance reader's page (ratified 2026-09-14; level 1 built)
@@ -879,7 +882,7 @@ person who wrote it.
     { "kind": "feature", "title": "Portfolio export v2", "builtBy": "dev-a",
       "externalRef": null, "includedInBuild": "20260905.2", "foundInStage": null,
       "removedAt": null, "removedNote": null,
-      "links": [ { "kind": "dependsOn", "application": 1, "release": "Sprint 43",
+      "links": [ { "kind": "depends-on", "application": 1, "release": "Sprint 43",
                    "workItem": "Portfolio API v3", "note": "…" } ] }
   ],
   "builds": [ { "build": "20260905.2", "note": "Promoted to VAL" } ],

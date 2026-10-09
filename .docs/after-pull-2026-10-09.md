@@ -29,6 +29,20 @@ sqlcmd -S <server> -d AppTrak -E -b -I -i apptrak\sql\003-lookups.sql
 Expect `core.SelectItem: 1 members inserted`. Skip this and the first *Release* click on a
 build claim answers *Event kind 'build-released' is not in event-kinds.*
 
+Then, once, the link-kinds rename (`dependsOn` → `depends-on`, `relatedTo` → `related-to`,
+your 2026-10-09 ruling). 003 is insert-only, so it would add the kebab rows beside the camel
+ones; this script renames the lookup rows and every `WorkItemLink.Kind` in place, and does
+nothing on a database already renamed:
+
+```
+sqlcmd -S <server> -d AppTrak -E -b -I -i apptrak\sql\004-link-kinds-kebab.sql
+```
+
+Three counts come back: links *moved* (however many you have), lookup rows *renamed* (2 if
+004 runs before 003, since the kebab rows are then absent) and camel rows *removed* (2 if 003
+ran first and had already added the kebab rows beside them). Either order ends with one
+kebab row per kind. Manifests you hand-write from now on say `depends-on`.
+
 ## 3. The item that reads "Built, not seen"
 
 Open `apptrak\sql\questions\14-why-not-seen.sql`, set the id at the top:

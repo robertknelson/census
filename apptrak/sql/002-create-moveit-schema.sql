@@ -109,7 +109,7 @@ BEGIN
         Id               int IDENTITY   NOT NULL,
         WorkItemId       int            NOT NULL,   -- the dependent side
         LinkedWorkItemId int            NOT NULL,   -- the thing it needs
-        Kind             nvarchar(25)   NOT NULL,   -- SelectItem list link-kinds: dependsOn | relatedTo
+        Kind             nvarchar(25)   NOT NULL,   -- SelectItem list link-kinds: depends-on | related-to
         Note             nvarchar(255)  NULL,
         CreatedAt        datetimeoffset NOT NULL CONSTRAINT DF_WorkItemLink_CreatedAt DEFAULT (sysdatetimeoffset()),
         CreatedBy        nvarchar(50)   NOT NULL,

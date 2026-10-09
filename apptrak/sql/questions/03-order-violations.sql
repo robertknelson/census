@@ -3,7 +3,7 @@
 -- The microservices wound: gateway in PROD, downstream still in VAL. Two kinds of row:
 --   current    - right now, the dependent work item is at a higher stage than its dependency
 --   historical - at some stage, the dependent arrived before its dependency did (DaysAhead)
--- Only dependsOn links are directional; relatedTo never violates.
+-- Only depends-on links are directional; related-to never violates.
 --
 -- Read-only.
 
@@ -64,7 +64,7 @@ links AS (
     FROM moveit.WorkItemLink l
     JOIN moveit.WorkItem wd ON wd.Id = l.WorkItemId       JOIN moveit.Release rd ON rd.Id = wd.ReleaseId
     JOIN moveit.WorkItem wt ON wt.Id = l.LinkedWorkItemId JOIN moveit.Release rt ON rt.Id = wt.ReleaseId
-    WHERE l.Kind = 'dependsOn'
+    WHERE l.Kind = 'depends-on'
 )
 SELECT 'current' AS Violation, k.LinkId, k.DependentApp, k.Dependent, bd.Stage AS DependentStage,
        k.DependsOnApp, k.DependsOn, ISNULL(bt.Stage, 'nowhere') AS DependsOnStage,

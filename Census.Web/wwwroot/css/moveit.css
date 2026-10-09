@@ -155,6 +155,9 @@
 .mi-chip.is-selected { background: var(--mi-ink); color: #fff; border-color: var(--mi-ink); border-left-color: var(--lane); }
 .mi-chip-title { font-weight: 500; line-height: 1.3; }
 .mi-chip-meta { font-size: 11.5px; color: var(--mi-muted); line-height: 1.3; }
+.mi-chip-due { font-size: 11.5px; line-height: 1.3; color: var(--mi-ink); font-weight: 600; }
+.mi-chip-due.is-past { color: var(--mi-alert); }
+.mi-chip.is-selected .mi-chip-due { color: #fff; }
 .mi-chip.is-selected .mi-chip-meta { color: rgba(255, 255, 255, 0.72); }
 
 .mi-flag { font-size: 10.5px; font-weight: 600; padding: 0.05rem 0.35rem; border-radius: 3px; }

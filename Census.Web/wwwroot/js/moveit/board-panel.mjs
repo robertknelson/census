@@ -6,16 +6,26 @@ const DAY = 86_400_000;
 
 // Each open item with its lane, and whether it is shipped (§27): at the top stage for longer
 // than shippedDays, in which case it leaves the lanes and is listed in the application cell,
-// as the Releases view does with a whole release. Removed items are not here; they are
-// counted, not drawn.
+// as the Releases view does with a whole release — except the most recently shipped item of
+// each application, which stays in the top lane however old it is, so the lane reads as the
+// current state (§29, his 9: "this gives a sort of CURRENT STATE"). Removed items are not
+// here; they are counted, not drawn.
 export function classifyItems({ lanes, items, now, shippedDays }) {
     const top = topLane(lanes);
-    return items.filter((i) => i.Status !== 'removed').map((item) => {
+    const classified = items.filter((i) => i.Status !== 'removed').map((item) => {
         const lane = lanes.find((l) => l.id === laneFor(item.Status, lanes));
         const shipped = top != null && lane === top && item.Since != null;
         const folded = shipped && (now - Date.parse(item.Since)) > shippedDays * DAY;
         return { item, lane, shipped, folded };
     });
+    const latest = new Map();
+    for (const c of classified) {
+        if (!c.shipped) continue;
+        const have = latest.get(c.item.ApplicationId);
+        if (!have || Date.parse(c.item.Since) > Date.parse(have.item.Since)) latest.set(c.item.ApplicationId, c);
+    }
+    for (const c of latest.values()) c.folded = false;
+    return classified;
 }
 
 // Question 01 as lanes (move-it.md §13, level 1): one row per application, one column per
@@ -31,6 +41,7 @@ export class BoardPanel {
     render(el, data) {
         this.el = el;
         const { lanes, items, applications, releases, now, laneCounts } = data;
+        this.dueSoonDays = data.dueSoonDays ?? 7;
         const releasesById = new Map(releases.map((r) => [r.ReleaseId, r]));
         const classified = classifyItems(data);
         const rows = applications.map((app) => {
@@ -87,27 +98,45 @@ export class BoardPanel {
             </div>`;
     }
 
-    // The meta line says where in words the lane cannot: "in UAT" when the lane holds peers,
-    // "shipped <date>" at the top, otherwise how long it has sat in the lane (§27).
+    // The meta line says when the item got to its lane (§29, his 10: "i want to know WHEN it
+    // arrived there") — "arrived 27 Sep · 12 days", "in UAT" when the lane holds peers,
+    // "heard 3 Sep" in Coming, "shipped 20 Aug" at the top — and, when the release's target
+    // is within dueSoonDays or already past, the due date on a line of its own.
     renderChip({ item, lane, shipped }, release, now) {
         const since = daysAgo(item.Since, now);
         const meta = [];
         if (item.Release) meta.push(escapeHtml(item.Release));
         else if (item.Status === 'no release') meta.push('no release yet');
+        const heard = item.Status === 'no release' || item.Status === 'with the devs';
         if (shipped) meta.push(`shipped ${escapeHtml(shortDate(item.Since))}`);
-        else if (since != null && lane.stages.length > 1) meta.push(`${days(since)} in ${escapeHtml(item.Status)}`);
-        else if (since != null) meta.push(`${days(since)} here`);
+        else if (since != null && heard) meta.push(`heard ${escapeHtml(shortDate(item.Since))} · ${days(since)}`);
+        else if (since != null && lane.stages.length > 1) meta.push(`arrived ${escapeHtml(shortDate(item.Since))} · ${days(since)} in ${escapeHtml(item.Status)}`);
+        else if (since != null) meta.push(`arrived ${escapeHtml(shortDate(item.Since))} · ${days(since)}`);
         if (item.Evidence === 'asserted') meta.push('asserted');
         if (item.Status === 'not deployed') meta.push('build known, not seen');
         if (item.Status === 'no evidence') meta.push('app gives no evidence');
         const flags = [];
         if (release?.OnHold === 1) flags.push('<span class="mi-flag is-hold" title="Release on hold">hold</span>');
         if (release?.PastTarget === 1) flags.push('<span class="mi-flag is-alert" title="Release past its target date">late</span>');
+        const due = this.dueLine(release, shipped, now);
         return `
             <button type="button" class="mi-chip is-${escapeHtml(item.Kind)}" data-item="${item.WorkItemId}" title="${escapeHtml(item.Title)}">
                 <span class="mi-chip-title">${escapeHtml(item.Title)}</span>
                 <span class="mi-chip-meta">${meta.join(', ')}${flags.length ? ' ' + flags.join(' ') : ''}</span>
+                ${due}
             </button>`;
+    }
+
+    // "due 10 Oct" inside the window, "was due 3 Oct" after it; nothing on a shipped item, and
+    // nothing while the target is comfortably ahead — the detail has the full date.
+    dueLine(release, shipped, now) {
+        if (!release?.TargetDate || shipped) return '';
+        const ms = Date.parse(release.TargetDate);
+        const ahead = Math.ceil((ms - now) / DAY);
+        if (ahead > (this.dueSoonDays ?? 7)) return '';
+        return ahead < 0
+            ? `<span class="mi-chip-due is-past">was due ${escapeHtml(shortDate(release.TargetDate))}</span>`
+            : `<span class="mi-chip-due">due ${escapeHtml(shortDate(release.TargetDate))}</span>`;
     }
 }
 

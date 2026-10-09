@@ -2091,6 +2091,24 @@ Verified: `/moveit/releases` with the cells and the swapped columns; August 2026
 views, the Weekdays grid showing *+5 over the weekend* on Mon 31 and its detail's *Over the
 weekend* section; Mon 3's detail with the sentence.
 
+**Step 2 — the board reads as the current state (built and verified the same day):**
+
+- **PROD keeps the latest shipped item per application** (his 9: "this gives a sort of
+  CURRENT STATE"). `classifyItems` still folds a shipped item after `MoveIt:ShippedDays`,
+  then unfolds the most recently shipped item of each application whatever its age; the
+  application cell's *Shipped: …* keeps the older ones. `tests/Test-BoardLanes.mjs` (node,
+  7 assertions) pins it: three shipped at 60/40/20 days keep the 20-day one in the lane;
+  a lone 90-day one stays; a one-lane board ships nothing.
+- **Chips say when** (his 10: "i want to know WHEN it arrived there"): *arrived 19 Aug ·
+  50 days* (*· 32 days in UAT* when the lane holds peers), *heard 26 Jul · 74 days* in
+  Coming, *shipped 15 Aug* at the top. The release's target is a line of its own once it is
+  within `MoveIt:DueSoonDays` (new, default 7): *due 10 Oct*, or *was due 1 Sep* in red
+  after it; nothing on a shipped chip. The *late* flag stays — it is the release's state,
+  the date is the fact he asked for.
+
+Verified headless on the fixtures: WidgetCore's PROD lane holds *Login timeout under load,
+shipped 15 Aug* with three older items in the cell; every chip carries its date.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

@@ -18,6 +18,10 @@ public class MoveItOptions
     // in the top stage this many days.
     public int ShippedDays { get; set; } = 14;
 
+    // The board's chips (§29) name the release's target date once it is this many days away,
+    // and "was due" once it has passed.
+    public int DueSoonDays { get; set; } = 7;
+
     // History's "needs a word from you" (§23): a release in flight this many days at its stage
     // with nothing recorded, and a heard item this many days with no release, are asked about.
     public int StaleDays { get; set; } = 14;

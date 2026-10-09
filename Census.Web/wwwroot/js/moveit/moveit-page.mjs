@@ -21,6 +21,7 @@ class MoveItPage {
     init(config = {}) {
         this.root = document.getElementById(config.rootId ?? 'moveit-root');
         this.shippedDays = config.shippedDays ?? 14;
+        this.dueSoonDays = config.dueSoonDays ?? 7;
         this.app = null;                  // ApplicationId filter, null = all
         this.view = new URLSearchParams(window.location.search).get('view') === 'releases' ? 'releases' : 'items';
         this.now = Date.now();
@@ -129,6 +130,7 @@ class MoveItPage {
             now: this.now,
             view: this.view,
             shippedDays: this.shippedDays,
+            dueSoonDays: this.dueSoonDays,
             applications: this.applications.filter(inScope),
             items: this.items.filter(inScope),
             releases: this.releases.filter(inScope),

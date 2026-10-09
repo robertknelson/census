@@ -212,11 +212,11 @@ export class Register {
                 if (!values.length) return '';
                 return `<div class="rg-facet">
                     <span class="rg-facet-h">${escapeHtml(f.label)}</span>
-                    ${values.map((v) => {
+                    <span class="rg-facet-vs">${values.map((v) => {
                         const n = counts.get(v) ?? 0;
                         const on = chosen.includes(v);
                         return `<button type="button" class="rg-facet-v ${on ? 'is-on' : ''} ${n || on ? '' : 'is-zero'}" data-facet="${escapeHtml(f.id)}" data-value="${escapeHtml(v)}" aria-pressed="${on}">${escapeHtml(v)}<span class="rg-facet-n">${n}</span></button>`;
-                    }).join('')}
+                    }).join('')}</span>
                 </div>`;
             }).join('')}
             ${anyChosen || this.state.pill || this.state.q ? '<button type="button" class="rg-clear" data-rg="clear">Clear all</button>' : ''}

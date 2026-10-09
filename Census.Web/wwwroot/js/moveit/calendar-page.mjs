@@ -10,8 +10,13 @@ import { PopOver } from './pop-over.mjs';
 // flags — on a month grid. One chip per application, stage and day for what the pings saw;
 // the day column lists every row. Days follow the reader's clock. Read-only, and no link to
 // the release page (Robert, 2026-10-01: "not now").
+//
+// The grid runs Sunday to Saturday (round-2026-10-09 §2d). Two views, remembered per browser:
+// Full week draws the weekend dimmed; Weekdays drops the weekend columns and rolls a weekend's
+// entries into the Monday after it, said on the cell — never hidden silently.
 
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const VIEW_KEY = 'moveit.calendar.view';
 
 const EVENT_TEXT = {
     approved: 'approved', verified: 'verified', hold: 'on hold', resumed: 'resumed',
@@ -40,6 +45,7 @@ class CalendarPage {
         this.stage = null;
         this.app = null;
         this.selected = null;
+        this.view = localStorage.getItem(VIEW_KEY) === 'weekdays' ? 'weekdays' : 'full';
         const today = new Date();
         this.todayKey = dayKey(today);
         const asked = /^(\d{4})-(\d{2})$/.exec(new URLSearchParams(location.search).get('month') ?? '');
@@ -62,6 +68,10 @@ class CalendarPage {
                             <h1 class="cal-month" data-ref="month"></h1>
                             <button type="button" class="mi-button" data-ref="next" aria-label="Next month">›</button>
                             <button type="button" class="mi-button is-quiet" data-ref="today">This month</button>
+                            <nav class="mi-picks cal-view" data-ref="view" aria-label="Days shown">
+                                <button type="button" class="mi-pick" data-view="full">Full week</button>
+                                <button type="button" class="mi-pick" data-view="weekdays">Weekdays</button>
+                            </nav>
                         </div>
                         <nav class="mi-picks" data-ref="stages" aria-label="Stage"></nav>
                         <p class="mi-showing" data-ref="showing"></p>
@@ -90,6 +100,12 @@ class CalendarPage {
                 <li><span class="cal-hold-key"></span>on hold</li>
                 <li><span class="cal-unknown-key"></span>not yet backfilled</li>
             </ul>`);
+        this.viewEl = ref('view');
+        this.viewEl.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
+            this.view = b.dataset.view;
+            localStorage.setItem(VIEW_KEY, this.view);
+            this.refresh();
+        }));
         ref('prev').addEventListener('click', () => this.step(-1));
         ref('next').addEventListener('click', () => this.step(1));
         ref('today').addEventListener('click', () => {
@@ -219,16 +235,32 @@ class CalendarPage {
         }
         this.byDay = byDay;
 
+        this.viewEl.querySelectorAll('[data-view]').forEach((b) => {
+            b.classList.toggle('is-active', b.dataset.view === this.view);
+            b.toggleAttribute('aria-pressed', b.dataset.view === this.view);
+        });
+        const weekdays = this.view === 'weekdays';
         const first = new Date(y, m, 1);
-        const start = new Date(y, m, 1 - ((first.getDay() + 6) % 7));
+        const start = new Date(y, m, 1 - first.getDay());
         const last = new Date(y, m + 1, 0);
-        const end = new Date(y, m + 1, (7 - ((last.getDay() + 6) % 7)) - 1);
+        const end = new Date(y, m + 1, 6 - last.getDay());
         const cells = [];
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) cells.push(this.renderDay(new Date(d), m));
+        let weekend = [];
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const day = d.getDay();
+            if (weekdays && (day === 0 || day === 6)) {
+                weekend.push(...(byDay.get(dayKey(d)) ?? []));
+                continue;
+            }
+            cells.push(this.renderDay(new Date(d), m, day === 1 ? weekend : []));
+            if (day === 1) weekend = [];
+        }
+        const cols = weekdays ? 5 : 7;
+        const heads = weekdays ? WEEKDAYS.slice(1, 6) : WEEKDAYS;
 
         this.mainEl.innerHTML = `
-            <div class="cal-grid" style="--weeks:${cells.length / 7}">
-                ${WEEKDAYS.map((w) => `<div class="cal-weekday">${w}</div>`).join('')}
+            <div class="cal-grid" style="--weeks:${cells.length / cols}; --cols:${cols}">
+                ${heads.map((w) => `<div class="cal-weekday">${w}</div>`).join('')}
                 ${cells.join('')}
             </div>`;
         this.mainEl.querySelectorAll('[data-day]').forEach((b) => b.addEventListener('click', () => this.openDetail(b.dataset.day)));
@@ -269,7 +301,13 @@ class CalendarPage {
                 The backfill has not stamped a run yet, so the hatched days after it are either quiet or not yet backfilled.`;
     }
 
-    renderDay(date, month) {
+    // The first drawn column of a week: Sunday in Full week, Monday in Weekdays. Bands are named there.
+    weekStart() {
+        return this.view === 'weekdays' ? 1 : 0;
+    }
+
+    // weekend: in the Weekdays view, the entries of the Saturday and Sunday before a Monday.
+    renderDay(date, month, weekend = []) {
         const key = dayKey(date);
         const entries = this.byDay.get(key) ?? [];
         const chips = this.chips(entries);
@@ -278,6 +316,7 @@ class CalendarPage {
         const cls = [
             'cal-day',
             date.getMonth() !== month ? 'is-other' : '',
+            date.getDay() === 0 || date.getDay() === 6 ? 'is-weekend' : '',
             key === this.todayKey ? 'is-today' : '',
             unknown ? 'is-unknown' : '',
             key === this.selected ? 'is-selected' : '',
@@ -287,6 +326,7 @@ class CalendarPage {
         return `
             <button type="button" class="${cls}" data-day="${key}" aria-label="${escapeHtml(`${label}: ${entries.length} entries`)}">
                 <span class="cal-date">${date.getDate()}</span>
+                ${weekend.length ? `<span class="cal-weekend-note" title="Saturday and Sunday are not drawn in the Weekdays view; their ${weekend.length} entries are listed in this day's detail">+${weekend.length} over the weekend</span>` : ''}
                 ${chips.join('')}
                 <span class="cal-more" hidden></span>
                 ${holds.length > 1 ? this.holdsBar(holds, key, date) : holds.map((h) => this.holdBar(h, key, date, 0)).join('')}
@@ -298,14 +338,14 @@ class CalendarPage {
     // cell's room for chips. The band says how many; its title names each; the day's detail
     // lists them in full.
     holdsBar(holds, key, date) {
-        const named = date.getDay() === 1 || holds.some((h) => key === h.fromKey);
+        const named = date.getDay() === this.weekStart() || holds.some((h) => key === h.fromKey);
         const since = (h) => new Date(h.from).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
         const title = holds.map((h) => `${appLabel(this.appsById.get(h.ApplicationId) ?? { ApplicationId: h.ApplicationId })} · ${h.Release} on hold since ${since(h)}`).join('\n');
         return `<span class="cal-hold is-first ${holds.some((h) => key === h.fromKey) ? 'is-start' : ''}" title="${escapeHtml(title)}">${named ? `${holds.length} releases on hold` : ''}</span>`;
     }
 
     holdBar(h, key, date, i) {
-        const named = key === h.fromKey || date.getDay() === 1;
+        const named = key === h.fromKey || date.getDay() === this.weekStart();
         const app = appLabel(this.appsById.get(h.ApplicationId) ?? { ApplicationId: h.ApplicationId });
         const title = `${app} · ${h.Release} on hold since ${new Date(h.from).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`;
         return `<span class="cal-hold ${i === 0 ? 'is-first' : ''} ${key === h.fromKey ? 'is-start' : ''}" title="${escapeHtml(title)}">${named ? `${escapeHtml(app)} · ${escapeHtml(h.Release)} on hold` : ''}</span>`;
@@ -375,6 +415,14 @@ class CalendarPage {
         const events = entries.filter((e) => e.Kind === 'event').sort((a, b) => a.At.localeCompare(b.At));
         const unknown = this.recordedKey && key > this.recordedKey && key <= this.todayKey;
         const holds = this.holdsOn(key);
+        // Weekdays view, a Monday: the weekend before it is not drawn, so it is listed here.
+        const weekend = [];
+        if (this.view === 'weekdays' && new Date(y, mo - 1, d).getDay() === 1) {
+            for (const back of [2, 1]) {
+                const wd = new Date(y, mo - 1, d - back);
+                for (const e of this.byDay.get(dayKey(wd)) ?? []) weekend.push({ ...e, dayName: wd.toLocaleDateString(undefined, { weekday: 'short' }) });
+            }
+        }
         const count = planned.length + observed.length + events.length + holds.length;
 
         const section = (heading, list) => list.length ? `<h3 class="mi-detail-h3">${heading}</h3><ul class="cal-list">${list.join('')}</ul>` : '';
@@ -396,16 +444,29 @@ class CalendarPage {
                     <div class="mi-muted">${escapeHtml(span)}</div>
                     ${h.reason ? `<div class="cal-note">${escapeHtml(h.reason)}</div>` : ''}</li>`;
             }))}
-            ${section('Seen by the pings', observed.map((e) => `
-                <li>${stageTag(e.Stage)} ${app(e.ApplicationId)} · ${release(e)}
-                    <div class="mi-muted">${e.Kind === 'returned'
-                        ? `↺ rolled back: <code>${escapeHtml(e.ReplacedBuild)}</code> replaced by older <code>${escapeHtml(e.Build)}</code>`
-                        : `<code>${escapeHtml(e.Build)}</code> first seen`} at ${time(e.At)}${e.servers > 1 ? ` · ${e.servers} servers` : ''}</div></li>`))}
+            ${section('Seen by the pings', observed.map((e) => this.observedLine(e)))}
             ${section('Recorded by people', events.map((e) => `
                 <li>${stageTag(e.Stage)} ${app(e.ApplicationId)} · <strong>${escapeHtml(e.Release)}</strong> ${EVENT_TEXT[e.EventKind] ?? escapeHtml(e.EventKind)}
                     <div class="mi-muted">${e.Build ? `<code>${escapeHtml(e.Build)}</code> · ` : ''}${escapeHtml(e.By)} at ${time(e.At)}</div>
-                    ${e.Note ? `<div class="cal-note">${escapeHtml(e.Note)}</div>` : ''}</li>`))}`;
+                    ${e.Note ? `<div class="cal-note">${escapeHtml(e.Note)}</div>` : ''}</li>`))}
+            ${section('Over the weekend', weekend.map((e) => `
+                <li><span class="mi-muted">${escapeHtml(e.dayName)}</span> ${e.Kind === 'planned' ? `⚑ <strong>${escapeHtml(e.Release)}</strong> · ${app(e.ApplicationId)} due`
+                    : e.Kind === 'event' ? `${stageTag(e.Stage)} ${app(e.ApplicationId)} · <strong>${escapeHtml(e.Release)}</strong> ${EVENT_TEXT[e.EventKind] ?? escapeHtml(e.EventKind)}`
+                    : `<code>${escapeHtml(e.Build)}</code> ${e.Kind === 'returned' ? 'rolled back to' : 'arrived at'} ${stageTag(e.Stage)} for ${app(e.ApplicationId)}`}</li>`))}`;
         this.detailEl.querySelector('[data-ref="close"]').addEventListener('click', () => this.closeDetail());
+    }
+
+    // One arrival as a sentence, read left to right as what happened (round-2026-10-09 §2d):
+    // the build, the stage it reached, the application, the release that claims it, the time.
+    observedLine(e) {
+        const app = escapeHtml(appLabel(this.appsById.get(e.ApplicationId) ?? { ApplicationId: e.ApplicationId }));
+        const claimed = e.Release ? `<span class="mi-muted">(${escapeHtml(e.Release)})</span>` : '<span class="mi-muted">(no release claims it)</span>';
+        const servers = e.servers > 1 ? ` · ${e.servers} servers` : '';
+        return e.Kind === 'returned'
+            ? `<li>↺ <code>${escapeHtml(e.Build)}</code> <em>back at</em> ${stageTag(e.Stage)} <em>for</em> <strong>${app}</strong> ${claimed}
+                <div class="mi-muted">rolled back: it replaced the newer <code>${escapeHtml(e.ReplacedBuild)}</code> · ${time(e.At)}${servers}</div></li>`
+            : `<li><code>${escapeHtml(e.Build)}</code> <em>arrived at</em> ${stageTag(e.Stage)} <em>for</em> <strong>${app}</strong> ${claimed}
+                <div class="mi-muted">first seen ${time(e.At)}${servers}</div></li>`;
     }
 
     closeDetail() {

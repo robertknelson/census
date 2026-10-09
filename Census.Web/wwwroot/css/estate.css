@@ -628,6 +628,9 @@ html, body {
 }
 
 .est-finding-title { font-weight: 600; font-size: 0.86rem; }
+/* The title wears the severity the card's ring wears (round-2026-10-09 §1a). */
+.est-finding-title.is-critical { color: var(--est-red); }
+.est-finding-title.is-high, .est-finding-title.is-medium { color: var(--est-amber); }
 .est-finding-detail { font-size: 0.78rem; color: var(--est-muted); }
 
 .est-finding-kind {

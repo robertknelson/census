@@ -946,3 +946,12 @@ unjudged, basis asserted or derived from the target machine's effective stage), 
 blast radius, counts in the Atlas toolbar and registry panel, and accepted crossings in
 `config/stage-crossings.json`. The node and edge composition moved from the graph controller
 into `Services/GraphComposer.cs` so every surface reads one answer.
+
+## 16. His notes from the real estate — round 2026-10-09 (Robert: "go go go!")
+
+The round note is `.docs/round-2026-10-09.md`. Estate slices land here as they are built.
+
+**Step 1:** the dossier's finding **title wears the severity the card's ring wears** (his 1,
+"yes"): critical red, high and medium amber, low ink; the dot stays. `estate.css`,
+`.est-finding-title.is-<severity>`. Verified headless on APPSRV01 (critical, high, medium,
+low in one list).

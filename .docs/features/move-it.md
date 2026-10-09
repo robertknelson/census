@@ -2060,6 +2060,37 @@ Verified headless: the link renders muted before the title on `/moveit/release/5
 - Whether Division's fold-out *earlier:* line should link to the Releases register filtered
   to shipped, once it exists.
 
+## 29. His notes from the real estate — round 2026-10-09 (Robert: "go go go!")
+
+The round note is `.docs/round-2026-10-09.md`; this section records what landed in Move It,
+slice by slice, with what was verified.
+
+**Step 1 (built and verified in headless Edge against the local AppTrak the same day):**
+
+- **Releases: the column order** is Release, Application, Contents, Pieces, Highest stage,
+  Since, Target, Builds, Flags (his 17 — Pieces before Highest stage).
+- **The facet bar reads as groups** (his 15, 16: "my eyes cannot easily distinguish the
+  'group' areas"). Each facet is its own cell: the heading on a line of its own, the chips
+  under it, a soft panel ground and a border, a gap between cells. `register.mjs` wraps a
+  group's chips in `.rg-facet-vs`; the rest is `moveit.css`. Both registers take it.
+- **Calendar, Sunday to Saturday, two views** (his 22: "Mon to Fri ONLY for weekdays view,
+  Sat Sun dimmed for full week"). A *Full week | Weekdays* segment beside *This month*,
+  remembered per browser (`moveit.calendar.view`). Full week draws seven columns with
+  Saturday and Sunday on the paper ground and their contents dimmed. Weekdays draws five;
+  a weekend's entries are not hidden: the Monday after it carries *+n over the weekend*
+  and its detail ends with an *Over the weekend* section listing them by day. Hold bands
+  are named on the first drawn column of a week (Sunday or Monday). The week page is a
+  rolling seven days ending on a date, not a week grid, so it has no segment.
+- **The arrival line is a sentence** (his 21: "the presentation was unclear to me").
+  *Seen by the pings* now reads **`20260718.1`** *arrived at* **PROD** *for* **WidgetPortal**
+  *(Sprint 42)*, then *first seen 08:00 PM · 2 servers*; a rollback reads **`20260815.1`**
+  *back at* **PROD** *for* **WidgetCore**, then *rolled back: it replaced the newer
+  `20260820.4`*. An unclaimed build says *(no release claims it)*.
+
+Verified: `/moveit/releases` with the cells and the swapped columns; August 2026 in both
+views, the Weekdays grid showing *+5 over the weekend* on Mon 31 and its detail's *Over the
+weekend* section; Mon 3's detail with the sentence.
+
 ## Appendix A — questions the data could answer
 
 Compiled across the session; the value proposition in list form.

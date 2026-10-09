@@ -703,7 +703,7 @@ class EstatePage {
                 <li>
                     <span class="est-dot ${severityDotClass(f.severity)}"></span>
                     <span class="est-finding-body">
-                        <span class="est-finding-title">${escapeHtml(f.title)}</span>
+                        <span class="est-finding-title is-${escapeHtml(f.severity)}">${escapeHtml(f.title)}</span>
                         ${f.detail ? `<span class="est-finding-detail">${escapeHtml(f.detail)}</span>` : ''}
                     </span>
                     <span class="est-finding-kind">${escapeHtml(f.kind)}</span>

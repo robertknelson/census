@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull and look. Register AppTrak on the real estate''s registry card and tick cross-cutting (or press Mark on its suggestion): every site''s graph then folds it into one capsule per stage; Services: Unfolded brings the endpoints back. Re-run apptrak/sql/003-lookups.sql once before the first build release; run questions/14-why-not-seen.sql on the not-seen item; tag canonical names on one system and open it Layered. 3D parked. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and that note''s nine steps. Traffic waits on DMZ facts; registry DDL owed for level 2'
+next_step: 'Say push: five live-note commits (91314e4..a160e93) wait locally. After the pull, on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; run questions/14-why-not-seen.sql with the #Id the item detail now shows (or @Title); tick AppTrak cross-cutting; tag canonical names on one system and open it Layered, tagging layers from the inspector. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and its nine steps. Drag-drop layer tagging and 3D parked.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,23 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-09 (later — five fixes from his live use, committed locally, NOT pushed)
+- Notes arrived one line at a time while he used the pushed build on the real estate; each
+  became a slice, verified, committed: a From → To window on Fleet changes (first collected
+  day in the window vs the last, per machine; the call logged); the layer tagged from the
+  Atlas inspector — the one exception to "Triage keeps the pen", the leaf-walk lifted into
+  `estate/entity-tags-edit.mjs` so both writers share it, the card now says *untagged — click
+  to tag a layer*; "or maybe drag drop?" answered with a position (inspector first, drop on
+  the Browser band cannot say web or spa) and logged in layered-view.md §9; the Move It rail
+  as a set (click toggles, All clears, remembered rail-wide as `moveit.rail.apps`, every page
+  scopes to any of the chosen); link-kinds kebab-cased on his ruling (reverses the 09-17
+  "identifiers unchanged" call) with `004-link-kinds-kebab.sql` for the real database, tested
+  in all three states; question 14 made loud after "six resultsets, all empty" — a miss
+  returns the reason and the item list, `@Title` as the alternative, and the item detail
+  shows *#Id*. 33/33 Move It pins; headless shots for every UI slice.
+- Fact learned: the real AppTrak lives on the work server ("All run, but Not on my laptop").
+- `after-pull-2026-10-09.md` carries every new step; `calls-made-for-you.md` every call.
 
 ### 2026-10-08 (the hot potato — a PROD site pointed at a DEV service for a year)
 - He came in with it: "something that I should have seen in Atlas". Two approaches

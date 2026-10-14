@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Say push: the day page (6141cf2, /day — day-view.md) waits locally. After the pull open /day on the real estate and bring back what reads wrong (the drive percentFree rows are the known noise; rule on threshold vs fold for slice 2). Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Pull on the live environment (pushed 2026-10-14 evening: the day page). Open /day on the real estate and bring back what reads wrong; rule on the drive percentFree noise for slice 2 (threshold vs fold). Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -25,7 +25,7 @@ relates: []
 
 ## notes
 
-### 2026-10-14 (later — the day page, slice 1, committed locally, NOT pushed)
+### 2026-10-14 (later — the day page, slice 1; pushed the same evening, 41b9b20)
 - After the push he reported the estate "looking good" and named the next concept in one
   breath: a Calendar of daily deltas as a possible landing page, filterable by machine and
   stage, "let's think about just WHAT a client would want to see. any ideas?" Position taken

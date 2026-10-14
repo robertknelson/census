@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "The day page is built and verified, waiting locally for his push: what changed on a day, for every machine"
+summary: "Pushed 2026-10-14: the day page is on GitHub — what changed on a day, for every machine; pull and open /day"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -26,7 +26,7 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**A page for the day — built, checked, not yet pushed.** Open `/day` and it shows the most
+**A page for the day — built, checked, pushed 2026-10-14.** Open `/day` and it shows the most
 recent collected day: how many machines changed, how many were quiet, how many nobody
 collected (hatched on the calendar so a quiet day and a broken collector never look alike).
 The same change on many machines is one line with the machines behind it, and the lines sit
@@ -64,7 +64,7 @@ twenty-two notes. `.docs/after-pull-2026-10-09.md` has every step to run, in ord
 
 ## What's next
 
-**Say push** for the day page. **Pull on the live environment.** Then, on the real tracking database: run the lookups script, then the rename
+**Pull on the live environment.** Then, on the real tracking database: run the lookups script, then the rename
 script, once each. Run the not-seen query with the #Id from the item's detail and bring
 back the answer.
 

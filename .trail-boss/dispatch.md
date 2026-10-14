@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Pushed 2026-10-14: the five live-note fixes are on GitHub; pull on the live environment, then the two AppTrak scripts"
+summary: "The day page is built and verified, waiting locally for his push: what changed on a day, for every machine"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -25,6 +25,18 @@ ignite: start-census.bat
 ---
 
 ## The latest feature added
+
+**A page for the day — built, checked, not yet pushed.** Open `/day` and it shows the most
+recent collected day: how many machines changed, how many were quiet, how many nobody
+collected (hatched on the calendar so a quiet day and a broken collector never look alike).
+The same change on many machines is one line with the machines behind it, and the lines sit
+under four headings — Deployments, Platform, Security, Data. Click a day on the month grid,
+or set From and To; filter by stage; press a machine's name to see only it, then *open in
+Estate* for its full detail. Nothing to configure, nothing written. The spec names what comes
+next: what the changes *mean* (findings born and cleared), whether they were expected, and the
+link to Move It's releases.
+
+**Before that, pushed 2026-10-14:**
 
 **Five things you asked for while using it, each built and checked, pushed 2026-10-14.** Until that push the live build was five slices behind, which is why Changes showed only yesterday-vs-today and the details panel had no layer row.
 
@@ -52,7 +64,7 @@ twenty-two notes. `.docs/after-pull-2026-10-09.md` has every step to run, in ord
 
 ## What's next
 
-**Pull on the live environment.** Then, on the real tracking database: run the lookups script, then the rename
+**Say push** for the day page. **Pull on the live environment.** Then, on the real tracking database: run the lookups script, then the rename
 script, once each. Run the not-seen query with the #Id from the item's detail and bring
 back the answer.
 
@@ -68,6 +80,9 @@ registry tables for the application-level screen.
 
 ## Anything alarming
 
+- **Disk-space rows will flood the day page on a real fleet.** Every box's free space drifts
+  a little every day and each drift is a line today. Known, logged, and the first thing to
+  rule on for the next slice (a threshold, or one folded line).
 - **The rename script must run on the real database** before anyone writes a link with the
   old spelling by hand; the order-violation and ready-to-approve questions read the new
   spelling only.

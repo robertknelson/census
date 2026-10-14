@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull on the live environment (pushed 2026-10-14 after he found the live build lacked the From/To window and the inspector layer row). Then on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; run questions/14-why-not-seen.sql with the #Id the item detail now shows (or @Title); tick AppTrak cross-cutting; tag canonical names on one system and open it Layered, tagging layers from the inspector. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and its nine steps. Drag-drop layer tagging and 3D parked.'
+next_step: 'Say push: the day page (6141cf2, /day — day-view.md) waits locally. After the pull open /day on the real estate and bring back what reads wrong (the drive percentFree rows are the known noise; rule on threshold vs fold for slice 2). Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,24 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-14 (later — the day page, slice 1, committed locally, NOT pushed)
+- After the push he reported the estate "looking good" and named the next concept in one
+  breath: a Calendar of daily deltas as a possible landing page, filterable by machine and
+  stage, "let's think about just WHAT a client would want to see. any ideas?" Position taken
+  (landing is Today, the grid is navigation, a machine calendar apart from Move It's
+  application calendar, a projection not a second engine, no lifecycle) and six things a
+  client wants, ranked: the honest headline incl. *not collected*, one event not N rows,
+  grouped by meaning, findings born/cleared, expected vs unexpected, the range. His "go".
+- Spec `features/day-view.md` (§1–§13, slices 1–5, open items), then slice 1: `/day`, its own
+  JS tree and CSS, `DayController` (`/api/day`, `/api/day/month`), `ChangeEntries.Flatten`
+  lifted out of the feed controller. Tests 24/24 + 16/16; every state clicked in Chrome.
+- Calls logged: default = latest collected day (not latest delta); apps under Platform; one
+  machine in scope by pressing its name; `/` stays the Estate; the day's universe is
+  configured + collected, not the canvas's ghosts (found by the test — the canvas draws two
+  assertion-only names).
+- Seen on the demo and logged as the first open item for slice 2: drive percentFree drifts
+  every day on every box and will bury a real fleet's page.
 
 ### 2026-10-14 (pushed — the live build had been five slices behind)
 - He came in thinking the live environment was current. It was not: GitHub sat at the 10-09

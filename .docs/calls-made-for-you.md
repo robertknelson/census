@@ -4,6 +4,34 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-14 — the day page (day-view.md), slice 1
+
+**Default is the latest fleet date, not the most recent delta.** He said "defaulting to most
+recent delta". Options: the newest collected day (quiet or not); the newest day on which any
+machine changed. Call: the newest collected day. Reason: a quiet latest day is a statement the
+reader should see, and the grid's shading shows at a glance where the last change was. One
+line to flip if he meant the other.
+
+**Installed software under Platform, not Deployments.** An MSI landing on this estate is a
+patch or an agent far more often than a release; IIS carries the releases. Dev-ops still sees
+the section name on the line.
+
+**One machine in scope at a time, by pressing its name.** Options: a machine rail like Move
+It's (long on a real fleet); a text filter; press-to-scope. Call: press-to-scope with ×, and
+*open in Estate ↗* on the scope line. Reason: the question is "what happened to this box", and
+comparing several is the Estate's job.
+
+**`/day` is its own page, `/` stays the Estate.** He said the day "COULD" be the landing. A
+landing swap is pivotal; open item, his call after a week on it.
+
+**The day's universe is configured + collected, not the canvas's.** The canvas also draws
+names that exist only as assertions (assets.json, entity tags, declared entities) as ghosts.
+On the day page those would read *not collected*, which is false: nobody was meant to collect
+them. They already surface as the dangling-assertion finding. Test pinned to config ∪ dirs.
+
+**`ChangeEntries.Flatten` lifted out of `ChangesController`.** Twenty lines the day endpoint
+needed verbatim; the controller now calls the helper. Behaviour-preserving.
+
 ## 2026-10-09 — link-kinds renamed kebab-case (his ruling; reverses the 2026-09-17 "member identifiers unchanged" call)
 
 **Rename in place, not add beside.** 003 is insert-only by contract ("a member that exists

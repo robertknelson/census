@@ -35,8 +35,9 @@
         // own Estate link in its header.
         var onAtlas = uxPath.StartsWith("/atlas", StringComparison.OrdinalIgnoreCase);
         var onMoveIt = uxPath.StartsWith("/moveit", StringComparison.OrdinalIgnoreCase);
+        var onDay = uxPath.StartsWith("/day", StringComparison.OrdinalIgnoreCase);
     }
-    @if (!onAtlas && !onMoveIt)
+    @if (!onAtlas && !onMoveIt && !onDay)
     {
     <a class="ux-switch"
        href="@(onClassic ? "/" : "/classic")"

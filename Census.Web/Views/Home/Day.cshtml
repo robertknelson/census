@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "The day";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/day.css" asp-append-version="true" />
+}
+
+<div id="day-root"></div>
+
+@section Scripts {
+    <script type="module">
+        import dayPage from '/js/day/day-page.mjs';
+        dayPage.init({ rootId: 'day-root' });
+    </script>
+}

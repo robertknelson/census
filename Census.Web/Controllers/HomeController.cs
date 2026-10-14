@@ -36,6 +36,14 @@ public class HomeController : Controller
         return View();
     }
 
+    // The day (day-view.md §8): what changed on a day, or across a range, for every machine —
+    // the headline, the events, the month grid. Its own page and JS tree, like Atlas.
+    [HttpGet("/day")]
+    public IActionResult Day()
+    {
+        return View();
+    }
+
     // The board (move-it.md §13): the governance reader's page, read-only over AppTrak. Not
     // mounted without a connection string — the rest of Census stays file-only.
     [HttpGet("/moveit")]

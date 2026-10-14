@@ -46,24 +46,7 @@ public class ChangesController(CensusStore censusStore) : ControllerBase
 
             var diff = DiffEngine.Compute(machine, fromRef.Date.ToString("yyyy-MM-dd"), fromEnvelope, toRef.Date.ToString("yyyy-MM-dd"), toEnvelope);
 
-            var entries = new List<ChangeEntryDto>();
-            entries.AddRange(diff.ScalarChanges.Select(c => new ChangeEntryDto
-            {
-                Section = "os",
-                Kind = "changed",
-                Text = $"{c.Field}: {c.From} → {c.To}",
-            }));
-            foreach (var section in diff.Sections)
-            {
-                entries.AddRange(section.Added.Select(i => new ChangeEntryDto { Section = section.Name, Kind = "added", Text = i.Label }));
-                entries.AddRange(section.Removed.Select(i => new ChangeEntryDto { Section = section.Name, Kind = "removed", Text = i.Label }));
-                entries.AddRange(section.Changed.Select(i => new ChangeEntryDto
-                {
-                    Section = section.Name,
-                    Kind = "changed",
-                    Text = $"{i.Label}: {string.Join(", ", i.Changes.Select(c => $"{c.Field} {c.From} → {c.To}"))}",
-                }));
-            }
+            var entries = ChangeEntries.Flatten(diff);
 
             if (entries.Count == 0) continue;
 

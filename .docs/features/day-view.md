@@ -1,0 +1,186 @@
+# The day — what changed, and did any of it matter
+
+> Spec 2026-10-14, from Robert's first week on the real estate with the From → To window:
+> *"we need a new top level concept, a Calendar onto which we can add the very very
+> interesting daily deltas … the client will want to simply first hit a DAY VIEW, to see the
+> deltas, to know 1) the current state and 2) what changed."* Position taken in conversation,
+> his "go" the same day. Status: **slice 1 built 2026-10-14** (§11).
+
+## 1. The question
+
+Every surface so far slices the estate by a tab: machines, software, hosting, certificates,
+changes. A reader who opens Census in the morning does not want a slice. They want the day:
+what changed since the last look, how much of the fleet that touches, and whether any of it
+matters. The current state already exists one click away. The deltas exist too (the Changes
+panel, `census-web.md`) but as a per-machine stream with no headline, no count, no sense of
+how many machines were quiet and how many were not even looked at.
+
+## 2. Position
+
+- **The landing is Today.** The most recent collected day, every machine's delta against its
+  previous snapshot. The month grid is navigation, not the destination: a client clicks a day,
+  or sets a range, and gets one page that answers "what changed, and did it matter?"
+- **A machine calendar, not a second application calendar.** Move It's Calendar (`move-it.md`
+  §21) is applications, releases and stages. This one is machines and snapshots. They share
+  the grid's look; the join (a Census delta on PRODWEBBOX the same day a release was asserted
+  to PROD) is the follow-on, §11 slice 4.
+- **A projection, not a second engine.** Everything on the page is the existing
+  `DiffEngine` output plus, in later slices, a diff of the findings stream between two days.
+  No new fact is computed that the Changes panel could not.
+- **Read-only, no lifecycle.** No acknowledge, snooze or dismiss on a delta. The 2026-07-31
+  ruling on findings holds here for the same reason: the page is raw truth, recomputed every
+  read.
+
+## 3. The unit of time
+
+**A day, for a machine**, is that machine's snapshot on the day against its previous snapshot,
+whatever date that was. A machine collected Monday and Thursday has a Thursday delta that
+spans three days; the row says so (*Mon 27 → Thu 30*).
+
+| Status on a day | Meaning |
+|---|---|
+| `changed` | collected that day, and the diff against the previous snapshot is not empty |
+| `quiet` | collected that day, diff empty |
+| `first-seen` | collected that day, no earlier snapshot — nothing to compare, and that is news |
+| `not-collected` | in the universe, no snapshot that day |
+
+**A range From → To** is the Changes panel's rule unchanged: each machine's first collected
+day in the range against its last. Statuses: `changed`, `quiet`, `collected-once` (one
+snapshot in the range, nothing to compare), `not-collected`.
+
+**The universe** is what the collector is meant to visit: every configured machine
+(`machines.json`, including `expected: false` — absence is signal, and a decommissioned box
+that is suddenly collected is exactly the kind of thing the page is for) plus every machine
+directory ever collected. Not the canvas's wider universe: a name that exists only as an
+assertion in `assets.json` or the entity tags is a *dangling assertion* finding, not a machine
+nobody collected, and *not collected* must mean "the collector should have, and did not".
+
+**Default** is the latest fleet date (`CensusStore.GetFleetDates()` newest). Not "the most
+recent day with a change": a quiet latest day is a statement the reader should see, and the
+grid shows where the last change was. Call logged in `calls-made-for-you.md`.
+
+## 4. The headline
+
+Three counts, always, in this order: **changed · quiet · not collected**, with **first seen**
+(or **collected once** in a range) appearing only when non-zero. They sum to the universe
+after the filters (§7). Each is a button; pressed, it lists its machines below, because "which
+three were not collected?" is the first follow-up.
+
+A quiet day and a broken collector must never look alike. On the grid a day nobody collected
+is hatched, the way Move It's Calendar hatches days not yet backfilled; the headline on such
+a day reads *nobody was collected*.
+
+## 5. Events, not rows
+
+The feed is per machine, per section. The same patch on fourteen machines is fourteen rows.
+On the day page it is one **event**: identical section, kind and text across machines on the
+same day collapse to one line with the count and the machines behind it, most machines first.
+A row still reads exactly as the Changes panel prints it (`+`, `−`, `~`, the section, the
+text), so nothing learned there is unlearned here.
+
+## 6. Grouped by meaning
+
+The diff sections fold into four headings a manager reads. Dev-ops still sees the section
+name on every line.
+
+| Group | Sections |
+|---|---|
+| **Deployments** — what someone shipped | `iisSites`, `iisAppPools`, `iisApplications`, `iisDependencies`, `dotnetCoreRuntimes`, `dotnetSdks`, `roles` |
+| **Platform** — what operations did to the box | `os` (build, pending reboot), `drives`, `apps` (installed software) |
+| **Security** | `certificates` |
+| **Data** | `sqlInstances`, `sqlDatabases`, `sqlDatabaseFiles` |
+
+Installed software sits under Platform, not Deployments: on this estate an MSI landing is a
+patch or an agent far more often than an application release, and IIS carries the releases.
+A group with no events is not drawn. Order fixed as above: deployments are the news.
+
+## 7. Filters
+
+**Stage** chips, the Estate's rule exactly (`estate-page.mjs` `stageMatches`): the effective
+stage from `/api/canvas` (`derived-machine-stage.md` §2), chips in the configured order, *all*
+first, several at once, and a machine with no stage is never hidden by a stage filter.
+
+**Machine** scope: every machine name on the page is a button; pressing one scopes the day to
+that machine, the scope line names it, offers *open in Estate ↗* (the Estate's details panel
+for that machine and day, `/#machine=X&day=D`) and ×. One machine at a time: the question is
+"what happened to this box", and the Estate is the place to compare several.
+
+The URL carries all of it (`?day=` or `?from=&to=`, `&stages=`, `&machine=`), so a day is a
+link that can be pasted.
+
+## 8. The page
+
+Route **`/day`**, its own view, JS tree (`wwwroot/js/day/`) and stylesheet (`day.css`), apart
+from the Estate SPA the way Atlas and Move It are: same stores underneath. Header: wordmark
+*Census / the day*, links to Estate, Atlas and Move It.
+
+Left, the **month grid**: Sunday to Saturday, ‹ › by month, today marked, each day shaded by
+how many machines changed on it (relative to the month's busiest day), hatched when nobody was
+collected, the chosen day or range outlined. Under it, From and To inputs and *Latest*.
+
+Right, **the day**: the date as the title (or *From → To*), the stage chips, the headline
+(§4), then the groups (§6) with their events (§5). Machine names as in §7.
+
+Nothing here is written to disk. The page needs no setting; the grid's cost is the one thing
+to watch (§12).
+
+## 9. Not doing
+
+- No acknowledge / dismiss / seen-it (§2).
+- No second diff engine, no stored daily summaries. If the month grid is too slow on the real
+  fleet, the fix is a cache keyed on `(machine, date)` in front of `DiffEngine`, not a new
+  truth (§12).
+- No link from a Census delta to a Move It release yet (§11 slice 4).
+- Not the landing (`/`) yet — §12.
+
+## 10. API
+
+```
+GET /api/day                       the latest fleet date
+GET /api/day?day=YYYY-MM-DD        one day
+GET /api/day?from=…&to=…           a range (the Changes panel's window rule)
+  → { day, from, to, machines: [ { machine, status, fromDate, toDate, entries: [ { section, kind, text } ] } ] }
+
+GET /api/day/month?month=YYYY-MM   per collected day: { day, collected, changed }
+```
+
+`entries` is the Changes panel's shape (`ChangeEntryDto`), flattened by the same code
+(`ChangeEntries.Flatten`, lifted out of `ChangesController` behaviour-preserving). The month
+endpoint diffs every snapshot in the month against its predecessor: roughly *machines × days*
+diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12).
+
+## 11. Slices
+
+1. **Built 2026-10-14.** Headline, collapsed events in four groups, month grid with shading,
+   stage and machine filters, range, deep link to the Estate. `tests/Test-Day.ps1` against
+   the running demo; `tests/Test-DayEvents.mjs` for the pure grouping and collapse.
+2. **Findings born and cleared.** Diff `FindingsEngine.Compute(asOf)` between the two days:
+   a certificate crossing its threshold, a blacklist hit appearing, a pending reboot
+   clearing, a new stage crossing. A fifth heading, *What it means*, above the four groups,
+   severity-ordered. No new severity is invented.
+3. **Expected or not.** A delta that moves a machine toward its approved baseline
+   (`approved-baseline.md`) reads *expected*; one that moves it away reads as a question.
+   Drawn as a word on the event line, never as a colour alone.
+4. **The Move It join.** A deployment event on a machine the same day a release was asserted
+   to that stage reads *matches release X*; one matching nothing is unexpected. Rule 1 of
+   `move-it.md`: observed and asserted never drawn alike. Needs machine → application
+   mapping solid on real data first.
+5. **Landing.** Whether `/` becomes the day. His call after a week on it.
+
+## 12. Open items
+
+| Item | Needs |
+|---|---|
+| Make `/day` the landing page | A week of his use. The Estate stays at `/` until he says. |
+| Month-grid cost on the real fleet | A measurement: `machines × collected days` diffs per month view. Trigger for a `(machine, date)` diff cache: a month view over ~1 s. |
+| Demo fixtures hold three days (07-30, 07-31, 08-01) | A week of generated snapshots so the grid has shading to show. `tests/New-DemoMachines.ps1` is the place. |
+| `expected: false` machines in *not collected* | Counted today (the canvas draws them as ghosts too). If the count reads as noise on the real estate, a *decommissioned* bucket is the fix, not dropping them. |
+| Drive `percentFree` drifts every day on every machine | On 07-31 nine of the Platform events are *C: percentFree 45 → 42*. On a real fleet that will bury the page. Options for slice 2: a threshold (only a crossing of the drives finding counts), or fold them into one line *N drives drifted*. His call; the raw rows stay in the Changes panel either way. |
+| No way in from the Estate yet | The day links out to Estate, Atlas and Move It; nothing links back. A header link on the Estate when he says where. |
+| Range semantics vs day semantics | A range compares first-in-window to last-in-window; a day compares to the previous snapshot whatever its date. Said on every row; revisit if a reader trips. |
+
+## 13. Verification log
+
+| Date | What |
+|---|---|
+| 2026-10-14 | Slice 1: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 16/16; `tests/Test-Day.ps1` 24/24 against the Demo profile; in Chrome: the default day (08-01, one changed, sixteen not collected), 2026-07-31 (ten changed, five first seen, two not collected, the Deployments and Platform groups), the *not collected* list opened, a chip scoping to DCBACKUP01 then a grid click to 07-30 keeping the scope, `stages=prod`, the 07-30 → 08-01 range (collected once appears), *open in Estate* landing on WEB01's details with the 07-30 → 07-31 comparison. No console errors. |

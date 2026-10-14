@@ -4,6 +4,15 @@ What to run and where to look, in order. Nineteen commits since the last push: t
 round (`round-2026-10-09.md`), the layered management register (`features/layered-view.md`
 §10), and cross-cutting systems (`features/cross-cutting-systems.md`).
 
+## 0. New since 2026-10-14 — the day page
+
+`/day` (`features/day-view.md`): the latest collected day for every machine — changed, quiet,
+first seen, not collected — the events collapsed across machines and grouped as Deployments,
+Platform, Security, Data; a month grid shaded by machines changed; stage chips; press a machine
+name to scope to it, *open in Estate ↗* from there; From → To for a range. Nothing to configure.
+Open it after the pull and bring back what reads wrong; the drive percentFree rows are the
+known noise (open item).
+
 ## 1. Build and start
 
 ```

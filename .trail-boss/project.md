@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Say push: five live-note commits (91314e4..a160e93) wait locally. After the pull, on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; run questions/14-why-not-seen.sql with the #Id the item detail now shows (or @Title); tick AppTrak cross-cutting; tag canonical names on one system and open it Layered, tagging layers from the inspector. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and its nine steps. Drag-drop layer tagging and 3D parked.'
+next_step: 'Pull on the live environment (pushed 2026-10-14 after he found the live build lacked the From/To window and the inspector layer row). Then on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; run questions/14-why-not-seen.sql with the #Id the item detail now shows (or @Title); tick AppTrak cross-cutting; tag canonical names on one system and open it Layered, tagging layers from the inspector. Then the Sort UPDATE from .docs/move-it-round-2026-10-07.md and its nine steps. Drag-drop layer tagging and 3D parked.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,17 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-14 (pushed — the live build had been five slices behind)
+- He came in thinking the live environment was current. It was not: GitHub sat at the 10-09
+  morning push and the five live-note slices (91314e4..a160e93, 34 files) were local only.
+  That explained his day — in the estate view he picked machines and opened Changes and saw
+  only yesterday-vs-today (the From → To window was unpushed), and he could not assign layers
+  (the inspector layer row was unpushed). On "push": fast-forward eec7bb0..5e579b5, nothing
+  on the remote was ahead. Rule held: committed and waited for the word; the cost was a day
+  of him working on old code — the dispatch headline should have said *unpushed* louder.
+- `config/views.demo.json` carries uncommitted demo state from use (a dev-stage filter and a
+  pinned node on MyWeb, a Reporting view). Left alone; it is runtime state, not a slice.
 
 ### 2026-10-09 (later — five fixes from his live use, committed locally, NOT pushed)
 - Notes arrived one line at a time while he used the pushed build on the real estate; each

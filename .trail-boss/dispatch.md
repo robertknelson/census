@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Five fixes from his first day on the real estate are built and verified, waiting locally for his push"
+summary: "Pushed 2026-10-14: the five live-note fixes are on GitHub; pull on the live environment, then the two AppTrak scripts"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -26,7 +26,7 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Five things you asked for while using it, each built and checked, none pushed yet.**
+**Five things you asked for while using it, each built and checked, pushed 2026-10-14.** Until that push the live build was five slices behind, which is why Changes showed only yesterday-vs-today and the details panel had no layer row.
 
 - **Fleet changes has a From and To.** Leave them empty and it is the old feed: each
   machine's latest collection against the one before. Set both and each machine is compared
@@ -47,14 +47,12 @@ ignite: start-census.bat
   miss says so and lists the items to pick from, the query takes part of a title instead,
   and the item's detail panel shows its number as *#Id*.
 
-**Before that, pushed:** the management-register picture, the cross-cutting fold, and your
+**Before that:** the management-register picture, the cross-cutting fold, and your
 twenty-two notes. `.docs/after-pull-2026-10-09.md` has every step to run, in order.
 
 ## What's next
 
-**Say push.** The five fixes above are local commits waiting on your word.
-
-**After the pull, on the real tracking database:** run the lookups script, then the rename
+**Pull on the live environment.** Then, on the real tracking database: run the lookups script, then the rename
 script, once each. Run the not-seen query with the #Id from the item's detail and bring
 back the answer.
 

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Say push: the drift fold (996f8aa) sits local. Then pull on the live environment and open /day on the real estate; bring back what reads wrong, and whether the headline counting drift-only machines as changed is noise. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Say push: four slices sit local (drift fold, findings born/cleared, expected-or-not, the Estate link; 996f8aa..HEAD). Then pull on the live environment, open /day on the real estate and bring back what reads wrong — in particular whether the headline counting drift-only machines as changed is noise, and whether What it means reads as news or as a flood. Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) is yours after a week. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,27 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-15 (later — slices 2 and 3 and the way in; committed locally, NOT pushed)
+- "No need to push, I just want to proceed and get as much done as possible." Took the
+  spec's slices in order. **Slice 2, What it means:** a finding now carries a key (kind,
+  machine, the thing found — a cert's thumbprint, not "expires in 15d"); the day endpoint
+  diffs the findings stream as of the day against as of the day before (a range: To against
+  From) and returns born and cleared; a fifth heading above the four groups, severity first,
+  born before cleared, the same finding on several machines one row, state and severity as
+  words. On the demo's 07-31: *Never successfully collected* cleared on the five first-seen
+  boxes, *Behind fleet patch level* cleared on six after the build landed. **Slice 3,
+  expected or not:** an installed-software event carries a word judged on the row's own two
+  snapshots against the machine's approved baseline — added and approved *expected*, added
+  as a deviation *unexpected*, a required item removed *unexpected*, a deviation removed
+  *expected*; silent on servicing rows, version changes, optional removals, machines outside
+  every baseline. The demo has no judgeable install (its one added app is a servicing row),
+  so the four cases were planted in a scratch copy of the demo tree on a second port and seen
+  in Chrome; logged as a fixtures open item. **The way in:** *The day* as a quiet link first
+  among the Estate's header actions. Tests 32/32 + 37/37.
+- Not taken, by his own words in the spec: slice 4 (the Move It join) needs the machine →
+  application mapping solid on real data first; slice 5 (the landing) is his call after a
+  week on it.
 
 ### 2026-10-15 (the drift fold; committed locally, NOT pushed, 996f8aa)
 - "where were we?" then one line: "fold the percentFree drift, go". A drives row whose only

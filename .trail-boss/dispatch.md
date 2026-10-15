@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "LOCAL, NOT PUSHED (2026-10-15): the day page folds disk-space drift into one line; say push, then pull and open /day"
+summary: "LOCAL, NOT PUSHED (2026-10-15): four slices on the day page — drift folded, What it means, expected or not, the way in from the Estate; say push, then pull and open /day"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -26,8 +26,17 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Disk-space drift is one line now — built, checked, committed 2026-10-15, waiting on your
-"push".** A drive whose only change is its free space no longer gets a row of its own on the
+**The day page now says what the changes mean — built, checked, committed 2026-10-15,
+waiting on your "push".** Above the four groups a new heading, *What it means*, lists the
+findings that appeared on the day and the ones that went away: a certificate crossing its
+warning line, a machine falling behind the fleet's patch level, a pending reboot clearing, a
+box collected for the first time no longer "never collected". Worst first, the same finding
+on several machines one line. Below it, each installed-software change carries a word:
+*expected* when the approved baseline for that machine covers it, *unexpected* when it lands
+as a deviation or removes something required; nothing is said where the baseline has no
+opinion. And the Estate's header now has *The day* on it, so there is a way in.
+
+**Disk-space drift is one line now — same batch.** A drive whose only change is its free space no longer gets a row of its own on the
 day page; every such drive on the day folds into one line under Platform, *free space drifted
 on N drives*, with the machines behind it. A drive whose health changed still gets its own
 row, and the full Changes panel still lists every drive. On the demo's busiest day the
@@ -90,8 +99,13 @@ registry tables for the application-level screen.
 
 ## Anything alarming
 
-- **The drift fold is local only until you say push.** Pull before it and the day page on
-  the real fleet will still show a disk-space line per drive.
+- **Four slices are local only until you say push.** Pull before it and the day page on the
+  real fleet is still the 10-14 build: a disk-space line per drive, no *What it means*, no
+  expected/unexpected, no link from the Estate.
+- **What it means may read as a flood on a real fleet** the first day after a big patch
+  (every machine's patch-level finding clearing at once is one line, but every first-seen
+  box brings all its findings as born). Watch it; if it buries the page the fix is a fold
+  like the drift's, per kind.
 - **The headline may still read as noise on a real fleet:** a machine whose only change is
   drift counts as *changed*. If so, the next step is to discount drift in the counts.
 - **The rename script must run on the real database** before anyone writes a link with the

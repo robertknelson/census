@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Say push: the day page sits local since 996f8aa (drift folded and discounted, What it means, expected-or-not, the Estate link, the snapshot cache, the fixtures). Then pull on the live environment, open /day on the real estate and bring back what reads wrong — in particular whether What it means reads as news or as a flood, and whether the headline counts are the news. Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) is yours after a week. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Pushed 2026-10-15 (23ec128..3c84592). Pull on the live environment, open /day on the real estate and bring back what reads wrong — in particular whether What it means reads as news or as a flood, and whether the headline counts are the news. Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) is yours after a week; the week of generated demo days is the next demo-side slice. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -25,7 +25,12 @@ relates: []
 
 ## notes
 
-### 2026-10-15 (night — drift discounted in the API, fixtures that judge; committed locally, NOT pushed, 8e3ace2)
+### 2026-10-15 (close — "Go ahead and push and end session": 23ec128..3c84592 pushed to origin/main)
+- Asked whether anything else was worth pushing on before he looked at home; position: no —
+  the week of generated days moves the latest fleet date and every pinned count with it, its
+  own slice after he has seen the page. He ratified by pushing.
+
+### 2026-10-15 (night — drift discounted in the API, fixtures that judge; committed locally, 8e3ace2)
 - "Anything else we can continue on now?" Position: the open item that would have spoiled the
   first live look — every real box drifts daily, so the headline would have read *every
   machine changed*. Built: `drift` on the row, status and month count ignore it, rows kept so

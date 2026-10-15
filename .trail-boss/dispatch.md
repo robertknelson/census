@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "LOCAL, NOT PUSHED (2026-10-15): the whole day-page batch, drift now discounted, fixtures that judge; say push"
+summary: "PUSHED 2026-10-15: the whole day-page batch (meanings, expected-or-not, drift discounted, cache); pull, open /day"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -26,8 +26,8 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**The day page now says what the changes mean — built, checked, committed 2026-10-15,
-waiting on your "push".** Above the four groups a new heading, *What it means*, lists the
+**The day page now says what the changes mean — built, checked, pushed 2026-10-15 on
+your word.** Above the four groups a new heading, *What it means*, lists the
 findings that appeared on the day and the ones that went away: a certificate crossing its
 warning line, a machine falling behind the fleet's patch level, a pending reboot clearing, a
 box collected for the first time no longer "never collected". Worst first, the same finding
@@ -85,7 +85,7 @@ twenty-two notes. `.docs/after-pull-2026-10-09.md` has every step to run, in ord
 
 ## What's next
 
-**Say push, then pull on the live environment and open /day.** Then, on the real tracking database: run the lookups script, then the rename
+**Pull on the live environment and open /day.** Then, on the real tracking database: run the lookups script, then the rename
 script, once each. Run the not-seen query with the #Id from the item's detail and bring
 back the answer.
 
@@ -101,9 +101,9 @@ registry tables for the application-level screen.
 
 ## Anything alarming
 
-- **Four slices are local only until you say push.** Pull before it and the day page on the
-  real fleet is still the 10-14 build: a disk-space line per drive, no *What it means*, no
-  expected/unexpected, no link from the Estate.
+- **The live environment is behind until you pull.** Until then the day page there is the
+  10-14 build: a disk-space line per drive, no *What it means*, no expected/unexpected, no
+  link from the Estate.
 - **What it means may read as a flood on a real fleet** the first day after a big patch
   (every machine's patch-level finding clearing at once is one line, but every first-seen
   box brings all its findings as born). Watch it; if it buries the page the fix is a fold

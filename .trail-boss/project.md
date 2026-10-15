@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Say push: four slices sit local (drift fold, findings born/cleared, expected-or-not, the Estate link; 996f8aa..HEAD). Then pull on the live environment, open /day on the real estate and bring back what reads wrong — in particular whether the headline counting drift-only machines as changed is noise, and whether What it means reads as news or as a flood. Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) is yours after a week. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Say push: four day-page slices and the snapshot cache sit local (996f8aa..HEAD). Then pull on the live environment, open /day on the real estate and bring back what reads wrong — in particular whether the headline counting drift-only machines as changed is noise, and whether What it means reads as news or as a flood. Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) is yours after a week. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,17 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-15 (evening — the cost, measured and cut; committed locally, NOT pushed)
+- "I won't be able to test in live until tomorrow. What else can we do today?" Position:
+  measure the day page before he hits it on the real fleet, then the demo fixtures. His "Go".
+  Synthetic trees (60 and 150 machines × 30 days, the demo WEB01 snapshot varied) served with
+  `Census__RootPath` on a second port: the month grid 1.9 s at 150 machines, a day 0.9 s —
+  reads, not diffs. A parsed-snapshot cache in `CensusStore` keyed on path + length +
+  last-write time, bounded by two new settings; the month walks machines in parallel. After:
+  month 0.9 s cold / 0.2–0.5 s warm, day 0.5 / 0.3. A rewritten snapshot read fresh at once.
+  Suites green. Table in day-view.md §10; the call in calls-made-for-you.md. Fixtures not
+  reached.
 
 ### 2026-10-15 (later — slices 2 and 3 and the way in; committed locally, NOT pushed)
 - "No need to push, I just want to proceed and get as much done as possible." Took the

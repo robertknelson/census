@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Census.Web.Models.Api;
 using Census.Web.Models.Assets;
 using Census.Web.Models.Baselines;
@@ -81,20 +82,29 @@ public class DayController(CensusStore censusStore, FindingsEngine findingsEngin
         if (!DateOnly.TryParseExact($"{month}-01", "yyyy-MM-dd", out var first)) return BadRequest("month must be yyyy-MM");
         var last = first.AddMonths(1).AddDays(-1);
 
+        // machines × collected days diffs (§10): machines in parallel, each walking its own
+        // snapshots in order; the store's snapshot cache makes the second look at a month cheap.
         var collected = new Dictionary<DateOnly, int>();
         var changed = new Dictionary<DateOnly, int>();
-        foreach (var machine in censusStore.GetMachineDirs())
+        var gate = new object();
+        Parallel.ForEach(censusStore.GetMachineDirs(), machine =>
         {
             var refs = censusStore.GetSnapshotRefs(machine);
+            var mine = new List<(DateOnly Day, bool Changed)>();
             for (var i = 0; i < refs.Count; i++)
             {
                 if (refs[i].Date < first || refs[i].Date > last) continue;
-                collected[refs[i].Date] = collected.GetValueOrDefault(refs[i].Date) + 1;
-                if (i == 0) continue;
-                if (Entries(machine, refs[i - 1].Date, refs[i].Date).Count > 0)
-                    changed[refs[i].Date] = changed.GetValueOrDefault(refs[i].Date) + 1;
+                mine.Add((refs[i].Date, i > 0 && Entries(machine, refs[i - 1].Date, refs[i].Date).Count > 0));
             }
-        }
+            lock (gate)
+            {
+                foreach (var (day, wasChanged) in mine)
+                {
+                    collected[day] = collected.GetValueOrDefault(day) + 1;
+                    if (wasChanged) changed[day] = changed.GetValueOrDefault(day) + 1;
+                }
+            }
+        });
 
         return Ok(collected.Keys.OrderBy(d => d).Select(d => new DayCountDto
         {

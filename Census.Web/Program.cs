@@ -1,6 +1,7 @@
 using Census.Web.Options;
 using Census.Web.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<CensusOptions>(builder.Configuration.GetSection(CensusOptions.SectionName));
+builder.Services.AddMemoryCache(o => o.SizeLimit = builder.Configuration.GetSection(CensusOptions.SectionName).GetValue<int?>(nameof(CensusOptions.SnapshotCacheEntries)) ?? 1000);
 builder.Services.AddSingleton<CensusStore>();
 builder.Services.AddSingleton<BlacklistEvaluator>();
 builder.Services.AddSingleton<AssetsStore>();

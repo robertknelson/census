@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Census.Web.Models.Census;
 using Census.Web.Options;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,6 +21,8 @@ public partial class CensusStore
     private readonly string _rootPath;
     private readonly string _machinesConfigPath;
     private readonly ILogger<CensusStore> _logger;
+    private readonly IMemoryCache _snapshots;
+    private readonly TimeSpan _snapshotTtl;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -27,10 +30,12 @@ public partial class CensusStore
         PropertyNameCaseInsensitive = true,
     };
 
-    public CensusStore(IOptions<CensusOptions> options, IHostEnvironment env, ILogger<CensusStore> logger)
+    public CensusStore(IOptions<CensusOptions> options, IHostEnvironment env, ILogger<CensusStore> logger, IMemoryCache snapshots)
     {
         _logger = logger;
+        _snapshots = snapshots;
         var opts = options.Value;
+        _snapshotTtl = TimeSpan.FromMinutes(opts.SnapshotCacheMinutes);
         _rootPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, opts.RootPath));
         _machinesConfigPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, opts.MachinesConfigPath));
     }
@@ -198,7 +203,21 @@ public partial class CensusStore
         return match is null ? null : ReadSnapshot(match.FilePath);
     }
 
-    private static CensusEnvelope ReadSnapshot(string filePath)
+    // One parse per file (CensusOptions.SnapshotCacheEntries): the key carries the file's
+    // length and last-write time, so a rewritten snapshot reads fresh and the stale entry ages out.
+    private CensusEnvelope ReadSnapshot(string filePath)
+    {
+        var info = new FileInfo(filePath);
+        var key = $"snapshot|{filePath}|{info.Length}|{info.LastWriteTimeUtc.Ticks}";
+        return _snapshots.GetOrCreate(key, entry =>
+        {
+            entry.Size = 1;
+            entry.SlidingExpiration = _snapshotTtl;
+            return ParseSnapshot(filePath);
+        });
+    }
+
+    private static CensusEnvelope ParseSnapshot(string filePath)
     {
         if (filePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
         {

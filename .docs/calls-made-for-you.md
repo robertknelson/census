@@ -4,6 +4,28 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-15 — the cost, and where the cache went
+
+**A snapshot cache, not a diff cache.** §12 named a `(machine, date)` diff cache as the fix if
+the month grid passed ~1 s. Measured at 150 machines it did (1.9 s), but the profile said
+reads: a day request parses every machine's snapshot several times over. Call: cache the
+parsed snapshot in `CensusStore` behind its one read method, keyed on path + length +
+last-write time (a rewritten file reads fresh), size-bounded and sliding. Reason: one place,
+every surface benefits (Estate as-of, findings, canvas, the day), and nothing derived is
+stored, so nothing can go stale but the file list itself. The diff cache stays the next
+step if a real fleet needs it.
+
+**Bounds as settings.** `Census:SnapshotCacheEntries` (1000) and
+`Census:SnapshotCacheMinutes` (10) — a real snapshot parses to a few hundred KB, so the
+entry count is the memory knob, and he tunes it on the real server without a build.
+
+**The month walks machines in parallel.** Each machine's snapshots in order, merged under a
+lock; the per-machine work was already independent.
+
+**Synthetic, not real.** The trees are the demo WEB01 snapshot varied per machine and day.
+Real snapshots are bigger and more varied; the numbers are the shape of the cost, not the
+real fleet's. Said in the spec table's caption.
+
 ## 2026-10-15 — the way in from the Estate
 
 **Where the link sits.** The open item said "a header link on the Estate when he says where".

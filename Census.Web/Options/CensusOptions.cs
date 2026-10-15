@@ -24,4 +24,13 @@ public class CensusOptions
     // fly; "all" on a machine with a year of nights is a year of diffs, so the list stops at
     // this many pairs, newest first, and says so.
     public int ChangesNightsMax { get; set; } = 120;
+
+    // Parsed snapshots are kept in memory once read (day-view.md §12): the day page and the
+    // findings stream read the same files many times over per request, and the month grid
+    // reads every snapshot in the month. Keyed on path, length and last-write time, so a
+    // replaced file is never served stale. One entry per snapshot; the limit bounds memory
+    // (a real machine's snapshot parses to a few hundred KB), the minutes bound staleness of
+    // the directory listing's companions, not the data.
+    public int SnapshotCacheEntries { get; set; } = 1000;
+    public int SnapshotCacheMinutes { get; set; } = 10;
 }

@@ -208,7 +208,30 @@ GET /api/day/month?month=YYYY-MM   per collected day: { day, collected, changed 
 `entries` is the Changes panel's shape (`ChangeEntryDto`), flattened by the same code
 (`ChangeEntries.Flatten`, lifted out of `ChangesController` behaviour-preserving). The month
 endpoint diffs every snapshot in the month against its predecessor: roughly *machines × days*
-diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12).
+diffs, machines walked in parallel.
+
+**Cost, measured 2026-10-15** on synthetic trees (the demo WEB01 snapshot varied per machine
+and day: drives drifting, a patch landing mid-month, software coming and going, certificates
+crossing thirty days; 5 % of machine-days not collected), on the laptop:
+
+| Fleet | Request | Before | After, cold | After, warm |
+|---|---|---|---|---|
+| 60 × 30 days | a day | 0.3 s | — | — |
+| 60 × 30 days | the month | 1.4 s | — | — |
+| 150 × 30 days | a day | 0.9 s | 0.5 s | 0.3 s |
+| 150 × 30 days | a range | 0.5 s | — | 0.3 s |
+| 150 × 30 days | the month | 1.9 s | 0.9 s | 0.2–0.5 s |
+
+The cost was file reads, not diffs: a day request reads every machine's snapshot several
+times over (two findings computes, each with its own fleet baseline pass, then the rows),
+and the month reads every snapshot in it twice. **The fix is one level below the one §12
+named:** parsed snapshots are cached in `CensusStore` behind its one read method, keyed on
+path, length and last-write time so a rewritten file reads fresh on the next request
+(proved: a snapshot rewritten under the running app showed its new row at once), bounded by
+`Census:SnapshotCacheEntries` (1000) with a sliding `Census:SnapshotCacheMinutes` (10). Every
+surface that reads snapshots benefits; no truth is stored. The month loop runs machines in
+parallel. Not a `(machine, date)` diff cache: that would be a second place a diff could be
+wrong, and the reads were the cost.
 
 ## 11. Slices
 
@@ -233,7 +256,7 @@ diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12
 | Item | Needs |
 |---|---|
 | Make `/day` the landing page | A week of his use. The Estate stays at `/` until he says. |
-| Month-grid cost on the real fleet | A measurement: `machines × collected days` diffs per month view. Trigger for a `(machine, date)` diff cache: a month view over ~1 s. |
+| Cost on the real fleet | Measured synthetically to 150 machines (§10); the real fleet's snapshots are larger (hundreds of apps), so the cache's memory per entry is larger too. If the month grid is slow there, raise `SnapshotCacheEntries` first; a `(machine, date)` diff cache is the step after. |
 | Demo fixtures hold three days (07-30, 07-31, 08-01) | A week of generated snapshots so the grid has shading to show. `tests/New-DemoMachines.ps1` is the place. |
 | `expected: false` machines in *not collected* | Counted today (the canvas draws them as ghosts too). If the count reads as noise on the real estate, a *decommissioned* bucket is the fix, not dropping them. |
 | No judgeable install in the demo fixtures | The expected/unexpected word is pinned by node tests and a scratch probe, not by `Test-Day.ps1`. A planted install on one demo snapshot (`tests/New-DemoMachines.ps1`) would let the PowerShell suite pin it too. |
@@ -244,6 +267,7 @@ diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12
 
 | Date | What |
 |---|---|
+| 2026-10-15 | Cost: synthetic trees of 60 and 150 machines × 30 days served with `Census__RootPath` on a second port, timed with curl before and after the snapshot cache and the parallel month (table in §10); a snapshot rewritten under the running app read fresh; `Test-Day.ps1` 37/37 and `Test-StageCrossings.ps1` on the demo afterwards. |
 | 2026-10-15 | The way in: *The day* as a quiet link first among the Estate's header actions, before *as of*; clicked in Chrome, lands on `/day`. |
 | 2026-10-15 | Slice 3: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 32/32; `tests/Test-Day.ps1` 37/37 (the demo's one added app is a servicing row, pinned as *not judged*; the Changes panel pinned as never judging). The demo has no judgeable install, so a scratch copy of the demo tree with four planted rows on WEB01 was served on a second port: Wireshark added → *unexpected*, URL Rewrite 2.1 added → *expected* (web-prod approves it), Symantec removed → *unexpected* (required), 7-Zip removed → *expected* (was a deviation), the servicing row silent; the words on the lines in Chrome. No console errors. |
 | 2026-10-15 | Slice 2: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 28/28; `tests/Test-Day.ps1` 33/33; in Chrome on 2026-07-31 the *What it means* section (11 born · 5 cleared on 14 machines): two critical prohibited-software rows first, *Never successfully collected* cleared on the five first-seen boxes as one row, *Behind fleet patch level* cleared on six as one row, the detail line on single-machine rows; APPSRV01 pressed — first seen, no events, its six findings born and one cleared listed. No console errors. |

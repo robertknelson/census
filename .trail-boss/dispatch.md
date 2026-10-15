@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "LOCAL, NOT PUSHED (2026-10-15): four day-page slices and a snapshot cache, measured to 150 machines; say push, then pull and open /day"
+summary: "LOCAL, NOT PUSHED (2026-10-15): four day-page slices plus a snapshot cache; say push, then pull and open /day"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:

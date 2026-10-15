@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "LOCAL, NOT PUSHED (2026-10-15): four day-page slices plus a snapshot cache; say push, then pull and open /day"
+summary: "LOCAL, NOT PUSHED (2026-10-15): day page — drift discounted, meanings, expected-or-not, cache, fixtures; say push, pull, open /day"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -36,12 +36,14 @@ on several machines one line. Below it, each installed-software change carries a
 as a deviation or removes something required; nothing is said where the baseline has no
 opinion. And the Estate's header now has *The day* on it, so there is a way in.
 
-**Disk-space drift is one line now — same batch.** A drive whose only change is its free space no longer gets a row of its own on the
-day page; every such drive on the day folds into one line under Platform, *free space drifted
-on N drives*, with the machines behind it. A drive whose health changed still gets its own
-row, and the full Changes panel still lists every drive. On the demo's busiest day the
-Platform list went from fifteen lines to seven. One thing to watch on the real estate: a
-machine whose only change is drift still counts as *changed* in the headline numbers.
+**Disk-space drift is one line now, and does not count — same batch.** A drive whose only
+change is its free space no longer gets a row of its own on the day page; every such drive on
+the day folds into one line under Platform, *free space drifted on N drives*, with the
+machines behind it. A machine on which nothing else happened reads *quiet*, not *changed*,
+so the headline and the calendar count the news and not the weather. A drive whose health
+changed still gets its own row, and the full Changes panel still lists every drive. The demo
+tree now has a day on which one box did nothing but drift, and WEB01's first day now carries
+software the baseline has an opinion about, so the suites pin the words.
 
 **Before that, pushed 2026-10-14:**
 
@@ -106,8 +108,6 @@ registry tables for the application-level screen.
   (every machine's patch-level finding clearing at once is one line, but every first-seen
   box brings all its findings as born). Watch it; if it buries the page the fix is a fold
   like the drift's, per kind.
-- **The headline may still read as noise on a real fleet:** a machine whose only change is
-  drift counts as *changed*. If so, the next step is to discount drift in the counts.
 - **The rename script must run on the real database** before anyone writes a link with the
   old spelling by hand; the order-violation and ready-to-approve questions read the new
   spelling only.

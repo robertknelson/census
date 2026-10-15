@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Say push: four day-page slices and the snapshot cache sit local (996f8aa..HEAD). Then pull on the live environment, open /day on the real estate and bring back what reads wrong — in particular whether the headline counting drift-only machines as changed is noise, and whether What it means reads as news or as a flood. Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) is yours after a week. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Say push: the day page sits local since 996f8aa (drift folded and discounted, What it means, expected-or-not, the Estate link, the snapshot cache, the fixtures). Then pull on the live environment, open /day on the real estate and bring back what reads wrong — in particular whether What it means reads as news or as a flood, and whether the headline counts are the news. Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) is yours after a week. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,18 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-15 (night — drift discounted in the API, fixtures that judge; committed locally, NOT pushed, 8e3ace2)
+- "Anything else we can continue on now?" Position: the open item that would have spoiled the
+  first live look — every real box drifts daily, so the headline would have read *every
+  machine changed*. Built: `drift` on the row, status and month count ignore it, rows kept so
+  the fold still names the machine. Then the fixtures item from the earlier "Go": WEB01's
+  07-30 snapshot carries the AV and an unapproved editor and lacks URL Rewrite (07-31, the
+  blessed day, untouched — nothing as-of-latest moved), so three of the four judgements are
+  pinned by `Test-Day.ps1`; LOGBOX has an 08-01 snapshot on which only free space moved, via
+  the stage-topology generator (re-run byte-identical elsewhere). The fourth judgement (added
+  as a deviation) has no fixture: every two-snapshot machine is clean on its latest by design.
+  Day suite 48/48, every other suite green, seen in Chrome. Calls in calls-made-for-you.md.
 
 ### 2026-10-15 (evening — the cost, measured and cut; committed locally, NOT pushed)
 - "I won't be able to test in live until tomorrow. What else can we do today?" Position:

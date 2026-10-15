@@ -94,7 +94,7 @@ public class DayController(CensusStore censusStore, FindingsEngine findingsEngin
             for (var i = 0; i < refs.Count; i++)
             {
                 if (refs[i].Date < first || refs[i].Date > last) continue;
-                mine.Add((refs[i].Date, i > 0 && Entries(machine, refs[i - 1].Date, refs[i].Date).Count > 0));
+                mine.Add((refs[i].Date, i > 0 && Entries(machine, refs[i - 1].Date, refs[i].Date).Any(e => !e.Drift)));
             }
             lock (gate)
             {
@@ -141,11 +141,13 @@ public class DayController(CensusStore censusStore, FindingsEngine findingsEngin
 
     private DayMachineDto Compared(string machine, DateOnly from, DateOnly to)
     {
+        // Drift alone does not make a machine changed (§5): the rows are kept, so the day's
+        // fold can still name the machine, but the headline and the grid discount them.
         var entries = Entries(machine, from, to, judge: true);
         return new DayMachineDto
         {
             Machine = machine,
-            Status = entries.Count > 0 ? "changed" : "quiet",
+            Status = entries.Any(e => !e.Drift) ? "changed" : "quiet",
             FromDate = Iso(from),
             ToDate = Iso(to),
             Entries = entries,

@@ -83,11 +83,11 @@ export function headline(machines) {
 
 // A drive whose only change is its free space: `C: System: percentFree 45.0 → 42.0`. Every
 // box drifts a little every day, so on a fleet these rows bury the page (§5, his call
-// 2026-10-15: fold). A drive that also changed health keeps its own row.
-const DRIFT = /: percentFree [\d.]* → [\d.]*$/;
+// 2026-10-15: fold). The API marks the row (`drift`), and does not count a machine as changed
+// for drift alone; here the rows fold. A drive that also changed health keeps its own row.
 export const DRIFT_TEXT = (drives) => `free space drifted on ${drives} drive${drives === 1 ? '' : 's'}`;
 export function isDrift(e) {
-    return e.section === 'drives' && e.kind === 'changed' && DRIFT.test(e.text);
+    return e.drift === true;
 }
 
 /// Identical section + kind + text across machines on the day is one event (§5) — and the

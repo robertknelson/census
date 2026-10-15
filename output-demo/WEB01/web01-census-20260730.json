@@ -92,11 +92,11 @@
   "apps": {
     "status": "ok",
     "data": {
-      "count": 2,
+      "count": 3,
       "entries": [
         {
-          "displayName": "URL Rewrite 2.1",
-          "displayVersion": "7.2.2100",
+          "displayName": "Microsoft ODBC Driver 17 for SQL Server",
+          "displayVersion": "17.10.6.1",
           "publisher": "Microsoft Corporation",
           "installDate": "2024-03-12",
           "installLocation": null,
@@ -106,10 +106,21 @@
           "sid": ""
         },
         {
-          "displayName": "Microsoft ODBC Driver 17 for SQL Server",
-          "displayVersion": "17.10.6.1",
-          "publisher": "Microsoft Corporation",
+          "displayName": "Symantec Endpoint Protection",
+          "displayVersion": "12.1.7454.7000",
+          "publisher": "Symantec Corporation",
           "installDate": "2024-03-12",
+          "installLocation": null,
+          "systemComponent": false,
+          "hive": "HKLM",
+          "architecture": "x64",
+          "sid": ""
+        },
+        {
+          "displayName": "Notepad++ (64-bit x64)",
+          "displayVersion": "8.6.9",
+          "publisher": "Notepad++ Team",
+          "installDate": "2025-11-04",
           "installLocation": null,
           "systemComponent": false,
           "hive": "HKLM",

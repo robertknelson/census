@@ -4,6 +4,35 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-15 — drift in the API, and where the fixtures went
+
+**Drift discounted now, not after the real estate said so.** The open item said "watch on
+the real estate; if the headline turns to noise, the API marks drift". Call: build it before
+he looks. Reason: every real box drifts every day, so the first live look would have read
+*every machine changed* and told him nothing about the page; the fix is a bool on the row and
+one `Any` in the status. The rows are kept so the fold still names the machine.
+
+**Where the planted install went: WEB01's first day, not a generated machine.** Options:
+SQL02 (generated, judgeable, zero apps) — but its zero apps is the designed "two required
+items missing" fixture; a generated stage-topology box — but that script's header says
+"baseline noise is deliberately zero"; a hand-authored 07-30 snapshot — leaves every
+as-of-latest truth alone, since the Estate, the baselines panel and `web-prod`'s provenance
+all read 07-31. Call: WEB01 07-30, rewritten in both encodings (the pair is the
+interrupted-aging fixture and the store prefers the `.json`). Three of four judgements land;
+the fourth (*added as a deviation*) would need a machine that deviates on its latest
+snapshot, which the fixture design forbids — left as an open item, still pinned by node tests.
+
+**The drift-only machine is a third day for LOGBOX.** Making one of the six patched boxes
+miss the patch would have given it a standing behind-fleet-patch finding, against the
+generator's own rule (a fixture should not arrive pre-degraded for an unrelated reason). A
+third snapshot on which only free space moved is additive: LOGBOX reads *quiet* on 08-01 and
+nothing as-of changes. No run-log line for it: LOGBOX has no run-log entries at all today
+(the stage-topology script never wrote them), and the finding only fires with no ok run ever.
+
+**The generators still reproduce the tree.** `New-DemoStageTopology.ps1` re-run: every
+existing file byte-identical, one new. Said in the verification log so the next person
+trusts it.
+
 ## 2026-10-15 — the cost, and where the cache went
 
 **A snapshot cache, not a diff cache.** §12 named a `(machine, date)` diff cache as the fix if

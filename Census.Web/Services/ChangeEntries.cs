@@ -33,6 +33,7 @@ public static class ChangeEntries
                 Section = section.Name,
                 Kind = "changed",
                 Text = $"{i.Label}: {string.Join(", ", i.Changes.Select(c => $"{c.Field} {c.From} → {c.To}"))}",
+                Drift = section.Name == "drives" && i.Changes.All(c => c.Field == "percentFree"),
             }));
         }
         return entries;

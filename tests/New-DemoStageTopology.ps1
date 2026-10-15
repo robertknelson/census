@@ -846,6 +846,13 @@ $targets = @(
            '4c4c4544-1006-3610-8052-b7c04f560006' 'LOGSRV01' `
            @('telemetry.dev.example.com', 'telemetry.val.example.com', 'telemetry.example.com') `
            '2026-07-31T03:26:30.0000000Z' $ubrDay2 74088185856 }
+    # A third day on which nothing happened but free space moving (day-view.md 5): the day page
+    # must read a drift-only machine as quiet and fold the drift, and no other fixture has one.
+    @{ File = 'LOGBOX\logbox-census-20260801.json'
+       Envelope = ServiceEnvelope 'LOGBOX' '10.0.1.30' 'c6d7e8f9-0ab5-4c67-d182-9bacbdcedf06' `
+           '4c4c4544-1006-3610-8052-b7c04f560006' 'LOGSRV01' `
+           @('telemetry.dev.example.com', 'telemetry.val.example.com', 'telemetry.example.com') `
+           '2026-08-01T03:26:12.0000000Z' $ubrDay2 73014444032 }
 
     @{ File = 'DEVSQLBOX\devsqlbox-census-20260730.json'
        Envelope = SqlEnvelope 'DEVSQLBOX' '10.0.1.20' 'a4b5c6d7-8e93-4a45-bf60-718a9bacbd04' `

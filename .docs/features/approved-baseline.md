@@ -354,7 +354,8 @@ needs a fixture deliberately.
 | `systemComponent` excluded | WEB01's ASP.NET Core Module V2 and SQL01's engine entry are approved by nothing and deviate on nothing |
 | Per-user install, different SID per machine | Slack on DEVBOX-JSMITH (`…-1417`) and APPSRV01 (`…-2209`), one baseline entry, no deviation on either — the §6.1 rule that would otherwise flood the stream |
 | In scope but not judgeable | WEB02 (`insufficient-rights`) and BUILDSRV01 (`failed`) — matched, never rendered as approved |
-| Clean in scope | WEB01, SQL01, SQL02, LEGACY-DC01 |
+| Clean in scope | WEB01, SQL01, SQL02, LEGACY-DC01 — on their latest snapshot |
+| A judgeable install between two days (day-view.md §5b) | WEB01's 07-30 snapshot carries Symantec (required) and Notepad++ (a deviation) and lacks URL Rewrite; its 07-31 snapshot — the one `web-prod` was blessed from — is untouched. Between them: the AV removed (*unexpected*), the editor removed (*expected*), URL Rewrite added (*expected*). As of 07-30 WEB01 has an unapproved-software finding and no missing-required one; both flip on 07-31. Added 2026-10-15; nothing as of the latest snapshot moved. |
 | Deviation → finding | APPSRV01 and DEVBOX-JSMITH, one rolled-up finding each |
 | Required, present | Symantec on LEGACY-DC01 — the only machine carrying it, and the only one clean |
 | Required, absent | the same entry on WEB01, SQL01, SQL02, APPSRV01, DEVBOX-JSMITH — "who is missing AV" answered by one flag |

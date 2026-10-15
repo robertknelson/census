@@ -14,6 +14,13 @@ public record ChangeEntryDto
     /// The fleet feed never sets it.
     /// </summary>
     public string Expectation { get; init; }
+
+    /// <summary>
+    /// A drive whose only change is its free space (day-view.md §5). Every box drifts a
+    /// little every day, so the day folds these and does not count a machine as changed for
+    /// them alone. A drive that also changed health is not drift.
+    /// </summary>
+    public bool Drift { get; init; }
 }
 
 public record MachineChangesDto

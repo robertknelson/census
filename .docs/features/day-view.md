@@ -82,10 +82,12 @@ One exception, his call 2026-10-15: a drive whose only change is its free space
 (`C: System: percentFree 45.0 → 42.0`) is **drift**, and every drift on the day folds into one
 Platform line, *free space drifted on N drives*, with the machines behind it. Every box drifts a
 little every day; on a fleet the raw rows would bury the page. A drive that also changed health
-keeps its own row, and the raw rows stay in the Changes panel. The fold is the projection's
-(`day-events.mjs`), not the API's: a drift-only machine still counts as *changed* in the
-headline and shades the grid. If that in turn reads as noise on the real estate, the next
-step is the API saying which entries are drift so the headline can discount them.
+keeps its own row, and the raw rows stay in the Changes panel. The API marks the row
+(`drift`, set where the rows are flattened: a `drives` change whose only field is
+`percentFree`), and **drift alone does not make a machine changed**: a machine whose only rows
+are drift reads *quiet* in the headline and does not shade the grid, but keeps its rows, so
+the fold still names it. Built 2026-10-15 the same day as the fold, rather than waited for:
+on a real fleet every box drifts every day, and a headline that counted it would say nothing.
 
 ## 5a. What it means — findings born and cleared
 
@@ -199,7 +201,7 @@ to watch (§12).
 GET /api/day                       the latest fleet date
 GET /api/day?day=YYYY-MM-DD        one day
 GET /api/day?from=…&to=…           a range (the Changes panel's window rule)
-  → { day, from, to, machines: [ { machine, status, fromDate, toDate, entries: [ { section, kind, text, expectation } ] } ],
+  → { day, from, to, machines: [ { machine, status, fromDate, toDate, entries: [ { section, kind, text, expectation, drift } ] } ],
       findings: { before, asOf, born: [ FindingDto ], cleared: [ FindingDto ] } }
 
 GET /api/day/month?month=YYYY-MM   per collected day: { day, collected, changed }
@@ -257,16 +259,16 @@ wrong, and the reads were the cost.
 |---|---|
 | Make `/day` the landing page | A week of his use. The Estate stays at `/` until he says. |
 | Cost on the real fleet | Measured synthetically to 150 machines (§10); the real fleet's snapshots are larger (hundreds of apps), so the cache's memory per entry is larger too. If the month grid is slow there, raise `SnapshotCacheEntries` first; a `(machine, date)` diff cache is the step after. |
-| Demo fixtures hold three days (07-30, 07-31, 08-01) | A week of generated snapshots so the grid has shading to show. `tests/New-DemoMachines.ps1` is the place. |
+| Demo fixtures hold three days (07-30, 07-31, 08-01) | A week of generated snapshots so the grid has shading to show. `tests/New-DemoStageTopology.ps1` is the place (it already writes whole envelopes per day; LOGBOX's third day was added there 2026-10-15). |
 | `expected: false` machines in *not collected* | Counted today (the canvas draws them as ghosts too). If the count reads as noise on the real estate, a *decommissioned* bucket is the fix, not dropping them. |
-| No judgeable install in the demo fixtures | The expected/unexpected word is pinned by node tests and a scratch probe, not by `Test-Day.ps1`. A planted install on one demo snapshot (`tests/New-DemoMachines.ps1`) would let the PowerShell suite pin it too. |
-| Drift-only machines still read *changed* | The drift fold (§5) is in the projection, so the headline and the grid still count a machine whose only change is free space. Watch on the real estate; if the headline turns to noise, the API marks drift and the headline discounts it. |
+| *Added as a deviation → unexpected* has no demo fixture | Three of the four judgements (§5b) are pinned by `Test-Day.ps1` on WEB01's 07-30 → 07-31 (approved-baseline.md §12); the fourth needs a machine with two snapshots that deviates on its later one, and every such machine is clean by design (the stage-topology fixture's "baseline noise is zero"). Pinned by node tests and the 2026-10-15 scratch probe. A fixture when one earns its place. |
 | Range semantics vs day semantics | A range compares first-in-window to last-in-window; a day compares to the previous snapshot whatever its date. Said on every row; revisit if a reader trips. |
 
 ## 13. Verification log
 
 | Date | What |
 |---|---|
+| 2026-10-15 | Drift in the API + fixtures: `ChangeEntryDto.Drift` set in `ChangeEntries.Flatten`; the day's status and the month's count ignore drift rows. WEB01's 07-30 snapshot now carries the AV and an unapproved editor and lacks URL Rewrite (both encodings rewritten, byte-equal), so 07-31 judges three rows; LOGBOX has an 08-01 snapshot with nothing but free space moving (`New-DemoStageTopology.ps1`, re-run byte-identical for every other file). `Test-Day.ps1` 48/48 (LOGBOX quiet with its drift row kept; August 2 collected / 1 changed; nine drift rows on 07-31 and every changed machine has a non-drift row; 16 born / 15 cleared with the AV's absence born and the editor's finding cleared; the three words); stage crossings 25/25, Move It 33/33, credentials 42/42, node 74/74. In Chrome: the default day reads *1 changed · 1 quiet · 15 not collected*, the Platform fold names BUILDSRV01 and LOGBOX; on 07-31 the three words sit on WEB01's rows. No console errors. |
 | 2026-10-15 | Cost: synthetic trees of 60 and 150 machines × 30 days served with `Census__RootPath` on a second port, timed with curl before and after the snapshot cache and the parallel month (table in §10); a snapshot rewritten under the running app read fresh; `Test-Day.ps1` 37/37 and `Test-StageCrossings.ps1` on the demo afterwards. |
 | 2026-10-15 | The way in: *The day* as a quiet link first among the Estate's header actions, before *as of*; clicked in Chrome, lands on `/day`. |
 | 2026-10-15 | Slice 3: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 32/32; `tests/Test-Day.ps1` 37/37 (the demo's one added app is a servicing row, pinned as *not judged*; the Changes panel pinned as never judging). The demo has no judgeable install, so a scratch copy of the demo tree with four planted rows on WEB01 was served on a second port: Wireshark added → *unexpected*, URL Rewrite 2.1 added → *expected* (web-prod approves it), Symantec removed → *unexpected* (required), 7-Zip removed → *expected* (was a deviation), the servicing row silent; the words on the lines in Chrome. No console errors. |

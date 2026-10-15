@@ -60,18 +60,19 @@ assert('the same text under a different kind is a different event',
 assert('quiet and uncollected machines contribute nothing', collapse([{ machine: 'Q', status: 'quiet', entries: [] }, { machine: 'N', status: 'not-collected' }]).length === 0);
 
 console.log('Drive drift');
-const c = (pf) => ({ section: 'drives', kind: 'changed', text: `C: System: percentFree ${pf}` });
-const d = { section: 'drives', kind: 'changed', text: 'D: Data: percentFree 80.1 → 79.9' };
-const sick = { section: 'drives', kind: 'changed', text: 'C: System: percentFree 45.0 → 42.0, healthStatus Healthy → Warning' };
-assert('a free-space-only change is drift', isDrift(c('45.0 → 42.0')) && isDrift({ section: 'drives', kind: 'changed', text: 'E: : percentFree  → 12.0' }));
-assert('a health change, an added drive, another section are not', !isDrift(sick) && !isDrift({ section: 'drives', kind: 'added', text: 'E:' }) && !isDrift({ section: 'os', kind: 'changed', text: 'x: percentFree 1 → 2' }));
+// The API marks drift (ChangeEntries.Flatten); the projection trusts the mark, not the text.
+const c = (pf) => ({ section: 'drives', kind: 'changed', text: `C: System: percentFree ${pf}`, drift: true });
+const d = { section: 'drives', kind: 'changed', text: 'D: Data: percentFree 80.1 → 79.9', drift: true };
+const sick = { section: 'drives', kind: 'changed', text: 'C: System: percentFree 45.0 → 42.0, healthStatus Healthy → Warning', drift: false };
+assert('a row the API marked is drift', isDrift(c('45.0 → 42.0')) && isDrift(d));
+assert('an unmarked row is not, whatever its text', !isDrift(sick) && !isDrift({ section: 'drives', kind: 'changed', text: 'C: System: percentFree 45.0 → 42.0' }) && !isDrift({ section: 'drives', kind: 'added', text: 'E:' }));
 const drifted = collapse([
     { machine: 'WEB01', status: 'changed', entries: [c('45.0 → 42.0'), d] },
-    { machine: 'WEB02', status: 'changed', entries: [c('50.0 → 49.5')] },
+    { machine: 'WEB02', status: 'quiet', entries: [c('50.0 → 49.5')] },
     { machine: 'SQL01', status: 'changed', entries: [sick] },
 ])[0].events;
 const fold = drifted.find((e) => e.folded);
-assert('drift folds to one Platform event counting drives and machines once each',
+assert('drift folds to one Platform event counting drives and machines once each — a quiet machine whose only rows are drift still joins the fold',
     drifted.length === 2 && fold.drives === 3 && fold.machines.join(',') === 'WEB01,WEB02' && fold.section === 'drives' && fold.kind === 'changed', JSON.stringify(drifted));
 assert('the fold says what it is', fold.text === 'free space drifted on 3 drives', fold.text);
 assert('the health change keeps its own row', drifted.some((e) => !e.folded && e.text === sick.text && e.machines.join(',') === 'SQL01'));

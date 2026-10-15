@@ -238,13 +238,13 @@ diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12
 | `expected: false` machines in *not collected* | Counted today (the canvas draws them as ghosts too). If the count reads as noise on the real estate, a *decommissioned* bucket is the fix, not dropping them. |
 | No judgeable install in the demo fixtures | The expected/unexpected word is pinned by node tests and a scratch probe, not by `Test-Day.ps1`. A planted install on one demo snapshot (`tests/New-DemoMachines.ps1`) would let the PowerShell suite pin it too. |
 | Drift-only machines still read *changed* | The drift fold (§5) is in the projection, so the headline and the grid still count a machine whose only change is free space. Watch on the real estate; if the headline turns to noise, the API marks drift and the headline discounts it. |
-| No way in from the Estate yet | The day links out to Estate, Atlas and Move It; nothing links back. A header link on the Estate when he says where. |
 | Range semantics vs day semantics | A range compares first-in-window to last-in-window; a day compares to the previous snapshot whatever its date. Said on every row; revisit if a reader trips. |
 
 ## 13. Verification log
 
 | Date | What |
 |---|---|
+| 2026-10-15 | The way in: *The day* as a quiet link first among the Estate's header actions, before *as of*; clicked in Chrome, lands on `/day`. |
 | 2026-10-15 | Slice 3: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 32/32; `tests/Test-Day.ps1` 37/37 (the demo's one added app is a servicing row, pinned as *not judged*; the Changes panel pinned as never judging). The demo has no judgeable install, so a scratch copy of the demo tree with four planted rows on WEB01 was served on a second port: Wireshark added → *unexpected*, URL Rewrite 2.1 added → *expected* (web-prod approves it), Symantec removed → *unexpected* (required), 7-Zip removed → *expected* (was a deviation), the servicing row silent; the words on the lines in Chrome. No console errors. |
 | 2026-10-15 | Slice 2: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 28/28; `tests/Test-Day.ps1` 33/33; in Chrome on 2026-07-31 the *What it means* section (11 born · 5 cleared on 14 machines): two critical prohibited-software rows first, *Never successfully collected* cleared on the five first-seen boxes as one row, *Behind fleet patch level* cleared on six as one row, the detail line on single-machine rows; APPSRV01 pressed — first seen, no events, its six findings born and one cleared listed. No console errors. |
 | 2026-10-15 | Drift fold: `node tests/Test-DayEvents.mjs` 23/23; in Chrome on 2026-07-31 the Platform group went from 15 events to 7, one line *Drives: free space drifted on 9 drives* on 9 machines with *+4 more*, the os.build event unchanged beneath it. No console errors. |

@@ -121,6 +121,7 @@ class EstatePage {
                     <div class="est-wordmark">Census <span>/ estate</span></div>
                     <div class="est-legend" data-ref="legend"></div>
                     <div class="est-header-actions">
+                        <a class="est-headlink" href="/day" title="What changed on a day, for every machine">The day</a>
                         <label class="est-asof"><span>as of</span><input type="date" class="est-edit-input" data-ref="asof-input"></label>
                         <button class="est-btn est-findings-btn" data-ref="findings-btn" hidden></button>
                         <button class="est-btn" data-ref="triage-btn" hidden></button>

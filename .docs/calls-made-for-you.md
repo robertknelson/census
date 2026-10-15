@@ -4,6 +4,15 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-15 — the way in from the Estate
+
+**Where the link sits.** The open item said "a header link on the Estate when he says where".
+Options: inside the wordmark (its width is pinned to the rail, so no); a nav of Estate ·
+Atlas · Move It · the day like the day page carries (widens the ask to Atlas and Move It,
+which have no Estate-side link today either); one quiet link first among the header actions.
+Call: the one quiet link, *The day*, before *as of*, styled as a link so it does not read as
+a seventh panel button. Move it with a word.
+
 ## 2026-10-15 — expected or not (day-view.md §5b), slice 3
 
 **Only installed software is judged.** The spec said "a delta that moves a machine toward its

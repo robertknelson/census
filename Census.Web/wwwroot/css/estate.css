@@ -75,6 +75,19 @@ html, body {
     font-weight: 400;
 }
 
+/* The way out to the day page (day-view.md §12): a link, not a panel button. */
+.est-headlink {
+    color: var(--est-faint);
+    text-decoration: none;
+    font-size: 13px;
+    margin-right: 0.5rem;
+}
+
+.est-headlink:hover {
+    color: inherit;
+    text-decoration: underline;
+}
+
 .est-legend {
     display: flex;
     gap: 0.4rem;

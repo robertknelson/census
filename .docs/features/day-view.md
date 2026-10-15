@@ -4,7 +4,7 @@
 > *"we need a new top level concept, a Calendar onto which we can add the very very
 > interesting daily deltas … the client will want to simply first hit a DAY VIEW, to see the
 > deltas, to know 1) the current state and 2) what changed."* Position taken in conversation,
-> his "go" the same day. Status: **slice 1 built 2026-10-14** (§11).
+> his "go" the same day. Status: **slices 1–2 built 2026-10-14 / 10-15** (§11).
 
 ## 1. The question
 
@@ -87,6 +87,33 @@ keeps its own row, and the raw rows stay in the Changes panel. The fold is the p
 headline and shades the grid. If that in turn reads as noise on the real estate, the next
 step is the API saying which entries are drift so the headline can discount them.
 
+## 5a. What it means — findings born and cleared
+
+Above the four groups, a fifth heading, **What it means**: the findings stream
+(`FindingsEngine.Compute(asOf)`, census-web-v2-ux.md §4) as of the day against as of the day
+before. A finding in the later and not the earlier is **born**; the reverse is **cleared**.
+No new severity is invented and no finding is computed that `/api/findings` would not; the
+page only says which ones appeared and which went away.
+
+**Identity.** Titles drift — *expires in 15d* is *expires in 14d* tomorrow — so a finding
+carries a `key`: kind, machine and the thing found (a certificate's thumbprint, the OS build
+line for patch drift, the identity label for a clone; `""` when the kind is one per machine;
+the title otherwise). Two findings with one key are one. The key is on `/api/findings` too,
+where nothing reads it yet.
+
+**The day before** is the calendar day before, not the previous fleet collection: a finding
+that depends on a snapshot cannot change between collections anyway, and one that depends on
+the clock (a certificate crossing thirty days, a machine going stale) crosses on a calendar
+day whether anyone collected or not. A range diffs as of To against as of From, the same
+exclusion of From's own day as the events have.
+
+**Rendered** like the events: the same finding on several machines is one row with the
+machines behind it; severity first (critical, high, medium, low), born before cleared within
+a severity, then most machines. Each row says *born* or *cleared* as a word and the severity
+as a word, never a colour alone; the detail line is shown when the row is one machine, since
+collapsed rows have one detail each. The stage chips and the machine scope apply by the
+finding's machine, so a first-seen box with no events still shows its findings born.
+
 ## 6. Grouped by meaning
 
 The diff sections fold into four headings a manager reads. Dev-ops still sees the section
@@ -148,7 +175,8 @@ to watch (§12).
 GET /api/day                       the latest fleet date
 GET /api/day?day=YYYY-MM-DD        one day
 GET /api/day?from=…&to=…           a range (the Changes panel's window rule)
-  → { day, from, to, machines: [ { machine, status, fromDate, toDate, entries: [ { section, kind, text } ] } ] }
+  → { day, from, to, machines: [ { machine, status, fromDate, toDate, entries: [ { section, kind, text } ] } ],
+      findings: { before, asOf, born: [ FindingDto ], cleared: [ FindingDto ] } }
 
 GET /api/day/month?month=YYYY-MM   per collected day: { day, collected, changed }
 ```
@@ -163,10 +191,10 @@ diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12
 1. **Built 2026-10-14.** Headline, collapsed events in four groups, month grid with shading,
    stage and machine filters, range, deep link to the Estate. `tests/Test-Day.ps1` against
    the running demo; `tests/Test-DayEvents.mjs` for the pure grouping and collapse.
-2. **Findings born and cleared.** Diff `FindingsEngine.Compute(asOf)` between the two days:
-   a certificate crossing its threshold, a blacklist hit appearing, a pending reboot
-   clearing, a new stage crossing. A fifth heading, *What it means*, above the four groups,
-   severity-ordered. No new severity is invented.
+2. **Built 2026-10-15.** Findings born and cleared (§5a): `FindingsEngine.Compute(asOf)`
+   diffed by key between the day and the day before (a range: To against From), the fifth
+   heading *What it means* above the four groups, severity-ordered, the fold of drive
+   free-space drift (§5) in the same slice.
 3. **Expected or not.** A delta that moves a machine toward its approved baseline
    (`approved-baseline.md`) reads *expected*; one that moves it away reads as a question.
    Drawn as a word on the event line, never as a colour alone.
@@ -192,5 +220,6 @@ diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12
 
 | Date | What |
 |---|---|
+| 2026-10-15 | Slice 2: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 28/28; `tests/Test-Day.ps1` 33/33; in Chrome on 2026-07-31 the *What it means* section (11 born · 5 cleared on 14 machines): two critical prohibited-software rows first, *Never successfully collected* cleared on the five first-seen boxes as one row, *Behind fleet patch level* cleared on six as one row, the detail line on single-machine rows; APPSRV01 pressed — first seen, no events, its six findings born and one cleared listed. No console errors. |
 | 2026-10-15 | Drift fold: `node tests/Test-DayEvents.mjs` 23/23; in Chrome on 2026-07-31 the Platform group went from 15 events to 7, one line *Drives: free space drifted on 9 drives* on 9 machines with *+4 more*, the os.build event unchanged beneath it. No console errors. |
 | 2026-10-14 | Slice 1: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 16/16; `tests/Test-Day.ps1` 24/24 against the Demo profile; in Chrome: the default day (08-01, one changed, sixteen not collected), 2026-07-31 (ten changed, five first seen, two not collected, the Deployments and Platform groups), the *not collected* list opened, a chip scoping to DCBACKUP01 then a grid click to 07-30 keeping the scope, `stages=prod`, the 07-30 → 08-01 range (collected once appears), *open in Estate* landing on WEB01's details with the 07-30 → 07-31 comparison. No console errors. |

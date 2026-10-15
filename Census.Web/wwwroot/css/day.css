@@ -106,6 +106,18 @@
 .day-event-machines { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; font-size: 12px; }
 .day-event-machines .day-chip { padding: 0.05rem 0.5rem; font-size: 11.5px; }
 
+/* What it means: findings born and cleared. A word for the state and a word for the
+   severity, never a colour alone. */
+.day-meanings { border-color: var(--day-ink); }
+.day-state { flex: none; width: 3.6rem; text-align: center; font: 600 11px/1.6 var(--day-font); text-transform: uppercase; letter-spacing: 0.05em; border-radius: 4px; align-self: flex-start; margin-top: 0.1rem; }
+.day-state-born { color: var(--day-red); background: #fbeeed; }
+.day-state-cleared { color: var(--day-green); background: #e8f3ec; }
+.day-meaning.is-cleared .day-event-text { color: var(--day-muted); }
+.day-sev { display: inline-block; margin-right: 0.25rem; padding: 0 0.4rem; border: 1px solid var(--day-line); border-radius: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--day-muted); vertical-align: 1px; }
+.day-sev-critical { color: var(--day-red); border-color: var(--day-red); }
+.day-sev-high { color: var(--day-amber); border-color: var(--day-amber); }
+.day-detail { color: var(--day-muted); font-size: 12.5px; margin-top: 0.15rem; }
+
 .day-btn { padding: 0.3rem 0.7rem; border: 1px solid var(--day-line); border-radius: 8px; background: var(--day-panel); color: var(--day-ink); font-size: 13px; cursor: pointer; text-decoration: none; }
 .day-btn:hover { border-color: var(--day-blue); color: var(--day-blue); }
 .day-btn-sm { padding: 0.1rem 0.5rem; font-size: 12px; }

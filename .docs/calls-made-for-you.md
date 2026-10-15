@@ -4,6 +4,30 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-15 — findings born and cleared (day-view.md §5a), slice 2
+
+**A finding's identity is a key, not its title.** Titles carry numbers that drift (*expires
+in 15d*). Call: `key = kind|machine|subject`, subject set where the title drifts — a cert's
+thumbprint (a renewal is a new cert, so a new finding), the OS build line for patch drift,
+the identity label for a clone, `""` for the kinds that are one per machine (stale, unlogged,
+never collected, unapproved, missing). The title elsewhere. Two findings with one key are
+one; nothing is inferred from text.
+
+**"The day before" is the calendar day before, not the previous collection.** Options: the
+previous fleet date; each machine's previous snapshot date; the calendar day. Call: the
+calendar day. Reason: snapshot-based findings cannot change between collections, and the
+clock-based ones (a cert crossing thirty days, a stale machine) cross on a calendar day
+whether anyone collected or not — a cert going critical on a day nobody collected belongs to
+that day. A range is To against From.
+
+**Born before cleared within a severity; the detail only on single-machine rows.** The same
+finding on several machines collapses to one row like an event; collapsed rows have one
+detail each, so the detail is drawn only when the row is one machine. Severity as a word,
+born/cleared as a word; colour follows, never leads.
+
+**The section sits above the four groups, drawn only when non-empty.** A quiet day has no
+*What it means* at all rather than an empty box.
+
 ## 2026-10-15 — the drift fold (day-view.md §5)
 
 **He ruled "fold"; the questions under it.** *What is drift*: a `drives` row whose only field

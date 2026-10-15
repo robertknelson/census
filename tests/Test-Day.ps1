@@ -51,6 +51,18 @@ $first = $day.machines | Where-Object machine -eq 'APPSRV01'
 Assert-That 'a first-seen row has only the day it was seen' ($first.status -eq 'first-seen' -and $first.toDate -eq '2026-07-31' -and -not $first.fromDate -and $first.entries.Count -eq 0) ($first | ConvertTo-Json -Compress)
 Assert-That 'the decommissioned box is a not-collected row (absence is signal)' (($day.machines | Where-Object machine -eq 'DCBACKUP01').status -eq 'not-collected')
 
+Write-Host 'What it means (findings born and cleared)'
+$f = $day.findings
+Assert-That 'as of the day against the day before' ($f.before -eq '2026-07-30' -and $f.asOf -eq '2026-07-31') "$($f.before)->$($f.asOf)"
+Assert-That '07-31: fifteen born, fourteen cleared' (@($f.born).Count -eq 15 -and @($f.cleared).Count -eq 14) "$(@($f.born).Count)/$(@($f.cleared).Count)"
+Assert-That 'the five first-seen machines clear never-collected' (@($f.cleared | Where-Object kind -eq 'never-collected').Count -eq 5 -and (($f.cleared | Where-Object kind -eq 'never-collected').machine -contains 'APPSRV01'))
+Assert-That 'the build that landed clears behind-fleet-patch on six' (@($f.cleared | Where-Object kind -eq 'behind-fleet-patch').Count -eq 6)
+Assert-That 'a finding carries a key, kind, severity, machine, title' ($f.born[0].key -and $f.born[0].kind -and $f.born[0].severity -and $f.born[0].machine -and $f.born[0].title)
+$cert = $f.born | Where-Object kind -eq 'certificate-expiring'
+Assert-That 'a key names the thing found, not the drifting title' ($cert.key -like 'certificate-expiring|web01|*' -and $cert.key -notlike '*expires in*') $cert.key
+$aug1 = Get-Api '/api/day?day=2026-08-01'
+Assert-That '08-01: one born (BUILDSRV01 pending reboot), none cleared' (@($aug1.findings.born).Count -eq 1 -and $aug1.findings.born[0].kind -eq 'pending-reboot' -and $aug1.findings.born[0].machine -eq 'BUILDSRV01' -and @($aug1.findings.cleared).Count -eq 0) ($aug1.findings | ConvertTo-Json -Compress -Depth 3)
+
 Write-Host 'The same rows as the Changes panel'
 $feed = Get-Api '/api/changes?from=2026-07-30&to=2026-07-31'
 $feedWeb01 = $feed.machines | Where-Object machine -eq 'WEB01'
@@ -63,6 +75,9 @@ $rb = $range.machines | Where-Object machine -eq 'BUILDSRV01'
 Assert-That 'first-in-range against last-in-range' ($rb.status -eq 'changed' -and $rb.fromDate -eq '2026-07-31' -and $rb.toDate -eq '2026-08-01') "$($rb.fromDate)->$($rb.toDate)"
 Assert-That 'one snapshot in the range is collected-once' (($range.machines | Where-Object machine -eq 'APPSRV01').status -eq 'collected-once')
 Assert-That 'a range never says first-seen' (@($range.machines | Where-Object status -eq 'first-seen').Count -eq 0)
+Assert-That 'a range diffs the findings as of To against as of From' ($range.findings.before -eq '2026-07-30' -and $range.findings.asOf -eq '2026-08-01' -and @($range.findings.born).Count -eq 16)
+$rangeCert = $range.findings.born | Where-Object kind -eq 'certificate-expiring'
+Assert-That 'the same certificate has the same key on both, though its title moved a day' ($rangeCert.key -eq $cert.key -and $rangeCert.title -ne $cert.title) "$($rangeCert.title) vs $($cert.title)"
 
 Write-Host 'The month'
 $july = Get-Api '/api/day/month?month=2026-07'

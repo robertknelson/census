@@ -37,6 +37,35 @@ export function groupOf(section) {
 
 export const STATUS_ORDER = ['changed', 'quiet', 'first-seen', 'collected-once', 'not-collected'];
 
+export const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low'];
+
+const severityRank = (s) => {
+    const i = SEVERITY_ORDER.indexOf(s);
+    return i === -1 ? SEVERITY_ORDER.length : i;
+};
+
+/// What it means (§5a): the findings born and cleared between the two days, for the machines
+/// in scope, the same finding on several machines one row. Severity first, born before
+/// cleared, then most machines, then title. Empty when nothing was born or cleared.
+export function meanings(findings, machines) {
+    if (!findings) return [];
+    const inScope = new Set(machines.map((m) => m.toLowerCase()));
+    const byKey = new Map();
+    for (const [state, list] of [['born', findings.born], ['cleared', findings.cleared]]) {
+        for (const f of list ?? []) {
+            if (!inScope.has(f.machine.toLowerCase())) continue;
+            const key = `${state}\u0000${f.kind}\u0000${f.title}`;
+            if (!byKey.has(key)) byKey.set(key, { key, state, severity: f.severity, kind: f.kind, title: f.title, detail: f.detail, machines: [] });
+            byKey.get(key).machines.push(f.machine);
+        }
+    }
+    return [...byKey.values()].sort((a, b) =>
+        severityRank(a.severity) - severityRank(b.severity)
+        || (a.state === b.state ? 0 : a.state === 'born' ? -1 : 1)
+        || b.machines.length - a.machines.length
+        || a.title.localeCompare(b.title));
+}
+
 export const STATUS_TEXT = {
     changed: 'changed',
     quiet: 'quiet',

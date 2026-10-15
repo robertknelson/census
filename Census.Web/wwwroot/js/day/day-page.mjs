@@ -1,11 +1,12 @@
 import { fetchCanvas, fetchDay, fetchMonth, fetchFleetDates } from './day-api.mjs';
-import { SECTION_TITLES, STATUS_ORDER, STATUS_TEXT, headline, collapse } from './day-events.mjs';
+import { SECTION_TITLES, STATUS_ORDER, STATUS_TEXT, headline, collapse, meanings } from './day-events.mjs';
 
 // The day (day-view.md): what changed on one day, or across a range, for every machine. The
 // month grid on the left is navigation, shaded by how many machines changed; the day on the
-// right is the headline — changed, quiet, not collected — then the events, collapsed across
-// machines and grouped by meaning. Read-only; the URL carries the day, the range, the stage
-// chips and the machine in scope, so a day is a link.
+// right is the headline — changed, quiet, not collected — then what it means (findings born
+// and cleared since the day before), then the events, collapsed across machines and grouped
+// by meaning. Read-only; the URL carries the day, the range, the stage chips and the machine
+// in scope, so a day is a link.
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const CHIPS_SHOWN = 6;
@@ -110,6 +111,7 @@ class DayPage {
                         <div data-ref="scope"></div>
                         <div class="day-headline" data-ref="headline"></div>
                         <div data-ref="listing"></div>
+                        <div data-ref="meanings"></div>
                         <div class="day-groups" data-ref="groups"><p class="day-status">Reading the fleet…</p></div>
                     </main>
                 </div>
@@ -123,6 +125,7 @@ class DayPage {
         this.scopeEl = ref('scope');
         this.headlineEl = ref('headline');
         this.listingEl = ref('listing');
+        this.meaningsEl = ref('meanings');
         this.groupsEl = ref('groups');
         this.fromEl = ref('from');
         this.toEl = ref('to');
@@ -243,6 +246,7 @@ class DayPage {
         this.renderScope();
         const machines = this.inScope();
         this.renderHeadline(machines);
+        this.renderMeanings(machines);
         this.renderGroups(machines);
         this.renderGrid();
     }
@@ -339,6 +343,52 @@ class DayPage {
         this.bindMachineChips(this.listingEl);
     }
 
+    renderMeanings(machines) {
+        const rows = meanings(this.data.findings, machines.map((m) => m.machine));
+        if (rows.length === 0) {
+            this.meaningsEl.innerHTML = '';
+            return;
+        }
+        const born = rows.filter((r) => r.state === 'born');
+        const cleared = rows.filter((r) => r.state === 'cleared');
+        const machineCount = new Set(rows.flatMap((r) => r.machines)).size;
+        const f = this.data.findings;
+        this.meaningsEl.innerHTML = `
+            <section class="day-group day-meanings">
+                <h2 class="day-group-title">What it means <span class="day-group-sub">findings born and cleared, as of ${escapeHtml(f.asOf)} against ${escapeHtml(f.before)}</span>
+                    <span class="day-group-n">${born.length} born · ${cleared.length} cleared on ${machineCount} machine${machineCount === 1 ? '' : 's'}</span></h2>
+                ${rows.map((r) => this.meaningRow(r)).join('')}
+            </section>`;
+        this.meaningsEl.querySelectorAll('[data-expand]').forEach((btn) => btn.addEventListener('click', () => {
+            this.expanded.add(btn.dataset.expand);
+            this.renderMeanings(machines);
+        }));
+        this.bindMachineChips(this.meaningsEl);
+    }
+
+    meaningRow(r) {
+        return `
+            <div class="day-event day-meaning is-${r.state}">
+                <span class="day-state day-state-${r.state}">${r.state}</span>
+                <div class="day-event-body">
+                    <div class="day-event-text"><span class="day-sev day-sev-${escapeHtml(r.severity)}">${escapeHtml(r.severity)}</span> ${escapeHtml(r.title)}
+                        ${r.machines.length === 1 && r.detail ? `<div class="day-detail">${escapeHtml(r.detail)}</div>` : ''}</div>
+                    ${this.machineChips(r.key, r.machines)}
+                </div>
+            </div>`;
+    }
+
+    machineChips(key, machines) {
+        const all = this.expanded.has(key) || machines.length <= CHIPS_SHOWN;
+        const shown = all ? machines : machines.slice(0, CHIPS_SHOWN - 1);
+        return `
+            <div class="day-event-machines">
+                <span class="day-muted">${machines.length} machine${machines.length === 1 ? '' : 's'}</span>
+                ${shown.map((m) => this.machineChip(m)).join('')}
+                ${all ? '' : `<button type="button" class="day-chip day-chip-more" data-expand="${escapeHtml(key)}">+${machines.length - shown.length} more</button>`}
+            </div>`;
+    }
+
     renderGroups(machines) {
         const groups = collapse(machines);
         if (groups.length === 0) {
@@ -360,19 +410,13 @@ class DayPage {
 
     eventRow(e) {
         const key = `${e.section}\u0000${e.kind}\u0000${e.text}`;
-        const all = this.expanded.has(key) || e.machines.length <= CHIPS_SHOWN;
-        const shown = all ? e.machines : e.machines.slice(0, CHIPS_SHOWN - 1);
         const sym = e.kind === 'added' ? '+' : e.kind === 'removed' ? '−' : '~';
         return `
             <div class="day-event">
                 <span class="day-sym day-sym-${escapeHtml(e.kind)}">${sym}</span>
                 <div class="day-event-body">
                     <div class="day-event-text"><span class="day-muted">${escapeHtml(SECTION_TITLES[e.section] ?? e.section)}:</span> ${escapeHtml(e.text)}</div>
-                    <div class="day-event-machines">
-                        <span class="day-muted">${e.machines.length} machine${e.machines.length === 1 ? '' : 's'}</span>
-                        ${shown.map((m) => this.machineChip(m)).join('')}
-                        ${all ? '' : `<button type="button" class="day-chip day-chip-more" data-expand="${escapeHtml(key)}">+${e.machines.length - shown.length} more</button>`}
-                    </div>
+                    ${this.machineChips(key, e.machines)}
                 </div>
             </div>`;
     }

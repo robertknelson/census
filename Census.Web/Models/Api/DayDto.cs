@@ -23,6 +23,19 @@ public record DayDto
     public string From { get; init; }
     public string To { get; init; }
     public List<DayMachineDto> Machines { get; init; } = [];
+    public DayFindingsDto Findings { get; init; }
+}
+
+/// <summary>
+/// The findings stream as of the day against the day before — or as of To against as of From
+/// (day-view.md §5a): born is in the later and not the earlier by Key, cleared the reverse.
+/// </summary>
+public record DayFindingsDto
+{
+    public required string Before { get; init; }
+    public required string AsOf { get; init; }
+    public List<FindingDto> Born { get; init; } = [];
+    public List<FindingDto> Cleared { get; init; } = [];
 }
 
 public record DayCountDto

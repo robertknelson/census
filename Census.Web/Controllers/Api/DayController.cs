@@ -15,7 +15,7 @@ namespace Census.Web.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/day")]
-public class DayController(CensusStore censusStore) : ControllerBase
+public class DayController(CensusStore censusStore, FindingsEngine findingsEngine) : ControllerBase
 {
     [HttpGet]
     public ActionResult<DayDto> GetDay([FromQuery] string day = null, [FromQuery] string from = null, [FromQuery] string to = null)
@@ -31,6 +31,7 @@ public class DayController(CensusStore censusStore) : ControllerBase
                 From = Iso(parsedFrom),
                 To = Iso(parsedTo),
                 Machines = Universe().Select(m => RangeRow(m, parsedFrom, parsedTo)).ToList(),
+                Findings = Findings(parsedFrom, parsedTo),
             });
         }
 
@@ -50,7 +51,21 @@ public class DayController(CensusStore censusStore) : ControllerBase
         {
             Day = Iso(theDay),
             Machines = Universe().Select(m => DayRow(m, theDay)).ToList(),
+            Findings = Findings(theDay.AddDays(-1), theDay),
         });
+    }
+
+    private DayFindingsDto Findings(DateOnly before, DateOnly asOf)
+    {
+        var earlier = findingsEngine.Compute(before).Findings.DistinctBy(f => f.Key).ToDictionary(f => f.Key);
+        var later = findingsEngine.Compute(asOf).Findings.DistinctBy(f => f.Key).ToDictionary(f => f.Key);
+        return new DayFindingsDto
+        {
+            Before = Iso(before),
+            AsOf = Iso(asOf),
+            Born = later.Values.Where(f => !earlier.ContainsKey(f.Key)).ToList(),
+            Cleared = earlier.Values.Where(f => !later.ContainsKey(f.Key)).ToList(),
+        };
     }
 
     /// <summary>Per collected day of the month: how many machines were collected, how many of them changed.</summary>

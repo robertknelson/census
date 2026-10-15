@@ -62,13 +62,15 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 {
                     findings.Add(Build(assets, machine, "certificate-expired", "critical",
                         $"{cert.Subject} expired {Math.Abs(days)}d ago",
-                        $"Bound to {string.Join(", ", cert.BoundTo)} — expired {cert.NotAfter:yyyy-MM-dd}"));
+                        $"Bound to {string.Join(", ", cert.BoundTo)} — expired {cert.NotAfter:yyyy-MM-dd}",
+                        subject: cert.Thumbprint));
                 }
                 else if (days <= CertExpiryWarningDays)
                 {
                     findings.Add(Build(assets, machine, "certificate-expiring", "high",
                         $"{cert.Subject} expires in {days}d",
-                        $"Bound to {string.Join(", ", cert.BoundTo)} — expires {cert.NotAfter:yyyy-MM-dd}"));
+                        $"Bound to {string.Join(", ", cert.BoundTo)} — expires {cert.NotAfter:yyyy-MM-dd}",
+                        subject: cert.Thumbprint));
                 }
             }
 
@@ -88,7 +90,8 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 var matched = baselines.ByMachine[machine].MatchedBaselines;
                 findings.Add(Build(assets, machine, "unapproved-software", "medium",
                     $"{deviations.Count} unapproved item{(deviations.Count == 1 ? "" : "s")}",
-                    $"{string.Join(", ", deviations.Select(d => $"{d.DisplayName} {d.DisplayVersion}".Trim()))} — approved by no baseline matching this machine ({string.Join(", ", matched)})."));
+                    $"{string.Join(", ", deviations.Select(d => $"{d.DisplayName} {d.DisplayVersion}".Trim()))} — approved by no baseline matching this machine ({string.Join(", ", matched)}).",
+                    subject: ""));
             }
 
             // A separate kind from unapproved-software, not a merged one: the remediations are
@@ -100,7 +103,8 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
             {
                 findings.Add(Build(assets, machine, "missing-required-software", "high",
                     $"{missing.Count} required item{(missing.Count == 1 ? "" : "s")} missing",
-                    $"{string.Join(", ", missing.Select(m => m.DisplayName))} — required by a baseline matching this machine, not installed."));
+                    $"{string.Join(", ", missing.Select(m => m.DisplayName))} — required by a baseline matching this machine, not installed.",
+                    subject: ""));
             }
 
             if (!assets.Assets.ContainsKey(machine))
@@ -156,7 +160,8 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 var ubr = envelope.Os.Data.Ubr;
                 findings.Add(Build(assets, machine, "behind-fleet-patch", "medium",
                     $"Behind fleet patch level ({line.Key}.{ubr})",
-                    $"Newest observed for this OS line in the fleet is {line.Key}.{newestUbr}."));
+                    $"Newest observed for this OS line in the fleet is {line.Key}.{newestUbr}.",
+                    subject: line.Key));
             }
         }
 
@@ -179,7 +184,8 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 {
                     findings.Add(Build(assets, machine, "duplicate-machine-identity", "high",
                         $"Shares its {label} with {string.Join(", ", members.Where(m => m != machine))}",
-                        "Identical hardware identity across machines means a VM was cloned without sysprep."));
+                        "Identical hardware identity across machines means a VM was cloned without sysprep.",
+                        subject: label));
                 }
             }
         }
@@ -208,13 +214,15 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                         $"Latest snapshot {snapshots[^1].Date:yyyy-MM-dd}. " +
                         (lastRun is null
                             ? "No run-log entries at all — the tree was restored or hand-placed, or the run log was lost."
-                            : $"Last attempt {lastRun.FinishedUtc:yyyy-MM-dd}: {lastRun.Outcome}.")));
+                            : $"Last attempt {lastRun.FinishedUtc:yyyy-MM-dd}: {lastRun.Outcome}."),
+                        subject: ""));
                 }
                 else
                 {
                     findings.Add(Build(assets, machine, "never-collected", "high",
                         "Never successfully collected",
-                        lastRun is null ? "No run-log entries at all." : $"Last attempt {lastRun.FinishedUtc:yyyy-MM-dd}: {lastRun.Outcome}"));
+                        lastRun is null ? "No run-log entries at all." : $"Last attempt {lastRun.FinishedUtc:yyyy-MM-dd}: {lastRun.Outcome}",
+                        subject: ""));
                 }
             }
             else
@@ -224,7 +232,8 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
                 {
                     findings.Add(Build(assets, machine, "stale-collection", "medium",
                         $"Last successful collection {ageDays}d ago",
-                        $"Last ok {lastOk.FinishedUtc:yyyy-MM-dd}; a stale machine is a compliance blind spot, not a clean bill."));
+                        $"Last ok {lastOk.FinishedUtc:yyyy-MM-dd}; a stale machine is a compliance blind spot, not a clean bill.",
+                        subject: ""));
                 }
             }
         }
@@ -310,8 +319,11 @@ public class FindingsEngine(CensusStore censusStore, BlacklistEvaluator blacklis
     private static string Describe(EntityTagRowDto row) =>
         string.Join(", ", row.System.Select(s => $"system:{s}").Concat(row.Stage.Select(s => $"stage:{s}")));
 
-    private FindingDto Build(AssetsConfig assets, string machine, string kind, string severity, string title, string detail) => new()
+    // subject: the stable thing found, when the title carries a number that drifts day to day
+    // (a cert's thumbprint, not "expires in 12d"; "" when the kind is one per machine).
+    private FindingDto Build(AssetsConfig assets, string machine, string kind, string severity, string title, string detail, string subject = null) => new()
     {
+        Key = $"{kind}|{machine.ToLowerInvariant()}|{subject ?? title}",
         Kind = kind,
         Severity = severity,
         Machine = machine,

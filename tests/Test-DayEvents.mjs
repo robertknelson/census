@@ -3,7 +3,7 @@
 // one event with the machines behind it; events fold into the four groups in a fixed order,
 // empty groups are not drawn, an unknown section lands in Other.
 //   node tests/Test-DayEvents.mjs
-import { headline, collapse, groupOf, isDrift, GROUPS, STATUS_ORDER } from '../Census.Web/wwwroot/js/day/day-events.mjs';
+import { headline, collapse, groupOf, isDrift, meanings, GROUPS, STATUS_ORDER } from '../Census.Web/wwwroot/js/day/day-events.mjs';
 
 let passed = 0, failed = 0;
 const assert = (name, condition, actual = '') => {
@@ -77,6 +77,22 @@ assert('the fold says what it is', fold.text === 'free space drifted on 3 drives
 assert('the health change keeps its own row', drifted.some((e) => !e.folded && e.text === sick.text && e.machines.join(',') === 'SQL01'));
 assert('one drive, singular', collapse([{ machine: 'A', status: 'changed', entries: [d] }])[0].events[0].text === 'free space drifted on 1 drive');
 assert('no drift, no fold', !collapse(machines).flatMap((g) => g.events).some((e) => e.folded));
+
+console.log('What it means');
+const F = (kind, severity, machine, title) => ({ key: `${kind}|${machine.toLowerCase()}|${title}`, kind, severity, machine, title, detail: `about ${machine}` });
+const findings = {
+    before: '2026-07-30', asOf: '2026-07-31',
+    born: [F('pending-reboot', 'low', 'WEB02', 'Pending reboot'), F('certificate-expiring', 'high', 'WEB01', 'CN=a expires in 15d'), F('pending-reboot', 'low', 'APPSRV01', 'Pending reboot')],
+    cleared: [F('behind-fleet-patch', 'medium', 'LOGBOX', 'Behind fleet patch level (1.2)'), F('behind-fleet-patch', 'medium', 'WEB01', 'Behind fleet patch level (1.2)'), F('never-collected', 'high', 'APPSRV01', 'Never successfully collected')],
+};
+const all = meanings(findings, ['WEB01', 'WEB02', 'APPSRV01', 'LOGBOX']);
+assert('severity first, born before cleared, then most machines',
+    all.map((r) => `${r.state}:${r.kind}`).join(',') === 'born:certificate-expiring,cleared:never-collected,cleared:behind-fleet-patch,born:pending-reboot', all.map((r) => `${r.state}:${r.kind}`).join(','));
+assert('the same finding on several machines is one row', all.find((r) => r.kind === 'behind-fleet-patch').machines.join(',') === 'LOGBOX,WEB01' && all.find((r) => r.kind === 'pending-reboot').machines.length === 2);
+assert('a row keeps severity, title and detail', all[0].severity === 'high' && all[0].title === 'CN=a expires in 15d' && all[0].detail === 'about WEB01');
+const scoped = meanings(findings, ['web01']);
+assert('the machine scope applies, case-blind', scoped.length === 2 && scoped.every((r) => r.machines.join(',') === 'WEB01'), JSON.stringify(scoped.map((r) => r.kind)));
+assert('no findings, no rows', meanings(null, ['WEB01']).length === 0 && meanings({ born: [], cleared: [] }, ['WEB01']).length === 0);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

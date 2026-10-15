@@ -3,7 +3,7 @@
 // one event with the machines behind it; events fold into the four groups in a fixed order,
 // empty groups are not drawn, an unknown section lands in Other.
 //   node tests/Test-DayEvents.mjs
-import { headline, collapse, groupOf, GROUPS, STATUS_ORDER } from '../Census.Web/wwwroot/js/day/day-events.mjs';
+import { headline, collapse, groupOf, isDrift, GROUPS, STATUS_ORDER } from '../Census.Web/wwwroot/js/day/day-events.mjs';
 
 let passed = 0, failed = 0;
 const assert = (name, condition, actual = '') => {
@@ -58,6 +58,25 @@ assert('most machines first, then by text', order.join('|') === 'E:|D:|os.build:
 assert('the same text under a different kind is a different event',
     collapse([{ machine: 'A', status: 'changed', entries: [{ section: 'drives', kind: 'added', text: 'E:' }, { section: 'drives', kind: 'removed', text: 'E:' }] }])[0].events.length === 2);
 assert('quiet and uncollected machines contribute nothing', collapse([{ machine: 'Q', status: 'quiet', entries: [] }, { machine: 'N', status: 'not-collected' }]).length === 0);
+
+console.log('Drive drift');
+const c = (pf) => ({ section: 'drives', kind: 'changed', text: `C: System: percentFree ${pf}` });
+const d = { section: 'drives', kind: 'changed', text: 'D: Data: percentFree 80.1 → 79.9' };
+const sick = { section: 'drives', kind: 'changed', text: 'C: System: percentFree 45.0 → 42.0, healthStatus Healthy → Warning' };
+assert('a free-space-only change is drift', isDrift(c('45.0 → 42.0')) && isDrift({ section: 'drives', kind: 'changed', text: 'E: : percentFree  → 12.0' }));
+assert('a health change, an added drive, another section are not', !isDrift(sick) && !isDrift({ section: 'drives', kind: 'added', text: 'E:' }) && !isDrift({ section: 'os', kind: 'changed', text: 'x: percentFree 1 → 2' }));
+const drifted = collapse([
+    { machine: 'WEB01', status: 'changed', entries: [c('45.0 → 42.0'), d] },
+    { machine: 'WEB02', status: 'changed', entries: [c('50.0 → 49.5')] },
+    { machine: 'SQL01', status: 'changed', entries: [sick] },
+])[0].events;
+const fold = drifted.find((e) => e.folded);
+assert('drift folds to one Platform event counting drives and machines once each',
+    drifted.length === 2 && fold.drives === 3 && fold.machines.join(',') === 'WEB01,WEB02' && fold.section === 'drives' && fold.kind === 'changed', JSON.stringify(drifted));
+assert('the fold says what it is', fold.text === 'free space drifted on 3 drives', fold.text);
+assert('the health change keeps its own row', drifted.some((e) => !e.folded && e.text === sick.text && e.machines.join(',') === 'SQL01'));
+assert('one drive, singular', collapse([{ machine: 'A', status: 'changed', entries: [d] }])[0].events[0].text === 'free space drifted on 1 drive');
+assert('no drift, no fold', !collapse(machines).flatMap((g) => g.events).some((e) => e.folded));
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

@@ -4,6 +4,18 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-15 — the drift fold (day-view.md §5)
+
+**He ruled "fold"; the questions under it.** *What is drift*: a `drives` row whose only field
+is `percentFree`. A row that also changed `healthStatus` is not drift and keeps its own line.
+Matched on the row text, since that is what the projection has. *Where the fold lives*: in
+the projection (`day-events.mjs`), not the API — the API stays the Changes panel's truth and
+the Changes panel keeps every raw row. *What it says*: one Platform line, *free space drifted
+on N drives*, N counting drives, the chips counting machines once each. *The headline*: a
+drift-only machine still reads *changed* and shades the grid. Reason: "fold" was said of the
+events list; discounting the headline changes what *changed* means and is a bigger call, so
+it is logged as the open item that replaces this one.
+
 ## 2026-10-14 — the day page (day-view.md), slice 1
 
 **Default is the latest fleet date, not the most recent delta.** He said "defaulting to most

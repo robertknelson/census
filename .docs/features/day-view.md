@@ -78,6 +78,15 @@ same day collapse to one line with the count and the machines behind it, most ma
 A row still reads exactly as the Changes panel prints it (`+`, `−`, `~`, the section, the
 text), so nothing learned there is unlearned here.
 
+One exception, his call 2026-10-15: a drive whose only change is its free space
+(`C: System: percentFree 45.0 → 42.0`) is **drift**, and every drift on the day folds into one
+Platform line, *free space drifted on N drives*, with the machines behind it. Every box drifts a
+little every day; on a fleet the raw rows would bury the page. A drive that also changed health
+keeps its own row, and the raw rows stay in the Changes panel. The fold is the projection's
+(`day-events.mjs`), not the API's: a drift-only machine still counts as *changed* in the
+headline and shades the grid. If that in turn reads as noise on the real estate, the next
+step is the API saying which entries are drift so the headline can discount them.
+
 ## 6. Grouped by meaning
 
 The diff sections fold into four headings a manager reads. Dev-ops still sees the section
@@ -175,7 +184,7 @@ diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12
 | Month-grid cost on the real fleet | A measurement: `machines × collected days` diffs per month view. Trigger for a `(machine, date)` diff cache: a month view over ~1 s. |
 | Demo fixtures hold three days (07-30, 07-31, 08-01) | A week of generated snapshots so the grid has shading to show. `tests/New-DemoMachines.ps1` is the place. |
 | `expected: false` machines in *not collected* | Counted today (the canvas draws them as ghosts too). If the count reads as noise on the real estate, a *decommissioned* bucket is the fix, not dropping them. |
-| Drive `percentFree` drifts every day on every machine | On 07-31 nine of the Platform events are *C: percentFree 45 → 42*. On a real fleet that will bury the page. Options for slice 2: a threshold (only a crossing of the drives finding counts), or fold them into one line *N drives drifted*. His call; the raw rows stay in the Changes panel either way. |
+| Drift-only machines still read *changed* | The drift fold (§5) is in the projection, so the headline and the grid still count a machine whose only change is free space. Watch on the real estate; if the headline turns to noise, the API marks drift and the headline discounts it. |
 | No way in from the Estate yet | The day links out to Estate, Atlas and Move It; nothing links back. A header link on the Estate when he says where. |
 | Range semantics vs day semantics | A range compares first-in-window to last-in-window; a day compares to the previous snapshot whatever its date. Said on every row; revisit if a reader trips. |
 
@@ -183,4 +192,5 @@ diffs, each two file reads. Fine on the demo; unmeasured on the real fleet (§12
 
 | Date | What |
 |---|---|
+| 2026-10-15 | Drift fold: `node tests/Test-DayEvents.mjs` 23/23; in Chrome on 2026-07-31 the Platform group went from 15 events to 7, one line *Drives: free space drifted on 9 drives* on 9 machines with *+4 more*, the os.build event unchanged beneath it. No console errors. |
 | 2026-10-14 | Slice 1: `dotnet build` clean; `node tests/Test-DayEvents.mjs` 16/16; `tests/Test-Day.ps1` 24/24 against the Demo profile; in Chrome: the default day (08-01, one changed, sixteen not collected), 2026-07-31 (ten changed, five first seen, two not collected, the Deployments and Platform groups), the *not collected* list opened, a chip scoping to DCBACKUP01 then a grid click to 07-30 keeping the scope, `stages=prod`, the 07-30 → 08-01 range (collected once appears), *open in Estate* landing on WEB01's details with the 07-30 → 07-31 comparison. No console errors. |

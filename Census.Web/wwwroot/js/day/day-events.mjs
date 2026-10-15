@@ -52,16 +52,36 @@ export function headline(machines) {
     return out;
 }
 
-/// Identical section + kind + text across machines on the day is one event (§5). Groups in
-/// GROUPS order, only the ones with events; events most machines first, then by text.
+// A drive whose only change is its free space: `C: System: percentFree 45.0 → 42.0`. Every
+// box drifts a little every day, so on a fleet these rows bury the page (§5, his call
+// 2026-10-15: fold). A drive that also changed health keeps its own row.
+const DRIFT = /: percentFree [\d.]* → [\d.]*$/;
+export const DRIFT_TEXT = (drives) => `free space drifted on ${drives} drive${drives === 1 ? '' : 's'}`;
+export function isDrift(e) {
+    return e.section === 'drives' && e.kind === 'changed' && DRIFT.test(e.text);
+}
+
+/// Identical section + kind + text across machines on the day is one event (§5). Drive
+/// free-space drift is one event for the whole day, however many drives and machines. Groups
+/// in GROUPS order, only the ones with events; events most machines first, then by text.
 export function collapse(machines) {
     const byKey = new Map();
+    const drift = { section: 'drives', kind: 'changed', folded: true, drives: 0, machines: [] };
     for (const m of machines) {
         for (const e of m.entries ?? []) {
+            if (isDrift(e)) {
+                drift.drives++;
+                if (!drift.machines.includes(m.machine)) drift.machines.push(m.machine);
+                continue;
+            }
             const key = `${e.section}\u0000${e.kind}\u0000${e.text}`;
             if (!byKey.has(key)) byKey.set(key, { section: e.section, kind: e.kind, text: e.text, machines: [] });
             byKey.get(key).machines.push(m.machine);
         }
+    }
+    if (drift.drives > 0) {
+        drift.text = DRIFT_TEXT(drift.drives);
+        byKey.set('drift', drift);
     }
     const events = [...byKey.values()].sort((a, b) => b.machines.length - a.machines.length || a.text.localeCompare(b.text));
     return [...GROUPS, OTHER]

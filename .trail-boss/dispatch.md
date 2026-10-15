@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Pushed 2026-10-14: the day page is on GitHub — what changed on a day, for every machine; pull and open /day"
+summary: "LOCAL, NOT PUSHED (2026-10-15): the day page folds disk-space drift into one line; say push, then pull and open /day"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -25,6 +25,16 @@ ignite: start-census.bat
 ---
 
 ## The latest feature added
+
+**Disk-space drift is one line now — built, checked, committed 2026-10-15, waiting on your
+"push".** A drive whose only change is its free space no longer gets a row of its own on the
+day page; every such drive on the day folds into one line under Platform, *free space drifted
+on N drives*, with the machines behind it. A drive whose health changed still gets its own
+row, and the full Changes panel still lists every drive. On the demo's busiest day the
+Platform list went from fifteen lines to seven. One thing to watch on the real estate: a
+machine whose only change is drift still counts as *changed* in the headline numbers.
+
+**Before that, pushed 2026-10-14:**
 
 **A page for the day — built, checked, pushed 2026-10-14.** Open `/day` and it shows the most
 recent collected day: how many machines changed, how many were quiet, how many nobody
@@ -64,7 +74,7 @@ twenty-two notes. `.docs/after-pull-2026-10-09.md` has every step to run, in ord
 
 ## What's next
 
-**Pull on the live environment.** Then, on the real tracking database: run the lookups script, then the rename
+**Say push, then pull on the live environment and open /day.** Then, on the real tracking database: run the lookups script, then the rename
 script, once each. Run the not-seen query with the #Id from the item's detail and bring
 back the answer.
 
@@ -80,9 +90,10 @@ registry tables for the application-level screen.
 
 ## Anything alarming
 
-- **Disk-space rows will flood the day page on a real fleet.** Every box's free space drifts
-  a little every day and each drift is a line today. Known, logged, and the first thing to
-  rule on for the next slice (a threshold, or one folded line).
+- **The drift fold is local only until you say push.** Pull before it and the day page on
+  the real fleet will still show a disk-space line per drive.
+- **The headline may still read as noise on a real fleet:** a machine whose only change is
+  drift counts as *changed*. If so, the next step is to discount drift in the counts.
 - **The rename script must run on the real database** before anyone writes a link with the
   old spelling by hand; the order-violation and ready-to-approve questions read the new
   spelling only.

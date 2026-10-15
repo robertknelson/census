@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pull on the live environment (pushed 2026-10-14 evening: the day page). Open /day on the real estate and bring back what reads wrong; rule on the drive percentFree noise for slice 2 (threshold vs fold). Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Say push: the drift fold (996f8aa) sits local. Then pull on the live environment and open /day on the real estate; bring back what reads wrong, and whether the headline counting drift-only machines as changed is noise. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,16 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-15 (the drift fold; committed locally, NOT pushed, 996f8aa)
+- "where were we?" then one line: "fold the percentFree drift, go". A drives row whose only
+  field is percentFree is drift; every drift on the day folds into one Platform line, *free
+  space drifted on N drives*, machines once each. A drive that also changed health keeps its
+  row; the Changes panel keeps every raw row. The fold lives in the projection, not the API:
+  a drift-only machine still reads *changed* in the headline and the grid — logged as the
+  open item that replaces this one, with the API marking drift as the next step if it reads
+  as noise on the real estate. Test-DayEvents.mjs 23/23; in Chrome on 07-31 Platform went
+  from 15 events to 7. `calls-made-for-you.md` has the call.
 
 ### 2026-10-14 (later — the day page, slice 1; pushed the same evening, 41b9b20)
 - After the push he reported the estate "looking good" and named the next concept in one

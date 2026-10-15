@@ -4,6 +4,30 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-15 — expected or not (day-view.md §5b), slice 3
+
+**Only installed software is judged.** The spec said "a delta that moves a machine toward its
+approved baseline". The baseline is a software set; it has no opinion on IIS, certificates or
+drives, so those rows carry no word rather than a guessed one.
+
+**Judged on the row's own two snapshots, not the fleet as-of.** Options: reuse the fleet
+evaluation the findings already ran (as of the day and the day before); judge each row on
+the exact two envelopes it diffed. Call: the row's own envelopes — the word must agree with
+the row beside it, and in a range the fleet as-of From can be an older snapshot than the
+row's first-in-range.
+
+**Silence over a guess.** No word on a servicing row, a version change, an optional item
+removed, a machine outside every baseline or one whose software could not be judged. A
+blank reads as "the baseline has nothing to say", which is true; a word there would be
+inference.
+
+**Two events when the expectation differs.** The same item expected on one machine and a
+deviation on another is two lines; collapsing them would hide the one that matters.
+
+**Verification by scratch probe.** The demo's only added app is a servicing row, so the
+four cases were planted in a scratch copy of the demo tree served on a second port, rather
+than editing the fixtures mid-slice. Logged as an open item for the fixtures.
+
 ## 2026-10-15 — findings born and cleared (day-view.md §5a), slice 2
 
 **A finding's identity is a key, not its title.** Titles carry numbers that drift (*expires

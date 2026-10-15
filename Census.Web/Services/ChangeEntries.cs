@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Census.Web.Models.Api;
@@ -12,8 +13,10 @@ namespace Census.Web.Services;
 /// </summary>
 public static class ChangeEntries
 {
-    public static List<ChangeEntryDto> Flatten(SnapshotDiffDto diff)
+    /// <param name="expectation">Optional judge of a section's item (section, kind, item) → expected | unexpected | null.</param>
+    public static List<ChangeEntryDto> Flatten(SnapshotDiffDto diff, Func<string, string, DiffItem, string> expectation = null)
     {
+        expectation ??= (_, _, _) => null;
         var entries = new List<ChangeEntryDto>();
         entries.AddRange(diff.ScalarChanges.Select(c => new ChangeEntryDto
         {
@@ -23,8 +26,8 @@ public static class ChangeEntries
         }));
         foreach (var section in diff.Sections)
         {
-            entries.AddRange(section.Added.Select(i => new ChangeEntryDto { Section = section.Name, Kind = "added", Text = i.Label }));
-            entries.AddRange(section.Removed.Select(i => new ChangeEntryDto { Section = section.Name, Kind = "removed", Text = i.Label }));
+            entries.AddRange(section.Added.Select(i => new ChangeEntryDto { Section = section.Name, Kind = "added", Text = i.Label, Expectation = expectation(section.Name, "added", i) }));
+            entries.AddRange(section.Removed.Select(i => new ChangeEntryDto { Section = section.Name, Kind = "removed", Text = i.Label, Expectation = expectation(section.Name, "removed", i) }));
             entries.AddRange(section.Changed.Select(i => new ChangeEntryDto
             {
                 Section = section.Name,

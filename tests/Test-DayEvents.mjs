@@ -94,5 +94,17 @@ const scoped = meanings(findings, ['web01']);
 assert('the machine scope applies, case-blind', scoped.length === 2 && scoped.every((r) => r.machines.join(',') === 'WEB01'), JSON.stringify(scoped.map((r) => r.kind)));
 assert('no findings, no rows', meanings(null, ['WEB01']).length === 0 && meanings({ born: [], cleared: [] }, ['WEB01']).length === 0);
 
+console.log('Expected or not');
+const tool = (expectation) => ({ section: 'apps', kind: 'added', text: 'Wireshark (x64, HKLM)', expectation });
+const judged = collapse([
+    { machine: 'WEB01', status: 'changed', entries: [tool('unexpected')] },
+    { machine: 'WEB03', status: 'changed', entries: [tool('expected')] },
+    { machine: 'WEB02', status: 'changed', entries: [tool('unexpected')] },
+])[0].events;
+assert('the same item expected here and a deviation there is two events', judged.length === 2, JSON.stringify(judged));
+assert('each carries its expectation and its machines', judged.find((e) => e.expectation === 'unexpected').machines.join(',') === 'WEB01,WEB02' && judged.find((e) => e.expectation === 'expected').machines.join(',') === 'WEB03');
+assert('an unjudged row has a null expectation', collapse(machines).flatMap((g) => g.events).every((e) => e.expectation === null || e.folded));
+assert('every event has a key the page can expand by', collapse(many).flatMap((g) => g.events).every((e) => typeof e.key === 'string' && e.key.length > 0));
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

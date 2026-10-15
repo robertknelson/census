@@ -118,6 +118,10 @@
 .day-sev-high { color: var(--day-amber); border-color: var(--day-amber); }
 .day-detail { color: var(--day-muted); font-size: 12.5px; margin-top: 0.15rem; }
 
+/* Expected or not (§5b): the word on an installed-software line, judged by the baseline. */
+.day-expect { display: inline-block; margin-left: 0.4rem; padding: 0 0.4rem; border: 1px solid var(--day-line); border-radius: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--day-muted); vertical-align: 1px; }
+.day-expect-unexpected { color: var(--day-amber); border-color: var(--day-amber); background: var(--day-amber-soft); }
+
 .day-btn { padding: 0.3rem 0.7rem; border: 1px solid var(--day-line); border-radius: 8px; background: var(--day-panel); color: var(--day-ink); font-size: 13px; cursor: pointer; text-decoration: none; }
 .day-btn:hover { border-color: var(--day-blue); color: var(--day-blue); }
 .day-btn-sm { padding: 0.1rem 0.5rem; font-size: 12px; }

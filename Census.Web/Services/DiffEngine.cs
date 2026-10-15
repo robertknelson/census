@@ -72,7 +72,7 @@ public static class DiffEngine
     // positionally, keeping an upgrade a displayVersion change rather than a remove+add. The
     // ordinal is appended to every key, not just duplicates, so a singleton on one side still
     // pairs with the first of a duplicate group on the other.
-    private static Dictionary<string, AppEntry> KeyedApps(List<AppEntry> entries) =>
+    public static Dictionary<string, AppEntry> KeyedApps(List<AppEntry> entries) =>
         entries
             .GroupBy(AppKey)
             .SelectMany(g => g

@@ -409,14 +409,14 @@ class DayPage {
     }
 
     eventRow(e) {
-        const key = `${e.section}\u0000${e.kind}\u0000${e.text}`;
         const sym = e.kind === 'added' ? '+' : e.kind === 'removed' ? '−' : '~';
         return `
             <div class="day-event">
                 <span class="day-sym day-sym-${escapeHtml(e.kind)}">${sym}</span>
                 <div class="day-event-body">
-                    <div class="day-event-text"><span class="day-muted">${escapeHtml(SECTION_TITLES[e.section] ?? e.section)}:</span> ${escapeHtml(e.text)}</div>
-                    ${this.machineChips(key, e.machines)}
+                    <div class="day-event-text"><span class="day-muted">${escapeHtml(SECTION_TITLES[e.section] ?? e.section)}:</span> ${escapeHtml(e.text)}
+                        ${e.expectation ? `<span class="day-expect day-expect-${escapeHtml(e.expectation)}" title="${e.expectation === 'expected' ? 'Within the approved baseline for this machine' : 'Outside the approved baseline for this machine'}">${escapeHtml(e.expectation)}</span>` : ''}</div>
+                    ${this.machineChips(e.key, e.machines)}
                 </div>
             </div>`;
     }

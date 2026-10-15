@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Census.Web.Models.Api;
+using Census.Web.Models.Assets;
+using Census.Web.Models.Baselines;
+using Census.Web.Models.Census;
 using Census.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,8 +18,11 @@ namespace Census.Web.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/day")]
-public class DayController(CensusStore censusStore, FindingsEngine findingsEngine) : ControllerBase
+public class DayController(CensusStore censusStore, FindingsEngine findingsEngine, BaselineEvaluator baselineEvaluator, BaselinesStore baselinesStore, AssetsStore assetsStore) : ControllerBase
 {
+    private BaselinesConfig _baselines;
+    private AssetsConfig _assets;
+
     [HttpGet]
     public ActionResult<DayDto> GetDay([FromQuery] string day = null, [FromQuery] string from = null, [FromQuery] string to = null)
     {
@@ -125,7 +131,7 @@ public class DayController(CensusStore censusStore, FindingsEngine findingsEngin
 
     private DayMachineDto Compared(string machine, DateOnly from, DateOnly to)
     {
-        var entries = Entries(machine, from, to);
+        var entries = Entries(machine, from, to, judge: true);
         return new DayMachineDto
         {
             Machine = machine,
@@ -136,12 +142,63 @@ public class DayController(CensusStore censusStore, FindingsEngine findingsEngin
         };
     }
 
-    private List<ChangeEntryDto> Entries(string machine, DateOnly from, DateOnly to)
+    private List<ChangeEntryDto> Entries(string machine, DateOnly from, DateOnly to, bool judge = false)
     {
         var fromEnvelope = censusStore.GetSnapshot(machine, from);
         var toEnvelope = censusStore.GetSnapshot(machine, to);
         if (fromEnvelope is null || toEnvelope is null) return [];
-        return ChangeEntries.Flatten(DiffEngine.Compute(machine, Iso(from), fromEnvelope, Iso(to), toEnvelope));
+        var diff = DiffEngine.Compute(machine, Iso(from), fromEnvelope, Iso(to), toEnvelope);
+        return ChangeEntries.Flatten(diff, judge ? Expectation(machine, fromEnvelope, toEnvelope) : null);
+    }
+
+    /// <summary>
+    /// Expected or not (day-view.md §5b), for installed software only: an item added that the
+    /// machine's approved set covers is expected, one that lands as a deviation is not; an
+    /// item removed that was required is unexpected, one that was a deviation is expected.
+    /// Judged against the row's own two snapshots. Silent (null) when the machine is outside
+    /// every baseline or its software could not be judged, and on a version change — the
+    /// baseline does not compare versions (approved-baseline.md §6).
+    /// </summary>
+    private Func<string, string, DiffItem, string> Expectation(string machine, CensusEnvelope fromEnvelope, CensusEnvelope toEnvelope)
+    {
+        _baselines ??= baselinesStore.Load();
+        _assets ??= assetsStore.Load();
+        var before = Judge(machine, fromEnvelope);
+        var after = Judge(machine, toEnvelope);
+        var fromApps = DiffEngine.KeyedApps(fromEnvelope.Apps?.Data?.Entries ?? []);
+        var toApps = DiffEngine.KeyedApps(toEnvelope.Apps?.Data?.Entries ?? []);
+
+        static string KeyOf(AppEntry e) => BaselineEvaluator.EntryKey(e.DisplayName, e.Architecture, BaselineEvaluator.InstallScopeOf(e));
+        static bool Deviates(MachineBaselineDto judged, string key) =>
+            judged.Status == BaselineEvaluator.StatusOk && judged.Deviations.Any(d => BaselineEvaluator.EntryKey(d.DisplayName, d.Architecture, d.InstallScope) == key);
+        static bool Misses(MachineBaselineDto judged, string key) =>
+            judged.Status == BaselineEvaluator.StatusOk && judged.Missing.Any(m => BaselineEvaluator.EntryKey(m.DisplayName, m.Architecture, m.InstallScope) == key);
+
+        return (section, kind, item) =>
+        {
+            if (section != "apps") return null;
+            if (kind == "added")
+            {
+                if (after.Status != BaselineEvaluator.StatusOk || !toApps.TryGetValue(item.Key, out var added) || !BaselineEvaluator.IsComparable(added)) return null;
+                return Deviates(after, KeyOf(added)) ? "unexpected" : "expected";
+            }
+            if (kind == "removed")
+            {
+                if (!fromApps.TryGetValue(item.Key, out var removed) || !BaselineEvaluator.IsComparable(removed)) return null;
+                var key = KeyOf(removed);
+                if (Misses(after, key)) return "unexpected";
+                if (Deviates(before, key)) return "expected";
+                return null;
+            }
+            return null;
+        };
+    }
+
+    private MachineBaselineDto Judge(string machine, CensusEnvelope envelope)
+    {
+        var facets = baselineEvaluator.MatchingFacets(_assets, machine, envelope);
+        var (resolvedClass, _) = MachineClassifier.Resolve(_assets.Assets.GetValueOrDefault(machine)?.Class, envelope.Roles);
+        return baselineEvaluator.Evaluate(_baselines, machine, resolvedClass, facets, envelope);
     }
 
     private static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd");

@@ -90,12 +90,14 @@ export function isDrift(e) {
     return e.section === 'drives' && e.kind === 'changed' && DRIFT.test(e.text);
 }
 
-/// Identical section + kind + text across machines on the day is one event (§5). Drive
-/// free-space drift is one event for the whole day, however many drives and machines. Groups
-/// in GROUPS order, only the ones with events; events most machines first, then by text.
+/// Identical section + kind + text across machines on the day is one event (§5) — and the
+/// same expectation (§5b): the same item expected on one machine and a deviation on another
+/// is two events. Drive free-space drift is one event for the whole day, however many drives
+/// and machines. Groups in GROUPS order, only the ones with events; events most machines
+/// first, then by text.
 export function collapse(machines) {
     const byKey = new Map();
-    const drift = { section: 'drives', kind: 'changed', folded: true, drives: 0, machines: [] };
+    const drift = { key: 'drift', section: 'drives', kind: 'changed', folded: true, drives: 0, machines: [] };
     for (const m of machines) {
         for (const e of m.entries ?? []) {
             if (isDrift(e)) {
@@ -103,8 +105,8 @@ export function collapse(machines) {
                 if (!drift.machines.includes(m.machine)) drift.machines.push(m.machine);
                 continue;
             }
-            const key = `${e.section}\u0000${e.kind}\u0000${e.text}`;
-            if (!byKey.has(key)) byKey.set(key, { section: e.section, kind: e.kind, text: e.text, machines: [] });
+            const key = `${e.section}\u0000${e.kind}\u0000${e.text}\u0000${e.expectation ?? ''}`;
+            if (!byKey.has(key)) byKey.set(key, { key, section: e.section, kind: e.kind, text: e.text, expectation: e.expectation ?? null, machines: [] });
             byKey.get(key).machines.push(m.machine);
         }
     }

@@ -68,6 +68,14 @@ $feed = Get-Api '/api/changes?from=2026-07-30&to=2026-07-31'
 $feedWeb01 = $feed.machines | Where-Object machine -eq 'WEB01'
 Assert-That 'WEB01 reads the same on both' ((($web01.entries | ForEach-Object { "$($_.section)|$($_.kind)|$($_.text)" }) -join "`n") -eq (($feedWeb01.entries | ForEach-Object { "$($_.section)|$($_.kind)|$($_.text)" }) -join "`n"))
 
+Write-Host 'Expected or not (installed software against the baseline)'
+$added = $web01.entries | Where-Object { $_.section -eq 'apps' -and $_.kind -eq 'added' }
+Assert-That 'ASP.NET Core Module V2 landing on WEB01 is a servicing row: not judged' ($added.text -like 'ASP.NET Core Module V2*' -and -not $added.expectation) ($added | ConvertTo-Json -Compress)
+$sqlVersion = ($day.machines | Where-Object machine -eq 'SQL01').entries | Where-Object { $_.section -eq 'apps' -and $_.kind -eq 'changed' }
+Assert-That 'a version change is not judged' ($sqlVersion.Count -eq 1 -and -not $sqlVersion.expectation) ($sqlVersion | ConvertTo-Json -Compress)
+Assert-That 'rows outside installed software carry no expectation' (@($web01.entries | Where-Object { $_.section -ne 'apps' -and $_.expectation }).Count -eq 0)
+Assert-That 'the Changes panel never judges' (@($feed.machines.entries | Where-Object expectation).Count -eq 0)
+
 Write-Host 'A range: 07-30 → 08-01'
 $range = Get-Api '/api/day?from=2026-07-30&to=2026-08-01'
 Assert-That 'a range has no day' (-not $range.day -and $range.from -eq '2026-07-30' -and $range.to -eq '2026-08-01')

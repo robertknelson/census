@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Five smoke-test fixes committed locally 2026-10-16, NOT pushed: Changes lines dated per night, Division rail + scope, register All = current, calendar drawer × reachable, calendar chips coloured by release with a hover thread. Look, then push. Then: his look at /day on the real estate; slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) after a week; the week of generated demo days is the next demo-side slice. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Pushed 2026-10-16 (3fb8663..1dc9bce): the five smoke-test fixes. Pull on the live environment and look — the Changes window with two dates, Division with the rail and scope, Releases on All, the Calendar coloured by release. Then /day on the real estate (what reads wrong). Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) after a week; the week of generated demo days is the next demo-side slice. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -25,7 +25,11 @@ relates: []
 
 ## notes
 
-### 2026-10-16 (smoke-test round, four notes as they arrived; committed locally 148e7a4 and 68d9b41, NOT pushed)
+### 2026-10-16 (close — "push it": 3fb8663..1dc9bce pushed to origin/main)
+- The five smoke-test fixes pushed on his word after the summary; his uncommitted
+  `config/views.demo.json` edit left alone, as it was his.
+
+### 2026-10-16 (smoke-test round, five notes as they arrived; pushed at close)
 - "Census-Estate on the [Changes] tab when i have selected two dates. looks great. however i
   think we should add the actual date of the change to each line." A window diffed first vs
   last, so no line knew its date; the API now walks every night in the window and stamps each

@@ -44,8 +44,10 @@ spans three days; the row says so (*Mon 27 → Thu 30*).
 | `first-seen` | collected that day, no earlier snapshot — nothing to compare, and that is news |
 | `not-collected` | in the universe, no snapshot that day |
 
-**A range From → To** is the Changes panel's rule unchanged: each machine's first collected
-day in the range against its last. Statuses: `changed`, `quiet`, `collected-once` (one
+**A range From → To** compares each machine's first collected day in the range against its
+last (the Changes panel's original window rule; since 2026-10-16 that panel walks every night
+inside its window to date each line, so a change that came and went inside the range is two
+lines there and nothing here — an open item below). Statuses: `changed`, `quiet`, `collected-once` (one
 snapshot in the range, nothing to compare), `not-collected`.
 
 **The universe** is what the collector is meant to visit: every configured machine
@@ -263,6 +265,7 @@ wrong, and the reads were the cost.
 | `expected: false` machines in *not collected* | Counted today (the canvas draws them as ghosts too). If the count reads as noise on the real estate, a *decommissioned* bucket is the fix, not dropping them. |
 | *Added as a deviation → unexpected* has no demo fixture | Three of the four judgements (§5b) are pinned by `Test-Day.ps1` on WEB01's 07-30 → 07-31 (approved-baseline.md §12); the fourth needs a machine with two snapshots that deviates on its later one, and every such machine is clean by design (the stage-topology fixture's "baseline noise is zero"). Pinned by node tests and the 2026-10-15 scratch probe. A fixture when one earns its place. |
 | Range semantics vs day semantics | A range compares first-in-window to last-in-window; a day compares to the previous snapshot whatever its date. Said on every row; revisit if a reader trips. |
+| Range here vs the Changes panel's window (2026-10-16) | The Changes panel now walks every night in its window to date each line, so a change that came and went inside the window is two lines there and *quiet* here. Fine while the day's statuses are per machine; if his read of a range trips on it, the fix is a nightly walk here too (a machine is *changed* if any night in the range was, less drift). |
 
 ## 13. Verification log
 

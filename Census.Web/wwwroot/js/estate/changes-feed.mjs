@@ -3,7 +3,7 @@ import { PanelScope } from './panel-scope.mjs';
 
 // "What changed since yesterday, anywhere?" — the fleet's day-over-day story in one
 // stream. Machines with a single collected day simply aren't in it yet. A From → To days
-// widens the question: each machine's first collected day in the days against its last.
+// widens the question: every night inside the days, and each line says the day it appeared.
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
@@ -117,6 +117,7 @@ export class ChangesFeed {
                 ${m.entries.map((e) => `
                     <div class="est-history-row">
                         <span class="est-history-sym est-history-sym-${escapeHtml(e.kind)}">${e.kind === 'added' ? '+' : e.kind === 'removed' ? '−' : '~'}</span>
+                        ${days ? `<span class="est-changes-date est-mono est-muted">${escapeHtml(e.date)}</span>` : ''}
                         <span><span class="est-muted">${escapeHtml(SECTION_TITLES[e.section] ?? e.section)}:</span> ${escapeHtml(e.text)}</span>
                     </div>`).join('')}
             </div>`).join('');

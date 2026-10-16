@@ -1002,15 +1002,22 @@ changes; the Week range reads *No second collected day in this range* on a one-d
 **Fleet changes gets a From → To window (2026-10-09, Robert: "Census Changes fleet changes
 also needs a day from-to date range picker"):** two date inputs head the panel. Empty, the
 feed is what it was — each machine's latest collection against the one before. Both set,
-`GET /api/changes?from=yyyy-MM-dd&to=yyyy-MM-dd` diffs, per machine, **its first collected
-day on or after From against its last on or before To**; a machine with fewer than two
-collected days inside the window is not in the feed, and each machine's row still says the
-two days it was compared on. One input set and the other empty does nothing yet; From after
-To reads *From is after To* in the panel and 400s at the API; *Latest two* clears the window.
-The window semantic (first-in-window vs last-in-window, not nearest-before-From) is in
-`calls-made-for-you.md`.
+`GET /api/changes?from=yyyy-MM-dd&to=yyyy-MM-dd` walks, per machine, **every night inside
+the window** (each consecutive pair of its collected days from the first on or after From to
+the last on or before To) and stamps each line with the day it appeared (`ChangeEntryDto.Date`,
+the later day of its night); the panel prints that date on every row when a window is set. A
+change that came and went inside the window is two lines, not none. A machine with fewer than
+two collected days inside the window is not in the feed, and each machine's row still says
+the first and last days it was looked at. One input set and the other empty does nothing yet;
+From after To reads *From is after To* in the panel and 400s at the API; *Latest two* clears
+the window and the date column with it (every line would say the same day). The window
+semantic (first-in-window to last-in-window, not nearest-before-From) and the move from one
+diff to a walk of nights (2026-10-16, Robert smoke-testing: "add the actual date of the change
+to each line") are in `calls-made-for-you.md`.
 
 Verified headless on the demo: empty inputs — the ten machines as before; 07-31 → 08-01 —
 BUILDSRV01 alone, the only machine collected on both of those days; 08-02 → 08-05 — *No
 changes between 2026-08-02 and 2026-08-05 — or no machine collected twice inside those
-days*; 08-02 → 08-01 — *From is after To*.
+days*; 08-02 → 08-01 — *From is after To*. Dated lines verified in Chrome 2026-10-16 on
+07-30 → 08-01: LOGBOX reads three lines, the OS build and C: free space dated 2026-07-31 and
+the next day's free space dated 2026-08-01; every other machine's lines carry its one night.

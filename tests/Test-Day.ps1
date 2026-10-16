@@ -79,6 +79,10 @@ Write-Host 'The same rows as the Changes panel'
 $feed = Get-Api '/api/changes?from=2026-07-30&to=2026-07-31'
 $feedWeb01 = $feed.machines | Where-Object machine -eq 'WEB01'
 Assert-That 'WEB01 reads the same on both' ((($web01.entries | ForEach-Object { "$($_.section)|$($_.kind)|$($_.text)" }) -join "`n") -eq (($feedWeb01.entries | ForEach-Object { "$($_.section)|$($_.kind)|$($_.text)" }) -join "`n"))
+Assert-That 'a feed line is dated with the day it appeared' (@($feedWeb01.entries | Where-Object date -ne '2026-07-31').Count -eq 0) (($feedWeb01.entries.date | Sort-Object -Unique) -join ',')
+# A window walks every night inside it: LOGBOX's three days are two nights, and the second is drift alone.
+$logbox = (Get-Api '/api/changes?from=2026-07-30&to=2026-08-01').machines | Where-Object machine -eq 'LOGBOX'
+Assert-That 'a window dates each line by its own night' (($logbox.entries.date | Sort-Object -Unique) -join ',' -eq '2026-07-31,2026-08-01' -and $logbox.fromDate -eq '2026-07-30' -and $logbox.toDate -eq '2026-08-01') ($logbox | ConvertTo-Json -Compress -Depth 3)
 
 Write-Host 'Expected or not (installed software against the baseline)'
 # WEB01's first day carries the AV and an unapproved editor and lacks URL Rewrite; its second

@@ -600,7 +600,7 @@ class EstatePage {
         this.panel = { type: 'changes' };
         this.panelShell(
             'Fleet changes',
-            'Latest collection vs the one before, for every machine with both — or a From → To window: each machine’s first collected day in it vs its last. Machine names open dossiers.',
+            'Latest collection vs the one before, for every machine with both — or a From → To window: every night inside it, each line dated with the day it appeared. Machine names open dossiers.',
             '<div data-ref="changes"></div>');
         this.openPanel();
 

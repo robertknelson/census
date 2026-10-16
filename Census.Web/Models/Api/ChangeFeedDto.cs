@@ -21,6 +21,12 @@ public record ChangeEntryDto
     /// them alone. A drive that also changed health is not drift.
     /// </summary>
     public bool Drift { get; init; }
+
+    /// <summary>
+    /// The collected day the change appeared on: the later day of the night it was seen
+    /// across. The fleet feed sets it; the day page never does (its rows are all one day).
+    /// </summary>
+    public string Date { get; init; }
 }
 
 public record MachineChangesDto

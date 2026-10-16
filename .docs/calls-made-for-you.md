@@ -4,6 +4,19 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-16 — the date on a Changes line
+
+**A window now walks the nights, not first-vs-last.** Robert, smoke-testing the Changes tab
+with two dates picked: "add the actual date of the change to each line". One diff across the
+window cannot say the date; only the night it crossed can. Options: keep the single diff and
+hunt each line's night afterwards (a second walk, and a line whose value changed twice has no
+one night); or diff every consecutive pair inside the window and stamp each line with the
+later day. Call: the walk. Consequence named in the doc: a change that came and went inside
+the window is two lines where it used to be none — which is what "what happened" should say.
+The day page's range keeps the single diff for now (its statuses are per machine, not per
+line) and the divergence is an open item in `day-view.md`. The date column shows only when a
+window is set; on *Latest two* every line would say the same day.
+
 ## 2026-10-15 — drift in the API, and where the fixtures went
 
 **Drift discounted now, not after the real estate said so.** The open item said "watch on

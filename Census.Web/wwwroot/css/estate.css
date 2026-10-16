@@ -1135,6 +1135,8 @@ html, body {
 
 .est-changes-head .est-q-machine { font-size: 0.88rem; font-weight: 600; }
 
+.est-changes-date { flex-shrink: 0; font-size: 0.78rem; }
+
 /* --- certificates panel ------------------------------------------------------------- */
 
 .est-certband { margin-bottom: 1.4rem; }

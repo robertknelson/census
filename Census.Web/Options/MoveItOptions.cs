@@ -30,6 +30,10 @@ public class MoveItOptions
     // The registers (§28) page at this many rows.
     public int PageSize { get; set; } = 50;
 
+    // The calendar (§21.2) colours chips by release, busiest release in the shown month first,
+    // one hue each until these run out; the rest read neutral. The length is the cap.
+    public string[] ReleaseHues { get; set; } = ["#0072b2", "#009e73", "#9467bd", "#cc79a7", "#56b4e9", "#8a7d00", "#1b7f79", "#b5651d"];
+
     // Division (§19) puts a plain-words caption under each stage's step, keyed by stage
     // identifier. A stage with no caption shows its name alone.
     public Dictionary<string, string> StepCaptions { get; set; } = new()

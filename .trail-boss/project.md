@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Four smoke-test fixes committed locally 2026-10-16 (148e7a4, 68d9b41), NOT pushed: Changes lines dated per night, Division rail + scope, register All = current, calendar drawer × reachable. Look, then push. Then: his look at /day on the real estate (what reads wrong); slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) after a week; the week of generated demo days is the next demo-side slice. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Five smoke-test fixes committed locally 2026-10-16, NOT pushed: Changes lines dated per night, Division rail + scope, register All = current, calendar drawer × reachable, calendar chips coloured by release with a hover thread. Look, then push. Then: his look at /day on the real estate; slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) after a week; the week of generated demo days is the next demo-side slice. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -42,6 +42,11 @@ relates: []
   header." The drawer was anchored to the pane; now to the body, so it starts under the header.
   Seen in Chrome: August 30 opened, × closed it.
 - Calls logged in calls-made-for-you.md (what "current" means; the scope as a header pick).
+- "on the calendar we need better coordination or synchronization of colors. either releases
+  need to be coordinated (i think this best) or stages. what do you think?" Position: release,
+  as the calendar's named exception to the stage-hue invariant, hues per shown month capped by
+  a palette setting, a hover thread for the rest. "spec and go." Spec §21.2, built, node test
+  7/7, seen in Chrome (Sprint 42 one green across five days; hover lit the thread).
 
 ### 2026-10-15 (close — "Go ahead and push and end session": 23ec128..3c84592 pushed to origin/main)
 - Asked whether anything else was worth pushing on before he looked at home; position: no —

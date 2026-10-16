@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "2026-10-16 smoke-test round: four fixes built and checked, committed locally, waiting on your look and push"
+summary: "2026-10-16 smoke-test round: five fixes built and checked (calendar now coloured by release), committed locally, waiting on your look and push"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -26,8 +26,12 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Four fixes from your smoke test, built and checked 2026-10-16, committed locally and not
-pushed.** The Estate's Changes panel now puts the actual date on every line when you set
+**Five fixes from your smoke test, built and checked 2026-10-16, committed locally and not
+pushed.** The Calendar's chips are now coloured by release rather than by stage, so one piece
+of work reads as one colour across the days it moved; the stage is the word on the chip, and
+hovering any chip lights that release's whole month. The Key lists the month's releases by
+colour. Up to eight releases get a colour per month (a setting); the rest read grey until you
+narrow by application. The Estate's Changes panel now puts the actual date on every line when you set
 From and To: it looks at each night inside the window instead of only the first and last
 day, so a change that came and went inside the window is two lines rather than none.
 Move It's Division page has the same application list down the left as the other pages,

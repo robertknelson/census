@@ -1,5 +1,7 @@
 // Same hues as Atlas's stage-colors.mjs, pinned by stage name, so a stage reads the same
 // colour on the board as it does in the system view. Lanes before the first stage are grey.
+// The Calendar is the one named exception (move-it.md §21.2): it colours by release, because
+// its question is what happened to a piece of work, not what sits at a stage.
 const STAGE_HUE = {
     dev: '#0072b2', development: '#0072b2',
     test: '#e69f00', tst: '#e69f00',

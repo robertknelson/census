@@ -1595,6 +1595,54 @@ Aug 29 (arrival and approval), Aug 30 (rollback), Aug 31 (on hold), Sep 1
 October, Oct 1 marked today, Q4 letters *due* red on Sep 29, Sep 28 – Oct 1
 hatched, scroll back at the top. Not seen: the narrow-screen layout.
 
+### 21.2 Chips coloured by release — the thread across days (spec and build 2026-10-16, Robert: "either releases need to be coordinated (i think this best) or stages. what do you think? Visually, i want the user to visually 'understand' the connection accross days for related work effort" → "spec and go")
+
+**The question decides the axis.** The board, Division, the Atlas and the register pills
+answer *what is at this stage*, so a stage reads the same colour on all of them (§13, the
+invariant in `stage-hues.mjs`). The calendar answers *what happened to this work this month*,
+and the thread across its days is the release. So the calendar is the **one named exception**:
+its colour is the release, and the stage is a word on the chip. Hue by application was
+considered and rejected — Sprint 42 and its hotfix would share a colour, and that is the pair
+the reader most wants apart.
+
+**Hues per shown month.** `release-hues.mjs`: the releases with entries inside the month on
+screen, after the application filter and before the stage filter (a stage pick never
+recolours), busiest first (entries in the month, then earliest first day, then name), one hue
+each until the palette runs out. The palette is a setting, `MoveIt:ReleaseHues` (eight hues
+by default, chosen apart from the alert red and the hold amber); **its length is the cap.**
+Past it a release reads neutral grey, as does a build no release claims, and the Key says
+*N more releases — narrow by application to colour them*. A hotfix is its own release and
+takes its own slot (there is no parent link in the data to inherit from).
+
+**On the chip.** Arrivals fill with the release hue; events (what people recorded) outline
+in it; a due flag and a rollback keep their grey / alert dress and carry the hue as a left
+edge, so the thread includes the day it was due and the day it came back. Holds stay amber
+bands. The stage tag is bold text, muted on outlined chips. The narrow layout's 5px bars take
+the release hue.
+
+**The thread.** Hover a chip: every chip of that release across the month stays full and
+outlined; everything else steps back to a fifth. This is what carries the connection when
+hues run thin or two hues sit close; it costs nothing until asked for. Rollback chips that
+fold several releases (two applications' builds on one day) have no single release and do
+not thread.
+
+**The Key** is rebuilt per month: the month's releases by colour (*application · release*),
+then the marks as before, and the hover hint.
+
+**Not changed:** the week page (§25) keeps stage hues — it is a printed list, read top to
+bottom, and its stage column is the thread there. Open item: whether it should follow.
+
+`tests/Test-ReleaseHues.mjs` pins the assignment (busiest first, tie by first day, the cap,
+neutral for the rest and for unnamed builds).
+
+**Verified 2026-10-16 in Chrome on the fixtures, August 2026, All applications:** WidgetCore
+Sprint 42 one green from its VAL arrival Jul 29 through PROD Aug 3–4 to its due flag Aug 7;
+Reporting refresh one sky blue across its due flag, PROD arrival, rollback edge and hold;
+WidgetCore Sprint 43 pink, its hotfix blue, WidgetPortal's two sprints olive and brown, Q3
+rate changes purple, Ledger cleanup teal; the unnamed DEV build and the ninth release
+neutral, the Key saying *1 more release — narrow by application to colour them*. Hovering Sprint 42 on Aug 4 lit its five chips
+and dimmed the month. No console errors.
+
 ### 21.1 The backfill stamps its run, and holds become spans (Robert, 2026-10-01: "do the backfill run stamp … just go with your lean"; built and browser-verified the same day)
 
 **`moveit.BackfillRun`** (in `001`, idempotent): one row per backfill run —

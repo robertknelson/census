@@ -1,7 +1,10 @@
 @using System.Text.Json
+@using Census.Web.Options
+@using Microsoft.Extensions.Options
+@inject IOptions<MoveItOptions> MoveItOptions
 @{
     ViewData["Title"] = "Calendar";
-    var config = JsonSerializer.Serialize(new { rootId = "moveit-root" });
+    var config = JsonSerializer.Serialize(new { rootId = "moveit-root", releaseHues = MoveItOptions.Value.ReleaseHues });
 }
 
 @section Styles {

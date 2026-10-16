@@ -4,6 +4,27 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-16 — the calendar's colour axis
+
+**Hues are handed out per shown month, not fixed per release for all time.** Options: a hue
+pinned to each release forever (stable across months, but a year of releases exhausts any
+palette and most of a month's chips would read neutral); a hue per application with releases
+told apart by shade (stable, but Sprint 42 and its hotfix nearly the same); per month, busiest
+first. Call: per month. The reader's question is this month; a release that spans two months
+may change colour at the boundary, and the thread hover covers that.
+
+**The cap is the palette's length, and the palette is a setting** (`MoveIt:ReleaseHues`,
+eight). A doubtful colour value is a setting, per the standing rule. Eight is where distinct
+hues stop being distinct on small chips.
+
+**A hotfix takes its own slot.** I had said it would take its parent's hue family; there is
+no parent link between a hotfix and the release it patches in the data, and inventing one
+from names is the inference-from-naming the project forbids.
+
+**Rollbacks and due flags keep their dress and carry the hue as a left edge.** Painting a
+rollback in the release hue would lose the alert outline that makes it the day's news; a left
+edge keeps both.
+
 ## 2026-10-16 — Move It: what "current" means, and where the scope lives
 
 **"What is in PROD" is the newest live release per application, however old.** Robert asked

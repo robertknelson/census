@@ -1,6 +1,6 @@
 import { fetchApplications, fetchCalendar, fetchReleaseStatus, fetchStages } from './moveit-api.mjs';
 import { appLabel, escapeHtml } from './format.mjs';
-import { stageHue } from './stage-hues.mjs';
+import { DEFAULT_RELEASE_HUES, NEUTRAL_HUE, assignReleaseHues, hueOf } from './release-hues.mjs';
 import { renderTabs } from './tabs.mjs';
 import { AppRail } from './app-rail.mjs';
 import { PopOver } from './pop-over.mjs';
@@ -35,8 +35,9 @@ function time(iso) {
     return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
+// The stage is a word on the chip, not a colour: the calendar's colour is the release (§21.2).
 function stageTag(stage) {
-    return stage ? `<span class="cal-tag" style="--lane:${stageHue(stage)}">${escapeHtml(stage)}</span>` : '';
+    return stage ? `<span class="cal-tag">${escapeHtml(stage)}</span>` : '';
 }
 
 class CalendarPage {
@@ -48,6 +49,8 @@ class CalendarPage {
         this.view = localStorage.getItem(VIEW_KEY) === 'weekdays' ? 'weekdays' : 'full';
         const today = new Date();
         this.todayKey = dayKey(today);
+        this.palette = Array.isArray(config.releaseHues) && config.releaseHues.length ? config.releaseHues : DEFAULT_RELEASE_HUES;
+        this.hues = [];
         const asked = /^(\d{4})-(\d{2})$/.exec(new URLSearchParams(location.search).get('month') ?? '');
         this.month = asked ? { y: Number(asked[1]), m: Number(asked[2]) - 1 } : { y: today.getFullYear(), m: today.getMonth() };
         this.renderShell();
@@ -92,16 +95,7 @@ class CalendarPage {
         this.recordedEl = this.rail.footEl;
         this.key.mount(this.root);
         this.key.setButton('Key');
-        this.key.setBody(`
-            <ul class="cal-legend">
-                <li><span class="cal-chip is-observed" style="--lane:#8e96a3"></span>seen by the pings</li>
-                <li><span class="cal-chip is-event" style="--lane:#8e96a3"></span>recorded by people</li>
-                <li><span class="cal-flag">⚑</span>due</li>
-                <li><span class="cal-flag is-missed">⚑</span>due, not live</li>
-                <li>↺ rolled back</li>
-                <li><span class="cal-hold-key"></span>on hold</li>
-                <li><span class="cal-unknown-key"></span>not yet backfilled</li>
-            </ul>`);
+        this.renderKey();
         this.viewEl = ref('view');
         this.viewEl.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => {
             this.view = b.dataset.view;
@@ -224,6 +218,34 @@ class CalendarPage {
         return e.Stage === this.stage;
     }
 
+    // The month's releases by colour, then the marks. Rebuilt per month, so the key names the
+    // releases on screen; past the palette it says how many read neutral.
+    renderKey() {
+        const app = (id) => escapeHtml(appLabel(this.appsById?.get(id) ?? { ApplicationId: id }));
+        const coloured = this.hues.filter((r) => r.hue);
+        const neutral = this.hues.length - coloured.length;
+        this.key.setBody(`
+            ${coloured.length ? `<ul class="cal-legend cal-legend-releases">
+                ${coloured.map((r) => `<li><span class="cal-chip is-observed" style="--lane:${r.hue}"></span>${app(r.applicationId)} · ${escapeHtml(r.release)}</li>`).join('')}
+                ${neutral ? `<li><span class="cal-chip is-observed" style="--lane:${NEUTRAL_HUE}"></span>${neutral} more release${neutral === 1 ? '' : 's'} — narrow by application to colour them</li>` : ''}
+            </ul>` : ''}
+            <ul class="cal-legend">
+                <li><span class="cal-chip is-observed" style="--lane:${NEUTRAL_HUE}"></span>seen by the pings</li>
+                <li><span class="cal-chip is-event" style="--lane:${NEUTRAL_HUE}"></span>recorded by people</li>
+                <li><span class="cal-chip is-observed is-unnamed" style="--lane:${NEUTRAL_HUE}"></span>a build no release claims</li>
+                <li><span class="cal-flag">⚑</span>due</li>
+                <li><span class="cal-flag is-missed">⚑</span>due, not live</li>
+                <li>↺ rolled back</li>
+                <li><span class="cal-hold-key"></span>on hold</li>
+                <li><span class="cal-unknown-key"></span>not yet backfilled</li>
+                <li class="cal-legend-note">Hover a chip to follow its release across the month.</li>
+            </ul>`);
+    }
+
+    hue(releaseId) {
+        return hueOf(this.hues, releaseId);
+    }
+
     render() {
         const { y, m } = this.month;
         this.monthEl.textContent = new Date(y, m, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
@@ -236,6 +258,13 @@ class CalendarPage {
             byDay.get(e.day).push(e);
         }
         this.byDay = byDay;
+
+        // Hues go to the releases with entries in the shown month (the grid's own days), after
+        // the application filter and before the stage filter, so a stage pick never recolours.
+        const monthKey = `${y}-${pad(m + 1)}`;
+        this.hues = assignReleaseHues(this.entries.filter((e) => e.day.startsWith(monthKey)
+            && (this.apps.length === 0 || this.apps.includes(e.ApplicationId))), this.palette);
+        this.renderKey();
 
         this.viewEl.querySelectorAll('[data-view]').forEach((b) => {
             b.classList.toggle('is-active', b.dataset.view === this.view);
@@ -266,7 +295,30 @@ class CalendarPage {
                 ${cells.join('')}
             </div>`;
         this.mainEl.querySelectorAll('[data-day]').forEach((b) => b.addEventListener('click', () => this.openDetail(b.dataset.day)));
+        this.bindThread();
         this.fit();
+    }
+
+    // The thread: hovering a chip keeps every chip of that release full and dims the rest, so
+    // the days a release moved read as one line across the month even past the palette.
+    bindThread() {
+        const grid = this.mainEl.querySelector('.cal-grid');
+        const lit = () => grid.querySelectorAll('.cal-chip.is-lit');
+        grid.addEventListener('mouseover', (ev) => {
+            const chip = ev.target.closest('.cal-chip[data-release]');
+            if (!chip || !grid.contains(chip)) return;
+            lit().forEach((c) => c.classList.remove('is-lit'));
+            grid.querySelectorAll(`.cal-chip[data-release="${chip.dataset.release}"]`).forEach((c) => c.classList.add('is-lit'));
+            grid.classList.add('is-thread');
+        });
+        grid.addEventListener('mouseout', (ev) => {
+            const chip = ev.target.closest('.cal-chip[data-release]');
+            if (!chip) return;
+            const into = ev.relatedTarget?.closest?.('.cal-chip[data-release]');
+            if (into && into.dataset.release === chip.dataset.release) return;
+            lit().forEach((c) => c.classList.remove('is-lit'));
+            grid.classList.remove('is-thread');
+        });
     }
 
     // The month fits the screen (§26): each week row gets an equal share of the height, and a
@@ -361,7 +413,7 @@ class CalendarPage {
         const planned = entries.filter((e) => e.Kind === 'planned').sort((a, b) => b.Missed - a.Missed);
         for (const p of planned) {
             const text = `${app(p.ApplicationId)} · ${escapeHtml(p.Release)} due`;
-            out.push(`<span class="cal-chip is-planned ${p.Missed ? 'is-missed' : ''}" title="${text}${p.Missed ? ' — not live' : ''}"><span class="cal-flag ${p.Missed ? 'is-missed' : ''}">⚑</span>${text}</span>`);
+            out.push(`<span class="cal-chip is-planned ${p.Missed ? 'is-missed' : ''}" style="--lane:${this.hue(p.ReleaseId)}" data-release="${p.ReleaseId}" title="${text}${p.Missed ? ' — not live' : ''}"><span class="cal-flag ${p.Missed ? 'is-missed' : ''}">⚑</span>${text}</span>`);
         }
         for (const kind of ['returned', 'arrived']) {
             const groups = new Map();
@@ -375,7 +427,7 @@ class CalendarPage {
         }
         for (const e of entries.filter((x) => x.Kind === 'event').sort((a, b) => a.At.localeCompare(b.At))) {
             const text = `${app(e.ApplicationId)} · ${escapeHtml(e.Release)} ${EVENT_TEXT[e.EventKind] ?? escapeHtml(e.EventKind)}`;
-            out.push(`<span class="cal-chip is-event" style="--lane:${stageHue(e.Stage)}" title="${escapeHtml(e.Stage ?? '')} ${text}">${stageTag(e.Stage)}${text}</span>`);
+            out.push(`<span class="cal-chip is-event" style="--lane:${this.hue(e.ReleaseId)}" data-release="${e.ReleaseId}" title="${escapeHtml(e.Stage ?? '')} ${text}">${stageTag(e.Stage)}${text}</span>`);
         }
         return out;
     }
@@ -391,7 +443,10 @@ class CalendarPage {
         else what = `${builds.length} builds`;
         const text = `${kind === 'returned' ? '↺ ' : ''}${appName} · ${what}`;
         const stage = group[0].Stage;
-        return `<span class="cal-chip is-observed ${kind === 'returned' ? 'is-returned' : ''} ${unnamed && kind === 'arrived' ? 'is-unnamed' : ''}" style="--lane:${stageHue(stage)}" title="${escapeHtml(stage)} ${text}">${stageTag(stage)}${text}</span>`;
+        // One release in the group colours and threads the chip; several (or none) read neutral.
+        const ids = [...new Set(group.map((e) => e.ReleaseId).filter((id) => id != null))];
+        const releaseId = ids.length === 1 ? ids[0] : null;
+        return `<span class="cal-chip is-observed ${kind === 'returned' ? 'is-returned' : ''} ${unnamed && kind === 'arrived' ? 'is-unnamed' : ''}" style="--lane:${this.hue(releaseId)}"${releaseId != null ? ` data-release="${releaseId}"` : ''} title="${escapeHtml(stage)} ${text}">${stageTag(stage)}${text}</span>`;
     }
 
     openDetail(key) {

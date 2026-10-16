@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pushed 2026-10-15 (23ec128..3c84592). Pull on the live environment, open /day on the real estate and bring back what reads wrong — in particular whether What it means reads as news or as a flood, and whether the headline counts are the news. Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) is yours after a week; the week of generated demo days is the next demo-side slice. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Four smoke-test fixes committed locally 2026-10-16 (148e7a4, 68d9b41), NOT pushed: Changes lines dated per night, Division rail + scope, register All = current, calendar drawer × reachable. Look, then push. Then: his look at /day on the real estate (what reads wrong); slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) after a week; the week of generated demo days is the next demo-side slice. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,24 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-16 (smoke-test round, four notes as they arrived; committed locally 148e7a4 and 68d9b41, NOT pushed)
+- "Census-Estate on the [Changes] tab when i have selected two dates. looks great. however i
+  think we should add the actual date of the change to each line." A window diffed first vs
+  last, so no line knew its date; the API now walks every night in the window and stamps each
+  line with the day it appeared; the panel prints it when a window is set. A change that came
+  and went is two lines, not none; the day page's range keeps the single diff (open item in
+  day-view.md). Day suite 50/50, seen in Chrome on LOGBOX's two nights.
+- "MoveIT, the Division tab… filter by system, or see all. another vector, sometimes see only
+  the current work effort plus what is in PROD, or i want to see ALL releases." Division gets
+  the §26 rail and a two-word scope. "MoveIT -> Releases… when ALL are selected, we should
+  filter the results to show the current work efforts plus the currently in production
+  release." One rule for both pages, `currentReleases()`: on the way, recently live, or the
+  newest live of its application; node test 6/6; both pages seen in Chrome on the fixtures.
+- "MoveIT -> Calendar, the details slide in cannot be closed… hidden UNDER the horizontal
+  header." The drawer was anchored to the pane; now to the body, so it starts under the header.
+  Seen in Chrome: August 30 opened, × closed it.
+- Calls logged in calls-made-for-you.md (what "current" means; the scope as a header pick).
 
 ### 2026-10-15 (close — "Go ahead and push and end session": 23ec128..3c84592 pushed to origin/main)
 - Asked whether anything else was worth pushing on before he looked at home; position: no —

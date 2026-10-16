@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "PUSHED 2026-10-15: the whole day-page batch (meanings, expected-or-not, drift discounted, cache); pull, open /day"
+summary: "2026-10-16 smoke-test round: four fixes built and checked, committed locally, waiting on your look and push"
 resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
 health: green
 links:
@@ -25,6 +25,19 @@ ignite: start-census.bat
 ---
 
 ## The latest feature added
+
+**Four fixes from your smoke test, built and checked 2026-10-16, committed locally and not
+pushed.** The Estate's Changes panel now puts the actual date on every line when you set
+From and To: it looks at each night inside the window instead of only the first and last
+day, so a change that came and went inside the window is two lines rather than none.
+Move It's Division page has the same application list down the left as the other pages,
+and a choice in its header: *On the way and live* (what is being worked on, plus whatever is
+in production for each application, however long it has been there) or *All releases*. The
+Releases list, with *All applications* chosen, now shows that same current set; pick one
+application to see its every release. And the Calendar's day panel can be closed again: its
+× had been sitting under the header line.
+
+**Before that, pushed 2026-10-15:**
 
 **The day page now says what the changes mean — built, checked, pushed 2026-10-15 on
 your word.** Above the four groups a new heading, *What it means*, lists the

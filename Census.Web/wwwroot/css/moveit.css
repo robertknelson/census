@@ -94,7 +94,7 @@
 .mi-numbers .is-ask .mi-num { color: #0b5394; }
 
 /* Body: the board, with the detail column when a chip is open. */
-.mi-body { flex: 1; display: flex; min-height: 0; }
+.mi-body { position: relative; flex: 1; display: flex; min-height: 0; }
 /* No top padding: the lane header sticks to the scroll port's top edge, and anything
    scrolled past it would otherwise show through a padding gap above it. */
 .mi-main { flex: 1; overflow: auto; padding: 0 2rem 3rem; }
@@ -490,6 +490,7 @@
 .cal-day.is-weekend > :not(.cal-date) { opacity: 0.6; }
 .cal-weekend-note { flex: none; font-size: 11px; color: var(--mi-muted); font-style: italic; }
 .cal-view { margin-left: 0.75rem; }
+.dv-scope { margin-left: 0.25rem; }
 .cal-day.is-selected { box-shadow: inset 0 0 0 2px var(--mi-ink); }
 .cal-date { font-size: 12px; font-weight: 600; color: var(--mi-muted); font-variant-numeric: tabular-nums; }
 .cal-day.is-today .cal-date { align-self: flex-start; color: #fff; background: var(--mi-ink); border-radius: 999px; padding: 0 0.4rem; }
@@ -521,7 +522,9 @@
 .cal-list .mi-muted { font-size: 12.5px; margin-top: 0.1rem; }
 .cal-note { font-size: 12.5px; margin-top: 0.25rem; padding-left: 0.5rem; border-left: 2px solid var(--mi-rule); }
 
-/* The day's detail slides over the right of the grid instead of narrowing it. */
+/* The day's detail slides over the right of the grid instead of narrowing it. It is anchored
+   to the body, not the pane, so it starts under the header line and its × stays reachable;
+   the header (z-index 4) is never covered, so the filter stays readable with a day open. */
 .mi-drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 3; box-shadow: -8px 0 24px rgba(26, 33, 44, 0.12); }
 
 @media (max-width: 900px) {

@@ -24,6 +24,21 @@ export function classifyReleases({ lanes, items, releases, now, shippedDays }) {
     });
 }
 
+// "The current work effort plus what is in production" (Robert, 2026-10-16): a release is
+// current when it is on the way or recently live (not folded), or when it is the newest live
+// release of its application — the one in PROD, however long ago it got there. Older live
+// releases are superseded; abandoned ones are never current. Shared by the Releases register
+// (All applications) and Division's default scope so the two pages agree on "current".
+export function currentReleases(cards) {
+    const newestLive = new Map();
+    for (const c of cards) {
+        if (c.shippedAt == null) continue;
+        const best = newestLive.get(c.release.ApplicationId);
+        if (!best || Date.parse(c.shippedAt) > Date.parse(best.shippedAt)) newestLive.set(c.release.ApplicationId, c);
+    }
+    return new Set(cards.filter((c) => !c.abandoned && (!c.folded || newestLive.get(c.release.ApplicationId) === c)));
+}
+
 export class ReleasePanel {
     constructor(onPick) {
         this.onPick = onPick;

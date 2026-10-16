@@ -77,8 +77,10 @@ class CalendarPage {
                         <p class="mi-showing" data-ref="showing"></p>
                         ${this.key.html()}
                     </div>
-                    <main class="cal-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>
-                    <aside class="mi-detail mi-drawer" data-ref="detail" hidden></aside>
+                    <div class="mi-body">
+                        <main class="cal-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>
+                        <aside class="mi-detail mi-drawer" data-ref="detail" hidden></aside>
+                    </div>
                 </div>
             </div>`;
         const ref = (name) => this.root.querySelector(`[data-ref="${name}"]`);

@@ -4,6 +4,27 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-16 — Move It: what "current" means, and where the scope lives
+
+**"What is in PROD" is the newest live release per application, however old.** Robert asked
+for "the current work effort plus what is in PROD" on both Division and the Releases
+register. Options: the 14-day fold as it stood (misses a release live for months); every
+release wholly in PROD (lists the superseded ones too); the newest live per application.
+Call: the newest live, plus anything not folded; one rule in `release-panel.mjs` so the two
+pages cannot drift. Consequence to know: a hotfix live after a sprint release supersedes it,
+so the sprint folds to *earlier* — the hotfix is what is running. Abandoned releases are
+never current and are not drawn on Division's *All releases* either (they have no place on
+the line); the register still lists them under a chosen application.
+
+**Division's scope is a two-word pick in the header, remembered per browser, not a URL
+parameter.** The calendar's Full week / Weekdays is the precedent. The register got no
+toggle: there, All applications *is* the current set and one application is everything,
+which is what he described.
+
+**One application chosen on the register shows its every release.** He said the filter
+applies "when ALL are selected"; a single application's history including superseded and
+abandoned releases is the page's reason to exist.
+
 ## 2026-10-16 — the date on a Changes line
 
 **A window now walks the nights, not first-vs-last.** Robert, smoke-testing the Changes tab

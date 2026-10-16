@@ -1327,6 +1327,32 @@ no client sign-off recorded*; unnamed applications last.
   `verified`, releases sit at *in testing* until approval. Whether to record
   it is item 5.
 
+### 19.1 The rail and the scope (2026-10-16, Robert smoke-testing: "we should be able to filter by system, or see all. another vector, sometimes see only the current work effort plus what is in PROD, or i want to see ALL releases"; built and browser-verified the same day)
+
+Division was the one page without the §26 rail. It has it now: the same application list,
+find box, collapse and remembered choice (§26.2) as every other page, with *on the way* per
+application as the muted count. The header line names the choice (*All applications*, or the
+names with ×); the six numbers follow the applications chosen.
+
+**The scope** — two quiet words in the header line, remembered per browser
+(`localStorage` `moveit.division.scope`):
+- **On the way and live** (default): the *current* releases — on the way, recently live, or
+  the newest live release of its application: **what is in PROD, however long ago it got
+  there.** The rule is `currentReleases()` in `release-panel.mjs`, shared with the Releases
+  register (§28.2) so the two pages agree on "current"; `tests/Test-CurrentReleases.mjs`
+  pins it. Superseded live releases fold into the project header as *earlier*, as the
+  14-day fold always did; abandoned ones are never drawn.
+- **All releases**: every release ever recorded as its own line, superseded ones included,
+  live ones newest first under the in-flight ones. Nothing folds.
+
+A choice that leaves nothing to draw reads *Nothing on the way, and nothing live, for this
+choice* — and the numbers above still say so.
+
+Verified 2026-10-16 in Chrome on the fixtures: the rail with *5* on All applications;
+*On the way and live* drew Reporting refresh, WidgetCore's Sprint 43 and its hotfix (live
+Aug 15 — what is in PROD), WidgetCore's Sprint 42 folded as *earlier … live Aug 4* because
+the hotfix superseded it; no console errors.
+
 ## 20. Coming — what is heard before it is built (ratified 2026-09-24 "it's a go")
 
 Robert, 2026-09-24, thinking as the product owner over teams he does not
@@ -1883,6 +1909,15 @@ with Application 3 and Application 4 clicked — both rows filled in the rail, t
 to those two rows, the counts strip rescoped (*3 past target*), the header *Application 3,
 Application 4* with ×; the Features page opened on the same remembered pair.
 
+### 26.4 The drawer's × was under the header (2026-10-16, Robert: "the details slide in cannot be closed … hidden UNDER the horizontal header above the calendar")
+
+The day detail (`mi-drawer`) was positioned against the pane, so its top — and its × — sat
+under the header line (which stacks above it on purpose, so the filter is never covered).
+Escape closed it; nothing visible did. The Calendar's grid and drawer now sit in the same
+`mi-body` as every other page, and the drawer anchors to that body: it starts under the
+header, the × is at its top right, and the header stays readable with a day open. Verified
+2026-10-16 in Chrome: August 30 opened the drawer below the header, its × closed it.
+
 ## 27. The board on a stage list with no order (2026-10-07, Robert: "build")
 
 **The report from the wild.** On the real server every Move It stage lane had collapsed
@@ -2012,6 +2047,16 @@ page but History is.
   with its items, builds, events and the stabilization delete (§16). No second detail
   column: one page per release is enough.
 - **Find box** over the name and the application.
+- **All applications is the current set** (2026-10-16, Robert: *"when ALL are selected, we
+  should filter the results to show the current work efforts plus the currently in production
+  release"*): with no application chosen the rows are `currentReleases()` (§19.1) — on the
+  way, recently live, or the newest live of its application; superseded and abandoned rows
+  are not in the list, and the header line says *All applications · on the way, and what's
+  live* (the full rule on hover). One application chosen is its every release, superseded
+  and abandoned included, as before; the rail's count beside *All applications* is the
+  current count. Verified 2026-10-16 in Chrome on the fixtures: 8 of 8 rows on All, the
+  superseded WidgetPortal Sprint 42 absent, WidgetCore's hotfix (live Aug 15) present as
+  what is in PROD.
 
 ### 28.3 The frame
 

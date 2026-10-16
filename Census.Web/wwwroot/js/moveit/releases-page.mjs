@@ -2,7 +2,7 @@ import { fetchApplications, fetchReadyToApprove, fetchReleaseBuilds, fetchReleas
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { buildLanes, laneFor } from './lanes.mjs';
 import { laneHue, stageHue } from './stage-hues.mjs';
-import { classifyReleases } from './release-panel.mjs';
+import { classifyReleases, currentReleases } from './release-panel.mjs';
 import { renderTabs } from './tabs.mjs';
 import { AppRail } from './app-rail.mjs';
 import { Register } from './register.mjs';
@@ -96,11 +96,18 @@ class ReleasesPage {
         });
     }
 
+    // All applications is the current work plus what is in production (§28.2, 2026-10-16);
+    // one application chosen is its every release, superseded and abandoned included.
     renderRows() {
         this.rows = this.buildRows();
-        const inScope = (r) => this.apps.length === 0 || this.apps.includes(r.release.ApplicationId);
+        const current = currentReleases(this.rows.map((r) => r.card));
+        const inScope = (r) => (this.apps.length === 0 ? current.has(r.card) : this.apps.includes(r.release.ApplicationId));
         this.rail.render(this.applications, this.apps,
-            (id) => this.rows.filter((r) => !r.card.abandoned && (id == null || r.release.ApplicationId === id)).length);
+            (id) => this.rows.filter((r) => (id == null ? current.has(r.card) : !r.card.abandoned && r.release.ApplicationId === id)).length);
+        if (this.apps.length === 0) {
+            this.root.querySelector('[data-ref="showing"]').insertAdjacentHTML('beforeend',
+                ' <span class="mi-muted" title="On the way, recently live, or the release now in production for each application. Choose an application to see its every release.">· on the way, and what’s live</span>');
+        }
         this.register.setRows(this.rows.filter(inScope));
     }
 

@@ -2,9 +2,10 @@ import { fetchApplications, fetchCoverage, fetchEvents, fetchReleaseStatus, fetc
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { NOT_SEEN, buildLanes, laneFor } from './lanes.mjs';
 import { laneHue } from './stage-hues.mjs';
-import { classifyReleases } from './release-panel.mjs';
+import { classifyReleases, currentReleases } from './release-panel.mjs';
 import { renderTabs } from './tabs.mjs';
 import { PopOver } from './pop-over.mjs';
+import { AppRail } from './app-rail.mjs';
 
 // Division (move-it.md §19): the executive's page. Every project, every release in flight,
 // every feature and fix, drawn as a step line from the developers' desks to live. One step
@@ -13,6 +14,7 @@ import { PopOver } from './pop-over.mjs';
 // from 01, 02 or the event list; this page only places them on the line.
 
 const SIGNOFF = 'signoff';
+const SCOPE_KEY = 'moveit.division.scope';
 
 function buildSteps(lanes, captions) {
     const stageLanes = lanes.slice(2);
@@ -53,16 +55,37 @@ class DivisionPage {
         this.shippedDays = config.shippedDays ?? 14;
         this.captions = config.stepCaptions ?? {};
         this.now = Date.now();
+        this.apps = [];
+        this.scope = readScope();
         this.cover = new PopOver({ id: 'dv-cover', wide: true });
+        this.rail = new AppRail((ids) => { this.apps = ids; this.render(); });
         this.root.innerHTML = `
             ${renderTabs('division')}
-            <div class="mi-head">
-                <div class="mi-head-numbers" data-ref="summary"></div>
-                ${this.cover.html()}
-            </div>
-            <main class="dv-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>`;
-        this.summaryEl = this.root.querySelector('[data-ref="summary"]');
-        this.mainEl = this.root.querySelector('[data-ref="main"]');
+            <div class="mi-shell" data-ref="shell">
+                ${this.rail.html()}
+                <div class="mi-pane">
+                    <div class="mi-head">
+                        <div class="mi-head-numbers" data-ref="summary"></div>
+                        <nav class="mi-picks dv-scope" data-ref="scope" aria-label="Releases drawn">
+                            <button type="button" class="mi-pick" data-scope="current" title="Releases on the way, and the one now live in production for each application">On the way and live</button>
+                            <button type="button" class="mi-pick" data-scope="all" title="Every release recorded, superseded ones included">All releases</button>
+                        </nav>
+                        <p class="mi-showing" data-ref="showing"></p>
+                        ${this.cover.html()}
+                    </div>
+                    <main class="dv-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>
+                </div>
+            </div>`;
+        const ref = (name) => this.root.querySelector(`[data-ref="${name}"]`);
+        this.summaryEl = ref('summary');
+        this.mainEl = ref('main');
+        this.scopeEl = ref('scope');
+        this.scopeEl.querySelectorAll('[data-scope]').forEach((b) => b.addEventListener('click', () => {
+            this.scope = b.dataset.scope;
+            writeScope(this.scope);
+            if (this.placed) this.render();
+        }));
+        this.rail.mount(ref('shell'), ref('showing'));
         this.cover.mount(this.root);
         this.cover.hide(true);
         this.load();
@@ -80,23 +103,42 @@ class DivisionPage {
         this.lanes = buildLanes(this.stages);
         this.steps = buildSteps(this.lanes, this.captions);
         this.signoffIndex = this.steps.findIndex((s) => s.id === SIGNOFF);
-        this.render();
-    }
-
-    render() {
         const cards = classifyReleases({ lanes: this.lanes, items: this.items, releases: this.releases, now: this.now, shippedDays: this.shippedDays });
+        const current = currentReleases(cards);
         const verified = new Set(this.events.filter((e) => e.Kind === 'verified').map((e) => e.ReleaseId));
-        const placed = cards.filter((c) => !c.abandoned).map((c) => ({
+        this.placed = cards.filter((c) => !c.abandoned).map((c) => ({
             ...c,
+            current: current.has(c),
             ...place(c.lane, c.release, verified.has(c.release.ReleaseId), this.steps),
             items: c.open.map((i) => ({ item: i, ...place(laneFor(i.Status, this.lanes), c.release, verified.has(c.release.ReleaseId), this.steps) })),
         }));
+        this.apps = AppRail.remembered(this.applications);
+        this.render();
+    }
+
+    // The rail narrows the page to the chosen applications (§26); the scope says which of
+    // their releases are drawn as lines: the current ones (on the way, and what is live in
+    // production — §19.1), or every one. The numbers follow the applications, not the scope.
+    render() {
+        const placed = this.placed.filter((p) => this.apps.length === 0 || this.apps.includes(p.release.ApplicationId));
+        this.rail.render(this.applications, this.apps,
+            (id) => this.placed.filter((p) => p.current && p.state !== 'live' && (id == null || p.release.ApplicationId === id)).length);
+        this.scopeEl.querySelectorAll('[data-scope]').forEach((b) => {
+            b.classList.toggle('is-active', b.dataset.scope === this.scope);
+            b.toggleAttribute('aria-pressed', b.dataset.scope === this.scope);
+        });
 
         this.renderSummary(placed);
+        const drawn = (p) => this.scope === 'all' || p.current;
         const projects = this.applications
             .map((app) => ({ app, releases: placed.filter((p) => p.release.ApplicationId === app.ApplicationId) }))
-            .filter((p) => p.releases.length)
+            .filter((p) => p.releases.some(drawn))
             .sort((a, b) => (a.app.Name ? 0 : 1) - (b.app.Name ? 0 : 1) || appLabel(a.app).localeCompare(appLabel(b.app)));
+
+        if (projects.length === 0) {
+            this.mainEl.innerHTML = '<p class="mi-status">Nothing on the way, and nothing live, for this choice.</p>';
+            return;
+        }
 
         this.mainEl.innerHTML = `
             <div class="dv-grid" style="--steps: ${this.steps.length}">
@@ -168,9 +210,12 @@ class DivisionPage {
         return '';
     }
 
+    // Drawn: the current releases, or all of them; in flight first, then live, newest first.
+    // What is not drawn folds into the header as "earlier", so a narrowed page says what it left out.
     renderProject({ app, releases }) {
-        const active = releases.filter((r) => !r.folded).sort((a, b) => (a.state === 'live') - (b.state === 'live') || b.at - a.at);
-        const earlier = releases.filter((r) => r.folded).sort((a, b) => Date.parse(b.shippedAt) - Date.parse(a.shippedAt));
+        const drawn = (r) => this.scope === 'all' || r.current;
+        const active = releases.filter(drawn).sort((a, b) => (a.state === 'live') - (b.state === 'live') || b.at - a.at || Date.parse(b.shippedAt ?? 0) - Date.parse(a.shippedAt ?? 0));
+        const earlier = releases.filter((r) => !drawn(r)).sort((a, b) => Date.parse(b.shippedAt) - Date.parse(a.shippedAt));
         const flying = active.filter((r) => r.state !== 'live').length;
         return `
             <section class="dv-project">
@@ -233,6 +278,14 @@ class DivisionPage {
                 </div>`;
         }).join('');
     }
+}
+
+function readScope() {
+    try { return localStorage.getItem(SCOPE_KEY) === 'all' ? 'all' : 'current'; } catch { return 'current'; }
+}
+
+function writeScope(scope) {
+    try { localStorage.setItem(SCOPE_KEY, scope); } catch { /* not remembered */ }
 }
 
 export default new DivisionPage();

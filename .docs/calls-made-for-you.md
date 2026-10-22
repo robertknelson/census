@@ -4,6 +4,32 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — P-3b to P-4: the queue, the drill-downs, the actions, the links out
+
+**"go go go go" read as all four slices.** Built in order, one commit.
+
+**The queue reuses History's rules, it does not copy them.** `findNeeds` from Move It is called
+as it is; the queue adds sections around it. Two rule sets for "needs a word" would drift.
+
+**Unnamed builds are one line each, not one per application.** History's popover counts them
+per application; a claim is per build, so the line has to be.
+
+**An approval recorded from the queue is at the top stage (PROD), with no build.** The queue's
+approval lines are "live without one" and "ready for the client"; both are about going live.
+The build can be added on the release page; guessing it here could name the wrong one.
+
+**A hold needs a reason; an approval's note is optional.** A hold with no reason is the very gap
+History asks about.
+
+**The actions write through Move It's endpoints, untouched.** No new write path; Move It's
+validation and transactions hold. Claims therefore carry Move It's configured By (P9).
+
+**Drill-down grains come from the applications the drill-down covers**, not the member's whole
+set; Max would otherwise be offered a *Year* they hold only on an application they cannot drill.
+
+**The links out are features (`surface.*`)**, so the same grant map decides them; Classic gets
+no feature, which is how it shows as unowned.
+
 ## 2026-10-22 — P-3a: a period view before his notes
 
 **Built the first view without waiting for his notes.** Options: stop until the notes come;

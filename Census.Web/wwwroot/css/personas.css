@@ -41,6 +41,8 @@ html, body { margin: 0; background: var(--ps-paper); }
 .ps-nav-h { padding: 0 0.5rem 0.2rem; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ps-muted); }
 .ps-nav-item { padding: 0.3rem 0.5rem; border-radius: 4px; color: var(--ps-ink); text-decoration: none; font-size: 13.5px; }
 .ps-nav-item:hover { background: var(--ps-rule-soft); }
+.ps-nav-item.is-out { color: var(--ps-muted); }
+.ps-nav-item.is-out span { font-size: 11px; }
 .ps-nav-item.is-active { background: var(--ps-ink); color: #fff; font-weight: 600; }
 
 .ps-main { flex: 1; min-width: 0; padding: 1.25rem 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
@@ -102,6 +104,34 @@ html, body { margin: 0; background: var(--ps-paper); }
 .ps-bar-value { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
 .ps-bar-sub { font-weight: 400; color: var(--ps-muted); }
 .ps-foot { color: var(--ps-muted); font-size: 12.5px; }
+
+/* The drill-downs (drill-view.mjs). */
+.ps-grains { display: flex; gap: 0.1rem; }
+.ps-grain { padding: 0.15rem 0.5rem; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--ps-muted); font: inherit; font-size: 12.5px; cursor: pointer; }
+.ps-grain:hover { color: var(--ps-ink); }
+.ps-grain.is-active { color: var(--ps-ink); font-weight: 600; border-bottom-color: var(--ps-ink); }
+.ps-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ps-table th, .ps-table td { padding: 0.35rem 0.6rem; text-align: left; border-bottom: 1px solid var(--ps-rule-soft); white-space: nowrap; }
+.ps-table thead th { font-size: 12px; color: var(--ps-muted); border-bottom-color: var(--ps-rule); }
+.ps-table .ps-day th { padding-top: 0.8rem; font-size: 12px; font-weight: 600; color: var(--ps-ink); background: var(--ps-panel); }
+.ps-table tr.is-returned td { background: #fdf3f2; }
+.ps-mono { font-family: var(--ps-mono); font-size: 12.5px; }
+.ps-stage { display: inline-block; padding: 0 0.4rem; border: 1px solid var(--ps-rule); border-radius: 3px; font-size: 11.5px; }
+
+/* The Needs you queue (needs-view.mjs). */
+.ps-count { display: inline-block; min-width: 1.3rem; margin-left: 0.3rem; padding: 0 0.4rem; border-radius: 999px; background: #fff4dd; color: #8a5a00; font-size: 11.5px; text-align: center; }
+.ps-link { color: var(--ps-ink); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--ps-rule); }
+.ps-link:hover { border-bottom-color: var(--ps-ink); }
+.ps-acts { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.ps-act { padding: 0.15rem 0.6rem; border: 1px solid var(--ps-rule); border-radius: 999px; background: var(--ps-panel); color: var(--ps-ink); font: inherit; font-size: 12px; cursor: pointer; }
+.ps-act:hover { border-color: var(--ps-ink); }
+.ps-act-form { flex-basis: 100%; }
+.ps-form { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; padding: 0.5rem 0.6rem; border: 1px solid var(--ps-rule); border-radius: 6px; background: var(--ps-paper); }
+.ps-form input, .ps-form select { flex: 1 1 14rem; min-width: 0; padding: 0.3rem 0.45rem; border: 1px solid var(--ps-rule); border-radius: 4px; font: inherit; font-size: 13px; background: var(--ps-panel); }
+.ps-save { padding: 0.3rem 0.8rem; border: 1px solid var(--ps-ink); border-radius: 4px; background: var(--ps-ink); color: #fff; font: inherit; font-size: 12.5px; cursor: pointer; }
+.ps-cancel { padding: 0.3rem 0.6rem; border: 1px solid var(--ps-rule); border-radius: 4px; background: var(--ps-panel); color: var(--ps-muted); font: inherit; font-size: 12.5px; cursor: pointer; }
+.ps-form-status { color: var(--ps-muted); font-size: 12px; }
+.ps-form-status.is-error { color: var(--ps-alert); }
 
 @media (max-width: 720px) {
     .ps-columns { grid-template-columns: 1fr; }

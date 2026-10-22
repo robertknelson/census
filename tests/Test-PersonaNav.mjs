@@ -20,6 +20,9 @@ const exec = trimNav(NAV, ['view.year', 'view.quarter', 'view.month', 'view.week
 assert('the Executive keeps See only; Drill into and Curate go', labels(exec) === 'See:Year/Quarter/Month/Week', labels(exec));
 const lead = trimNav(NAV, ['view.quarter', 'view.month', 'view.week', 'drill.deployments', 'drill.builds']);
 assert('the Tech Lead: no Year, Drill into kept', labels(lead) === 'See:Quarter/Month/Week | Drill into:Deployments/Builds', labels(lead));
+const exec2 = trimNav(NAV, ['view.year', 'surface.moveit']);
+assert('a link out is its own group, kept like any item', labels(exec2) === 'See:Year | Elsewhere in Census:Move It', labels(exec2));
+assert('  links out carry an href; views do not', NAV.every((g) => g.items.every((i) => (g.group === 'Elsewhere in Census') === Boolean(i.href))));
 assert('nothing granted, no groups', trimNav(NAV, []).length === 0);
 assert('an unknown feature shows nothing', trimNav(NAV, ['no.such']).length === 0);
 

@@ -41,6 +41,8 @@ $grain  = 'view.quarter', 'view.month', 'view.week'
 $read   = @('view.year') + $grain
 $drill  = 'drill.deployments', 'drill.builds'
 $curate = 'curate.queue', 'curate.associations', 'curate.releases', 'curate.feature-sets', 'curate.events'
+$pages  = 'surface.atlas', 'surface.estate', 'surface.day'
+$moveit = @('surface.moveit')
 $fleet  = 'WidgetCore', 'My WebApp', 'Your WebApp', 'MortgageGateway', 'Reporting'
 
 Write-Host 'The member list'
@@ -50,28 +52,28 @@ Assert-That 'eight demo members' (@($members | Where-Object { $_.identifier -lik
 Write-Host 'Estate-wide: a role held on Census'
 $sam = Get-Api '/api/personas/members/demo-sam'
 Assert-That 'Sys Admin is estate-wide' ($sam.estate -and (Same $sam.estateRoles @('system-administrator'))) "$($sam.estate) $($sam.estateRoles)"
-Assert-That '  every feature' (Same $sam.features ($read + $drill + $curate)) ($sam.features -join ',')
+Assert-That '  every feature' (Same $sam.features ($read + $drill + $curate + $moveit + $pages)) ($sam.features -join ',')
 Assert-That '  every application, Census itself not among them' (Same $sam.applications.name $fleet) ($sam.applications.name -join ',')
 $ellen = Get-Api '/api/personas/members/demo-ellen'
 Assert-That 'Executive is estate-wide, every application' ($ellen.estate -and (Same $ellen.applications.name $fleet)) ($ellen.applications.name -join ',')
-Assert-That '  reads at every grain, drills nothing, curates nothing' (Same $ellen.features $read) ($ellen.features -join ',')
+Assert-That '  reads at every grain, drills nothing, curates nothing; Move It, not the machine pages' (Same $ellen.features ($read + $moveit)) ($ellen.features -join ',')
 
 Write-Host 'Scoped: roles held on applications'
 $paula = Get-Api '/api/personas/members/demo-paula'
 Assert-That 'Product Owner sees their two applications only' (-not $paula.estate -and (Same $paula.applications.name @('WidgetCore', 'Reporting'))) ($paula.applications.name -join ',')
-Assert-That '  the Executive views, trimmed' (Same $paula.features $read) ($paula.features -join ',')
+Assert-That '  the Executive views, trimmed' (Same $paula.features ($read + $moveit)) ($paula.features -join ',')
 $terry = Get-Api '/api/personas/members/demo-terry'
 Assert-That 'Tech Lead sees their two applications' (Same $terry.applications.name @('WidgetCore', 'My WebApp')) ($terry.applications.name -join ',')
-Assert-That '  quarter down, drill-down, no year, no curation' (Same $terry.features ($grain + $drill)) ($terry.features -join ',')
+Assert-That '  quarter down, drill-down, no year, no curation; every existing page' (Same $terry.features ($grain + $drill + $moveit + $pages)) ($terry.features -join ',')
 $ada = Get-Api '/api/personas/members/demo-ada'
-Assert-That 'Application Administrator curates their one application' ((Same $ada.applications.name @('Your WebApp')) -and (Same (App $ada 'Your WebApp').features ($grain + $drill + $curate))) ((App $ada 'Your WebApp').features -join ',')
+Assert-That 'Application Administrator curates their one application' ((Same $ada.applications.name @('Your WebApp')) -and (Same (App $ada 'Your WebApp').features ($grain + $drill + $curate + $moveit + $pages))) ((App $ada 'Your WebApp').features -join ',')
 
 Write-Host 'Mixed: each application at its own depth'
 $max = Get-Api '/api/personas/members/demo-max'
 Assert-That 'Max sees MortgageGateway and Reporting' (Same $max.applications.name @('MortgageGateway', 'Reporting')) ($max.applications.name -join ',')
-Assert-That '  MortgageGateway as product owner: read views, no drill' (Same (App $max 'MortgageGateway').features $read) ((App $max 'MortgageGateway').features -join ',')
-Assert-That '  Reporting as tech lead: quarter down and drill, no year' (Same (App $max 'Reporting').features ($grain + $drill)) ((App $max 'Reporting').features -join ',')
-Assert-That '  the member-wide set is the union' (Same $max.features ($read + $drill)) ($max.features -join ',')
+Assert-That '  MortgageGateway as product owner: read views, no drill' (Same (App $max 'MortgageGateway').features ($read + $moveit)) ((App $max 'MortgageGateway').features -join ',')
+Assert-That '  Reporting as tech lead: quarter down and drill, no year' (Same (App $max 'Reporting').features ($grain + $drill + $moveit + $pages)) ((App $max 'Reporting').features -join ',')
+Assert-That '  the member-wide set is the union' (Same $max.features ($read + $drill + $moveit + $pages)) ($max.features -join ',')
 
 Write-Host 'Nothing granted'
 $otto = Get-Api '/api/personas/members/demo-otto'

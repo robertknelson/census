@@ -1,7 +1,10 @@
-import { fetchAccess, fetchCalendar, fetchLeadTime, fetchMembers, fetchReleaseStatus } from './personas-api.mjs';
+import { fetchAccess, fetchCalendar, fetchLeadTime, fetchMembers, fetchOrderViolations, fetchReleaseStatus, fetchStageMismatch } from './personas-api.mjs';
+import { fetchApplications, fetchApprovalVsProd, fetchBuildsSeen, fetchEvents, fetchHistory, fetchReadyToApprove, fetchStages, fetchWhereIsEverything } from '../moveit/moveit-api.mjs';
 import { NAV, applicationsFor, navItem, trimNav } from './persona-nav.mjs';
-import { grainOf, periodOf, shiftPeriod } from './period.mjs';
+import { GRAINS, grainOf, periodOf, shiftPeriod } from './period.mjs';
 import { PeriodView } from './period-view.mjs';
+import { NeedsView } from './needs-view.mjs';
+import { BuildsView, DeploymentsView } from './drill-view.mjs';
 import { escapeHtml } from '../moveit/format.mjs';
 
 // The persona UX shell (personas.md §7, slice P-2): pick a member, see the UX as they would —
@@ -12,6 +15,25 @@ import { escapeHtml } from '../moveit/format.mjs';
 // is remembered per browser as a convenience.
 
 const MEMBER_KEY = 'personas.as';
+
+// The data each built view reads, fetched once per page load.
+const LOADERS = {
+    period: async () => {
+        const [releases, leads, calendar] = await Promise.all([fetchReleaseStatus(), fetchLeadTime(), fetchCalendar()]);
+        return { releases, leads, calendar };
+    },
+    drill: async () => {
+        const [calendar, buildsSeen, stages, releases] = await Promise.all([fetchCalendar(), fetchBuildsSeen(), fetchStages(), fetchReleaseStatus()]);
+        return { calendar, buildsSeen, stages, releases };
+    },
+    needs: async () => {
+        const [stages, applications, history, items, status, events, approvals, ready, violations, mismatches] = await Promise.all([
+            fetchStages(), fetchApplications(), fetchHistory(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchEvents(),
+            fetchApprovalVsProd(), fetchReadyToApprove(), fetchOrderViolations(), fetchStageMismatch(),
+        ]);
+        return { stages, applications, history, items, status, events, approvals, ready, violations, mismatches };
+    },
+};
 
 function remembered() {
     try { return localStorage.getItem(MEMBER_KEY); } catch { return null; }
@@ -40,10 +62,13 @@ class PersonasPage {
         this.root = document.getElementById(config.rootId ?? 'personas-root');
         this.estate = config.estateName ?? 'Census';
         this.fiscalStart = config.fiscalStart ?? 1;
+        this.needsSettings = { staleDays: config.staleDays ?? 14, comingDays: config.comingDays ?? 60 };
+        this.sets = {};
         const params = new URLSearchParams(location.search);
         this.as = params.get('as');
         this.at = params.get('at');
         this.on = params.get('on');
+        this.grain = params.get('g');
         this.load();
     }
 
@@ -73,7 +98,7 @@ class PersonasPage {
             return;
         }
         this.nav = trimNav(NAV, this.access.features);
-        if (this.at && !navItem(this.nav, this.at)) this.at = null;
+        if (this.at && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
         this.render();
     }
 
@@ -81,11 +106,13 @@ class PersonasPage {
         const params = new URLSearchParams({ as: this.as });
         if (this.at) params.set('at', this.at);
         if (this.at && this.on) params.set('on', this.on);
+        if (this.at?.startsWith('drill.') && this.grain) params.set('g', this.grain);
         return `${location.pathname}?${params}`;
     }
 
     render() {
         history.replaceState(null, '', this.url());
+        this.view = null;
         const member = this.access.member;
         this.root.innerHTML = `
             <div class="ps-shell">
@@ -103,7 +130,9 @@ class PersonasPage {
                         ${this.nav.map((g) => `
                             <div class="ps-nav-group">
                                 <h2 class="ps-nav-h">${escapeHtml(g.group)}</h2>
-                                ${g.items.map((i) => `<a class="ps-nav-item${i.feature === this.at ? ' is-active' : ''}" href="#" data-at="${escapeHtml(i.feature)}" title="${escapeHtml(i.hint)}">${escapeHtml(i.label)}</a>`).join('')}
+                                ${g.items.map((i) => i.href
+                                    ? `<a class="ps-nav-item is-out" href="${escapeHtml(i.href)}" title="${escapeHtml(i.hint)}">${escapeHtml(i.label)} <span aria-hidden="true">↗</span></a>`
+                                    : `<a class="ps-nav-item${i.feature === this.at ? ' is-active' : ''}" href="#" data-at="${escapeHtml(i.feature)}" title="${escapeHtml(i.hint)}">${escapeHtml(i.label)}</a>`).join('')}
                             </div>`).join('')}
                     </nav>
                     <main class="ps-main">
@@ -124,6 +153,13 @@ class PersonasPage {
                 this.render();
             });
         }
+        this.view?.bind?.(this.root);
+        for (const b of this.root.querySelectorAll('[data-grain]')) {
+            b.addEventListener('click', () => {
+                this.grain = b.dataset.grain;
+                this.render();
+            });
+        }
         for (const b of this.root.querySelectorAll('[data-shift]')) {
             b.addEventListener('click', () => {
                 const n = b.dataset.shift;
@@ -135,27 +171,66 @@ class PersonasPage {
 
     mainHtml() {
         if (!this.at) return this.overviewHtml();
-        const grain = grainOf(this.at);
-        if (!grain) return this.itemHtml();
-        if (this.dataError) return `<p class="ps-error">${escapeHtml(this.dataError)}</p>`;
-        if (!this.data) {
-            this.loadData();
+        const view = this.viewFor(this.at);
+        if (!view) return this.itemHtml();
+        const set = this.sets[view.data];
+        if (set?.error) return `<p class="ps-error">${escapeHtml(set.error)}</p>`;
+        if (!set?.value) {
+            this.loadSet(view.data);
             return '<p class="ps-none">Reading the ledger…</p>';
         }
-        const day = this.on ? new Date(`${this.on}T00:00:00`) : new Date();
-        this.period = periodOf(day, grain, this.fiscalStart);
         const applications = applicationsFor(this.access, this.at).map((a) => ({ applicationId: a.applicationId, name: a.name }));
-        return new PeriodView({ data: this.data, period: this.period, applications, fiscalStart: this.fiscalStart }).html();
+        this.view = view.make(set.value, applications);
+        return this.view.html();
     }
 
-    async loadData() {
-        if (this.loading) return;
-        this.loading = true;
+    // Which built view answers a nav item, and the data set it reads (LOADERS).
+    viewFor(feature) {
+        const grain = grainOf(feature);
+        if (grain) {
+            return {
+                data: 'period',
+                make: (data, applications) => {
+                    const day = this.on ? new Date(`${this.on}T00:00:00`) : new Date();
+                    this.period = periodOf(day, grain, this.fiscalStart);
+                    return new PeriodView({ data, period: this.period, applications, fiscalStart: this.fiscalStart });
+                },
+            };
+        }
+        const drills = { 'drill.deployments': DeploymentsView, 'drill.builds': BuildsView };
+        if (drills[feature]) {
+            return {
+                data: 'drill',
+                make: (data, applications) => {
+                    // The grains on offer are those on for the applications this drill-down covers.
+                    const covered = applicationsFor(this.access, feature);
+                    const grains = GRAINS.filter((g) => covered.some((a) => a.features.includes(`view.${g}`)));
+                    const grain = grains.includes(this.grain) ? this.grain : grains.includes('month') ? 'month' : grains[0] ?? 'month';
+                    const day = this.on ? new Date(`${this.on}T00:00:00`) : new Date();
+                    this.period = periodOf(day, grain, this.fiscalStart);
+                    return new drills[feature]({ data, period: this.period, applications, grains });
+                },
+            };
+        }
+        if (feature === 'curate.queue') {
+            return {
+                data: 'needs',
+                make: (data, applications) => new NeedsView({
+                    data, settings: this.needsSettings, applications, access: this.access, by: this.as,
+                    onChanged: () => { delete this.sets.needs; this.render(); },
+                }),
+            };
+        }
+        return null;
+    }
+
+    async loadSet(key) {
+        if (this.sets[key]) return;
+        this.sets[key] = {};
         try {
-            const [releases, leads, calendar] = await Promise.all([fetchReleaseStatus(), fetchLeadTime(), fetchCalendar()]);
-            this.data = { releases, leads, calendar };
+            this.sets[key].value = await LOADERS[key]();
         } catch (e) {
-            this.dataError = e.message;
+            this.sets[key].error = e.message;
         }
         this.render();
     }
@@ -168,7 +243,9 @@ class PersonasPage {
                 : 'Nothing is granted to this member.';
             return `<p class="ps-empty">${escapeHtml(why)}</p>`;
         }
-        const columns = trimNav(NAV, features);
+        const columns = trimNav(NAV, features)
+            .map((g) => ({ ...g, items: g.items.filter((i) => !i.href) }))
+            .filter((g) => g.items.length > 0);
         const scope = estate
             ? `Every application, ${applications.length}, through a role on ${escapeHtml(this.estate)}.`
             : `${applications.length} application${applications.length === 1 ? '' : 's'}, each at the depth of the role held on it.`;

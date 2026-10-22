@@ -2,11 +2,13 @@
 @using Census.Web.Options
 @using Microsoft.Extensions.Options
 @inject IOptions<PersonasOptions> PersonasOptions
+@inject IOptions<MoveItOptions> MoveItOptions
 @{
     // Its own page, not _Layout: the persona UX is built beside the existing UIs and borrows
     // nothing from them, including the v1/v2 switch (personas.md §2).
     Layout = null;
-    var config = JsonSerializer.Serialize(new { rootId = "personas-root", fiscalStart = PersonasOptions.Value.FiscalYearStartMonth });
+    var config = JsonSerializer.Serialize(new { rootId = "personas-root", fiscalStart = PersonasOptions.Value.FiscalYearStartMonth,
+        staleDays = MoveItOptions.Value.StaleDays, comingDays = MoveItOptions.Value.ComingDays });
 }
 <!DOCTYPE html>
 <html lang="en">

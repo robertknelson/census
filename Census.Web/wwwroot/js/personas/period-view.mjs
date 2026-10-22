@@ -10,6 +10,23 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const shortDate = (v) => { const d = new Date(v); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
+// The period's heading and its steps, shared with the drill-down pages (drill-view.mjs). grains,
+// when given, offers a choice of grain (data-grain) beside the steps.
+export function periodHeadHtml(period, { current, count, grains = null }) {
+    const grain = period.grain;
+    return `
+                <div class="ps-period-head">
+                    <button type="button" class="ps-step" data-shift="-1" aria-label="Previous ${grain}">‹</button>
+                    <div class="ps-period-title">
+                        <h2 class="ps-h">${escapeHtml(period.label)}</h2>
+                        <p class="ps-sub">${spanText(period)}${current ? ` · this ${grain}` : ''} · ${plural(count, 'application')}</p>
+                    </div>
+                    <button type="button" class="ps-step" data-shift="1" aria-label="Next ${grain}">›</button>
+                    ${grains ? `<div class="ps-grains">${grains.map((g) => `<button type="button" class="ps-grain${g === grain ? ' is-active' : ''}" data-grain="${g}">${g[0].toUpperCase()}${g.slice(1)}</button>`).join('')}</div>` : ''}
+                    ${current ? '' : `<button type="button" class="ps-today" data-shift="today">This ${grain}</button>`}
+                </div>`;
+}
+
 export class PeriodView {
     // applications: [{ applicationId, name }] in scope for this grain's feature.
     constructor({ data, period, applications, fiscalStart, now = new Date() }) {
@@ -27,18 +44,9 @@ export class PeriodView {
 
     html() {
         const s = this.summary;
-        const grain = s.period.grain;
         return `
             <section class="ps-section ps-period">
-                <div class="ps-period-head">
-                    <button type="button" class="ps-step" data-shift="-1" aria-label="Previous ${grain}" title="${escapeHtml(s.previous.label)}">‹</button>
-                    <div class="ps-period-title">
-                        <h2 class="ps-h">${escapeHtml(s.period.label)}</h2>
-                        <p class="ps-sub">${spanText(s.period)}${s.current ? ` · this ${grain}` : ''} · ${plural(this.applications.length, 'application')}</p>
-                    </div>
-                    <button type="button" class="ps-step" data-shift="1" aria-label="Next ${grain}" title="${escapeHtml(s.next.label)}">›</button>
-                    ${s.current ? '' : `<button type="button" class="ps-today" data-shift="today">This ${grain}</button>`}
-                </div>
+                ${periodHeadHtml(s.period, { current: s.current, count: this.applications.length })}
                 <div class="ps-tiles">
                     ${this.tile('Shipped', 'releases first live', s.tiles.shipped)}
                     ${this.tile('Moves', 'builds arriving at a stage', s.tiles.moves)}

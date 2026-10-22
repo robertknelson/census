@@ -29,6 +29,18 @@ export const NAV = [
             { feature: 'curate.events', label: 'Events', hint: 'Approvals, holds, notes' },
         ],
     },
+    {
+        // The existing pages, each owned by the personas that read it (personas.md §8). They are
+        // links out: those pages are not trimmed to the member's applications. Census classic has
+        // no owner, so no item.
+        group: 'Elsewhere in Census',
+        items: [
+            { feature: 'surface.moveit', label: 'Move It', hint: 'Releases and features, every application', href: '/moveit/division' },
+            { feature: 'surface.atlas', label: 'Atlas', hint: 'How the systems connect', href: '/atlas' },
+            { feature: 'surface.estate', label: 'Estate', hint: 'Machines, software, hosting, certificates', href: '/estate' },
+            { feature: 'surface.day', label: 'Day', hint: 'What changed on the machines, and did it matter', href: '/day' },
+        ],
+    },
 ];
 
 export function trimNav(nav, features) {

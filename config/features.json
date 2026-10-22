@@ -131,6 +131,57 @@
             { "Name": "application-administrator", "RolloutPercentage": 100 },
             { "Name": "system-administrator", "RolloutPercentage": 100 }
           ] } } } ] }
+      },
+      {
+        "id": "surface.moveit",
+        "enabled": true,
+        "conditions": { "client_filters": [ { "name": "Microsoft.Targeting", "parameters": { "Audience": {
+          "DefaultRolloutPercentage": 0,
+          "Groups": [
+            { "Name": "executive", "RolloutPercentage": 100 },
+            { "Name": "product-owner", "RolloutPercentage": 100 },
+            { "Name": "application-owner", "RolloutPercentage": 100 },
+            { "Name": "technical-lead", "RolloutPercentage": 100 },
+            { "Name": "devops-lead", "RolloutPercentage": 100 },
+            { "Name": "application-administrator", "RolloutPercentage": 100 },
+            { "Name": "system-administrator", "RolloutPercentage": 100 }
+          ] } } } ] }
+      },
+      {
+        "id": "surface.atlas",
+        "enabled": true,
+        "conditions": { "client_filters": [ { "name": "Microsoft.Targeting", "parameters": { "Audience": {
+          "DefaultRolloutPercentage": 0,
+          "Groups": [
+            { "Name": "technical-lead", "RolloutPercentage": 100 },
+            { "Name": "devops-lead", "RolloutPercentage": 100 },
+            { "Name": "application-administrator", "RolloutPercentage": 100 },
+            { "Name": "system-administrator", "RolloutPercentage": 100 }
+          ] } } } ] }
+      },
+      {
+        "id": "surface.estate",
+        "enabled": true,
+        "conditions": { "client_filters": [ { "name": "Microsoft.Targeting", "parameters": { "Audience": {
+          "DefaultRolloutPercentage": 0,
+          "Groups": [
+            { "Name": "technical-lead", "RolloutPercentage": 100 },
+            { "Name": "devops-lead", "RolloutPercentage": 100 },
+            { "Name": "application-administrator", "RolloutPercentage": 100 },
+            { "Name": "system-administrator", "RolloutPercentage": 100 }
+          ] } } } ] }
+      },
+      {
+        "id": "surface.day",
+        "enabled": true,
+        "conditions": { "client_filters": [ { "name": "Microsoft.Targeting", "parameters": { "Audience": {
+          "DefaultRolloutPercentage": 0,
+          "Groups": [
+            { "Name": "technical-lead", "RolloutPercentage": 100 },
+            { "Name": "devops-lead", "RolloutPercentage": 100 },
+            { "Name": "application-administrator", "RolloutPercentage": 100 },
+            { "Name": "system-administrator", "RolloutPercentage": 100 }
+          ] } } } ] }
       }
     ]
   }

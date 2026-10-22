@@ -3,8 +3,10 @@
 > Spec 2026-10-22, from Robert's morning over Census and Move It: *"what we have built so far
 > is a lot of overlap … we need to focus on the Personas that will need to see/interact with
 > Census, MoveIT, and Atlas."* Position taken in conversation the same day; his answers to the
-> mapping questions are folded in (§3, §12). Status: **P-1, P-2 and P-3a built 2026-10-22** on branch
-> `personas` (§10, §13); `/personas` is the shell, the period view (§5.1) its first view. His typed notes
+> mapping questions are folded in (§3, §12). Status: **P-1 to P-4 built 2026-10-22** on branch `personas` (§10, §13):
+> the shell, the period view (§5.1), Needs you with its actions (§5.2, §5.4), the drill-downs
+> (§5.3), and links out to the existing pages (§8). The *Associations / Releases / Feature sets /
+> Events* items are still placeholders. His typed notes
 > from the morning are still to come and get sorted against this frame (§12, P1).
 
 ## 1. The question
@@ -108,6 +110,51 @@ Fiscal years are named by the year they end in (`FY27` starts 1 Oct 2026 when th
 10); with the default, January, they are plain calendar years. `Personas:FiscalYearStartMonth`.
 
 
+### 5.2 Needs you (P-3b) — the curator's home
+
+`curate.queue`: every gap waiting on a human word, for the applications the member curates
+(Sam: all five; Ada: Your WebApp only). Nothing stored, nothing dismissed — a line goes when the
+entry it asks for is made. History's own rules (`moveit/needs-a-word.mjs`, `findNeeds`) are used
+as they are, so the queue and History's *Needs a word* never disagree; the queue adds what History
+does not ask.
+
+| Section | A line when | From |
+|---|---|---|
+| Builds nobody has named | a build seen past DEV that no release claims — one line per build | history (05's rule) |
+| Releases waiting on a word | past target with no hold; at a stage longer than `MoveIt:StaleDays` with nothing recorded; live with no approval | `findNeeds` |
+| Releases with nothing in them | 02 says `empty`, not abandoned | 02 |
+| Heard about, still in no release | an item heard longer than `MoveIt:ComingDays` ago | `findNeeds` |
+| Ahead of what it depends on | a *current* order violation | 03 |
+| A stage that disagrees | an endpoint reporting a stage other than its registration | 06 |
+| Ready for the client | 04: ready (record the approval) or blocked (by what) | 04 |
+
+Each line links to the Move It page where it is fixed.
+
+### 5.3 Deployments and Builds (P-3c) — the Tech Lead's drill-down
+
+Same period steps as §5.1, with a choice of grain among those the member holds **on the
+applications the drill-down covers** (Max drills Reporting only, as its tech lead, so no *Year*).
+*Deployments*: every build arriving at a stage and every older build put back, newest first,
+grouped by day — application, stage, build, and the release that claims it (linked) or
+*unclaimed*; a rollback row says which build it replaced. *Builds*: each build first seen in the
+period — first and last seen, the stages it reached in stage order, the releases that claim it
+(named by id from 02) or *unclaimed*. From the calendar and `builds-seen`.
+
+### 5.4 Settling a line in place (P-3d)
+
+A queue line carries the action that settles it, shown only when the member holds that action's
+feature on the line's application:
+
+| Action | On | Writes (Move It's own endpoints) | Feature |
+|---|---|---|---|
+| Claim for a release | an unnamed build — pick one of its application's releases (not abandoned) | `claim-build` | `curate.associations` |
+| Record the approval | live with no approval; ready for the client | `event` — `approved`, stage = the top stage | `curate.events` |
+| Put on hold | past target with no hold; quiet too long | `event` — `hold`, the reason as the note (required) | `curate.events` |
+
+The action opens a small form under its line; *By* is the member's identifier. On save the queue is
+asked again, so a settled line simply goes. Information lines (order, stage, heard, empty, blocked)
+carry no action — they are settled where they link.
+
 ## 6. Feature management — what is adopted now
 
 The vocabulary of FM2280 (`C:\github\ai\fm2280\.docs\features\feature-access.md`), not its
@@ -172,6 +219,13 @@ inside its card.
 | Day | Tech Lead, Sys Admin |
 | Census classic | — (candidate to retire) |
 
+**Built (P-4).** The nav's last group, *Elsewhere in Census*, links out to Move It (Division),
+Atlas, Estate and Day, each item behind a `surface.*` feature granted per the table above — Move
+It to every reading role, the machine pages to technical-lead, devops-lead,
+application-administrator and system-administrator. Classic has no feature and no item. The
+links leave the persona UX: those pages show every application, not the member's (P10). The
+overview's matrix leaves the links out; it is about views.
+
 ## 9. Not doing
 
 - Digests or pushed summaries (views are current).
@@ -186,7 +240,11 @@ inside its card.
 | P-1 | Manufactured membership seed; Executive role locally; member → roles → features + scope, read from AppTrak; feature grants in JSON config. | A test per seeded member: features on/off and application scope as §4 says. |
 | P-2 | Persona UX shell beside the existing routes: member switcher, feature-trimmed sidebar. | Screenshot per persona; a mixed member sees the union. |
 | P-3a | The period view (§5.1) for the four *See* items. | `tests/Test-Period.mjs`; screenshots. |
-| P-3+ | The remaining views — drill-down, curation — and §5.1 reshaped by his notes. | Per view. |
+| P-3b | Needs you (§5.2). | `tests/Test-NeedsQueue.mjs`; screenshots. |
+| P-3c | Deployments and Builds (§5.3). | `tests/Test-Drill.mjs`; screenshots. |
+| P-3d | Actions on queue lines (§5.4). | `tests/Test-NeedsQueue.mjs`; a claim clicked through in a browser. |
+| P-4 | Links out to the existing pages (§8). | `tests/Test-PersonaNav.mjs`, `tests/Test-Personas.ps1`; screenshots. |
+| next | Associations, Releases, Feature sets, Events as their own pages; §5.1 reshaped by his notes. | Per view. |
 
 ## 11. API
 
@@ -195,7 +253,13 @@ inside its card.
 | `GET /api/personas/members` | Every member: identifier, name, Windows identity, grants (role, application). |
 | `GET /api/personas/members/{identifier}` | One member's access: `estate` (holds a role on Census), `estateRoles`, `estateFeatures`, `features` (the union), and `applications` — each with its own roles and its features (estate roles' plus its own). 404 for an unknown member. |
 
-Both 404 when `MoveIt:ConnectionString` is absent (the Demo profile), as Move It does.
+| `GET /api/personas/lead-time` | Question 09 verbatim (the period view's *shipped*). |
+| `GET /api/personas/order-violations` | Question 03 verbatim (Needs you). |
+| `GET /api/personas/stage-mismatch` | Question 06 verbatim (Needs you). |
+
+All 404 when `MoveIt:ConnectionString` is absent (the Demo profile), as Move It does. The views
+otherwise read Move It's own read endpoints, and the actions post to Move It's own writes; Move
+It's controller is untouched.
 
 **Pieces.** `apptrak/sql/membership/members.sql` and `applications.sql` (read-only, run by
 `MoveItQuestions`); `Services/MemberAccess.cs`; `Controllers/Api/PersonasController.cs`;
@@ -213,6 +277,9 @@ groups are role identifiers, matched case-insensitively; package Microsoft.Featu
 | `drill.deployments`, `drill.builds` | technical-lead, devops-lead, application-administrator, system-administrator |
 | `curate.queue`, `curate.associations`, `curate.releases`, `curate.feature-sets`, `curate.events` | application-administrator, system-administrator |
 
+| `surface.moveit` | every reading role: executive, product-owner, application-owner, technical-lead, devops-lead, application-administrator, system-administrator |
+| `surface.atlas`, `surface.estate`, `surface.day` | technical-lead, devops-lead, application-administrator, system-administrator |
+
 observer is granted nothing (§4: later). system-administrator is granted each feature by name;
 it is not a superset (FM2280's rule).
 
@@ -227,6 +294,9 @@ it is not a superset (FM2280's rule).
 | P5 | Fiscal year's first month. | A setting; the value from Robert. |
 | P6 | Census's own `membership.Application` row in the real database: does it exist, and its Identifier (assumed `census`, a setting). | Robert, from the real database. |
 | P8 | An application with no health regime (MortgageGateway in the fixtures) has *asserted* deployments only. They count as **shipped** (09 takes asserted PROD) but not as **moves**, which are observed arrivals — so its row is missing from *Where the change landed*. Count asserted moves too, marked, or leave the bar as "what we saw"? | Robert. |
+| P9 | A claim made from Needs you is recorded with Move It's configured *By* (`demo-board` locally), not the member: Move It's claim path takes its By from config. Events do carry the member. Pass the member through the claim path too? It changes Move It's write. | Robert. |
+| P10 | The links out (§8) open pages that show every application; a Product Owner following *Move It* leaves their scope. Scope those pages by member, or leave them as the wide view? | Robert. |
+| P11 | A rollback on an application with two PROD servers shows as two rows on the same day in *Deployments* (one per endpoint; the calendar has no machine). Fold them, or add the machine? | Robert. |
 | P7 | The local applications 2 and 3 are hand-made rows (My WebApp, Your WebApp) while Move It's fixtures call them WidgetPortal and LedgerService. The seed leaves them alone. Should it own them? | Robert's word. |
 
 ## 13. Verification log
@@ -261,3 +331,19 @@ August (two applications, MortgageGateway's asserted ship counted, P8); Terry's 
 current quarter — empty, with Sprint 43 under *Stuck today* with its hold reason. At 390px
 (framed) the tiles run two across and the columns stack. `‹ ›` were exercised by URL (`on=`),
 not clicked.
+
+**2026-10-22, P-3b to P-4.** `node tests/Test-NeedsQueue.mjs` **22 passed** (each section's
+rule, scope, the per-build inbox and its claim choices, which lines offer which action, actions
+by feature per application, and the exact request each action posts); `Test-Drill.mjs` **7**;
+`Test-PersonaNav.mjs` **13** (the links-out group, href only there); `Test-Period.mjs` **24**;
+`Test-Personas.ps1` **18** (expectations now include `surface.*`). Screenshots: Sam's queue (13
+lines across the seven sections, actions on the settle-able ones), Ada's (one line, Your
+WebApp, *Put on hold*), Terry's August deployments (10, the two-server rollback on 30 Aug), Max's
+Q3 builds (Reporting only, grains without *Year*), Terry's overview with the four links out;
+phone width for Sam's queue and Terry's deployments. **A claim was clicked through in headless
+Edge** (a throwaway harness driving the page in a frame): *Claim for a release*, the form offered
+the application's releases, *Claim*; the queue went from 13 lines to 12 and the build was gone;
+`moveit.ReleaseBuild` held the new row (`CreatedBy demo-board`, P9). The demo database was rebuilt
+afterwards (`Invoke-AppTrakDemo.ps1`), no board rows left. The approval and hold forms were not
+clicked; their requests are pinned by the test. A slip on the way: a second `load()` method on the
+page shadowed the first and blanked every screen; caught by the screenshots, renamed `loadSet`.

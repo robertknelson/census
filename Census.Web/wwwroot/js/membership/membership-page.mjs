@@ -101,6 +101,7 @@ class MembershipPage {
                     <button type="button" class="ps-save" data-go="new-member">New member</button>
                 </div>
             </section>
+            <div class="ps-grid ps-grid-2">
             <section class="ps-section">
                 <h3 class="ps-h3">Needs a word</h3>
                 ${needs.length ? `<ul class="mb-needs">${needs.join('')}</ul>` : '<p class="ps-none">Nothing: every application has someone, every member has a role.</p>'}
@@ -108,7 +109,8 @@ class MembershipPage {
             <section class="ps-section">
                 <h3 class="ps-h3">Recent changes</h3>
                 ${this.historyHtml(this.recent, 'No change has been made from this page yet.')}
-            </section>`;
+            </section>
+            </div>`;
     }
 
     historyHtml(entries, empty) {
@@ -186,7 +188,10 @@ class MembershipPage {
             .sort((x, y) => x.g.role.localeCompare(y.g.role) || x.m.name.localeCompare(y.m.name));
         const history = await this.api.audit('application', id);
         return `
+            <div class="ps-grid ps-grid-3"><div class="ps-stack">
             <section class="ps-section"><p class="ps-crumb"><a href="#" class="ps-link" data-go="applications">Applications</a></p><h3 class="ps-h">${escapeHtml(a.Name)}</h3>${form}</section>
+            <section class="ps-section"><h3 class="ps-h3">History</h3>${this.historyHtml(history, 'No change has been made to it from this page.')}</section>
+            </div><div class="ps-stack">
             <section class="ps-section">
                 <h3 class="ps-h3">Who holds a role here</h3>
                 ${holders.length ? `<ul class="ps-list">${holders.map(({ m, g }) => `
@@ -199,7 +204,7 @@ class MembershipPage {
                 </form>
             </section>
             ${this.partsHtml(id)}
-            <section class="ps-section"><h3 class="ps-h3">History</h3>${this.historyHtml(history, 'No change has been made to it from this page.')}</section>`;
+            </div></div>`;
     }
 
     async memberHtml(id) {
@@ -219,7 +224,10 @@ class MembershipPage {
         const grants = [...m.grants].sort((x, y) => String(x.application).localeCompare(String(y.application)) || x.role.localeCompare(y.role));
         const history = await this.api.audit('member', id);
         return `
+            <div class="ps-grid ps-grid-2"><div class="ps-stack">
             <section class="ps-section"><p class="ps-crumb"><a href="#" class="ps-link" data-go="members">Members</a></p><h3 class="ps-h">${escapeHtml(m.name)}</h3>${form}</section>
+            <section class="ps-section"><h3 class="ps-h3">History</h3>${this.historyHtml(history, 'No change has been made to this member from this page.')}</section>
+            </div><div class="ps-stack">
             <section class="ps-section">
                 <h3 class="ps-h3">Roles held</h3>
                 ${grants.length ? `<ul class="ps-list">${grants.map((g) => `
@@ -231,7 +239,7 @@ class MembershipPage {
                     <button type="submit" class="ps-save">Grant</button><span class="ps-form-status" data-status></span>
                 </form>
             </section>
-            <section class="ps-section"><h3 class="ps-h3">History</h3>${this.historyHtml(history, 'No change has been made to this member from this page.')}</section>`;
+            </div></div>`;
     }
 
     // ---- an application's parts: the roles it uses, its stages, its services ----
@@ -265,8 +273,11 @@ class MembershipPage {
                     <details class="cu-row cu-add"><summary>+ Add</summary>${renderForm(this.partFields(part), blank, { key: `part:${part}:new`, saveLabel: 'Add' })}</details>
                 </section>`;
         };
+        // The roles it uses stay in the middle column under who holds them; stages and services
+        // take the right-hand column.
         return section('role', 'Roles it uses', 'Which member-types roles this application recognises, and what it calls each.',
                 (p) => ({ roleId: p.ListId, alias: p.Detail }), (p) => `${escapeHtml(p.Value)}${p.Detail ? ` · called ${escapeHtml(p.Detail)}` : ''}`, {})
+            + '</div><div class="ps-stack">'
             + section('stage', 'Stages', 'The stages it deploys to, and its own name for each.',
                 (p) => ({ stageId: p.ListId, name: p.Detail }), (p) => `${escapeHtml(p.Value)} · ${escapeHtml(p.Detail ?? '')}`, {})
             + section('service', 'Services', 'What it carries (health check, structured logging…), since when, in what state.',

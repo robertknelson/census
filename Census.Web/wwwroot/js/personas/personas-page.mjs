@@ -140,6 +140,7 @@ class PersonasPage {
             <div class="ps-shell">
                 <header class="ps-top">
                     <span class="ps-brand">Census <span class="ps-brand-sub">persona preview</span></span>
+                    <span class="ps-who"><strong>${escapeHtml(member.name)}</strong> <span class="ps-roles">${escapeHtml(grantsText(member.grants))}</span>${this.access.estate ? ' <span class="ps-tag">estate-wide</span>' : ''}</span>
                     <label class="ps-as">View as
                         <select data-ps="as">
                             ${this.members.map((m) => `<option value="${escapeHtml(m.identifier)}"${m.identifier === this.as ? ' selected' : ''}>${escapeHtml(m.name)} · ${escapeHtml(m.grants.map((g) => g.role).filter((r, i, a) => a.indexOf(r) === i).join(', ') || 'no roles')}</option>`).join('')}
@@ -164,10 +165,6 @@ class PersonasPage {
                             </div>` : ''}
                     </nav>
                     <main class="ps-main">
-                        <div class="ps-who">
-                            <h1 class="ps-name">${escapeHtml(member.name)}</h1>
-                            <p class="ps-roles">${escapeHtml(grantsText(member.grants))}${this.access.estate ? ` <span class="ps-tag">estate-wide</span>` : ''}</p>
-                        </div>
                         ${this.mainHtml()}
                     </main>
                 </div>

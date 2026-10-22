@@ -351,6 +351,25 @@ Scripts `application-delete.sql`, `member-delete.sql`, `app-part-save.sql`, `app
 `<application>:<role | stage | service id>`, shown in the application's history. This answers
 open item P14.
 
+### 6.4 Large screens first (2026-10-22)
+
+Robert: *"this app will only be used with large screens. can we utilize the horizontal space more
+efficiently? i hate scrolling down down down in order to take in the views."* The persona UX lays a
+page across the width:
+
+- **The top bar carries who you are viewing as** (name, roles, *estate-wide*), not a heading
+  block on every page.
+- **A detail page is columns** (`ps-grid-2` / `ps-grid-3`, each column a `ps-stack`): a release —
+  the release and its history | its features and fixes | its builds and events; an application —
+  its fields and history | who holds a role and the roles it uses | its stages and services; a
+  member — fields and history | roles held; an item — its fields | its links.
+- **A collection of groups flows into columns** (`ps-grid-auto`, 30rem each): Needs you's seven
+  groups; Associations' claims beside links; the membership landing's *Needs a word* beside
+  *Recent changes*. The period view's four lists sit four across.
+- **Forms fit more fields to a row** (10–11rem a field).
+
+Below 1100px it falls back to one column; the phone layout is no longer designed for.
+
 ## 7. View as
 
 A **member switcher** in the persona UX picks a `membership.Member` and renders the UX as that
@@ -501,6 +520,11 @@ August (two applications, MortgageGateway's asserted ship counted, P8); Terry's 
 current quarter — empty, with Sprint 43 under *Stuck today* with its hold reason. At 390px
 (framed) the tiles run two across and the columns stack. `‹ ›` were exercised by URL (`on=`),
 not clicked.
+
+**2026-10-22, large screens.** Screenshots at 1920×1080 as Sam: Sprint 43's page (three columns,
+the whole release on one screen), WidgetCore's membership page (three columns), Needs you (all
+thirteen lines, seven groups in two rows of three), the membership landing (the two lists side by
+side). No behaviour changed; every node test still passes.
 
 **2026-10-22, E-3 — membership, all of it.** `tests/Test-Membership.ps1` **32 passed** (the 20
 before, plus: a role the application uses added with its alias and refused twice, a stage added and

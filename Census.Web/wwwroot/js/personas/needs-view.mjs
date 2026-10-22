@@ -29,12 +29,12 @@ export class NeedsView {
                 <h2 class="ps-h">Needs you</h2>
                 <p class="ps-sub">${total === 0 ? 'Nothing is waiting on a word' : `${total} ${total === 1 ? 'thing is' : 'things are'} waiting on a word`} across ${this.count} application${this.count === 1 ? '' : 's'}. A line goes when the entry it asks for is made.</p>
             </section>`;
-        return head + this.sections.map((s) => `
+        return head + '<div class="ps-grid ps-grid-auto">' + this.sections.map((s) => `
             <section class="ps-section">
                 <h3 class="ps-h3">${escapeHtml(s.title)} <span class="ps-count">${s.lines.length}</span></h3>
                 <p class="ps-sub">${escapeHtml(s.hint)}</p>
                 <ul class="ps-list">${s.lines.map((l) => this.lineHtml(l)).join('')}</ul>
-            </section>`).join('');
+            </section>`).join('') + '</div>';
     }
 
     lineHtml(line) {

@@ -4,6 +4,15 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — large screens first
+
+**Columns by the page's own structure, not a masonry flow.** A detail page has fixed columns (the
+record left, what hangs off it to the right), so opening a fold never reshuffles the page; only a
+collection of equal groups (Needs you) flows into as many columns as fit.
+
+**The 1100px fallback stays** — cheap, and a half-width window still reads. The phone layout is no
+longer designed for, per your word.
+
 ## 2026-10-22 — membership, all of it (E-3)
 
 **An application still named by Move It or the pings cannot be deleted** — the refusal counts what

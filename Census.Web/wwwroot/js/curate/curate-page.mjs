@@ -139,17 +139,23 @@ class CuratePage {
         const items = this.items.filter((w) => w.ReleaseId === id);
         const builds = this.builds.filter((b) => b.ReleaseId === id);
         const events = this.events.filter((e) => e.ReleaseId === id);
+        // Wide screens (Robert, 2026-10-22: "i hate scrolling down down down"): the release and its
+        // history on the left, its features and fixes in the middle, its builds and events right.
         return `
+            <div class="ps-grid ps-grid-3"><div class="ps-stack">
             <section class="ps-section">
                 <p class="ps-crumb"><a href="#" class="ps-link" data-go="">Releases</a> · <a class="ps-link" href="/moveit/release/${id}">Move It's page ↗</a></p>
                 <h2 class="ps-h">${escapeHtml(r.Name)}</h2>
                 ${renderForm(releaseFields(this.ctx), rowValues(r), { key: `release:${id}`, canDelete: true })}
             </section>
+            <section class="ps-section"><h3 class="ps-h3">History</h3>${this.historyHtml(history)}</section>
+            </div><div class="ps-stack">
             <section class="ps-section">
                 <h3 class="ps-h3">Features and fixes <span class="mb-n">${items.length}</span></h3>
                 ${items.map((w) => this.itemDetails(w)).join('')}
                 ${this.addDetails('Add a feature or fix', renderForm(itemFields(this.ctx), { applicationId: r.ApplicationId, releaseId: id, kind: 'feature' }, { key: 'workitem:new', saveLabel: 'Add' }))}
             </section>
+            </div><div class="ps-stack">
             <section class="ps-section">
                 <h3 class="ps-h3">Builds it claims <span class="mb-n">${builds.length}</span></h3>
                 ${builds.map((b) => this.details(`<span class="ps-mono">${escapeHtml(b.Build)}</span>${b.Note ? ` · ${escapeHtml(b.Note)}` : ''}`, renderForm(buildFields(this.ctx), rowValues(b), { key: `build:${b.ReleaseBuildId}`, canDelete: true }))).join('')}
@@ -160,7 +166,7 @@ class CuratePage {
                 ${events.map((e) => this.eventDetails(e)).join('')}
                 ${this.addDetails('Record an event', renderForm(eventFields(this.ctx), { releaseId: id, at: new Date().toISOString(), by: this.by }, { key: 'event:new', saveLabel: 'Record' }))}
             </section>
-            <section class="ps-section"><h3 class="ps-h3">History</h3>${this.historyHtml(history)}</section>`;
+            </div></div>`;
     }
 
     // ---- Features & fixes ----
@@ -199,6 +205,7 @@ class CuratePage {
         const w = this.items.find((x) => x.WorkItemId === id);
         if (!w) return '<p class="ps-error">That item is not in your applications, or no longer exists.</p>';
         return `
+            <div class="ps-grid ps-grid-2">
             <section class="ps-section">
                 <p class="ps-crumb"><a href="#" class="ps-link" data-go="">Features and fixes</a>${w.ReleaseId ? ` · in <a class="ps-link" href="/moveit/release/${w.ReleaseId}">${escapeHtml(this.releaseLabel(w.ReleaseId))} ↗</a>` : ''}</p>
                 <h2 class="ps-h">${escapeHtml(w.Title)}</h2>
@@ -208,7 +215,8 @@ class CuratePage {
                 <h3 class="ps-h3">Links</h3>
                 ${this.linksHtml(this.links.filter((l) => l.WorkItemId === id || l.LinkedWorkItemId === id))}
                 ${this.addDetails('Link to another item', renderForm(linkFields(this.ctx), { workItemId: id, kind: 'depends-on' }, { key: 'link:new', saveLabel: 'Link' }))}
-            </section>`;
+            </section>
+            </div>`;
     }
 
     itemDetails(w) {
@@ -222,6 +230,7 @@ class CuratePage {
     associationsHtml() {
         const builds = [...this.builds].sort((a, b) => this.releaseLabel(a.ReleaseId).localeCompare(this.releaseLabel(b.ReleaseId)) || a.Build.localeCompare(b.Build));
         return `
+            <div class="ps-grid ps-grid-2">
             <section class="ps-section">
                 <h2 class="ps-h">Build claims <span class="mb-n">${builds.length}</span></h2>
                 <p class="ps-sub">Which release says a build is its. Correct the release or the build, or delete a wrong claim.</p>
@@ -234,7 +243,8 @@ class CuratePage {
                 <p class="ps-sub">Depends on: the linked item must be deployed first. Related to: these go together.</p>
                 ${this.linksHtml(this.links)}
                 ${this.addDetails('Link two items', renderForm(linkFields(this.ctx), { kind: 'depends-on' }, { key: 'link:new', saveLabel: 'Link' }))}
-            </section>`;
+            </section>
+            </div>`;
     }
 
     linksHtml(links) {

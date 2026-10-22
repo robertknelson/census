@@ -25,7 +25,7 @@ $steps = @(
     'sql\002-create-moveit-schema.sql',
     'sql\003-lookups.sql'
 )
-if (-not $SkipSeed) { $steps += 'seed\seed-apptrak-demo.sql' }
+if (-not $SkipSeed) { $steps += 'seed\seed-apptrak-demo.sql', 'seed\seed-membership-demo.sql' }
 $steps += 'sql\backfill-deployment.sql'
 
 foreach ($step in $steps) {

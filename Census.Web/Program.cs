@@ -1,9 +1,12 @@
+using System.IO;
 using Census.Web.Options;
 using Census.Web.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.FeatureManagement;
+using Microsoft.FeatureManagement.FeatureFilters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +30,12 @@ builder.Services.AddSingleton<FindingsEngine>();
 builder.Services.Configure<MoveItOptions>(builder.Configuration.GetSection(MoveItOptions.SectionName));
 builder.Services.AddSingleton<MoveItQuestions>();
 builder.Services.AddSingleton<MoveItEntry>();
+builder.Services.Configure<PersonasOptions>(builder.Configuration.GetSection(PersonasOptions.SectionName));
+var personas = builder.Configuration.GetSection(PersonasOptions.SectionName).Get<PersonasOptions>() ?? new PersonasOptions();
+builder.Configuration.AddJsonFile(Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, personas.FeaturesConfigPath)), optional: false, reloadOnChange: true);
+builder.Services.AddFeatureManagement();
+builder.Services.Configure<TargetingEvaluationOptions>(o => o.IgnoreCase = true);
+builder.Services.AddSingleton<MemberAccess>();
 
 var app = builder.Build();
 

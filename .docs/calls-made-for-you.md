@@ -4,6 +4,27 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — P-1: the seed, the catalog, the address
+
+**The seed leaves the hand-made applications 2 and 3 alone.** Options: overwrite them with the
+Move It fixture names (WidgetPortal, LedgerService); leave them and add only the missing
+fixtures (1, 4, 5) plus Census. Call: leave them — they were made by hand, and scope works by
+id either way. Open item P7 asks whether the seed should own them.
+
+**Census gets a fixed id, 100.** An identity value would move on every reseed; the fixtures
+use fixed ids so answers compare. 100 is clear of the Move It fixtures.
+
+**The feature catalog is provisional** (`personas.md` §11): grain (`view.*`), drill-down
+(`drill.*`) and curation (`curate.*`), granted per §4's table. Its job in P-1 is to prove the
+mechanism; the names and grants will be reshaped once the views exist.
+
+**A member is addressed by Identifier, not Id.** Ids move on reseed; the Identifier is the
+member's stable name, and it is what a Windows-identity lookup resolves to later.
+
+**This work is on branch `personas`; the spec commit moved off `main`.** He asked for a
+separate branch after the spec was committed locally on `main` (unpushed); `main` was set back
+to `origin/main` and the commit lives on `personas`.
+
 ## 2026-10-22 — personas: where estate-wide roles live, and where grants are kept
 
 **A role held on the Census application is estate-wide.** Options: a new table for global

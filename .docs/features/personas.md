@@ -3,7 +3,8 @@
 > Spec 2026-10-22, from Robert's morning over Census and Move It: *"what we have built so far
 > is a lot of overlap … we need to focus on the Personas that will need to see/interact with
 > Census, MoveIT, and Atlas."* Position taken in conversation the same day; his answers to the
-> mapping questions are folded in (§3, §12). Status: **spec, nothing built.** His typed notes
+> mapping questions are folded in (§3, §12). Status: **P-1 built 2026-10-22** on branch
+> `personas` (§10, §13); no UI yet. His typed notes
 > from the morning are still to come and get sorted against this frame (§12, P1).
 
 ## 1. The question
@@ -155,7 +156,31 @@ as an application, and the Executive role.
 
 ## 11. API
 
-To be written with P-1.
+| Endpoint | Answers |
+|---|---|
+| `GET /api/personas/members` | Every member: identifier, name, Windows identity, grants (role, application). |
+| `GET /api/personas/members/{identifier}` | One member's access: `estate` (holds a role on Census), `estateRoles`, `estateFeatures`, `features` (the union), and `applications` — each with its own roles and its features (estate roles' plus its own). 404 for an unknown member. |
+
+Both 404 when `MoveIt:ConnectionString` is absent (the Demo profile), as Move It does.
+
+**Pieces.** `apptrak/sql/membership/members.sql` and `applications.sql` (read-only, run by
+`MoveItQuestions`); `Services/MemberAccess.cs`; `Controllers/Api/PersonasController.cs`;
+`Options/PersonasOptions.cs` (`Personas:EstateApplication`, `Personas:FeaturesConfigPath`);
+`config/features.json` in Microsoft's feature-flag schema, `Microsoft.Targeting` filters whose
+groups are role identifiers, matched case-insensitively; package Microsoft.FeatureManagement
+4.2.1 (FM2280's version, so code ports). A member is addressed by `Identifier`, never by `Id`.
+
+**The provisional catalog** (`config/features.json`), to be reshaped by the views:
+
+| Feature | Granted to |
+|---|---|
+| `view.year` | executive, product-owner, application-owner, system-administrator |
+| `view.quarter`, `view.month`, `view.week` | those, plus technical-lead, devops-lead, application-administrator |
+| `drill.deployments`, `drill.builds` | technical-lead, devops-lead, application-administrator, system-administrator |
+| `curate.queue`, `curate.associations`, `curate.releases`, `curate.feature-sets`, `curate.events` | application-administrator, system-administrator |
+
+observer is granted nothing (§4: later). system-administrator is granted each feature by name;
+it is not a superset (FM2280's rule).
 
 ## 12. Open items
 
@@ -167,3 +192,15 @@ To be written with P-1.
 | P4 | The Executive's questions (§5). | His notes. |
 | P5 | Fiscal year's first month. | A setting; the value from Robert. |
 | P6 | Census's own `membership.Application` row in the real database: does it exist, and its Identifier (assumed `census`, a setting). | Robert, from the real database. |
+| P7 | The local applications 2 and 3 are hand-made rows (My WebApp, Your WebApp) while Move It's fixtures call them WidgetPortal and LedgerService. The seed leaves them alone. Should it own them? | Robert's word. |
+
+## 13. Verification log
+
+**2026-10-22, P-1.** `tests/Test-Personas.ps1` against Census.Web on the Development profile
+(5292), membership reseeded: **18 passed, 0 failed** — Sys Admin and Executive estate-wide over
+the five applications (Census not among them); Product Owner and Tech Lead scoped to two each at
+their depth; Application Administrator curating one; the mixed member at product-owner depth on
+one application and tech-lead depth on the other, union member-wide; observer and the role-less
+member with no features; unknown member 404. `tests/Test-MoveItQuestions.ps1` after the full
+rebuild (which now runs the membership seed): **33 passed, 0 failed**. Demo profile boots;
+the persona API is 404 there.

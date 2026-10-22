@@ -311,7 +311,27 @@ per release; a link once per kind, never to itself. Kinds and stages must be in 
 transaction; `Services/MoveItEdit.cs`, `Services/ScriptRunner.cs` (shared with the membership
 page), `Controllers/Api/EditController.cs` (`/api/edit/...`).
 
-Pages: §6.3.1 (E-2). Membership's remaining tables and deletes: E-3.
+#### 6.3.1 The curate pages (E-2)
+
+The four *Curate* items stopped being placeholders. Each reads every asserted row as stored
+(`/api/edit/releases|workitems|builds|events|links`), trimmed to the applications on which the
+member holds that item's feature (Sam all five, Ada her one).
+
+| Item | Page |
+|---|---|
+| **Releases** | the list (items, builds, events counted); one release: its fields, then **Features and fixes**, **Builds it claims**, **Events** — each row a fold that opens into its form — each with an *add*; its **History** (`moveit.EditAudit`, deletes included); a link to Move It's own page |
+| **Features & fixes** (was *Feature sets*) | every item, in a release or the notebook; one item: every column, and its **Links** |
+| **Associations** | every build claim, and every link between items |
+| **Events** | every event, newest first; one form each |
+
+Every form is the same engine (`curate/record-form.mjs`) over a field list (`curate-fields.mjs`):
+selects from AppTrak's lists, the applications in scope, the releases and items there; a date-time
+in the reader's local time, sent as its moment. **Delete asks twice, inline** — the first click
+turns the button into *Really delete?* — never a browser dialog. After every write the page reads
+everything again. The place inside the page rides in the URL (`cu=release:ID | item:ID |
+new-release | new-item`); a nav click starts afresh.
+
+Membership's remaining tables and deletes: E-3.
 
 ## 7. View as
 
@@ -463,6 +483,16 @@ August (two applications, MortgageGateway's asserted ship counted, P8); Terry's 
 current quarter — empty, with Sprint 43 under *Stuck today* with its hold reason. At 390px
 (framed) the tiles run two across and the columns stack. `‹ ›` were exercised by URL (`on=`),
 not clicked.
+
+**2026-10-22, E-2 — the curate pages.** `tests/Test-Curate.mjs` **9 passed** (rows onto fields,
+values drawn and escaped, empty as null, ints, a local date-time to its moment and back).
+Clicked through in headless Edge as Sam on WidgetCore's Sprint 43: an event's note corrected
+through its form (*Saved.*), Delete pressed once (reads *Really delete?*, nothing deleted), twice
+(*Deleted…*, the form gone, the history leading with *deleted event*, *updated event*); *New
+release* filled and created, landing on the new release's page. `moveit.EditAudit` held the three
+rows by demo-sam. Screenshots: Releases, Features & fixes (19, the removed one greyed),
+Associations (12 claims, 5 links), Events; Ada's Releases holding her one application's release.
+The demo database was rebuilt afterwards: no demo-sam rows or history left.
 
 **2026-10-22, E-1 — correcting anything, the API.** `tests/Test-Edit.ps1` against a running
 instance: **30 passed** — for a release, an item (in a release and in the notebook), a link, a

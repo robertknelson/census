@@ -9,6 +9,7 @@ import { escapeHtml } from '../moveit/format.mjs';
 import divisionPage from '../moveit/division-page.mjs';
 import featureAccessPage from '../feature-access/feature-access-page.mjs';
 import membershipPage from '../membership/membership-page.mjs';
+import curatePage from '../curate/curate-page.mjs';
 
 // The persona UX shell (personas.md §7, slice P-2): pick a member, see the UX as they would —
 // the nav trimmed to their features, each view shown for the applications where it is on.
@@ -125,8 +126,9 @@ class PersonasPage {
         if (this.at) params.set('at', this.at);
         if (this.at && this.on && grainOf(this.at)) params.set('on', this.on);
         if (this.at?.startsWith('drill.') && this.grain) params.set('g', this.grain);
-        const mb = new URLSearchParams(location.search).get('mb');
-        if (this.at === MEMBERSHIP && mb) params.set('mb', mb);
+        const here = new URLSearchParams(location.search);
+        if (this.at === MEMBERSHIP && here.get('mb')) params.set('mb', here.get('mb'));
+        if (this.at?.startsWith('curate.') && here.get('cu')) params.set('cu', here.get('cu'));
         return `${location.pathname}?${params}`;
     }
 
@@ -176,6 +178,11 @@ class PersonasPage {
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.at = a.dataset.at || OVERVIEW;
+                // A nav click starts the page afresh: no place inside the last one.
+                const here = new URLSearchParams(location.search);
+                here.delete('cu');
+                here.delete('mb');
+                history.replaceState(null, '', `${location.pathname}?${here}`);
                 this.render();
             });
         }
@@ -221,6 +228,10 @@ class PersonasPage {
         }
         const view = this.viewFor(this.at);
         if (!view) return this.itemHtml();
+        if (view.mount) {
+            this.view = view.make();
+            return this.view.html();
+        }
         const set = this.sets[view.data];
         if (set?.error) return `<p class="ps-error">${escapeHtml(set.error)}</p>`;
         if (!set?.value) {
@@ -258,6 +269,19 @@ class PersonasPage {
                     this.period = periodOf(day, grain, this.fiscalStart);
                     return new drills[feature]({ data, period: this.period, applications, grains });
                 },
+            };
+        }
+        if (['curate.releases', 'curate.feature-sets', 'curate.associations', 'curate.events'].includes(feature)) {
+            // The curate pages (personas.md §6.3.1) read their own data once mounted.
+            return {
+                mount: true,
+                make: () => ({
+                    html: () => '<div id="curate" class="cu-root"></div>',
+                    bind: () => curatePage.init({
+                        root: '#curate', feature, by: this.as, headers: { 'X-Census-Member': this.as },
+                        applications: applicationsFor(this.access, feature).map((a) => ({ applicationId: a.applicationId, name: a.name })),
+                    }),
+                }),
             };
         }
         if (feature === 'curate.queue') {

@@ -4,6 +4,20 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — the curate pages (E-2)
+
+**One form engine for every record** rather than five hand-built forms: a field list per row
+type, one renderer, one reader. A column added later is a line in a field list.
+
+**Rows fold, forms open on demand.** A release with twenty items and events would otherwise be a
+wall of inputs; the fold shows the row as a sentence until opened.
+
+**"Feature sets" in the nav reads "Features & fixes".** The page edits every item, not releases of
+kind featureset; the feature key (`curate.feature-sets`) is unchanged, so no grant moves.
+
+**Delete is two clicks on the same button**, not a confirm dialog: dialogs block the page, and an
+armed red button is its own warning.
+
 ## 2026-10-22 — correcting anything (E-1, the API)
 
 **Your ruling, recorded:** correct anything, events included, in place or by delete; audited so

@@ -24,9 +24,9 @@ export const NAV = [
         group: 'Curate',
         items: [
             { feature: 'curate.queue', label: 'Needs you', hint: 'Gaps waiting on a human word' },
-            { feature: 'curate.associations', label: 'Associations', hint: 'Correct what is linked to what' },
-            { feature: 'curate.releases', label: 'Releases', hint: 'Add and edit releases' },
-            { feature: 'curate.feature-sets', label: 'Feature sets', hint: 'What a release carries' },
+            { feature: 'curate.associations', label: 'Associations', hint: 'Build claims, and links between items' },
+            { feature: 'curate.releases', label: 'Releases', hint: 'A release and everything under it' },
+            { feature: 'curate.feature-sets', label: 'Features & fixes', hint: 'Every feature and fix, in a release or not' },
             { feature: 'curate.events', label: 'Events', hint: 'Approvals, holds, notes' },
         ],
     },

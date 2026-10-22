@@ -283,6 +283,36 @@ history written while viewing as a demo member.
 
 Not here yet: `ApplicationRole`, `ApplicationStage`, `ApplicationService` (P14).
 
+### 6.3 Correcting anything (2026-10-22)
+
+Robert: *"i need to be able to edit ALL 'value added' data in MoveIT, and also in Membership"*, then
+*"i need to be able to correct anything, especially since i will be the only user for months.
+later, we MAY lock it down."* Value added: what people assert, never what Census observes
+(`moveit.Deployment`, `health.*` stay read-only).
+
+| Row | Every column the API corrects | Delete |
+|---|---|---|
+| Release | application (its items follow), name, kind, target date, note | whole: links of its items, events, build claims, items; items heard before it go back to the notebook (the existing cascade, move-it.md §16) |
+| Feature / fix | application, release (or none), kind, title, description, built by, external ref, build, found-in stage, removed at / why (and un-removed) | with its links, either direction |
+| Build claim | release, build, note | the row |
+| Event | release, kind, stage, build, when, by whom, note — **corrected in place** | the row |
+| Link | item, linked item, kind, note | the row |
+
+**Events are corrected and deleted in place** — Robert's ruling, reversing move-it.md §14's
+"events are never updated" for these pages (the manifest loader keeps §14's rule). Nothing is
+lost: **`moveit.EditAudit`** keeps every row before and after; a delete keeps the whole row, and a
+release's delete keeps the release with everything under it. Census's own schema, so no DDL in
+AppTrak's (`apptrak/sql/edit/001-edit-audit.sql`).
+
+Rules kept (the scripts, 409): a release name is unique in its application, an item title in its
+release (the loader's identities); an item's release is its application's; a build claimed once
+per release; a link once per kind, never to itself. Kinds and stages must be in AppTrak's lists
+(400, every reason at once). Scripts in `apptrak/sql/edit`, one per change, audit row in the same
+transaction; `Services/MoveItEdit.cs`, `Services/ScriptRunner.cs` (shared with the membership
+page), `Controllers/Api/EditController.cs` (`/api/edit/...`).
+
+Pages: §6.3.1 (E-2). Membership's remaining tables and deletes: E-3.
+
 ## 7. View as
 
 A **member switcher** in the persona UX picks a `membership.Member` and renders the UX as that
@@ -433,6 +463,16 @@ August (two applications, MortgageGateway's asserted ship counted, P8); Terry's 
 current quarter — empty, with Sprint 43 under *Stuck today* with its hold reason. At 390px
 (framed) the tiles run two across and the columns stack. `‹ ›` were exercised by URL (`on=`),
 not clicked.
+
+**2026-10-22, E-1 — correcting anything, the API.** `tests/Test-Edit.ps1` against a running
+instance: **30 passed** — for a release, an item (in a release and in the notebook), a link, a
+build claim and an event: create, correct every column, each refusal (409 for the identities, 400
+with every reason), delete; an event corrected in place and Move It's own release status showing
+the corrected approval time, then deleted and Move It no longer counting it; a release moved to
+another application taking its item along; a release deleted taking its item, claim and link, the
+notebook item kept, the delete's audit holding the whole release with its item; every change
+demo-sam's. The membership test's `Get-Api` was found reading an array as one object (PowerShell 7)
+— its row checks passed by luck; both helpers now enumerate, and it still passes 20.
 
 **2026-10-22, the membership page.** `tests/Test-Membership.ps1` against a running instance:
 **20 passed** — create an application, a taken identifier refused (409, said plainly), settings not

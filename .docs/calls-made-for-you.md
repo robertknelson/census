@@ -4,6 +4,20 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — correcting anything (E-1, the API)
+
+**Your ruling, recorded:** correct anything, events included, in place or by delete; audited so
+nothing is lost; lock-down later, maybe. §14's "events are never updated" stands for the loader.
+
+**Moving a release to another application moves its items.** An item's application must equal its
+release's (the script refuses otherwise), so the move carries them rather than refusing it.
+
+**The demo seed now clears anything `demo-%` wrote**, not only its three fixture writers, so edits
+made while viewing as a demo member reset with the demo.
+
+**One script runner for both pages** (`ScriptRunner`): the membership page and the curate pages run
+scripts the same way; two copies would drift.
+
 ## 2026-10-22 — the membership page
 
 **Census now writes membership — your ask reverses §3's "never writes".** Recorded there as

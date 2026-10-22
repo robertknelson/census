@@ -32,7 +32,8 @@ function Post {
     $r = Invoke-WebRequest -Uri "$BaseUrl$Path" -Method Post -Headers $headers -ContentType 'application/json' -Body ($Body | ConvertTo-Json) -SkipHttpErrorCheck
     return @{ Status = [int]$r.StatusCode; Body = ($r.Content | ConvertFrom-Json) }
 }
-function Get-Api { param([string]$Path) Invoke-RestMethod -Uri "$BaseUrl$Path" -Headers $headers }
+# Invoke-RestMethod hands an array back as one object (PowerShell 7); enumerate it so Where-Object sees rows.
+function Get-Api { param([string]$Path) (Invoke-RestMethod -Uri "$BaseUrl$Path" -Headers $headers) | ForEach-Object { $_ } }
 function Seed { & sqlcmd -S $Server -d $Database -E -b -I -i (Join-Path $repo 'apptrak\seed\seed-membership-demo.sql'); if ($LASTEXITCODE) { throw 'membership seed failed' } }
 
 Seed

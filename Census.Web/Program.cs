@@ -44,6 +44,7 @@ builder.Services.AddFeatureAccess(o =>
 builder.Services.AddSingleton<IRoleCatalog, MemberTypesRoleCatalog>();
 builder.Services.AddSingleton<MemberAccess>();
 builder.Services.AddSingleton<MembershipAdmin>();
+builder.Services.AddSingleton<MoveItEdit>();
 
 var app = builder.Build();
 

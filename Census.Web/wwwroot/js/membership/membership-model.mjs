@@ -54,9 +54,19 @@ export function describeAudit(entry) {
         const g = after ?? before ?? {};
         return `${entry.Action === 'granted' ? 'Granted' : 'Revoked'} ${g.Role} to ${g.Member} on ${g.Application}`;
     }
+    if (entry.Entity.startsWith('application-')) {
+        const part = entry.Entity.slice('application-'.length);
+        const row = after ?? before ?? {};
+        const detail = part === 'role' ? `role ${row.RoleId}${row.Alias ? ` (${row.Alias})` : ''}`
+            : part === 'stage' ? `stage ${row.StageId} named ${row.Name}`
+            : `service ${row.ServiceTypeId} since ${String(row.StartOn ?? '').slice(0, 10)}, ${row.Status}`;
+        const verb = { created: 'Added', updated: 'Corrected', deleted: 'Removed' }[entry.Action] ?? entry.Action;
+        return `${verb} ${detail} on application ${row.ApplicationId ?? entry.EntityKey.split(':')[0]}`;
+    }
     const what = entry.Entity === 'application' ? 'application' : 'member';
     const label = (after ?? before ?? {}).Identifier ?? entry.EntityKey;
     if (entry.Action === 'created') return `Created ${what} ${label}`;
+    if (entry.Action === 'deleted') return `Deleted ${what} ${label}`;
     const changed = Object.keys(after ?? {})
         .filter((k) => JSON.stringify(after[k]) !== JSON.stringify(before?.[k]))
         .map((k) => `${k} ${JSON.stringify(before?.[k] ?? '')} → ${JSON.stringify(after[k])}`);

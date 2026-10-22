@@ -13,10 +13,15 @@ export class MembershipApi {
     members() { return this.#get('/api/membership/members'); }
     lists() { return this.#get('/api/membership/lists'); }
     recent() { return this.#get('/api/membership/audit/recent'); }
+    appParts() { return this.#get('/api/membership/app-parts'); }
     audit(entity, id) { return this.#get(`/api/membership/audit/${entity}/${id}`); }
 
     saveApplication(id, body) { return this.#post(id ? `/api/membership/applications/${id}` : '/api/membership/applications', body); }
     saveMember(id, body) { return this.#post(id ? `/api/membership/members/${id}` : '/api/membership/members', body); }
+    deleteApplication(id) { return this.#post(`/api/membership/applications/${id}/delete`, {}); }
+    deleteMember(id) { return this.#post(`/api/membership/members/${id}/delete`, {}); }
+    savePart(body) { return this.#post('/api/membership/parts/save', body); }
+    deletePart(body) { return this.#post('/api/membership/parts/delete', body); }
     grant(body) { return this.#post('/api/membership/grants/grant', body); }
     revoke(body) { return this.#post('/api/membership/grants/revoke', body); }
 

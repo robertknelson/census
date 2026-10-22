@@ -92,6 +92,44 @@ Assert-That '  an update keeps both sides' (($upd1.PreviousValue | ConvertFrom-J
 $recent = Get-Api '/api/membership/audit/recent'
 Assert-That 'recent changes lead with the last revoke' ($recent[0].Action -eq 'revoked') $recent[0].Action
 
+Write-Host 'Parts of an application'
+$lists = Get-Api '/api/membership/lists'
+$val = ($lists | Where-Object { $_.List -eq 'stages' -and $_.Identifier -eq 'VAL' }).Id
+$health = ($lists | Where-Object { $_.List -eq 'service-types' -and $_.Identifier -eq 'health-check' }).Id
+$p1 = Post '/api/membership/parts/save' @{ part = 'role'; applicationId = $appId; roleId = $tech; alias = 'Lead' }
+Assert-That 'add a role the application uses, with its alias' ($p1.Status -eq 200 -and $p1.Body.key -eq "${appId}:${tech}") "$($p1.Status) $($p1.Body.errors)"
+Assert-That '  the same role twice: 409' ((Post '/api/membership/parts/save' @{ part = 'role'; applicationId = $appId; roleId = $tech }).Status -eq 409)
+$p2 = Post '/api/membership/parts/save' @{ part = 'stage'; applicationId = $appId; stageId = $val; name = 'Val' }
+Assert-That 'add a stage with its own name' ($p2.Status -eq 200)
+Assert-That '  a name longer than the column (10): 400' ((Post '/api/membership/parts/save' @{ part = 'stage'; applicationId = $appId; stageId = $val; name = 'Validation stage'; oldKey = $val }).Status -eq 400)
+$p3 = Post '/api/membership/parts/save' @{ part = 'service'; applicationId = $appId; serviceTypeId = $health; startOn = '2026-10-01'; status = 'live' }
+Assert-That 'add a service, since a date, with a status' ($p3.Status -eq 200)
+$svcId = [int]($p3.Body.key -split ':')[1]
+$p3b = Post '/api/membership/parts/save' @{ part = 'service'; applicationId = $appId; serviceTypeId = $health; startOn = '2026-10-02'; status = 'paused'; oldKey = $svcId }
+$parts = Get-Api '/api/membership/app-parts' | Where-Object { $_.ApplicationId -eq $appId }
+Assert-That '  correct it' ($p3b.Status -eq 200 -and ($parts | Where-Object { $_.Part -eq 'service' }).Status -eq 'paused') (($parts | Where-Object { $_.Part -eq 'service' }).Status)
+$rm = Post '/api/membership/parts/delete' @{ part = 'stage'; applicationId = $appId; oldKey = $val }
+Assert-That 'remove the stage; removing it again: 404' ($rm.Status -eq 200 -and (Post '/api/membership/parts/delete' @{ part = 'stage'; applicationId = $appId; oldKey = $val }).Status -eq 404)
+
+Write-Host 'Deletes'
+$inUse = Post '/api/membership/applications/1/delete'
+Assert-That 'deleting an application Move It still names: 409, saying what names it' ($inUse.Status -eq 409 -and $inUse.Body.errors[0] -like '*release*') "$($inUse.Status) $($inUse.Body.errors)"
+$m2 = Post '/api/membership/members' @{ identifier = 'demo-test-gone'; windowsIdentity = 'DEMO\gone'; firstName = 'Gone'; lastName = 'Soon' }
+$m2Id = [int]$m2.Body.key
+$null = Post '/api/membership/grants/grant' @{ memberId = $m2Id; applicationId = $appId; roleId = $tech }
+$dm = Post "/api/membership/members/$m2Id/delete"
+$grantsLeft = Get-Api '/api/membership/members' | Where-Object { $_.MemberId -eq $m2Id }
+Assert-That 'delete a member: gone, with their grant' ($dm.Status -eq 200 -and @($grantsLeft).Count -eq 0) "$($dm.Status) $(@($grantsLeft).Count)"
+$mh2 = Get-Api "/api/membership/audit/member/$m2Id"
+Assert-That '  the history keeps the member and the grant it held' (($mh2 | Where-Object Action -eq 'deleted') -and (($mh2 | Where-Object Action -eq 'deleted').PreviousValue | ConvertFrom-Json).Grants.Count -eq 1)
+
+$da = Post "/api/membership/applications/$appId/delete"
+$left = Get-Api '/api/membership/applications' | Where-Object { $_.ApplicationId -eq $appId }
+$appParts = Get-Api '/api/membership/app-parts' | Where-Object { $_.ApplicationId -eq $appId }
+Assert-That 'delete the test application: gone, its roles and service with it' ($da.Status -eq 200 -and @($left).Count -eq 0 -and @($appParts).Count -eq 0) "$($da.Status)"
+$ah2 = Get-Api "/api/membership/audit/application/$appId"
+Assert-That '  its history keeps it, and what hung off it' ((($ah2 | Where-Object { $_.Entity -eq 'application' -and $_.Action -eq 'deleted' }).PreviousValue | ConvertFrom-Json).Services.Count -eq 1)
+
 Seed
 $left = Get-Api '/api/membership/applications' | Where-Object { $_.Identifier -like 'demo-test*' }
 Assert-That 'the membership seed removes what the test made' (@($left).Count -eq 0) @($left).Count

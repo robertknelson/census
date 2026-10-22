@@ -331,7 +331,25 @@ turns the button into *Really delete?* — never a browser dialog. After every w
 everything again. The place inside the page rides in the URL (`cu=release:ID | item:ID |
 new-release | new-item`); a nav click starts afresh.
 
-Membership's remaining tables and deletes: E-3.
+#### 6.3.2 Membership, all of it (E-3)
+
+The membership page (§6.2) now corrects every value-added row there:
+
+- **Delete an application** — two clicks, inline. **Refused while Move It or the health pings
+  name it** (its releases, items, endpoints are counted in the refusal): deleting it then would
+  orphan their rows; retire it, or move or delete those first. Its grants, roles, stages and
+  services go with it, all kept in the audit.
+- **Delete a member** — two clicks; their grants go with them, kept in the audit.
+- **Roles it uses** (`ApplicationRole`: a member-types role, and what the application calls it),
+  **Stages** (`ApplicationStage`: a stage from AppTrak's list, and its own name, ten characters),
+  **Services** (`ApplicationService`: a service type, since when, its status) — each listed on the
+  application's page, each row a fold opening into its form (the curate form engine), each added,
+  corrected, removed. Once per application for a role or a stage (the tables' keys).
+
+Scripts `application-delete.sql`, `member-delete.sql`, `app-part-save.sql`, `app-part-delete.sql`,
+`admin-app-parts.sql`; audit entities `application-role | -stage | -service`, key
+`<application>:<role | stage | service id>`, shown in the application's history. This answers
+open item P14.
 
 ## 7. View as
 
@@ -447,7 +465,7 @@ it is not a superset (FM2280's rule).
 | P11 | A rollback on an application with two PROD servers shows as two rows on the same day in *Deployments* (one per endpoint; the calendar has no machine). Fold them, or add the machine? | Robert. |
 | P12 | The feature access API lets every request through (Census has no sign-in), and records the member viewed as. When identity arrives: the admin policy becomes a role check (system-administrator), and the actor the signed-in user. | Identity — the shell host plan, or Windows auth on Census itself. |
 | P13 | `membership.MembershipAudit` is new DDL in AppTrak's membership schema. Keep it there, move it (an audit schema of its own?), or leave writes unaudited? | Robert, before the real server. |
-| P14 | The membership page edits applications, members and grants. `ApplicationRole` (which roles an application uses, with aliases), `ApplicationStage` and `ApplicationService` are not on it yet; nothing in Census reads them. Wanted? | Robert. |
+| ~~P14~~ | ~~`ApplicationRole`, `ApplicationStage`, `ApplicationService` on the page?~~ **Yes** — "edit ALL value added data … also in Membership" (2026-10-22); built (§6.3.2). Nothing in Census reads them yet. | Closed. |
 | P15 | Is anything else writing membership (AppTrak's own screens)? If so, two editors and no row versions: last write wins, though each Census write keeps the row it replaced in the audit. | Robert. |
 | P7 | The local applications 2 and 3 are hand-made rows (My WebApp, Your WebApp) while Move It's fixtures call them WidgetPortal and LedgerService. The seed leaves them alone. Should it own them? | Robert's word. |
 
@@ -483,6 +501,17 @@ August (two applications, MortgageGateway's asserted ship counted, P8); Terry's 
 current quarter — empty, with Sprint 43 under *Stuck today* with its hold reason. At 390px
 (framed) the tiles run two across and the columns stack. `‹ ›` were exercised by URL (`on=`),
 not clicked.
+
+**2026-10-22, E-3 — membership, all of it.** `tests/Test-Membership.ps1` **32 passed** (the 20
+before, plus: a role the application uses added with its alias and refused twice, a stage added and
+a name too long for its column refused, a service added and corrected, a stage removed and a second
+removal refused; deleting application 1 refused because Move It names it, saying so; a member with a
+grant deleted, the grant with them, the history keeping both; the test application deleted with its
+role and service, its history keeping them). `Test-Membership.mjs` **15**. Clicked through in headless
+Edge as Sam: a stage added to WidgetCore through its form (*VAL · Val* listed, *Added stage 42 named
+Val on application 1* in its history); Nova deleted by two clicks, landing on Members without her.
+The membership seed now also clears demo applications' roles, stages and services; reseeded after.
+`Test-Edit.ps1` 30, `Test-Personas.ps1` 18, `Test-MoveItQuestions.ps1` 33, every node test, again.
 
 **2026-10-22, E-2 — the curate pages.** `tests/Test-Curate.mjs` **9 passed** (rows onto fields,
 values drawn and escaped, empty as null, ints, a local date-time to its moment and back).

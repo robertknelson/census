@@ -1,6 +1,7 @@
 import { escapeHtml, isoDate } from '../moveit/format.mjs';
 import { MembershipApi } from './membership-api.mjs';
 import { describeAudit, findGaps, groupMembers } from './membership-model.mjs';
+import { readForm, renderForm, toPayload } from '../curate/record-form.mjs';
 
 // The membership page (personas.md §6.2): AppTrak's applications, members, and who holds which role
 // where. A landing page first — the counts, what needs a word, what changed lately — then the two
@@ -27,7 +28,10 @@ class MembershipPage {
     async load() {
         this.root.innerHTML = '<p class="ps-none">Reading membership…</p>';
         try {
-            const [applications, memberRows, lists, recent] = await Promise.all([this.api.applications(), this.api.members(), this.api.lists(), this.api.recent()]);
+            const [applications, memberRows, lists, recent, parts] = await Promise.all([this.api.applications(), this.api.members(), this.api.lists(), this.api.recent(), this.api.appParts()]);
+            this.parts = parts;
+            this.stages = lists.filter((l) => l.List === 'stages');
+            this.serviceTypes = lists.filter((l) => l.List === 'service-types');
             this.applications = applications;
             this.members = groupMembers(memberRows);
             this.types = lists.filter((l) => l.List === 'application-types');
@@ -175,7 +179,7 @@ class MembershipPage {
                 <label class="mb-wide">Tags <input name="tags" maxlength="510" value="${escapeHtml(a?.Tags ?? '')}" /></label>
                 <label class="mb-wide">Settings (JSON) <textarea name="settings" rows="3">${escapeHtml(a?.Settings ?? '{ "settings":null}')}</textarea></label>
                 <datalist id="mb-dispositions">${DISPOSITIONS.map((d) => `<option value="${d}"></option>`).join('')}</datalist>
-                <div class="mb-wide mb-actions"><button type="submit" class="ps-save">${a ? 'Save' : 'Create'}</button><span class="ps-form-status" data-status></span></div>
+                <div class="mb-wide mb-actions"><button type="submit" class="ps-save">${a ? 'Save' : 'Create'}</button>${a ? '<button type="button" class="ps-cancel cu-delete" data-delete-record="application">Delete</button>' : ''}<span class="ps-form-status" data-status></span></div>
             </form>`;
         if (!a) return `<section class="ps-section"><h3 class="ps-h3">New application</h3>${form}</section>`;
         const holders = this.members.flatMap((m) => m.grants.filter((g) => g.applicationId === id).map((g) => ({ m, g })))
@@ -194,6 +198,7 @@ class MembershipPage {
                     <button type="submit" class="ps-save">Grant</button><span class="ps-form-status" data-status></span>
                 </form>
             </section>
+            ${this.partsHtml(id)}
             <section class="ps-section"><h3 class="ps-h3">History</h3>${this.historyHtml(history, 'No change has been made to it from this page.')}</section>`;
     }
 
@@ -208,7 +213,7 @@ class MembershipPage {
                 <label>Identifier <input name="identifier" required maxlength="100" value="${escapeHtml(m?.identifier ?? '')}" /></label>
                 <label>Windows identity <input name="windowsIdentity" required maxlength="72" value="${escapeHtml(m?.windowsIdentity ?? '')}" placeholder="DOMAIN\\user" /></label>
                 <label class="mb-wide">Email <input name="email" type="email" maxlength="100" value="${escapeHtml(m?.email ?? '')}" /></label>
-                <div class="mb-wide mb-actions"><button type="submit" class="ps-save">${m ? 'Save' : 'Create'}</button><span class="ps-form-status" data-status></span></div>
+                <div class="mb-wide mb-actions"><button type="submit" class="ps-save">${m ? 'Save' : 'Create'}</button>${m ? '<button type="button" class="ps-cancel cu-delete" data-delete-record="member">Delete</button>' : ''}<span class="ps-form-status" data-status></span></div>
             </form>`;
         if (!m) return `<section class="ps-section"><h3 class="ps-h3">New member</h3>${form}</section>`;
         const grants = [...m.grants].sort((x, y) => String(x.application).localeCompare(String(y.application)) || x.role.localeCompare(y.role));
@@ -227,6 +232,45 @@ class MembershipPage {
                 </form>
             </section>
             <section class="ps-section"><h3 class="ps-h3">History</h3>${this.historyHtml(history, 'No change has been made to this member from this page.')}</section>`;
+    }
+
+    // ---- an application's parts: the roles it uses, its stages, its services ----
+
+    partFields(part) {
+        const opts = (list) => list.map((x) => ({ value: x.Id, label: x.Identifier }));
+        if (part === 'role') return [
+            { name: 'roleId', label: 'Role', type: 'select', int: true, required: true, options: opts(this.roles) },
+            { name: 'alias', label: 'What this application calls it', type: 'text' },
+        ];
+        if (part === 'stage') return [
+            { name: 'stageId', label: 'Stage', type: 'select', int: true, required: true, options: opts(this.stages) },
+            { name: 'name', label: 'Its name for it (10)', type: 'text', required: true },
+        ];
+        return [
+            { name: 'serviceTypeId', label: 'Service', type: 'select', int: true, required: true, options: opts(this.serviceTypes) },
+            { name: 'startOn', label: 'Since', type: 'date', required: true },
+            { name: 'status', label: 'Status', type: 'text', required: true },
+        ];
+    }
+
+    partsHtml(id) {
+        const mine = this.parts.filter((p) => p.ApplicationId === id);
+        const section = (part, title, hint, values, summary, blank) => {
+            const rows = mine.filter((p) => p.Part === part);
+            return `
+                <section class="ps-section">
+                    <h3 class="ps-h3">${title} <span class="mb-n">${rows.length}</span></h3>
+                    <p class="ps-sub">${hint}</p>
+                    ${rows.map((p) => `<details class="cu-row"><summary>${summary(p)}</summary>${renderForm(this.partFields(part), values(p), { key: `part:${part}:${p.PartKey}`, canDelete: true })}</details>`).join('')}
+                    <details class="cu-row cu-add"><summary>+ Add</summary>${renderForm(this.partFields(part), blank, { key: `part:${part}:new`, saveLabel: 'Add' })}</details>
+                </section>`;
+        };
+        return section('role', 'Roles it uses', 'Which member-types roles this application recognises, and what it calls each.',
+                (p) => ({ roleId: p.ListId, alias: p.Detail }), (p) => `${escapeHtml(p.Value)}${p.Detail ? ` · called ${escapeHtml(p.Detail)}` : ''}`, {})
+            + section('stage', 'Stages', 'The stages it deploys to, and its own name for each.',
+                (p) => ({ stageId: p.ListId, name: p.Detail }), (p) => `${escapeHtml(p.Value)} · ${escapeHtml(p.Detail ?? '')}`, {})
+            + section('service', 'Services', 'What it carries (health check, structured logging…), since when, in what state.',
+                (p) => ({ serviceTypeId: p.ListId, startOn: p.StartOn, status: p.Status }), (p) => `${escapeHtml(p.Value)} · since ${escapeHtml(isoDate(p.StartOn))} · ${escapeHtml(p.Status)}`, { status: 'none' });
     }
 
     // ---- events ----
@@ -255,6 +299,26 @@ class MembershipPage {
             this.write(() => this.api.saveMember(kind === 'member' ? Number(id) : null, Object.fromEntries(new FormData(member))),
                 kind === 'member' ? 'Saved.' : 'Created.', member, (r) => `member:${r.key}`);
         });
+        for (const form of this.root.querySelectorAll('form[data-record^="part:"]')) {
+            const [, part, key] = form.dataset.record.split(':');
+            const oldKey = key === 'new' ? null : Number(key);
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const body = { part, applicationId: Number(id), oldKey, ...toPayload(this.partFields(part), readForm(form)) };
+                this.write(() => this.api.savePart(body), oldKey ? 'Saved.' : 'Added.', form);
+            });
+            form.querySelector('[data-delete]')?.addEventListener('click', (e) => {
+                if (!this.armed(e.currentTarget)) return;
+                this.write(() => this.api.deletePart({ part, applicationId: Number(id), oldKey }), 'Removed. The history keeps what it was.', form);
+            });
+        }
+        for (const b of this.root.querySelectorAll('[data-delete-record]')) {
+            b.addEventListener('click', () => {
+                if (!this.armed(b)) return;
+                const call = b.dataset.deleteRecord === 'application' ? () => this.api.deleteApplication(Number(id)) : () => this.api.deleteMember(Number(id));
+                this.write(call, 'Deleted. The history keeps what it was.', b.closest('form'), () => (b.dataset.deleteRecord === 'application' ? 'applications' : 'members'));
+            });
+        }
         const grant = this.root.querySelector('[data-form="grant"]');
         grant?.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -266,6 +330,14 @@ class MembershipPage {
             };
             this.write(() => this.api.grant(body), 'Granted.', grant);
         });
+    }
+
+    // Delete asks twice, inline: the first click arms the button, the second acts.
+    armed(button) {
+        if (button.textContent === 'Really delete?') return true;
+        button.textContent = 'Really delete?';
+        button.classList.add('is-armed');
+        return false;
     }
 
     // Write, then read everything again (the lists are small), so the page shows what the tables hold.

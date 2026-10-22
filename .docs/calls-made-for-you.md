@@ -4,6 +4,17 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — membership, all of it (E-3)
+
+**An application still named by Move It or the pings cannot be deleted** — the refusal counts what
+names it. "Correct anything" stands, but a delete that leaves releases pointing at nothing is a new
+error, not a correction; retire it, or delete or move its releases first.
+
+**A member's delete takes their grants**; the audit keeps both.
+
+**The parts history shows ids** (*stage 42*, *role 71*), not names: the audit row is the table's
+row. Say if you want names resolved there.
+
 ## 2026-10-22 — the curate pages (E-2)
 
 **One form engine for every record** rather than five hand-built forms: a field list per row

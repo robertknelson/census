@@ -41,5 +41,10 @@ assert('a creation in words', describeAudit(created) === 'Created application se
 const updated = { Entity: 'member', Action: 'updated', EntityKey: '9', PreviousValue: JSON.stringify({ Identifier: 'tess', FirstName: 'Tess' }), NewValue: JSON.stringify({ Identifier: 'tess', FirstName: 'Tessa' }) };
 assert('an update names only what changed', describeAudit(updated) === 'Updated member tess: FirstName "Tess" → "Tessa"', describeAudit(updated));
 
+const gone = { Entity: 'member', Action: 'deleted', EntityKey: '9', PreviousValue: JSON.stringify({ Identifier: 'tess' }) };
+assert('a delete in words', describeAudit(gone) === 'Deleted member tess', describeAudit(gone));
+const part = { Entity: 'application-stage', Action: 'created', EntityKey: '3:42', NewValue: JSON.stringify({ ApplicationId: 3, StageId: 42, Name: 'Val' }) };
+assert('an application part in words', describeAudit(part) === 'Added stage 42 named Val on application 3', describeAudit(part));
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed) process.exit(1);

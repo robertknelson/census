@@ -38,6 +38,9 @@ IF OBJECT_ID('membership.MembershipAudit', 'U') IS NOT NULL
     DELETE FROM membership.MembershipAudit WHERE ChangedBy LIKE 'demo-%';
 DELETE FROM membership.MemberApplicationRole WHERE MemberId IN (SELECT Id FROM membership.Member WHERE Identifier LIKE 'demo-%');
 DELETE FROM membership.MemberApplicationRole WHERE ApplicationId IN (SELECT Id FROM membership.Application WHERE Tags = 'demo');
+DELETE FROM membership.ApplicationRole    WHERE ApplicationRole IN (SELECT Id FROM membership.Application WHERE Tags = 'demo');
+DELETE FROM membership.ApplicationStage   WHERE ApplicationId IN (SELECT Id FROM membership.Application WHERE Tags = 'demo');
+DELETE FROM membership.ApplicationService WHERE ApplicationId IN (SELECT Id FROM membership.Application WHERE Tags = 'demo');
 DELETE FROM membership.Member WHERE Identifier LIKE 'demo-%';
 DELETE FROM membership.Application WHERE Tags = 'demo';
 

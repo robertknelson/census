@@ -23,6 +23,9 @@ public class MembershipController(MembershipAdmin membership) : ControllerBase
     [HttpGet("lists")]
     public Task<IActionResult> Lists() => Read(membership.ListsAsync);
 
+    [HttpGet("app-parts")]
+    public Task<IActionResult> AppParts() => Read(membership.AppPartsAsync);
+
     [HttpGet("audit/recent")]
     public Task<IActionResult> RecentAudit() => Read(membership.RecentAuditAsync);
 
@@ -45,6 +48,37 @@ public class MembershipController(MembershipAdmin membership) : ControllerBase
 
     [HttpPost("members/{id:int}")]
     public Task<IActionResult> UpdateMember(int id, [FromBody] MemberSave request) => SaveMember(id, request);
+
+    [HttpPost("applications/{id:int}/delete")]
+    public async Task<IActionResult> DeleteApplication(int id)
+    {
+        if (!membership.Enabled) return NotFound();
+        return Result(await membership.DeleteApplicationAsync(id, Actor));
+    }
+
+    [HttpPost("members/{id:int}/delete")]
+    public async Task<IActionResult> DeleteMember(int id)
+    {
+        if (!membership.Enabled) return NotFound();
+        return Result(await membership.DeleteMemberAsync(id, Actor));
+    }
+
+    [HttpPost("parts/save")]
+    public async Task<IActionResult> SavePart([FromBody] AppPartSave request)
+    {
+        if (!membership.Enabled) return NotFound();
+        var errors = MembershipAdmin.Validate(request);
+        if (errors.Count > 0) return BadRequest(new { errors });
+        return Result(await membership.SavePartAsync(request, Actor));
+    }
+
+    [HttpPost("parts/delete")]
+    public async Task<IActionResult> DeletePart([FromBody] AppPartSave request)
+    {
+        if (!membership.Enabled) return NotFound();
+        if (request.Part is not ("role" or "stage" or "service") || request.OldKey is null) return BadRequest(new { errors = new[] { "Say which part to remove." } });
+        return Result(await membership.DeletePartAsync(request, Actor));
+    }
 
     [HttpPost("grants/grant")]
     public Task<IActionResult> Grant([FromBody] GrantSave request) => SaveGrant(request, revoke: false);

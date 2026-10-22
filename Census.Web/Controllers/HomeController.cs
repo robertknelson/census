@@ -113,6 +113,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // The persona UX (personas.md §7), beside the existing pages: view as a member, the nav
+    // trimmed to their features. Reads membership from AppTrak, so not mounted without it.
+    [HttpGet("/personas")]
+    public IActionResult Personas([FromServices] MemberAccess access)
+    {
+        if (!access.Enabled) return NotFound();
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

@@ -3,8 +3,8 @@
 > Spec 2026-10-22, from Robert's morning over Census and Move It: *"what we have built so far
 > is a lot of overlap … we need to focus on the Personas that will need to see/interact with
 > Census, MoveIT, and Atlas."* Position taken in conversation the same day; his answers to the
-> mapping questions are folded in (§3, §12). Status: **P-1 built 2026-10-22** on branch
-> `personas` (§10, §13); no UI yet. His typed notes
+> mapping questions are folded in (§3, §12). Status: **P-1 and P-2 built 2026-10-22** on branch
+> `personas` (§10, §13); `/personas` is the shell, the views are P-3. His typed notes
 > from the morning are still to come and get sorted against this frame (§12, P1).
 
 ## 1. The question
@@ -129,6 +129,19 @@ Locally the membership tables are empty: a **manufactured seed** gives one membe
 plus a mixed member (product owner on one application, tech lead on another), Census registered
 as an application, and the Executive role.
 
+**The shell (P-2), `/personas`.** Its own page (no `_Layout`, no v1/v2 switch), its own
+`personas.css` and `wwwroot/js/personas/`. A dark top line carries *View as* (every member,
+with their roles); the left nav is `persona-nav.mjs`'s one declaration trimmed to the member's
+features. **Overview** names the member's grants (and *estate-wide* when a role is held on
+Census) and draws an application × feature matrix — the comparison at a glance: each row the
+role held there (or *via Census*), a dot where the feature is on. A nav item shows its feature,
+the applications it is on for (the mixed member's *Year* is MortgageGateway only, *Deployments*
+Reporting only), and a placeholder until P-3. A member with nothing granted gets a sentence,
+not an empty frame. Member and item live in the URL (`?as=demo-max&at=drill.deployments`);
+the last member is remembered per browser. An item the new member lacks falls back to
+Overview. Under 720px the nav becomes wrapped rows above the page and the matrix scrolls
+inside its card.
+
 ## 8. Existing surfaces by persona (first guess, for his notes to correct)
 
 | Surface | Owner |
@@ -204,3 +217,13 @@ one application and tech-lead depth on the other, union member-wide; observer an
 member with no features; unknown member 404. `tests/Test-MoveItQuestions.ps1` after the full
 rebuild (which now runs the membership seed): **33 passed, 0 failed**. Demo profile boots;
 the persona API is 404 there.
+
+**2026-10-22, P-2.** `node tests/Test-PersonaNav.mjs`: **11 passed** — every nav item names a
+catalog feature and every catalog feature has an item; Executive keeps *See* only, Tech Lead
+loses *Year* and keeps *Drill into*; nothing granted leaves no groups; the mixed member's items
+each name the right applications. Headless Edge screenshots at 1400px of every seeded member
+(Sam, Ellen, Paula, Terry, Ada, Max on Overview, *Year* and *Deployments*, Otto) agree with §4;
+at 390px (inside a 390px frame — headless Edge will not size a window that narrow) Sam's and
+Max's pages fit with no page scroll, the matrix scrolling in its card. The switcher's change
+event and nav clicks were not clicked in a browser; each state was loaded by URL, which is the
+same render path.

@@ -1,0 +1,81 @@
+/* The persona UX shell (personas.md §7). Its own file, like moveit.css: built beside the existing
+   pages, sharing none of their rules. The same quiet palette as Move It so the two compare on
+   substance, not dress. */
+
+:root {
+    --ps-paper: #f3f4f6;
+    --ps-panel: #ffffff;
+    --ps-rule: #d6dae1;
+    --ps-rule-soft: #e7eaef;
+    --ps-ink: #1a212c;
+    --ps-muted: #66707e;
+    --ps-on: #0b5394;
+    --ps-alert: #b3261e;
+    --ps-font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --ps-display: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --ps-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    --ps-nav-col: 12rem;
+}
+
+html, body { margin: 0; background: var(--ps-paper); }
+
+#personas-root { min-height: 100vh; color: var(--ps-ink); font: 14px/1.45 var(--ps-font); }
+#personas-root h1, #personas-root h2, #personas-root h3, #personas-root p, #personas-root ul { margin: 0; }
+#personas-root :focus-visible { outline: 2px solid var(--ps-ink); outline-offset: 2px; }
+#personas-root code { font: 12px/1 var(--ps-mono); background: var(--ps-rule-soft); padding: 0.1rem 0.3rem; border-radius: 3px; }
+
+.ps-error { padding: 2rem 1.25rem; color: var(--ps-alert); }
+
+.ps-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+.ps-top { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 1rem; padding: 0.55rem 1.25rem; background: var(--ps-ink); color: #fff; }
+.ps-brand { font: 600 15px/1.2 var(--ps-display); }
+.ps-brand-sub { margin-left: 0.35rem; font-weight: 400; color: rgba(255, 255, 255, 0.62); }
+.ps-as { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; font-size: 12.5px; color: rgba(255, 255, 255, 0.75); }
+.ps-as select { max-width: 22rem; padding: 0.25rem 0.4rem; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; background: #2a3240; color: #fff; font: inherit; }
+
+.ps-body { flex: 1; display: flex; min-height: 0; }
+
+.ps-nav { flex: none; width: var(--ps-nav-col); padding: 1rem 0.75rem; background: var(--ps-panel); border-right: 1px solid var(--ps-rule); display: flex; flex-direction: column; gap: 0.9rem; }
+.ps-nav-group { display: flex; flex-direction: column; gap: 0.1rem; }
+.ps-nav-h { padding: 0 0.5rem 0.2rem; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ps-muted); }
+.ps-nav-item { padding: 0.3rem 0.5rem; border-radius: 4px; color: var(--ps-ink); text-decoration: none; font-size: 13.5px; }
+.ps-nav-item:hover { background: var(--ps-rule-soft); }
+.ps-nav-item.is-active { background: var(--ps-ink); color: #fff; font-weight: 600; }
+
+.ps-main { flex: 1; min-width: 0; padding: 1.25rem 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.ps-name { font: 600 20px/1.2 var(--ps-display); }
+.ps-roles { margin-top: 0.2rem; color: var(--ps-muted); }
+.ps-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.45rem; border-radius: 999px; background: var(--ps-on); color: #fff; font-size: 11.5px; }
+
+.ps-section { min-width: 0; padding: 1rem 1.1rem; background: var(--ps-panel); border: 1px solid var(--ps-rule); border-radius: 6px; display: flex; flex-direction: column; gap: 0.5rem; }
+.ps-h { font: 600 16px/1.25 var(--ps-display); }
+.ps-h3 { margin-top: 0.5rem !important; font-size: 13px; font-weight: 600; }
+.ps-sub, .ps-crumb { color: var(--ps-muted); font-size: 13px; }
+.ps-crumb { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.ps-empty { padding: 1rem 1.1rem; background: var(--ps-panel); border: 1px dashed var(--ps-rule); border-radius: 6px; color: var(--ps-muted); }
+
+.ps-scroll { overflow-x: auto; }
+.ps-matrix { border-collapse: collapse; font-size: 13px; }
+.ps-matrix th, .ps-matrix td { padding: 0.35rem 0.55rem; border-bottom: 1px solid var(--ps-rule-soft); text-align: center; white-space: nowrap; }
+.ps-matrix thead th { font-weight: 600; font-size: 12px; color: var(--ps-muted); border-bottom-color: var(--ps-rule); }
+.ps-matrix .ps-group-h { color: var(--ps-ink); border-bottom: 1px solid var(--ps-rule); }
+.ps-matrix .ps-app-col { text-align: left; font-weight: 600; color: var(--ps-ink); }
+.ps-role { text-align: left !important; color: var(--ps-muted); }
+.ps-on { color: var(--ps-on); }
+.ps-off { color: #b9bfc9; }
+
+.ps-chips { padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.ps-chip { padding: 0.15rem 0.6rem; border: 1px solid var(--ps-rule); border-radius: 999px; font-size: 12.5px; }
+.ps-placeholder { margin-top: 0.5rem; padding: 1.5rem 1rem; border: 1px dashed var(--ps-rule); border-radius: 6px; color: var(--ps-muted); text-align: center; }
+
+@media (max-width: 720px) {
+    .ps-top { padding: 0.55rem 1rem; }
+    .ps-as { margin-left: 0; width: 100%; min-width: 0; }
+    .ps-as select { flex: 1; min-width: 0; width: 100%; max-width: none; }
+    .ps-body { flex-direction: column; }
+    .ps-nav { width: auto; padding: 0.6rem 1rem; border-right: 0; border-bottom: 1px solid var(--ps-rule); flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; }
+    .ps-nav-group { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.25rem; }
+    .ps-nav-h { padding: 0 0.25rem 0 0; }
+    .ps-main { padding: 1rem 1rem 1.5rem; }
+}

@@ -4,6 +4,23 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — P-2: the shell's route, its nav, its landing
+
+**The route is `/personas`.** A working name, matching the API and the spec; rename it by
+saying so. It is its own page without `_Layout`, so nothing existing changes, the v1/v2
+switch included.
+
+**The nav is trimmed in the browser, not in Razor.** Census's pages are .mjs-driven, nothing
+is gated yet, and the trimmed nav is display, not security (§6). When gating comes, the
+server decides and the nav stays a mirror of it.
+
+**The landing is an application × feature matrix.** Options: land on the first nav item; land
+on a sentence; land on the matrix. Call: the matrix — this slice's job is comparing personas,
+and the matrix shows a member's whole access in one look, depth per application included.
+
+**Member and item ride in the URL** so a screen can be linked and screenshotted; the last
+member is also remembered per browser (a convenience, not state).
+
 ## 2026-10-22 — P-1: the seed, the catalog, the address
 
 **The seed leaves the hand-made applications 2 and 3 alone.** Options: overwrite them with the

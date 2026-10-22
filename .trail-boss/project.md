@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Pushed 2026-10-16 (3fb8663..1dc9bce): the five smoke-test fixes. Pull on the live environment and look — the Changes window with two dates, Division with the rail and scope, Releases on All, the Calendar coloured by release. Then /day on the real estate (what reads wrong). Slice 4 (the Move It join) waits on the machine → application mapping on real data; slice 5 (the landing) after a week; the week of generated demo days is the next demo-side slice. Still pending from 10-09: the two AppTrak scripts once, question 14 with the #Id, tick AppTrak cross-cutting, canonical names + Layered on one system. Then the Move It Sort UPDATE and nine steps.'
+next_step: 'Before going live: restrict the site to your account (no sign-in yet; anyone reaching /personas can edit) and grant Census''s login write rights on the new tables; then run .docs/go-live-personas.md in order on the real AppTrak, deploy main, and look at /personas as yourself. Answer P13 (membership audit table in your schema) first.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,20 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-22 (persona re-imagining; pushed to main on his word)
+- His pivot: personas (Executive, Product/App Owner, Tech Lead, Sys Admin, later an auditor) over
+  the overlapping Census/Atlas/Move It tabs. Spec `.docs/features/personas.md`; roles from AppTrak
+  `membership` (Census registered as an application = estate-wide), features from FM2280 copied in,
+  grants in AppTrak `fm`.
+- Built at `/personas`: view-as switcher, feature-trimmed nav, Tracker (Division embedded) as every
+  persona's landing, FY Oct-Sep period views, drill-downs, Needs you with actions, curate pages that
+  correct ANY asserted Move It row (his ruling: events too), membership admin (full CRUD incl. app
+  roles/stages/services), feature-access grid, wide-screen layouts.
+- His 13 Move It notes done on `moveit-notes`, merged in. Fiscal year October (FY2027).
+- Caught before merging: the Demo profile no longer started (feature scan with no database); fixed.
+  main fast-forwarded to 581d7b8 and pushed. Go-live runbook `.docs/go-live-personas.md`.
+- Outstanding before live: site restriction (no sign-in, P12), DB write grants (not yet in the runbook), P13.
 
 ### 2026-10-16 (close — "push it": 3fb8663..1dc9bce pushed to origin/main)
 - The five smoke-test fixes pushed on his word after the summary; his uncommitted

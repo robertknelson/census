@@ -1,13 +1,15 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "PUSHED 2026-10-16: five smoke-test fixes (dated Changes, Division rail+scope, current releases, calendar by release)"
-resume: "start-census.bat for Census; apptrak/Invoke-AppTrakDemo.ps1 for the local AppTrak; on the real AppTrak run apptrak/sql/003-lookups.sql then apptrak/sql/004-link-kinds-kebab.sql once; tests/Test-MoveItQuestions.ps1 checks every Move It rule; tests/Test-StageCrossings.ps1 checks the stage-crossing readings against a running demo; Move It at /moveit/division, /moveit/features, /moveit/releases, /moveit/calendar; Move It pages need the Development profile locally"
+summary: "PUSHED to main 2026-10-22: persona UX at /personas — Tracker, FY views, correct-anything, admin pages"
+resume: "start-census.bat for Census (Demo); persona UX needs the Development profile (dotnet run --launch-profile http, then /personas); apptrak/Invoke-AppTrakDemo.ps1 rebuilds the local AppTrak with fm, audits and demo members; going live: .docs/go-live-personas.md, in order; tests: tests/Test-Personas.ps1, Test-Edit.ps1, Test-Membership.ps1, Test-MoveItQuestions.ps1 and the node tests"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
   - { label: "Credential setup runbook", url: "https://claude.ai/code/artifact/7b9ba51c-5c67-44d7-9795-11f1f19865b4" }
   - { label: "Move It discovery note", url: "https://github.com/robertknelson/census/blob/main/.docs/features/move-it.md" }
   - { label: "Traffic discovery note", url: "https://github.com/robertknelson/census/blob/main/.docs/features/traffic.md" }
+  - { label: "Personas spec", url: "https://github.com/robertknelson/census/blob/main/.docs/features/personas.md" }
+  - { label: "Go-live runbook", url: "https://github.com/robertknelson/census/blob/main/.docs/go-live-personas.md" }
 phase_suggestion: execution
 ignite: start-census.bat
 #
@@ -26,115 +28,43 @@ ignite: start-census.bat
 
 ## The latest feature added
 
-**Five fixes from your smoke test, built and checked, pushed 2026-10-16 on your word.** The Calendar's chips are now coloured by release rather than by stage, so one piece
-of work reads as one colour across the days it moved; the stage is the word on the chip, and
-hovering any chip lights that release's whole month. The Key lists the month's releases by
-colour. Up to eight releases get a colour per month (a setting); the rest read grey until you
-narrow by application. The Estate's Changes panel now puts the actual date on every line when you set
-From and To: it looks at each night inside the window instead of only the first and last
-day, so a change that came and went inside the window is two lines rather than none.
-Move It's Division page has the same application list down the left as the other pages,
-and a choice in its header: *On the way and live* (what is being worked on, plus whatever is
-in production for each application, however long it has been there) or *All releases*. The
-Releases list, with *All applications* chosen, now shows that same current set; pick one
-application to see its every release. And the Calendar's day panel can be closed again: its
-× had been sitting under the header line.
+**A new way into Census, built beside the old one: `/personas`, pushed to main 2026-10-22.**
+You pick who you are (Executive, Product Owner, Tech Lead, Application Administrator, Sys Admin)
+and see what that person would see. Who holds which role comes from AppTrak's membership tables;
+which role may use which page comes from a feature grid you edit yourself.
 
-**Before that, pushed 2026-10-15:**
-
-**The day page now says what the changes mean — built, checked, pushed 2026-10-15 on
-your word.** Above the four groups a new heading, *What it means*, lists the
-findings that appeared on the day and the ones that went away: a certificate crossing its
-warning line, a machine falling behind the fleet's patch level, a pending reboot clearing, a
-box collected for the first time no longer "never collected". Worst first, the same finding
-on several machines one line. Below it, each installed-software change carries a word:
-*expected* when the approved baseline for that machine covers it, *unexpected* when it lands
-as a deviation or removes something required; nothing is said where the baseline has no
-opinion. And the Estate's header now has *The day* on it, so there is a way in.
-
-**Disk-space drift is one line now, and does not count — same batch.** A drive whose only
-change is its free space no longer gets a row of its own on the day page; every such drive on
-the day folds into one line under Platform, *free space drifted on N drives*, with the
-machines behind it. A machine on which nothing else happened reads *quiet*, not *changed*,
-so the headline and the calendar count the news and not the weather. A drive whose health
-changed still gets its own row, and the full Changes panel still lists every drive. The demo
-tree now has a day on which one box did nothing but drift, and WEB01's first day now carries
-software the baseline has an opinion about, so the suites pin the words.
-
-**Before that, pushed 2026-10-14:**
-
-**A page for the day — built, checked, pushed 2026-10-14.** Open `/day` and it shows the most
-recent collected day: how many machines changed, how many were quiet, how many nobody
-collected (hatched on the calendar so a quiet day and a broken collector never look alike).
-The same change on many machines is one line with the machines behind it, and the lines sit
-under four headings — Deployments, Platform, Security, Data. Click a day on the month grid,
-or set From and To; filter by stage; press a machine's name to see only it, then *open in
-Estate* for its full detail. Nothing to configure, nothing written. The spec names what comes
-next: what the changes *mean* (findings born and cleared), whether they were expected, and the
-link to Move It's releases.
-
-**Before that, pushed 2026-10-14:**
-
-**Five things you asked for while using it, each built and checked, pushed 2026-10-14.** Until that push the live build was five slices behind, which is why Changes showed only yesterday-vs-today and the details panel had no layer row.
-
-- **Fleet changes has a From and To.** Leave them empty and it is the old feed: each
-  machine's latest collection against the one before. Set both and each machine is compared
-  on its first collected day inside those dates against its last. A machine collected only
-  once in that span drops out, and every row still says the two days it was compared on.
-- **You can name an application's layer from the picture itself.** Click a card that reads
-  *untagged* in the layered view and the details panel offers web, spa or api, your name,
-  and Save. The card moves into its band at once. That is the one tag Atlas now writes; the
-  rest still belong to Triage. Dragging a card onto a band is written down as the follow-on.
-- **The application list on the left of Move It takes several at once.** Click to add,
-  click again to remove, *All applications* to clear. The header names what is chosen, and
-  the choice follows you from page to page.
-- **The two link kinds are spelled like everything else now:** *depends-on* and
-  *related-to*. Because the tracking database already holds the old spelling, there is a
-  one-time script that renames it in place and does nothing if run again.
-- **The "why is this not seen" query no longer comes back blank.** Your run returned six
-  empty grids because the item number matched nothing, and no page showed the number. Now a
-  miss says so and lists the items to pick from, the query takes part of a title instead,
-  and the item's detail panel shows its number as *#Id*.
-
-**Before that:** the management-register picture, the cross-cutting fold, and your
-twenty-two notes. `.docs/after-pull-2026-10-09.md` has every step to run, in order.
+- **Everyone lands on the Tracker**, the Division step lines, trimmed to their own applications.
+- **Year, Quarter, Month, Week** on your fiscal year (October to September, so this is FY2027):
+  what shipped, where the change landed, what is due, what is stuck.
+- **Needs you**: every gap waiting on a word, with buttons that settle it.
+- **Correct anything**: every release, feature, fix, build claim, link and event in Move It can be
+  added, corrected or deleted, and every membership row too. Nothing is lost: each change keeps
+  the before and after.
+- **Membership and Feature access** pages for you, the Sys Admin.
+- **Your thirteen Move It notes** are in too: real application names, folded releases, due dates
+  under PROD, plain wording, a page per application.
+- Pages lay out across a wide screen instead of stacking down it.
 
 ## What's next
 
-**Pull on the live environment and open /day.** Then, on the real tracking database: run the lookups script, then the rename
-script, once each. Run the not-seen query with the #Id from the item's detail and bring
-back the answer.
+**Settle two things, then run it live.** First, restrict who can reach the site (Windows
+sign-in, your account only): Census has no sign-in yet, so anyone who reaches `/personas` can
+edit everything. Second, give Census's own login write rights on the new tables. Then follow
+`.docs/go-live-personas.md` step by step on the real AppTrak and look.
 
-**On the real estate:** mark AppTrak cross-cutting on its card; give one system canonical
-names and open it Layered, tagging layers from the details panel as you go; bring back what
-reads wrong.
+**Waiting on you:** whether the membership history table may live in your membership schema
+(P13); the two hand-made local applications (P7); counting declared deployments as moves (P8).
 
-**Then the Move It round:** one SQL statement, yours, then the nine steps in
-`.docs/move-it-round-2026-10-07.md`.
-
-**Parked:** drag-drop layer tagging; the 3D view; Traffic (waits on DMZ facts); the
-registry tables for the application-level screen.
+**Parked:** sign-in and real permission checks (P12); scoping the old pages to a member (P10).
 
 ## Anything alarming
 
-- **The live environment is behind until you pull.** Until then the day page there is the
-  10-14 build: a disk-space line per drive, no *What it means*, no expected/unexpected, no
-  link from the Estate.
-- **What it means may read as a flood on a real fleet** the first day after a big patch
-  (every machine's patch-level finding clearing at once is one line, but every first-seen
-  box brings all its findings as born). Watch it; if it buries the page the fix is a fold
-  like the drift's, per kind.
-- **The rename script must run on the real database** before anyone writes a link with the
-  old spelling by hand; the order-violation and ready-to-approve questions read the new
-  spelling only.
-- **A crossing is only as good as the tags.** An untagged downstream service is judged on
-  its machine's stage when the machine has one, and otherwise sits in the *unjudged* count.
-- **Speed on real data is still unmeasured** for the Move It pages and for a site graph on
-  an AppTrak with hundreds of endpoints. The day page was measured on a synthetic fleet of
-  150 machines over a month and brought under a second cold, a third of a second warm; the
-  real fleet's snapshots are larger, so the first look there is still the test.
-- **The board still has places to type** and must be gated before anyone but him gets
-  a link.
-- **Web-address matching is exact** (plus wildcard site names). A real estate full of DNS
-  aliases may resolve less than the demo did; the Triage list will say how much.
-- **Traffic has a naming risk** (MOVEit, the product, versus Move It).
+- **No sign-in.** Until the site is restricted, anyone who reaches it can change Move It and
+  membership data. Do not deploy without restricting it.
+- **The runbook lacks the database-permission step** (write rights for Census's login on the
+  new tables and the Move It tables the edit pages change). Without it every save fails.
+- **Everything was tested only on manufactured data.** The live run is the first time it meets
+  real rows; speed on real data is still unmeasured.
+- **Move It now names applications from `membership.Application`.** Check step 0 of the runbook
+  first; if that table is not where Census reads, the Move It pages fail.
+- **Traffic still has a naming risk** (MOVEit, the product, versus Move It).

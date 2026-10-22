@@ -43,6 +43,7 @@ builder.Services.AddFeatureAccess(o =>
 });
 builder.Services.AddSingleton<IRoleCatalog, MemberTypesRoleCatalog>();
 builder.Services.AddSingleton<MemberAccess>();
+builder.Services.AddSingleton<MembershipAdmin>();
 
 var app = builder.Build();
 

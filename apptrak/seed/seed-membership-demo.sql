@@ -33,6 +33,9 @@ FROM core.SelectItem h
 WHERE h.MasterId = -1 AND h.Identifier = 'member-types'
   AND NOT EXISTS (SELECT 1 FROM core.SelectItem x WHERE x.MasterId = h.Id AND x.Identifier = 'executive');
 
+-- The membership page's history made while viewing as a demo member goes with the demo rows.
+IF OBJECT_ID('membership.MembershipAudit', 'U') IS NOT NULL
+    DELETE FROM membership.MembershipAudit WHERE ChangedBy LIKE 'demo-%';
 DELETE FROM membership.MemberApplicationRole WHERE MemberId IN (SELECT Id FROM membership.Member WHERE Identifier LIKE 'demo-%');
 DELETE FROM membership.MemberApplicationRole WHERE ApplicationId IN (SELECT Id FROM membership.Application WHERE Tags = 'demo');
 DELETE FROM membership.Member WHERE Identifier LIKE 'demo-%';

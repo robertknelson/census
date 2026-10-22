@@ -25,7 +25,8 @@ $steps = @(
     'sql\002-create-moveit-schema.sql',
     'sql\003-lookups.sql',
     'sql\fm\001-fm-schema.sql',
-    'sql\fm\002-census-features.sql'
+    'sql\fm\002-census-features.sql',
+    'sql\membership\001-membership-audit.sql'
 )
 if (-not $SkipSeed) { $steps += 'seed\seed-apptrak-demo.sql', 'seed\seed-membership-demo.sql' }
 $steps += 'sql\backfill-deployment.sql'

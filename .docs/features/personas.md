@@ -54,7 +54,9 @@ devops-lead, observer — plus **Executive**, added to the real database's list 
 `moveit.*.ApplicationId` is `membership.Application.Id` (confirmed). That closes `move-it.md`
 open item 10: `membership.Application` is the application registry.
 
-Census reads this schema; it never writes it. Membership is maintained where it lives.
+~~Census reads this schema; it never writes it.~~ **Reversed 2026-10-22 on Robert's word** ("can we
+build something to Administer the membership schema?"): the membership page (§6.2) writes
+applications, members and grants, each write audited.
 
 ## 4. Personas and their roles
 
@@ -237,6 +239,50 @@ enforces features in its nav, where FM2280's gate scan cannot look — every row
 member's roles as Targeting groups; the definitions now come from `fm`, cached 60 s and dropped
 on every write, so a grant changed on the page shows on the next member lookup.
 
+### 6.2 The membership page (2026-10-22)
+
+*Administer → Membership*, offered by the same fixed rule as feature access (system-administrator
+on Census). Robert asked for a landing page for it; it opens on one.
+
+- **Overview (the landing):** applications (and how many retired), members, roles held — each a
+  way into its list; *New application*, *New member*; **Needs a word**: Census not registered (no
+  estate-wide role possible), Census with no system-administrator, members holding no role (they
+  see nothing), applications nobody holds a role on, applications with holders but no owner
+  (application-owner or product-owner); **Recent changes**, the last 15 writes in words.
+- **Applications / Members:** the lists; a row opens its page.
+- **One application:** its fields (name, identifier, type from `application-types`, disposition,
+  tags, settings as JSON) and save; **Who holds a role here**, each with *Revoke*, and a grant form
+  (member + role); its history.
+- **One member:** name, identifier, Windows identity, email, and save; **Roles held** (an
+  estate-wide one tagged), each with *Revoke*, and a grant form (application + role); history.
+
+The place in the page rides in the URL (`mb=overview | applications | members | app:ID |
+member:ID | new-app | new-member`).
+
+**No deletes.** An application is retired by its Disposition (`current` / `retired` offered, free
+text kept); Move It's rows hang off its id. A member loses access by losing their grants. A revoke
+deletes the grant row — the audit keeps it.
+
+**Rules the tables do not enforce, the scripts do:** an application's identifier, and a member's
+identifier and Windows identity, are unique; a grant's role must be in `member-types`; granting
+what is held, or revoking what is not, is refused (409) rather than silently ignored; settings must
+be JSON (the table's CHECK says so too). Validation errors come back all at once (400).
+
+**Audit:** `membership.MembershipAudit` — entity, key, action, PreviousValue / NewValue JSON,
+ChangedBy, ChangedAt — written in the same transaction as each change. **New DDL in the
+membership schema: ratify before the real server** (P13). Locally the membership seed clears
+history written while viewing as a demo member.
+
+| Piece | Where |
+|---|---|
+| Reads | `apptrak/sql/membership/admin-applications.sql`, `admin-lists.sql`, `admin-audit.sql`, `admin-audit-recent.sql`, `members.sql` |
+| Writes (one transaction each, audit row included) | `application-save.sql`, `member-save.sql`, `grant-save.sql` |
+| DDL | `001-membership-audit.sql` |
+| Service / API | `Services/MembershipAdmin.cs`; `Controllers/Api/MembershipController.cs` (`/api/membership/...`) |
+| Page | `wwwroot/js/membership/membership-page.mjs`, `membership-model.mjs` (pure), `membership-api.mjs` |
+
+Not here yet: `ApplicationRole`, `ApplicationStage`, `ApplicationService` (P14).
+
 ## 7. View as
 
 A **member switcher** in the persona UX picks a `membership.Member` and renders the UX as that
@@ -350,6 +396,9 @@ it is not a superset (FM2280's rule).
 | P10 | The links out (§8) open pages that show every application; a Product Owner following *Move It* leaves their scope. Scope those pages by member, or leave them as the wide view? | Robert. |
 | P11 | A rollback on an application with two PROD servers shows as two rows on the same day in *Deployments* (one per endpoint; the calendar has no machine). Fold them, or add the machine? | Robert. |
 | P12 | The feature access API lets every request through (Census has no sign-in), and records the member viewed as. When identity arrives: the admin policy becomes a role check (system-administrator), and the actor the signed-in user. | Identity — the shell host plan, or Windows auth on Census itself. |
+| P13 | `membership.MembershipAudit` is new DDL in AppTrak's membership schema. Keep it there, move it (an audit schema of its own?), or leave writes unaudited? | Robert, before the real server. |
+| P14 | The membership page edits applications, members and grants. `ApplicationRole` (which roles an application uses, with aliases), `ApplicationStage` and `ApplicationService` are not on it yet; nothing in Census reads them. Wanted? | Robert. |
+| P15 | Is anything else writing membership (AppTrak's own screens)? If so, two editors and no row versions: last write wins, though each Census write keeps the row it replaced in the audit. | Robert. |
 | P7 | The local applications 2 and 3 are hand-made rows (My WebApp, Your WebApp) while Move It's fixtures call them WidgetPortal and LedgerService. The seed leaves them alone. Should it own them? | Robert's word. |
 
 ## 13. Verification log
@@ -384,6 +433,18 @@ August (two applications, MortgageGateway's asserted ship counted, P8); Terry's 
 current quarter — empty, with Sprint 43 under *Stuck today* with its hold reason. At 390px
 (framed) the tiles run two across and the columns stack. `‹ ›` were exercised by URL (`on=`),
 not clicked.
+
+**2026-10-22, the membership page.** `tests/Test-Membership.ps1` against a running instance:
+**20 passed** — create an application, a taken identifier refused (409, said plainly), settings not
+JSON (400), an empty form refused with every reason, an edit landing (name, retired, settings), a
+missing id (404); a member created, a taken Windows identity refused, edited; a grant, seen by the
+persona lookup at once, refused twice, a role outside member-types refused (404), revoked and gone
+from the lookup, a second revoke refused; the history in order with both sides of an update; the
+seed removing what the test made. `tests/Test-Membership.mjs` **13** (members folded, the five
+gaps, audit in words). Clicked through in headless Edge as Sam: *New member* form filled and
+created → the member's page; *Grant* product-owner on Reporting → *Roles held* and *History*
+show it. Screenshots: the landing (one member without a role, two applications without an owner),
+Members, an application with its holders. Verified on port 5298 (5292 held by Robert's Census).
 
 **2026-10-22, the feature access page.** `fm` created locally from `001-fm-schema.sql`, seeded
 twice from `002-census-features.sql` (16 features, 69 grants, 16 *seeded* audit rows; the second

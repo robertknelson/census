@@ -4,6 +4,28 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — the membership page
+
+**Census now writes membership — your ask reverses §3's "never writes".** Recorded there as
+reversed, with your words.
+
+**No deletes for applications or members.** Move It hangs off application ids; a deleted member
+would orphan their history. Retire an application by Disposition; take a member's grants away.
+Say if you want a real delete for a member with no grants.
+
+**Every write audited, in a new table `membership.MembershipAudit`.** Your audit pattern
+(PreviousValue / NewValue JSON). It is DDL in your schema, so it is open item P13 before the real
+server; locally it is in place.
+
+**Refuse rather than ignore** a duplicate grant or a revoke of nothing — FM2280 treats those as
+silent no-ops; here the page should never show a change that did not happen.
+
+**Disposition is free text with two suggestions** (`current`, `retired`): only `current` exists in
+the data, and inventing a closed list would be guessing.
+
+**`ApplicationRole`, `ApplicationStage`, `ApplicationService` left off** — nothing in Census reads
+them yet (P14).
+
 ## 2026-10-22 — the feature access page
 
 **FM2280 copied, not referenced.** Its D12 (copy, don't package) and xf-dashboard's adoption say

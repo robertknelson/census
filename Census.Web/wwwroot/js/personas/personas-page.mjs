@@ -8,6 +8,7 @@ import { BuildsView, DeploymentsView } from './drill-view.mjs';
 import { escapeHtml } from '../moveit/format.mjs';
 import divisionPage from '../moveit/division-page.mjs';
 import featureAccessPage from '../feature-access/feature-access-page.mjs';
+import membershipPage from '../membership/membership-page.mjs';
 
 // The persona UX shell (personas.md §7, slice P-2): pick a member, see the UX as they would —
 // the nav trimmed to their features, each view shown for the applications where it is on.
@@ -22,6 +23,7 @@ const LANDING = 'view.tracker';
 // The feature access page (personas.md §6.1). Offered by a fixed rule, never by a feature, so it
 // cannot be switched off from inside itself (FM2280 D7): system-administrator held on Census.
 const ADMIN = 'admin.features';
+const MEMBERSHIP = 'admin.membership';
 const ADMIN_ROLE = 'system-administrator';
 
 // The data each built view reads, fetched once per page load.
@@ -70,6 +72,7 @@ class PersonasPage {
         this.root = document.getElementById(config.rootId ?? 'personas-root');
         this.estate = config.estateName ?? 'Census';
         this.fiscalStart = config.fiscalStart ?? 1;
+        this.estateApp = config.estateApplication ?? 'census';
         this.division = { shippedDays: config.shippedDays ?? 14, stepCaptions: config.stepCaptions ?? {} };
         this.needsSettings = { staleDays: config.staleDays ?? 14, comingDays: config.comingDays ?? 60 };
         this.sets = {};
@@ -107,8 +110,8 @@ class PersonasPage {
             return;
         }
         this.nav = trimNav(NAV, this.access.features);
-        if (this.at === ADMIN && !this.isAdmin()) this.at = null;
-        if (this.at && this.at !== OVERVIEW && this.at !== ADMIN && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
+        if ((this.at === ADMIN || this.at === MEMBERSHIP) && !this.isAdmin()) this.at = null;
+        if (this.at && this.at !== OVERVIEW && this.at !== ADMIN && this.at !== MEMBERSHIP && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
         if (!this.at) this.at = navItem(this.nav, LANDING) ? LANDING : OVERVIEW;
         this.render();
     }
@@ -122,6 +125,8 @@ class PersonasPage {
         if (this.at) params.set('at', this.at);
         if (this.at && this.on && grainOf(this.at)) params.set('on', this.on);
         if (this.at?.startsWith('drill.') && this.grain) params.set('g', this.grain);
+        const mb = new URLSearchParams(location.search).get('mb');
+        if (this.at === MEMBERSHIP && mb) params.set('mb', mb);
         return `${location.pathname}?${params}`;
     }
 
@@ -152,6 +157,7 @@ class PersonasPage {
                         ${this.isAdmin() ? `
                             <div class="ps-nav-group">
                                 <h2 class="ps-nav-h">Administer</h2>
+                                <a class="ps-nav-item${this.at === MEMBERSHIP ? ' is-active' : ''}" href="#" data-at="${MEMBERSHIP}" title="Applications, members, and who holds which role where">Membership</a>
                                 <a class="ps-nav-item${this.at === ADMIN ? ' is-active' : ''}" href="#" data-at="${ADMIN}" title="Which roles may use which features">Feature access</a>
                             </div>` : ''}
                     </nav>
@@ -191,6 +197,13 @@ class PersonasPage {
 
     mainHtml() {
         if (this.at === OVERVIEW) return this.overviewHtml();
+        if (this.at === MEMBERSHIP) {
+            this.view = {
+                html: () => '<div id="membership" class="mb-root"></div>',
+                bind: () => membershipPage.init({ root: '#membership', headers: { 'X-Census-Member': this.as }, estate: this.estateApp }),
+            };
+            return this.view.html();
+        }
         if (this.at === ADMIN) {
             // FM2280's page as it is, its API told who is making the change (the member viewed as).
             this.view = {

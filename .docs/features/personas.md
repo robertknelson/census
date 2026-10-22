@@ -90,6 +90,18 @@ To be written from his notes. The shape, as proposed in conversation:
 Period comparison likely matters more than any single period. The fiscal year's first month is
 a setting.
 
+### 5.0 The pizza tracker — every persona's landing (2026-10-22)
+
+Robert: *"the pizza view needs to be available, and should be the landing page for every
+persona."* `view.tracker`, granted to every reading role (observer still nothing, §4), first
+under *See* as **Tracker**. It is Move It's Division itself (`moveit/division-page.mjs`), embedded:
+no Move It tabs, no application rail, fixed to the applications on which the member holds
+`view.tracker`; the header's numbers and *Tracked automatically* count those applications only.
+Same lines, same fixes from his notes (merged from `moveit-notes`), one drawing of a release on
+the line. A member without the feature (Otto) lands on Overview, which is now a nav item of its
+own (`at=overview`). Release and application links inside it open Move It's pages, which are
+not trimmed (P10).
+
 ### 5.1 The period view (P-3a, built before his notes — a draft for them to correct)
 
 The four *See* items are one view at four grains: a fiscal year, a fiscal quarter, a calendar
@@ -106,8 +118,9 @@ feature is on for the member (§4) — Max's *Year* is MortgageGateway, his *Qua
 | Stuck today — on hold (with the reason) or past target; only in the period holding today | *What is stuck, and where?* | 02 |
 | A line under it all: how many of the period's moves belong to a release, and how many are not yet claimed | curation coverage (§2) | calendar |
 
-Fiscal years are named by the year they end in (`FY27` starts 1 Oct 2026 when the setting is
-10); with the default, January, they are plain calendar years. `Personas:FiscalYearStartMonth`.
+Fiscal years are named by the year they end in, in full: **FY2027 runs 2026-10-01 to
+2027-09-30** (`Personas:FiscalYearStartMonth` = 10 in `appsettings.json`, his word 2026-10-22).
+With the code's default, January, they would be plain calendar years.
 
 
 **His Move It notes carried here (2026-10-22, `move-it-round-2026-10-22.md`).** Every day the
@@ -297,7 +310,7 @@ it is not a superset (FM2280's rule).
 | P2 | The Executive role's exact `Identifier` in the real `core.SelectItem` (assumed `executive`). | Robert, from the real database. |
 | P3 | The change-review persona: which role, if any; is it the Executive asking a different question? | Robert. |
 | P4 | The Executive's questions (§5). | His notes. |
-| P5 | Fiscal year's first month. | A setting; the value from Robert. |
+| ~~P5~~ | ~~Fiscal year's first month.~~ **October** (Robert, 2026-10-22): FY2027 is 2026-10-01 to 2027-09-30. | Closed. |
 | P6 | Census's own `membership.Application` row in the real database: does it exist, and its Identifier (assumed `census`, a setting). | Robert, from the real database. |
 | P8 | An application with no health regime (MortgageGateway in the fixtures) has *asserted* deployments only. They count as **shipped** (09 takes asserted PROD) but not as **moves**, which are observed arrivals — so its row is missing from *Where the change landed*. Count asserted moves too, marked, or leave the bar as "what we saw"? | Robert. |
 | P9 | A claim made from Needs you is recorded with Move It's configured *By* (`demo-board` locally), not the member: Move It's claim path takes its By from config. Events do carry the member. Pass the member through the claim path too? It changes Move It's write. | Robert. |

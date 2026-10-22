@@ -73,6 +73,10 @@ html, body { margin: 0; background: var(--ps-paper); }
 .ps-chip { padding: 0.15rem 0.6rem; border: 1px solid var(--ps-rule); border-radius: 999px; font-size: 12.5px; }
 .ps-placeholder { margin-top: 0.5rem; padding: 1.5rem 1rem; border: 1px dashed var(--ps-rule); border-radius: 6px; color: var(--ps-muted); text-align: center; }
 
+/* The pizza tracker: Move It's Division embedded (personas.md §5.0). Its own scroll port, so
+   its sticky step header keeps working; its own palette, from moveit.css. */
+#moveit-root.ps-embed { height: calc(100vh - 11rem); min-height: 28rem; border: 1px solid var(--ps-rule); border-radius: 6px; overflow: hidden; }
+
 /* The period view (period-view.mjs). */
 .ps-none { color: var(--ps-muted); font-size: 13px; }
 .ps-period { gap: 0.9rem; }

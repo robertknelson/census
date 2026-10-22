@@ -8,7 +8,8 @@
     // nothing from them, including the v1/v2 switch (personas.md §2).
     Layout = null;
     var config = JsonSerializer.Serialize(new { rootId = "personas-root", fiscalStart = PersonasOptions.Value.FiscalYearStartMonth,
-        staleDays = MoveItOptions.Value.StaleDays, comingDays = MoveItOptions.Value.ComingDays });
+        staleDays = MoveItOptions.Value.StaleDays, comingDays = MoveItOptions.Value.ComingDays,
+        shippedDays = MoveItOptions.Value.ShippedDays, stepCaptions = MoveItOptions.Value.StepCaptions });
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +17,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Census personas</title>
+    <link rel="stylesheet" href="~/css/moveit.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/personas.css" asp-append-version="true" />
 </head>
 <body>

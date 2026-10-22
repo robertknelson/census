@@ -18,11 +18,11 @@ assert('grainOf reads view.* only', grainOf('view.quarter') === 'quarter' && gra
 let p = periodOf(day('2026-10-22'), 'year', 1);
 assert('calendar year', p.label === '2026' && span(p) === '2026-01-01..2027-01-01', `${p.label} ${span(p)}`);
 p = periodOf(day('2026-10-22'), 'year', 10);
-assert('fiscal year from October is named by the year it ends in', p.label === 'FY27' && span(p) === '2026-10-01..2027-10-01', `${p.label} ${span(p)}`);
+assert('fiscal year from October is named by the year it ends in', p.label === 'FY2027' && span(p) === '2026-10-01..2027-10-01', `${p.label} ${span(p)}`);
 p = periodOf(day('2026-09-30'), 'year', 10);
-assert('  the day before it is FY26', p.label === 'FY26' && span(p) === '2025-10-01..2026-10-01', `${p.label} ${span(p)}`);
+assert('  the day before it is FY2026', p.label === 'FY2026' && span(p) === '2025-10-01..2026-10-01', `${p.label} ${span(p)}`);
 p = periodOf(day('2026-10-22'), 'quarter', 10);
-assert('fiscal Q1 starts the fiscal year', p.label === 'Q1 FY27' && span(p) === '2026-10-01..2027-01-01', `${p.label} ${span(p)}`);
+assert('fiscal Q1 starts the fiscal year', p.label === 'Q1 FY2027' && span(p) === '2026-10-01..2027-01-01', `${p.label} ${span(p)}`);
 p = periodOf(day('2026-08-15'), 'quarter', 1);
 assert('calendar Q3', p.label === 'Q3 2026' && span(p) === '2026-07-01..2026-10-01', `${p.label} ${span(p)}`);
 p = periodOf(day('2026-10-22'), 'month');

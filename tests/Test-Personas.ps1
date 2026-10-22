@@ -37,7 +37,7 @@ function Get-Api { param([string]$Path) Invoke-RestMethod -Uri "$BaseUrl$Path" -
 function Same { param($A, $B) (@($A | Sort-Object) -join ',') -eq (@($B | Sort-Object) -join ',') }
 function App { param($Access, [string]$Name) $Access.applications | Where-Object name -eq $Name | Select-Object -First 1 }
 
-$grain  = 'view.quarter', 'view.month', 'view.week'
+$grain  = 'view.tracker', 'view.quarter', 'view.month', 'view.week'
 $read   = @('view.year') + $grain
 $drill  = 'drill.deployments', 'drill.builds'
 $curate = 'curate.queue', 'curate.associations', 'curate.releases', 'curate.feature-sets', 'curate.events'

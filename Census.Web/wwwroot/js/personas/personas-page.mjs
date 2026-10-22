@@ -6,6 +6,7 @@ import { PeriodView } from './period-view.mjs';
 import { NeedsView } from './needs-view.mjs';
 import { BuildsView, DeploymentsView } from './drill-view.mjs';
 import { escapeHtml } from '../moveit/format.mjs';
+import divisionPage from '../moveit/division-page.mjs';
 
 // The persona UX shell (personas.md §7, slice P-2): pick a member, see the UX as they would —
 // the nav trimmed to their features, each view shown for the applications where it is on.
@@ -15,6 +16,8 @@ import { escapeHtml } from '../moveit/format.mjs';
 // is remembered per browser as a convenience.
 
 const MEMBER_KEY = 'personas.as';
+const OVERVIEW = 'overview';
+const LANDING = 'view.tracker';
 
 // The data each built view reads, fetched once per page load.
 const LOADERS = {
@@ -62,6 +65,7 @@ class PersonasPage {
         this.root = document.getElementById(config.rootId ?? 'personas-root');
         this.estate = config.estateName ?? 'Census';
         this.fiscalStart = config.fiscalStart ?? 1;
+        this.division = { shippedDays: config.shippedDays ?? 14, stepCaptions: config.stepCaptions ?? {} };
         this.needsSettings = { staleDays: config.staleDays ?? 14, comingDays: config.comingDays ?? 60 };
         this.sets = {};
         const params = new URLSearchParams(location.search);
@@ -98,14 +102,15 @@ class PersonasPage {
             return;
         }
         this.nav = trimNav(NAV, this.access.features);
-        if (this.at && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
+        if (this.at && this.at !== OVERVIEW && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
+        if (!this.at) this.at = navItem(this.nav, LANDING) ? LANDING : OVERVIEW;
         this.render();
     }
 
     url() {
         const params = new URLSearchParams({ as: this.as });
         if (this.at) params.set('at', this.at);
-        if (this.at && this.on) params.set('on', this.on);
+        if (this.at && this.on && grainOf(this.at)) params.set('on', this.on);
         if (this.at?.startsWith('drill.') && this.grain) params.set('g', this.grain);
         return `${location.pathname}?${params}`;
     }
@@ -126,7 +131,7 @@ class PersonasPage {
                 </header>
                 <div class="ps-body">
                     <nav class="ps-nav" aria-label="Views">
-                        <a class="ps-nav-item${this.at ? '' : ' is-active'}" href="#" data-at="">Overview</a>
+                        <a class="ps-nav-item${this.at === OVERVIEW ? ' is-active' : ''}" href="#" data-at="${OVERVIEW}">Overview</a>
                         ${this.nav.map((g) => `
                             <div class="ps-nav-group">
                                 <h2 class="ps-nav-h">${escapeHtml(g.group)}</h2>
@@ -149,7 +154,7 @@ class PersonasPage {
         for (const a of this.root.querySelectorAll('[data-at]')) {
             a.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.at = a.dataset.at || null;
+                this.at = a.dataset.at || OVERVIEW;
                 this.render();
             });
         }
@@ -170,7 +175,14 @@ class PersonasPage {
     }
 
     mainHtml() {
-        if (!this.at) return this.overviewHtml();
+        if (this.at === OVERVIEW) return this.overviewHtml();
+        if (this.at === LANDING) {
+            // The pizza tracker is Move It's Division, embedded and fixed to the member's
+            // applications (personas.md §5.0); it fetches its own data once mounted.
+            const ids = applicationsFor(this.access, LANDING).map((a) => a.applicationId);
+            this.view = { html: () => '<div id="moveit-root" class="ps-embed"></div>', bind: () => divisionPage.init({ rootId: 'moveit-root', embedded: true, applicationIds: ids, ...this.division }) };
+            return this.view.html();
+        }
         const view = this.viewFor(this.at);
         if (!view) return this.itemHtml();
         const set = this.sets[view.data];

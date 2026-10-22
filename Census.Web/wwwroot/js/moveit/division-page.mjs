@@ -59,13 +59,17 @@ class DivisionPage {
         // One application's page (his note 7): the same lines for its every release, no rail,
         // no scope choice, and its releases listed with their dates under them.
         this.applicationId = config.applicationId ?? null;
+        // Embedded in the persona UX (personas.md §5.0): no Move It tabs and no rail; the page is
+        // fixed to the member's applications (an empty list draws nothing).
+        this.embedded = config.embedded === true;
+        this.only = config.applicationIds ?? null;
         this.scope = this.applicationId ? 'all' : readScope();
         this.cover = new PopOver({ id: 'dv-cover', wide: true });
         this.rail = new AppRail((ids) => { this.apps = ids; this.render(); });
         this.root.innerHTML = `
-            ${renderTabs('division')}
+            ${this.embedded ? '' : renderTabs('division')}
             <div class="mi-shell" data-ref="shell">
-                ${this.applicationId ? '' : this.rail.html()}
+                ${this.applicationId || this.embedded ? '' : this.rail.html()}
                 <div class="mi-pane">
                     <div class="mi-head">
                         ${this.applicationId ? '<a class="mi-back" href="/moveit/division">‹ Division</a><h1 class="mi-head-title" data-ref="title"></h1>' : ''}
@@ -90,7 +94,7 @@ class DivisionPage {
             writeScope(this.scope);
             if (this.placed) this.render();
         }));
-        if (!this.applicationId) this.rail.mount(ref('shell'), ref('showing'));
+        if (!this.applicationId && !this.embedded) this.rail.mount(ref('shell'), ref('showing'));
         this.cover.mount(this.root);
         this.cover.hide(true);
         this.load();
@@ -117,7 +121,7 @@ class DivisionPage {
             ...place(c.lane, c.release, verified.has(c.release.ReleaseId), this.steps),
             items: c.open.map((i) => ({ item: i, ...place(laneFor(i.Status, this.lanes), c.release, verified.has(c.release.ReleaseId), this.steps) })),
         }));
-        this.apps = this.applicationId ? [this.applicationId] : AppRail.remembered(this.applications);
+        this.apps = this.applicationId ? [this.applicationId] : this.only ?? AppRail.remembered(this.applications);
         this.render();
     }
 
@@ -125,11 +129,14 @@ class DivisionPage {
     // their releases are drawn as lines: the current ones (on the way, and what is live in
     // production — §19.1), or every one. The numbers follow the applications, not the scope.
     render() {
-        const placed = this.placed.filter((p) => this.apps.length === 0 || this.apps.includes(p.release.ApplicationId));
+        const placed = this.placed.filter((p) => (this.apps.length === 0 && !this.only) || this.apps.includes(p.release.ApplicationId));
         if (this.applicationId) {
             const app = this.applications.find((a) => a.ApplicationId === this.applicationId);
             this.titleEl.textContent = appLabel(app ?? { ApplicationId: this.applicationId });
             document.title = `${this.titleEl.textContent} — Move It`;
+        } else if (this.embedded) {
+            const showing = this.root.querySelector('[data-ref="showing"]');
+            if (showing) showing.textContent = `${this.apps.length} application${this.apps.length === 1 ? '' : 's'}`;
         } else {
             this.rail.render(this.applications, this.apps,
                 (id) => this.placed.filter((p) => p.current && p.state !== 'live' && (id == null || p.release.ApplicationId === id)).length);
@@ -199,7 +206,8 @@ class DivisionPage {
     // how many it cannot see, amber, so the warning stays on screen with the sentence folded.
     renderCoverage() {
         const appsById = new Map(this.applications.map((a) => [a.ApplicationId, a]));
-        const named = (verdicts) => this.coverage.filter((c) => verdicts.includes(c.Verdict)).map((c) => appLabel(appsById.get(c.ApplicationId) ?? { ApplicationId: c.ApplicationId }));
+        const coverage = this.only ? this.coverage.filter((c) => this.only.includes(c.ApplicationId)) : this.coverage;
+        const named = (verdicts) => coverage.filter((c) => verdicts.includes(c.Verdict)).map((c) => appLabel(appsById.get(c.ApplicationId) ?? { ApplicationId: c.ApplicationId }));
         const watched = named(['observed']);
         const said = named(['asserted only']);
         const dark = named(['pinged, no block', 'nothing']);
@@ -207,11 +215,11 @@ class DivisionPage {
         const part = (list, text) => list.length ? `<li><strong>${list.length}</strong> ${text} <span class="dv-muted">(${list.map(escapeHtml).join(', ')})</span></li>` : '';
         this.cover.hide(false);
         this.cover.setButton(blind
-            ? `Tracked automatically: ${watched.length} of ${this.coverage.length}`
-            : `Tracked automatically: all ${this.coverage.length}`, blind ? 'is-warn' : '');
+            ? `Tracked automatically: ${watched.length} of ${coverage.length}`
+            : `Tracked automatically: all ${coverage.length}`, blind ? 'is-warn' : '');
         this.cover.setBody(`
             <ul class="dv-cover">
-                <li><strong>${watched.length} of ${this.coverage.length}</strong> applications report their own deployments: Census asks each one's health endpoint every few minutes and sees a new build arrive.</li>
+                <li><strong>${watched.length} of ${coverage.length}</strong> applications report their own deployments: Census asks each one's health endpoint every few minutes and sees a new build arrive.</li>
                 ${part(said, 'move only when someone records it by hand')}
                 ${part(dark, 'are not visible: no deployment details reach Census')}
             </ul>`);

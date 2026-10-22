@@ -6,6 +6,7 @@ export const NAV = [
     {
         group: 'See',
         items: [
+            { feature: 'view.tracker', label: 'Tracker', hint: 'Every release on its line, from the developers to live' },
             { feature: 'view.year', label: 'Year', hint: 'The fiscal year at a glance' },
             { feature: 'view.quarter', label: 'Quarter', hint: 'This quarter against the last' },
             { feature: 'view.month', label: 'Month', hint: 'The month, day by day' },

@@ -25,7 +25,7 @@ export function grainOf(feature) {
 
 function fyName(start, fiscalStart) {
     const endYear = fiscalStart === 1 ? start.getFullYear() : start.getFullYear() + 1;
-    return fiscalStart === 1 ? `${endYear}` : `FY${String(endYear).slice(-2)}`;
+    return fiscalStart === 1 ? `${endYear}` : `FY${endYear}`;
 }
 
 function fyStartOf(day, fiscalStart) {

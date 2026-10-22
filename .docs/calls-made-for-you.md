@@ -4,6 +4,19 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — the tracker as the landing, and the fiscal year
+
+**The tracker is Division embedded, not a second drawing.** Options: a new persona view of the
+step lines; Move It's Division with an embedded mode. Call: embedded — the fixes from your notes
+apply once, and a release looks the same wherever it is drawn. Division gained `embedded` and
+`applicationIds` (additive; Move It's own pages unchanged). `moveit-notes` was merged into
+`personas` for it.
+
+**Its nav label is "Tracker".** "Pizza tracker" is your word for it; on a page an executive reads,
+"Tracker" says the same thing. Rename by saying so.
+
+**Fiscal years read "FY2027", in full,** as you wrote it; quarters "Q1 FY2027".
+
 ## 2026-10-22 — Move It: your morning's notes (branch `moveit-notes`)
 
 **"Built, not yet seen deployed", not "Built, not deployed".** The pushback you read before

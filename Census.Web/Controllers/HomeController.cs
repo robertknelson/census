@@ -62,6 +62,16 @@ public class HomeController : Controller
         return View();
     }
 
+    // One application (his note 7, 2026-10-22): Division's lines for its every release, and the
+    // releases listed with their dates. Read-only.
+    [HttpGet("/moveit/application/{id:int}")]
+    public IActionResult MoveItApplication(int id, [FromServices] MoveItQuestions questions)
+    {
+        if (!questions.Enabled) return NotFound();
+        ViewData["ApplicationId"] = id;
+        return View();
+    }
+
     // History (move-it.md §15): the ledger newest first, and the one page where anything is
     // entered. The board above stays read-only.
     [HttpGet("/moveit/history")]

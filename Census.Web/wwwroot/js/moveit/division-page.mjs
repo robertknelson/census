@@ -1,5 +1,5 @@
 import { fetchApplications, fetchCoverage, fetchEvents, fetchReleaseStatus, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
-import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
+import { appLabel, days, daysAgo, escapeHtml, isoDate, shortDate } from './format.mjs';
 import { NOT_SEEN, buildLanes, laneFor } from './lanes.mjs';
 import { laneHue } from './stage-hues.mjs';
 import { classifyReleases, currentReleases } from './release-panel.mjs';
@@ -23,7 +23,7 @@ function buildSteps(lanes, captions) {
     return [
         { id: 'build', label: 'In development', caption: 'with the developers', lanes: [lanes[0].id, lanes[1].id], hue: '#8e96a3' },
         ...stageLanes.slice(0, -1).map((l) => ({ id: l.id, label: l.label, caption: caption(l), lanes: [l.id], hue: laneHue(l) })),
-        { id: SIGNOFF, label: 'Client sign-off', caption: 'approval to go live', lanes: [], hue: '#0b5394' },
+        { id: SIGNOFF, label: 'Signoff', caption: 'approval to go live', lanes: [], hue: '#0b5394' },
         { id: top.id, label: top.label, caption: caption(top) || 'live', lanes: [top.id], hue: laneHue(top) },
     ];
 }
@@ -56,21 +56,25 @@ class DivisionPage {
         this.captions = config.stepCaptions ?? {};
         this.now = Date.now();
         this.apps = [];
-        this.scope = readScope();
+        // One application's page (his note 7): the same lines for its every release, no rail,
+        // no scope choice, and its releases listed with their dates under them.
+        this.applicationId = config.applicationId ?? null;
+        this.scope = this.applicationId ? 'all' : readScope();
         this.cover = new PopOver({ id: 'dv-cover', wide: true });
         this.rail = new AppRail((ids) => { this.apps = ids; this.render(); });
         this.root.innerHTML = `
             ${renderTabs('division')}
             <div class="mi-shell" data-ref="shell">
-                ${this.rail.html()}
+                ${this.applicationId ? '' : this.rail.html()}
                 <div class="mi-pane">
                     <div class="mi-head">
+                        ${this.applicationId ? '<a class="mi-back" href="/moveit/division">‹ Division</a><h1 class="mi-head-title" data-ref="title"></h1>' : ''}
                         <div class="mi-head-numbers" data-ref="summary"></div>
-                        <nav class="mi-picks dv-scope" data-ref="scope" aria-label="Releases drawn">
+                        ${this.applicationId ? '' : `<nav class="mi-picks dv-scope" data-ref="scope" aria-label="Releases drawn">
                             <button type="button" class="mi-pick" data-scope="current" title="Releases on the way, and the one now live in production for each application">On the way and live</button>
                             <button type="button" class="mi-pick" data-scope="all" title="Every release recorded, superseded ones included">All releases</button>
                         </nav>
-                        <p class="mi-showing" data-ref="showing"></p>
+                        <p class="mi-showing" data-ref="showing"></p>`}
                         ${this.cover.html()}
                     </div>
                     <main class="dv-main" data-ref="main"><p class="mi-status">Asking the tracking database…</p></main>
@@ -79,13 +83,14 @@ class DivisionPage {
         const ref = (name) => this.root.querySelector(`[data-ref="${name}"]`);
         this.summaryEl = ref('summary');
         this.mainEl = ref('main');
+        this.titleEl = ref('title');
         this.scopeEl = ref('scope');
-        this.scopeEl.querySelectorAll('[data-scope]').forEach((b) => b.addEventListener('click', () => {
+        this.scopeEl?.querySelectorAll('[data-scope]').forEach((b) => b.addEventListener('click', () => {
             this.scope = b.dataset.scope;
             writeScope(this.scope);
             if (this.placed) this.render();
         }));
-        this.rail.mount(ref('shell'), ref('showing'));
+        if (!this.applicationId) this.rail.mount(ref('shell'), ref('showing'));
         this.cover.mount(this.root);
         this.cover.hide(true);
         this.load();
@@ -112,7 +117,7 @@ class DivisionPage {
             ...place(c.lane, c.release, verified.has(c.release.ReleaseId), this.steps),
             items: c.open.map((i) => ({ item: i, ...place(laneFor(i.Status, this.lanes), c.release, verified.has(c.release.ReleaseId), this.steps) })),
         }));
-        this.apps = AppRail.remembered(this.applications);
+        this.apps = this.applicationId ? [this.applicationId] : AppRail.remembered(this.applications);
         this.render();
     }
 
@@ -121,9 +126,15 @@ class DivisionPage {
     // production — §19.1), or every one. The numbers follow the applications, not the scope.
     render() {
         const placed = this.placed.filter((p) => this.apps.length === 0 || this.apps.includes(p.release.ApplicationId));
-        this.rail.render(this.applications, this.apps,
-            (id) => this.placed.filter((p) => p.current && p.state !== 'live' && (id == null || p.release.ApplicationId === id)).length);
-        this.scopeEl.querySelectorAll('[data-scope]').forEach((b) => {
+        if (this.applicationId) {
+            const app = this.applications.find((a) => a.ApplicationId === this.applicationId);
+            this.titleEl.textContent = appLabel(app ?? { ApplicationId: this.applicationId });
+            document.title = `${this.titleEl.textContent} — Move It`;
+        } else {
+            this.rail.render(this.applications, this.apps,
+                (id) => this.placed.filter((p) => p.current && p.state !== 'live' && (id == null || p.release.ApplicationId === id)).length);
+        }
+        this.scopeEl?.querySelectorAll('[data-scope]').forEach((b) => {
             b.classList.toggle('is-active', b.dataset.scope === this.scope);
             b.toggleAttribute('aria-pressed', b.dataset.scope === this.scope);
         });
@@ -136,7 +147,9 @@ class DivisionPage {
             .sort((a, b) => (a.app.Name ? 0 : 1) - (b.app.Name ? 0 : 1) || appLabel(a.app).localeCompare(appLabel(b.app)));
 
         if (projects.length === 0) {
-            this.mainEl.innerHTML = '<p class="mi-status">Nothing on the way, and nothing live, for this choice.</p>';
+            this.mainEl.innerHTML = this.applicationId
+                ? '<p class="mi-status">No release is recorded for this application yet.</p>'
+                : '<p class="mi-status">Nothing on the way, and nothing live, for this choice.</p>';
             return;
         }
 
@@ -151,7 +164,8 @@ class DivisionPage {
                         </div>`).join('')}
                 </div>
                 ${projects.map((p) => this.renderProject(p)).join('')}
-            </div>`;
+            </div>
+            ${this.applicationId ? this.renderReleaseList(placed) : ''}`;
 
         this.mainEl.querySelectorAll('[data-toggle]').forEach((btn) => btn.addEventListener('click', () => {
             const block = btn.closest('.dv-release');
@@ -171,7 +185,7 @@ class DivisionPage {
             <ul class="mi-numbers" aria-label="The division">
                 ${n(inFlight.length, `on the way <span class="mi-muted">(${pieces} feature${pieces === 1 ? '' : 's'} and fixes)</span>`)}
                 ${n(recent.length, `live in ${this.shippedDays} days`, 'is-good')}
-                ${n(inFlight.filter((p) => p.state === 'waiting').length, 'waiting on sign-off', 'is-ask')}
+                ${n(inFlight.filter((p) => p.state === 'waiting').length, 'waiting on signoff', 'is-ask')}
                 ${n(inFlight.filter((p) => p.state === 'signed').length, 'signed off, going live', 'is-ask')}
                 ${n(inFlight.filter((p) => p.release.PastTarget === 1).length, 'past target', 'is-alert')}
                 ${n(inFlight.filter((p) => p.state === 'hold').length, 'on hold', 'is-hold')}
@@ -193,14 +207,36 @@ class DivisionPage {
         const part = (list, text) => list.length ? `<li><strong>${list.length}</strong> ${text} <span class="dv-muted">(${list.map(escapeHtml).join(', ')})</span></li>` : '';
         this.cover.hide(false);
         this.cover.setButton(blind
-            ? `Pings watch ${watched.length} of ${this.coverage.length}`
-            : `Pings watch all ${this.coverage.length}`, blind ? 'is-warn' : '');
+            ? `Tracked automatically: ${watched.length} of ${this.coverage.length}`
+            : `Tracked automatically: all ${this.coverage.length}`, blind ? 'is-warn' : '');
         this.cover.setBody(`
             <ul class="dv-cover">
-                <li>The pings watch <strong>${watched.length} of ${this.coverage.length}</strong> applications.</li>
-                ${part(said, 'known only from what people record')}
-                ${part(dark, 'not visible: no deployment details reach the board')}
+                <li><strong>${watched.length} of ${this.coverage.length}</strong> applications report their own deployments: Census asks each one's health endpoint every few minutes and sees a new build arrive.</li>
+                ${part(said, 'move only when someone records it by hand')}
+                ${part(dark, 'are not visible: no deployment details reach Census')}
             </ul>`);
+    }
+
+    // The application page's list (his note 7): every release with its dates, newest first.
+    renderReleaseList(placed) {
+        const rows = [...placed].sort((a, b) => Date.parse(b.shippedAt ?? b.release.Since ?? 0) - Date.parse(a.shippedAt ?? a.release.Since ?? 0));
+        const date = (v) => (v ? escapeHtml(isoDate(v)) : '<span class="dv-muted">—</span>');
+        return `
+            <section class="dv-list">
+                <h2 class="dv-list-head">Every release</h2>
+                <table class="rg-table">
+                    <thead><tr>${['Release', 'Kind', 'Where', 'Target', 'Approved on', 'Live since'].map((h) => `<th><span class="rg-th">${h}</span></th>`).join('')}</tr></thead>
+                    <tbody>${rows.map((r) => `
+                        <tr>
+                            <td><a class="rg-title rg-link" href="/moveit/release/${r.release.ReleaseId}">${escapeHtml(r.release.Name)}</a></td>
+                            <td>${escapeHtml(r.release.Kind)}</td>
+                            <td>${escapeHtml(STATE_TEXT[r.state])}</td>
+                            <td>${date(r.release.TargetDate)}${r.release.PastTarget === 1 ? ' <span class="mi-flag is-alert">late</span>' : ''}</td>
+                            <td>${date(r.release.ApprovedAt)}</td>
+                            <td>${date(r.shippedAt)}</td>
+                        </tr>`).join('')}</tbody>
+                </table>
+            </section>`;
     }
 
     coverageTag(app) {
@@ -220,7 +256,7 @@ class DivisionPage {
         return `
             <section class="dv-project">
                 <header class="dv-project-head">
-                    <h2 class="dv-project-name ${app.Name ? '' : 'is-unnamed'}">${escapeHtml(appLabel(app))}</h2>
+                    <h2 class="dv-project-name ${app.Name ? '' : 'is-unnamed'}">${this.applicationId ? escapeHtml(appLabel(app)) : `<a class="dv-project-link" href="/moveit/application/${app.ApplicationId}" title="Every release of this application">${escapeHtml(appLabel(app))}</a>`}</h2>
                     ${this.coverageTag(app)}
                     <span class="dv-project-meta">${flying ? `${flying} on the way` : 'nothing on the way'}${earlier.length
                         ? ` · earlier: ${earlier.slice(0, 3).map((r) => `${escapeHtml(r.release.Name)} live ${escapeHtml(shortDate(r.shippedAt))}`).join(', ')}` : ''}</span>
@@ -238,27 +274,27 @@ class DivisionPage {
         if (rel.PastTarget === 1) flags.push(`<span class="mi-flag is-alert">late — target ${escapeHtml(shortDate(rel.TargetDate))}</span>`);
         else if (rel.TargetDate && r.state !== 'live') flags.push(`<span class="dv-muted">target ${escapeHtml(shortDate(rel.TargetDate))}</span>`);
         const unsigned = !rel.ApprovedAt && r.at > this.signoffIndex;
-        if (unsigned) flags.push('<span class="mi-flag is-hold">went live with no client sign-off recorded</span>');
+        if (unsigned) flags.push('<span class="mi-flag is-hold">went live with no signoff recorded</span>');
         if (rel.OnHold === 1) flags.push(`<span class="mi-flag is-hold">on hold${rel.HoldReason ? `: ${escapeHtml(rel.HoldReason)}` : ''}</span>`);
         const contents = [rel.Features ? `${rel.Features} feature${rel.Features === 1 ? '' : 's'}` : '', rel.Fixes ? `${rel.Fixes} fix${rel.Fixes === 1 ? '' : 'es'}` : ''].filter(Boolean).join(', ');
         return `
-            <div class="dv-release is-open is-${r.state}">
+            <div class="dv-release is-${r.state}">
                 <div class="dv-row dv-row-release">
                     <div class="dv-label">
-                        <button type="button" class="dv-toggle" data-toggle aria-expanded="true" title="Show or hide its features and fixes">
+                        <button type="button" class="dv-toggle" data-toggle aria-expanded="false" title="Show or hide its features and fixes">
                             <span class="dv-release-name">${escapeHtml(rel.Name)}</span>${rel.Kind === 'hotfix' ? ' <span class="mi-card-kind">hotfix</span>' : ''}
                         </button>
                         <span class="dv-muted">${contents || 'nothing recorded yet'}</span>
                         ${flags.length ? `<span class="dv-flags">${flags.join(' ')}</span>` : ''}
                     </div>
-                    ${this.renderTrack(r.at, r.state, text, 'is-big', unsigned, rel.Evidence === 'asserted')}
+                    ${this.renderTrack(r.at, r.state, text, 'is-big', unsigned, rel.Evidence === 'asserted', r.state === 'live' ? null : this.dueText(rel))}
                 </div>
                 <div class="dv-items">
                     ${r.items.map((i) => `
                         <div class="dv-row dv-row-item">
                             <div class="dv-label"><span class="dv-item-title is-${escapeHtml(i.item.Kind)}">${escapeHtml(i.item.Title)}</span> <span class="dv-muted">${escapeHtml(i.item.Kind)}</span></div>
                             ${this.renderTrack(i.at, i.state, STATE_TEXT[i.state] + (i.item.Evidence === 'asserted' ? ' · reported, not observed' : ''), 'is-small', !rel.ApprovedAt && i.at > this.signoffIndex, i.item.Evidence === 'asserted')}
-                        </div>`).join('') || '<div class="dv-row dv-row-item"><div class="dv-label dv-muted">No features or fixes recorded.</div></div>'}
+                        </div>`).join('') || '<div class="dv-row dv-row-item"><div class="dv-label dv-muted dv-span">No features or fixes recorded.</div></div>'}
                 </div>
             </div>`;
     }
@@ -267,14 +303,23 @@ class DivisionPage {
     // up to the current step and faint after it.
     // unsigned: past client sign-off with no approval recorded; that step shows "!", not a tick.
     // asserted: the position is Team A's word (rule 6), drawn dashed so it never passes as observed.
-    renderTrack(at, state, text, size, unsigned = false, asserted = false) {
+    // The top step of a release not yet live says when it is due (his note 3); a live one's
+    // node already says "live since".
+    dueText(rel) {
+        if (!rel.TargetDate) return 'no due date';
+        return `${rel.PastTarget === 1 ? 'was due' : 'due'} ${shortDate(rel.TargetDate)}`;
+    }
+
+    // due: shown under the top step when the release is not there yet.
+    renderTrack(at, state, text, size, unsigned = false, asserted = false, due = null) {
         return this.steps.map((s, n) => {
             const skipped = unsigned && n === this.signoffIndex;
             const when = skipped ? 'is-done is-skipped' : n < at ? 'is-done' : n === at ? 'is-current' : 'is-next';
             return `
                 <div class="dv-step ${when} ${size} ${n === 0 ? 'is-first' : ''} ${n === this.steps.length - 1 ? 'is-last' : ''}" style="--hue: ${s.hue}">
-                    <span class="dv-node ${n === at ? `is-${state}${asserted ? ' is-asserted' : ''}` : ''}" title="${escapeHtml(s.label)}${skipped ? ' — no sign-off recorded' : n === at ? ` — ${escapeHtml(text)}` : ''}">${skipped ? '!' : n < at ? '✓' : ''}</span>
+                    <span class="dv-node ${n === at ? `is-${state}${asserted ? ' is-asserted' : ''}` : ''}" title="${escapeHtml(s.label)}${skipped ? ' — no signoff recorded' : n === at ? ` — ${escapeHtml(text)}` : ''}">${skipped ? '!' : n < at ? '✓' : ''}</span>
                     ${n === at && size === 'is-big' ? `<span class="dv-node-text">${escapeHtml(text)}</span>` : ''}
+                    ${due && n === this.steps.length - 1 && n !== at ? `<span class="dv-node-text dv-due">${escapeHtml(due)}</span>` : ''}
                 </div>`;
         }).join('');
     }

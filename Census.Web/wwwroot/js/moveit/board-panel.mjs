@@ -113,7 +113,7 @@ export class BoardPanel {
         else if (since != null && lane.stages.length > 1) meta.push(`arrived ${escapeHtml(shortDate(item.Since))} · ${days(since)} in ${escapeHtml(item.Status)}`);
         else if (since != null) meta.push(`arrived ${escapeHtml(shortDate(item.Since))} · ${days(since)}`);
         if (item.Evidence === 'asserted') meta.push('asserted');
-        if (item.Status === 'not deployed') meta.push('build known, not seen');
+        if (item.Status === 'not deployed') meta.push('build known, not yet seen deployed');
         if (item.Status === 'no evidence') meta.push('app gives no evidence');
         const flags = [];
         if (release?.OnHold === 1) flags.push('<span class="mi-flag is-hold" title="Release on hold">hold</span>');

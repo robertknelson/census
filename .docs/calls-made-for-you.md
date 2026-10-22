@@ -4,6 +4,24 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — Move It: your morning's notes (branch `moveit-notes`)
+
+**"Built, not yet seen deployed", not "Built, not deployed".** The pushback you read before
+"both, go": Census cannot know a build was not deployed, only that it has not seen it.
+
+**The application's name: registry first, then what it reports, then its id.** The registry
+can be missing a row; the payload's name is still better than a number.
+
+**The application page reuses Division** (same lines, one application, every release) and
+adds a dated list, rather than being a new layout. One way of drawing a release on the line.
+
+**PROD's due text: *due*, *was due*, or *no due date*.** A release with no target says so,
+because a blank under PROD reads as an omission.
+
+**Dates in the new columns are yyyy-MM-dd; the rest of Move It's dates are unchanged** (Aug 4).
+Note 8 asked for TARGET; *Approved on* and the application page follow it. Changing every date
+on every page was not asked.
+
 ## 2026-10-16 — the calendar's colour axis
 
 **Hues are handed out per shown month, not fixed per release for all time.** Options: a hue

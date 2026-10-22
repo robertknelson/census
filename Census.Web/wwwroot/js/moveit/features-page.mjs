@@ -99,7 +99,7 @@ class FeaturesPage {
             if (release?.PastTarget === 1 && !shipped) flags.push('late');
             if (release?.OnHold === 1 && !shipped) flags.push('on hold');
             if (item.Evidence === 'asserted') flags.push('asserted');
-            if (item.Status === 'not deployed') flags.push('not seen');
+            if (item.Status === 'not deployed') flags.push('not yet seen deployed');
             if (item.Status === 'no evidence') flags.push('no evidence');
             return {
                 item, release, lane, laneIndex, removed, shipped, flags,
@@ -149,14 +149,14 @@ class FeaturesPage {
                 { id: 'kind', label: 'Kind', value: (r) => r.item.Kind, order: ['feature', 'fix'] },
                 { id: 'where', label: 'Where', value: (r) => r.where, order: [...laneLabels, 'removed'], hideUnlessChosen: ['removed'] },
                 { id: 'release', label: 'Release', value: (r) => r.item.Release ?? 'no release yet' },
-                { id: 'flags', label: 'Flags', value: (r) => r.flags, order: ['late', 'on hold', 'asserted', 'not seen', 'no evidence'] },
+                { id: 'flags', label: 'Flags', value: (r) => r.flags, order: ['late', 'on hold', 'asserted', 'not yet seen deployed', 'no evidence'] },
             ],
             pills: [
                 { id: 'late', label: 'Late', title: 'In a release past its target, not live', facets: { flags: ['late'] } },
                 { id: 'hold', label: 'On hold', title: 'In a release on hold', facets: { flags: ['on hold'] } },
                 { id: 'heard', label: 'Heard, nothing after 30 days', title: 'Recorded as coming 30 or more days ago and still in no build',
                   facets: { where: ['Coming'] }, test: (r) => r.item.DaysThere >= 30 },
-                { id: 'not-seen', label: 'Built, not seen', title: 'A build is named but has not been seen at any stage', facets: { where: ['Built, not seen'] } },
+                { id: 'not-seen', label: 'Built, not yet seen deployed', title: 'A build is named but Census has not seen it on any server it watches', facets: { where: ['Built, not yet seen deployed'] } },
                 { id: 'asserted', label: 'Reported, not observed', title: 'Where it is was recorded by hand, not seen by Census', facets: { flags: ['asserted'] } },
                 ...(topLabel ? [{ id: 'live', label: `Live in ${this.shippedDays} days`, title: `Reached ${topLabel} in the last ${this.shippedDays} days`,
                     facets: { where: [topLabel] }, test: (r) => r.sinceMs != null && this.now - r.sinceMs <= this.shippedDays * DAY }] : []),

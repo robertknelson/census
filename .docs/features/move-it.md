@@ -713,6 +713,10 @@ evidence, "looks correct", in 59 seconds — item 16.
    registry (name, team, endpoints), so building it against a guessed shape
    would be rework. Team ownership attaches here; the `monitoredAs` picker
    suggests from here.
+   **2026-10-22: found.** The registry is `membership.Application`; `moveit.*.ApplicationId`
+   is its `Id` (Robert). `board/applications.sql` names from it first, then the payload, then
+   the id; the application page (`/moveit/application/{id}`) is the level 2 page, unparked
+   (`.docs/move-it-round-2026-10-22.md`).
 11. AppTrak's repository in reach — the `moveit` data-model spec and the
    `.sql` files live there, not here. Until then they are parked under
    `apptrak/` (§11).

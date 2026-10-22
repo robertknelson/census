@@ -77,6 +77,10 @@ html, body { margin: 0; background: var(--ps-paper); }
    its sticky step header keeps working; its own palette, from moveit.css. */
 #moveit-root.ps-embed { height: calc(100vh - 11rem); min-height: 28rem; border: 1px solid var(--ps-rule); border-radius: 6px; overflow: hidden; }
 
+/* The feature access page (FM2280's, feature-access.css) inside the persona main column. */
+.ps-fa { border: 1px solid var(--ps-rule); border-radius: 6px; overflow: hidden; }
+.ps-fa .fa-page { padding: 1rem 1.25rem 1.25rem; }
+
 /* The period view (period-view.mjs). */
 .ps-none { color: var(--ps-muted); font-size: 13px; }
 .ps-period { gap: 0.9rem; }

@@ -194,15 +194,48 @@ machinery:
   feature — not xf-dashboard's per-link `@if` blocks.
 - **Edit affordances are features too** (`curate.*`), so they vanish for read personas.
 
-**When the SQL store comes, it lives in AppTrak under the `fm` schema** — FM2280's name, not
-xf-dashboard's `dashboard` (Robert, 2026-10-22).
+**The SQL store lives in AppTrak under the `fm` schema** — FM2280's name, not xf-dashboard's
+`dashboard` (Robert, 2026-10-22). Adopted the same day with the page (§6.1).
 
-**Not adopted now:** Windows authentication, the `fm` SQL schema and audit, the admin matrix,
+**Not adopted now:** Windows authentication,
 `[FeatureGate]` on endpoints, the shell host (`fm2280/.docs/features/shell-host-adoption.md`).
 Census has no identity today and this environment holds manufactured data only; a gate here
 would guard nothing and only show as 403s during comparison. When the real environment needs
 it: deny by default, and a test that every endpoint is gated from day one — xf-dashboard's
 open item #8 is ~20 controllers that slipped through without one.
+
+### 6.1 The feature access page (2026-10-22)
+
+Robert: *"now we need to bring in the role-feature management UX."* FM2280 came in whole, by copy
+(its D12; xf-dashboard did the same), so the grants moved out of `config/features.json` into
+AppTrak — the `fm` schema, his ruling.
+
+| Piece | Where |
+|---|---|
+| FM2280's C# (evaluation, commands, queries, API, gate scan) | `Census.Web/FeatureAccess/`, namespace `Census.Web.FeatureAccess`; package Microsoft.FeatureManagement.AspNetCore 4.2.1 |
+| Schema (`fm.Feature`, `fm.FeatureRole`, `fm.FeatureAudit`, `fm.FeatureSnapshot`) | `apptrak/sql/fm/001-fm-schema.sql`, FM2280's as it is |
+| Census's features and first grants | `apptrak/sql/fm/002-census-features.sql` — insert-only; grants only for features it creates, so a revoke on the page stays revoked |
+| FM2280's command and query scripts | `apptrak/sql/fm/*.sql`, read from disk like Move It's (FM2280 embeds them) |
+| The role list | `apptrak/sql/fm/roles.sql` — AppTrak's `member-types` (`MemberTypesRoleCatalog`) |
+| The page | FM2280's `feature-access-page.mjs` and `feature-access.css`, under `wwwroot/js/feature-access/`, mounted in the persona main column |
+
+**Reached** from *Administer → Feature access*, shown only to a member holding
+system-administrator on Census — a fixed rule, never a feature, so the page can never switch
+itself off (FM2280 D7). Anyone else asking for `at=admin.features` lands on their default.
+
+**Changes are attributed** to the signed-in user when Census has one; until then to the member
+the persona UX is viewing as, sent as `X-Census-Member`. The admin API's policy lets every
+request through for now (P12).
+
+**Census's changes to the copy**, each small and marked: scripts read from `apptrak/sql/fm`;
+the definitions cache entry carries a size (Census's memory cache is size-limited); the actor
+fallback above; the page takes request headers and a `gateTags: false` switch, because Census
+enforces features in its nav, where FM2280's gate scan cannot look — every row would read
+*No gate*.
+
+**Evaluation is unchanged**: `MemberAccess` still asks Microsoft.FeatureManagement with the
+member's roles as Targeting groups; the definitions now come from `fm`, cached 60 s and dropped
+on every write, so a grant changed on the page shows on the next member lookup.
 
 ## 7. View as
 
@@ -316,6 +349,7 @@ it is not a superset (FM2280's rule).
 | P9 | A claim made from Needs you is recorded with Move It's configured *By* (`demo-board` locally), not the member: Move It's claim path takes its By from config. Events do carry the member. Pass the member through the claim path too? It changes Move It's write. | Robert. |
 | P10 | The links out (§8) open pages that show every application; a Product Owner following *Move It* leaves their scope. Scope those pages by member, or leave them as the wide view? | Robert. |
 | P11 | A rollback on an application with two PROD servers shows as two rows on the same day in *Deployments* (one per endpoint; the calendar has no machine). Fold them, or add the machine? | Robert. |
+| P12 | The feature access API lets every request through (Census has no sign-in), and records the member viewed as. When identity arrives: the admin policy becomes a role check (system-administrator), and the actor the signed-in user. | Identity — the shell host plan, or Windows auth on Census itself. |
 | P7 | The local applications 2 and 3 are hand-made rows (My WebApp, Your WebApp) while Move It's fixtures call them WidgetPortal and LedgerService. The seed leaves them alone. Should it own them? | Robert's word. |
 
 ## 13. Verification log
@@ -350,6 +384,16 @@ August (two applications, MortgageGateway's asserted ship counted, P8); Terry's 
 current quarter — empty, with Sprint 43 under *Stuck today* with its hold reason. At 390px
 (framed) the tiles run two across and the columns stack. `‹ ›` were exercised by URL (`on=`),
 not clicked.
+
+**2026-10-22, the feature access page.** `fm` created locally from `001-fm-schema.sql`, seeded
+twice from `002-census-features.sql` (16 features, 69 grants, 16 *seeded* audit rows; the second
+run added nothing). `Test-Personas.ps1` against the SQL-backed evaluation: **18 passed**, the same
+expectations as from the JSON. `Test-PersonaNav.mjs` **14** (the catalog now read from the seed).
+Clicked through in headless Edge as Sam: revoke *Year* from executive on the grid → Ellen's access
+no longer has `view.year`; grant it back → it returns; `fm.FeatureAudit` holds `role.revoke` and
+`role.grant` by `demo-sam`. Screenshots: the grid in Sam's persona UX; Ellen asking for it lands on
+her Tracker, no *Administer*. Verified on a second instance on port 5298 from a scratch build —
+5292 was held by Robert's own running Census.
 
 **2026-10-22, P-3b to P-4.** `node tests/Test-NeedsQueue.mjs` **22 passed** (each section's
 rule, scope, the per-build inbox and its claim choices, which lines offer which action, actions

@@ -1,0 +1,1150 @@
+/*
+ * FM2280 feature access admin.
+ * Every colour, font and radius is a custom property on .fa, so a host can restyle it without editing this file.
+ */
+.fa {
+    --fa-font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --fa-font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --fa-font-code: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+
+    --fa-ink: #1c2a36;
+    --fa-ink-soft: #56646f;
+    --fa-paper: #ffffff;
+    --fa-wash: #f1f4f5;
+    --fa-hover: #f6f9fa;
+    --fa-rule: #dde4e7;
+    --fa-rule-strong: #b3c0c7;
+
+    --fa-grant: #1d6a86;
+    --fa-grant-strong: #16566d;
+    --fa-grant-soft: #e6f1f5;
+    --fa-switch-off: #b9c4ca;
+
+    --fa-off: #9a6b12;
+    --fa-off-soft: #fbf4e4;
+    --fa-off-rule: #ecd9a8;
+
+    --fa-danger: #a33a36;
+    --fa-danger-soft: #fbeeed;
+    --fa-danger-rule: #e5bcb9;
+
+    --fa-focus: #2b7fd1;
+    --fa-radius: 4px;
+    --fa-drawer-width: 32rem;
+
+    font-family: var(--fa-font);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--fa-ink);
+}
+
+.fa *,
+.fa *::before,
+.fa *::after {
+    box-sizing: border-box;
+}
+
+.fa :focus-visible {
+    outline: 2px solid var(--fa-focus);
+    outline-offset: 2px;
+}
+
+.fa code {
+    font-family: var(--fa-font-code);
+    font-size: 0.9em;
+}
+
+.fa [hidden] {
+    display: none !important;
+}
+
+/* Page head */
+
+.fa-page {
+    max-width: 84rem;
+}
+
+.fa-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding-block: 0.25rem 1.25rem;
+}
+
+.fa-title {
+    margin: 0;
+    font-family: var(--fa-font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+.fa-summary {
+    margin: 0.35rem 0 0;
+    color: var(--fa-ink-soft);
+}
+
+/* Buttons */
+
+.fa-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 2.25rem;
+    padding: 0 0.9rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.12s, border-color 0.12s;
+}
+
+.fa-button:hover:not(:disabled) {
+    background: var(--fa-wash);
+}
+
+.fa-button:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.fa-button.fa-button--primary {
+    border-color: var(--fa-grant);
+    background: var(--fa-grant);
+    color: #fff;
+}
+
+.fa-button.fa-button--primary:hover:not(:disabled) {
+    border-color: var(--fa-grant-strong);
+    background: var(--fa-grant-strong);
+}
+
+.fa-button.fa-button--quiet {
+    border-color: transparent;
+    background: transparent;
+    color: var(--fa-ink-soft);
+}
+
+.fa-button.fa-button--quiet:hover:not(:disabled) {
+    background: var(--fa-wash);
+    color: var(--fa-ink);
+}
+
+.fa-button.fa-button--danger {
+    border-color: var(--fa-danger-rule);
+    color: var(--fa-danger);
+}
+
+.fa-button.fa-button--danger:hover:not(:disabled) {
+    background: var(--fa-danger-soft);
+}
+
+.fa-button.fa-button--danger-solid {
+    border-color: var(--fa-danger);
+    background: var(--fa-danger);
+    color: #fff;
+}
+
+.fa-button.fa-button--danger-solid:hover:not(:disabled) {
+    background: #8a2f2c;
+}
+
+.fa-button.fa-button--small {
+    height: 1.75rem;
+    padding: 0 0.6rem;
+    font-size: 0.8125rem;
+}
+
+.fa-icon-button {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: var(--fa-radius);
+    background: transparent;
+    color: var(--fa-ink-soft);
+    cursor: pointer;
+}
+
+.fa-icon-button:hover {
+    background: var(--fa-wash);
+    color: var(--fa-ink);
+}
+
+.fa-icon-button svg,
+.fa-toast-dismiss svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Undefined-gate alerts */
+
+.fa-alerts {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.fa-alerts:empty {
+    display: none;
+}
+
+.fa-alert {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    padding: 0.7rem 0.8rem 0.7rem 1rem;
+    border: 1px solid var(--fa-off-rule);
+    border-left: 3px solid var(--fa-off);
+    border-radius: var(--fa-radius);
+    background: var(--fa-off-soft);
+}
+
+.fa-alert p {
+    max-width: 72ch;
+    margin: 0;
+}
+
+.fa-alert code {
+    white-space: nowrap;
+}
+
+/* Toolbar */
+
+.fa-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.fa-search {
+    position: relative;
+    display: flex;
+    flex: 1 1 18rem;
+    align-items: center;
+    max-width: 26rem;
+}
+
+.fa-search svg {
+    position: absolute;
+    left: 0.7rem;
+    width: 1rem;
+    height: 1rem;
+    color: var(--fa-ink-soft);
+    pointer-events: none;
+}
+
+.fa-search input {
+    width: 100%;
+    height: 2.25rem;
+    padding: 0 2.25rem 0 2.1rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: inherit;
+    font: inherit;
+}
+
+.fa-search kbd {
+    position: absolute;
+    right: 0.55rem;
+    padding: 0 0.35rem;
+    border: 1px solid var(--fa-rule);
+    border-radius: 3px;
+    background: var(--fa-wash);
+    color: var(--fa-ink-soft);
+    font-family: var(--fa-font-code);
+    font-size: 0.75rem;
+    line-height: 1.45;
+    pointer-events: none;
+}
+
+.fa-search input:focus + kbd,
+.fa-search input:not(:placeholder-shown) + kbd {
+    display: none;
+}
+
+.fa-segments {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+}
+
+.fa-segment {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    height: 2.125rem;
+    padding: 0 0.85rem;
+    border: 0;
+    background: var(--fa-paper);
+    color: var(--fa-ink-soft);
+    font: inherit;
+    cursor: pointer;
+}
+
+.fa-segment + .fa-segment {
+    border-left: 1px solid var(--fa-rule);
+}
+
+.fa-segment:hover {
+    background: var(--fa-wash);
+    color: var(--fa-ink);
+}
+
+.fa-segment[aria-pressed="true"] {
+    background: var(--fa-ink);
+    color: #fff;
+}
+
+.fa-count {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+}
+
+/* Access matrix */
+
+.fa-matrix-scroll {
+    overflow: auto;
+    max-height: 72vh;
+    border: 1px solid var(--fa-rule);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+}
+
+.fa-matrix {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.fa-matrix th,
+.fa-matrix td {
+    padding: 0;
+    border-bottom: 1px solid var(--fa-rule);
+    background: var(--fa-paper);
+}
+
+.fa-matrix tbody tr:last-child > * {
+    border-bottom: 0;
+}
+
+.fa-matrix thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0.6rem 0.6rem;
+    border-bottom-color: var(--fa-rule-strong);
+    background: var(--fa-wash);
+    color: var(--fa-ink-soft);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.fa-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+}
+
+.fa-sort:hover,
+.fa-matrix th[aria-sort] .fa-sort {
+    color: var(--fa-ink);
+}
+
+.fa-sort-mark {
+    width: 0.5rem;
+    font-size: 0.625rem;
+    line-height: 1;
+}
+
+.fa-matrix th[aria-sort="ascending"] .fa-sort-mark::before {
+    content: "B2";
+}
+
+.fa-matrix th[aria-sort="descending"] .fa-sort-mark::before {
+    content: "BC";
+}
+
+.fa-matrix .fa-col-feature {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 17rem;
+    border-right: 1px solid var(--fa-rule);
+    text-align: left;
+}
+
+.fa-matrix thead .fa-col-feature {
+    z-index: 3;
+    padding-left: 1rem;
+}
+
+.fa-matrix tbody .fa-col-feature {
+    padding: 0.55rem 0.75rem 0.55rem 1rem;
+    font-weight: 400;
+}
+
+.fa-matrix .fa-col-on {
+    width: 4.5rem;
+    border-right: 1px solid var(--fa-rule);
+    text-align: center;
+}
+
+.fa-matrix .fa-col-role {
+    min-width: 7rem;
+}
+
+.fa-matrix .fa-cell {
+    height: 3.6rem;
+    text-align: center;
+}
+
+.fa-feature-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.fa-feature {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.05rem;
+    min-width: 0;
+    margin-left: -0.3rem;
+    padding: 0.15rem 0.3rem;
+    border: 0;
+    border-radius: 3px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.fa-feature-name {
+    font-weight: 600;
+}
+
+.fa-feature:hover .fa-feature-name {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.fa-feature-key {
+    color: var(--fa-ink-soft);
+    font-size: 0.75rem;
+}
+
+.fa-tag {
+    flex: none;
+    padding: 0 0.45rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: 999px;
+    color: var(--fa-ink-soft);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.fa-tag.fa-tag--void {
+    border-color: var(--fa-danger-rule);
+    color: var(--fa-danger);
+}
+
+/* Row and column emphasis; selected is declared last so it wins over hover. */
+
+.fa-matrix .fa-row:hover > *,
+.fa-matrix .is-col-hover {
+    background: var(--fa-hover);
+}
+
+.fa-matrix thead th.is-col-hover {
+    background: var(--fa-rule);
+    color: var(--fa-ink);
+}
+
+.fa-matrix .fa-row.is-selected > * {
+    background: var(--fa-grant-soft);
+}
+
+.fa-matrix .fa-row.is-selected > .fa-col-feature {
+    box-shadow: inset 3px 0 0 var(--fa-grant);
+}
+
+.fa-row.is-off .fa-feature-name {
+    color: var(--fa-ink-soft);
+}
+
+.fa-row.is-voided .fa-feature-name {
+    color: var(--fa-ink-soft);
+    text-decoration: line-through;
+}
+
+.fa-row.is-voided .fa-grant,
+.fa-row.is-voided .fa-switch {
+    opacity: 0.35;
+}
+
+/* Grant cell: filled = granted, hatched = granted but the feature is off, empty = not granted. */
+
+.fa-grant {
+    display: inline-grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 1.5px solid var(--fa-rule-strong);
+    border-radius: 5px;
+    background: var(--fa-paper);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.12s, border-color 0.12s, transform 0.1s;
+}
+
+.fa-grant svg {
+    width: 1rem;
+    height: 1rem;
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+.fa-grant:hover:not(:disabled) {
+    border-color: var(--fa-grant);
+}
+
+.fa-grant:active:not(:disabled) {
+    transform: scale(0.9);
+}
+
+.fa-grant:disabled {
+    cursor: default;
+}
+
+.fa-grant.is-granted {
+    border-color: var(--fa-grant);
+    background: var(--fa-grant);
+}
+
+.fa-grant.is-granted svg {
+    opacity: 1;
+}
+
+.fa-row.is-off .fa-grant.is-granted,
+.fa-grant.is-granted.is-inert {
+    background: repeating-linear-gradient(135deg, var(--fa-grant) 0 2px, var(--fa-paper) 2px 5px);
+}
+
+.fa-row.is-off .fa-grant.is-granted svg,
+.fa-grant.is-granted.is-inert svg {
+    opacity: 0;
+}
+
+.fa-grant.is-pending,
+.fa-switch.is-pending,
+.fa-check.is-pending {
+    animation: fa-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes fa-pulse {
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* Switch */
+
+.fa-switch {
+    position: relative;
+    flex: none;
+    width: 2.25rem;
+    height: 1.3rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--fa-switch-off);
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.fa-switch:disabled {
+    cursor: default;
+}
+
+.fa-switch-thumb {
+    position: absolute;
+    top: 0.15rem;
+    left: 0.15rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(28, 42, 54, 0.3);
+    transition: transform 0.15s;
+}
+
+.fa-switch[aria-checked="true"] {
+    background: var(--fa-grant);
+}
+
+.fa-switch[aria-checked="true"] .fa-switch-thumb {
+    transform: translateX(0.95rem);
+}
+
+/* Empty, error and loading states */
+
+.fa-empty {
+    padding: 3rem 1.5rem;
+    border: 1px dashed var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    color: var(--fa-ink-soft);
+    text-align: center;
+}
+
+.fa-empty p {
+    max-width: 60ch;
+    margin: 0 auto 1rem;
+}
+
+.fa-empty p:last-child {
+    margin-bottom: 0;
+}
+
+.fa-matrix.fa-matrix--loading td {
+    padding: 1.25rem 1rem;
+}
+
+.fa-skeleton {
+    display: block;
+    height: 0.7rem;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--fa-wash) 0%, var(--fa-rule) 50%, var(--fa-wash) 100%);
+    background-size: 200% 100%;
+    animation: fa-shimmer 1.2s linear infinite;
+}
+
+@keyframes fa-shimmer {
+    to {
+        background-position: -200% 0;
+    }
+}
+
+/* Legend */
+
+.fa-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    color: var(--fa-ink-soft);
+    font-size: 0.8125rem;
+    list-style: none;
+}
+
+.fa-legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fa-legend .fa-swatch {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 4px;
+    cursor: default;
+}
+
+.fa-legend .fa-swatch svg {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+/* Drawer */
+
+.fa-drawer-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    visibility: hidden;
+    transition: visibility 0s linear 0.22s;
+}
+
+.fa-drawer-layer.is-open {
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.fa-drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(28, 42, 54, 0.28);
+    opacity: 0;
+    transition: opacity 0.22s;
+}
+
+.fa-drawer-layer.is-open .fa-drawer-backdrop {
+    opacity: 1;
+}
+
+.fa-drawer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    width: min(var(--fa-drawer-width), 100%);
+    border-left: 1px solid var(--fa-rule);
+    background: var(--fa-paper);
+    box-shadow: -16px 0 40px rgba(28, 42, 54, 0.14);
+    transform: translateX(100%);
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.fa-drawer-layer.is-open .fa-drawer {
+    transform: none;
+}
+
+.fa-drawer-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1rem 1rem 1.5rem;
+    border-bottom: 1px solid var(--fa-rule);
+}
+
+.fa-drawer-head h2 {
+    margin: 0 0 0.15rem;
+    font-family: var(--fa-font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.fa-drawer-head p {
+    margin: 0;
+}
+
+.fa-drawer-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.fa-drawer-form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.fa-drawer-foot {
+    padding: 0.9rem 1.5rem;
+    border-top: 1px solid var(--fa-rule);
+    background: var(--fa-paper);
+}
+
+.fa-drawer-foot .fa-form-error {
+    margin-bottom: 0.6rem;
+}
+
+.fa-section {
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--fa-rule);
+}
+
+.fa-section:last-child {
+    border-bottom: 0;
+}
+
+.fa-section:empty {
+    display: none;
+}
+
+.fa-section p {
+    margin: 0 0 0.5rem;
+}
+
+.fa-section p:last-child {
+    margin-bottom: 0;
+}
+
+.fa-section-title {
+    margin: 0 0 0.6rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.fa-section.fa-section--danger .fa-section-title {
+    color: var(--fa-danger);
+}
+
+.fa-section.fa-section--danger .fa-muted {
+    margin-bottom: 0.75rem;
+}
+
+.fa-muted {
+    color: var(--fa-ink-soft);
+}
+
+.fa-meta {
+    margin-top: 0.9rem;
+    font-size: 0.8125rem;
+}
+
+.fa-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+}
+
+.fa-status .fa-switch {
+    margin-top: 0.1rem;
+}
+
+.fa-status .fa-status-title {
+    margin-bottom: 0.1rem;
+    font-weight: 600;
+}
+
+.fa-status.fa-status--void {
+    display: block;
+    padding-left: 0.85rem;
+    border-left: 3px solid var(--fa-danger);
+}
+
+.fa-status.fa-status--void .fa-status-title {
+    color: var(--fa-danger);
+}
+
+/* Forms */
+
+.fa-field {
+    display: grid;
+    gap: 0.3rem;
+    margin-bottom: 0.9rem;
+}
+
+.fa-field:last-child {
+    margin-bottom: 0;
+}
+
+.fa-field > span {
+    font-weight: 500;
+}
+
+.fa-field input,
+.fa-field textarea {
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: inherit;
+    font: inherit;
+}
+
+.fa-field textarea {
+    min-height: 4.25rem;
+    resize: vertical;
+}
+
+.fa-field input.fa-input-code {
+    font-family: var(--fa-font-code);
+}
+
+.fa-field input[aria-invalid="true"] {
+    border-color: var(--fa-danger);
+}
+
+.fa-hint {
+    color: var(--fa-ink-soft);
+    font-size: 0.8125rem;
+}
+
+.fa-field-error,
+.fa-form-error {
+    margin: 0;
+    color: var(--fa-danger);
+    font-size: 0.8125rem;
+}
+
+.fa-form-error {
+    margin-bottom: 0.75rem;
+}
+
+.fa-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.fa-checks {
+    display: grid;
+    gap: 0.1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fa-check {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.6rem;
+    margin: 0 -0.5rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--fa-radius);
+    cursor: pointer;
+}
+
+.fa-check:hover {
+    background: var(--fa-hover);
+}
+
+.fa-check input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: var(--fa-grant);
+}
+
+.fa-check-meta {
+    margin-left: auto;
+    font-size: 0.8125rem;
+}
+
+.fa-stale {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--fa-radius);
+    background: var(--fa-off-soft);
+}
+
+.fa-stale ul,
+.fa-locations {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fa-stale li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.fa-locations {
+    margin-top: 0;
+}
+
+.fa-locations code {
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    background: var(--fa-wash);
+}
+
+/* History timeline */
+
+.fa-timeline {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fa-timeline-item {
+    position: relative;
+    padding: 0 0 0.9rem 1.3rem;
+}
+
+.fa-timeline-item::before {
+    content: "";
+    position: absolute;
+    top: 0.42rem;
+    left: 0.2rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--fa-rule-strong);
+}
+
+.fa-timeline-item::after {
+    content: "";
+    position: absolute;
+    top: 1.15rem;
+    bottom: 0.1rem;
+    left: 0.44rem;
+    width: 1px;
+    background: var(--fa-rule);
+}
+
+.fa-timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.fa-timeline-item:last-child::after {
+    display: none;
+}
+
+.fa-section .fa-timeline-item p {
+    margin: 0;
+}
+
+.fa-timeline-item .fa-muted {
+    font-size: 0.8125rem;
+}
+
+.fa-timeline-item.fa-timeline-item--create::before,
+.fa-timeline-item.fa-timeline-item--role-grant::before {
+    background: var(--fa-grant);
+}
+
+.fa-timeline-item.fa-timeline-item--set-enabled::before {
+    background: var(--fa-off);
+}
+
+.fa-timeline-item.fa-timeline-item--void::before {
+    background: var(--fa-danger);
+}
+
+/* Toasts */
+
+.fa-toasts {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 1100;
+    display: grid;
+    justify-items: end;
+    gap: 0.5rem;
+    pointer-events: none;
+}
+
+/* While the drawer is open, toasts sit beside it instead of covering its content. */
+@media (min-width: 40rem) {
+    .fa-page:has(.fa-drawer-layer.is-open) .fa-toasts {
+        right: calc(min(var(--fa-drawer-width), 100%) + 1.25rem);
+    }
+}
+
+.fa-toast {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 28rem;
+    padding: 0.55rem 0.55rem 0.55rem 1rem;
+    border-radius: 6px;
+    background: var(--fa-ink);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(28, 42, 54, 0.22);
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition: opacity 0.18s, transform 0.18s;
+    pointer-events: auto;
+}
+
+.fa-toast.is-shown {
+    opacity: 1;
+    transform: none;
+}
+
+.fa-toast p {
+    margin: 0;
+}
+
+.fa-toast.fa-toast--error {
+    background: var(--fa-danger);
+}
+
+.fa-toast-dismiss {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.fa-toast-dismiss:hover {
+    background: rgba(255, 255, 255, 0.14);
+    opacity: 1;
+}
+
+/* Small screens and reduced motion */
+
+@media (max-width: 40rem) {
+    .fa-title {
+        font-size: 1.5rem;
+    }
+
+    .fa-search {
+        max-width: none;
+    }
+
+    .fa-segments {
+        width: 100%;
+    }
+
+    .fa-segment {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .fa-matrix .fa-col-feature {
+        min-width: 11rem;
+    }
+
+    .fa-toasts {
+        right: 1rem;
+        left: 1rem;
+        justify-items: stretch;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fa *,
+    .fa *::before,
+    .fa *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

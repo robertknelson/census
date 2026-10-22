@@ -1,0 +1,1 @@
+SELECT fm.FeatureSnapshot(@FeatureId);

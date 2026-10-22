@@ -11,9 +11,13 @@ const assert = (name, condition, actual = '') => {
 };
 const labels = (nav) => nav.map((g) => `${g.group}:${g.items.map((i) => i.label).join('/')}`).join(' | ');
 
-const catalog = JSON.parse(readFileSync(new URL('../config/features.json', import.meta.url))).feature_management.feature_flags.map((f) => f.id);
+// The catalog is the fm seed's feature list (apptrak/sql/fm/002-census-features.sql).
+const seed = readFileSync(new URL('../apptrak/sql/fm/002-census-features.sql', import.meta.url), 'utf8');
+const block = seed.slice(seed.indexOf('INSERT @features VALUES'), seed.indexOf('DECLARE @grants'));
+const catalog = [...block.matchAll(/^\s*\('([a-z0-9.-]+)',/gm)].map((m) => m[1]);
 const declared = NAV.flatMap((g) => g.items.map((i) => i.feature));
-assert('every nav item names a feature in config/features.json', declared.every((f) => catalog.includes(f)), declared.filter((f) => !catalog.includes(f)).join(','));
+assert('the seed lists its features', catalog.length > 0, catalog.length);
+assert('every nav item names a feature in the fm seed', declared.every((f) => catalog.includes(f)), declared.filter((f) => !catalog.includes(f)).join(','));
 assert('every feature in the catalog has a nav item', catalog.every((f) => declared.includes(f)), catalog.filter((f) => !declared.includes(f)).join(','));
 
 const exec = trimNav(NAV, ['view.year', 'view.quarter', 'view.month', 'view.week']);

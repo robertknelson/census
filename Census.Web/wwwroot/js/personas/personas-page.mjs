@@ -7,6 +7,7 @@ import { NeedsView } from './needs-view.mjs';
 import { BuildsView, DeploymentsView } from './drill-view.mjs';
 import { escapeHtml } from '../moveit/format.mjs';
 import divisionPage from '../moveit/division-page.mjs';
+import featureAccessPage from '../feature-access/feature-access-page.mjs';
 
 // The persona UX shell (personas.md §7, slice P-2): pick a member, see the UX as they would —
 // the nav trimmed to their features, each view shown for the applications where it is on.
@@ -18,6 +19,10 @@ import divisionPage from '../moveit/division-page.mjs';
 const MEMBER_KEY = 'personas.as';
 const OVERVIEW = 'overview';
 const LANDING = 'view.tracker';
+// The feature access page (personas.md §6.1). Offered by a fixed rule, never by a feature, so it
+// cannot be switched off from inside itself (FM2280 D7): system-administrator held on Census.
+const ADMIN = 'admin.features';
+const ADMIN_ROLE = 'system-administrator';
 
 // The data each built view reads, fetched once per page load.
 const LOADERS = {
@@ -102,9 +107,14 @@ class PersonasPage {
             return;
         }
         this.nav = trimNav(NAV, this.access.features);
-        if (this.at && this.at !== OVERVIEW && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
+        if (this.at === ADMIN && !this.isAdmin()) this.at = null;
+        if (this.at && this.at !== OVERVIEW && this.at !== ADMIN && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
         if (!this.at) this.at = navItem(this.nav, LANDING) ? LANDING : OVERVIEW;
         this.render();
+    }
+
+    isAdmin() {
+        return this.access.estateRoles.includes(ADMIN_ROLE);
     }
 
     url() {
@@ -139,6 +149,11 @@ class PersonasPage {
                                     ? `<a class="ps-nav-item is-out" href="${escapeHtml(i.href)}" title="${escapeHtml(i.hint)}">${escapeHtml(i.label)} <span aria-hidden="true">↗</span></a>`
                                     : `<a class="ps-nav-item${i.feature === this.at ? ' is-active' : ''}" href="#" data-at="${escapeHtml(i.feature)}" title="${escapeHtml(i.hint)}">${escapeHtml(i.label)}</a>`).join('')}
                             </div>`).join('')}
+                        ${this.isAdmin() ? `
+                            <div class="ps-nav-group">
+                                <h2 class="ps-nav-h">Administer</h2>
+                                <a class="ps-nav-item${this.at === ADMIN ? ' is-active' : ''}" href="#" data-at="${ADMIN}" title="Which roles may use which features">Feature access</a>
+                            </div>` : ''}
                     </nav>
                     <main class="ps-main">
                         <div class="ps-who">
@@ -176,6 +191,14 @@ class PersonasPage {
 
     mainHtml() {
         if (this.at === OVERVIEW) return this.overviewHtml();
+        if (this.at === ADMIN) {
+            // FM2280's page as it is, its API told who is making the change (the member viewed as).
+            this.view = {
+                html: () => '<div id="feature-access" class="fa ps-fa" data-api-base="/api/feature-access"></div>',
+                bind: () => featureAccessPage.init({ root: '#feature-access', headers: { 'X-Census-Member': this.as }, gateTags: false }),
+            };
+            return this.view.html();
+        }
         if (this.at === LANDING) {
             // The pizza tracker is Move It's Division, embedded and fixed to the member's
             // applications (personas.md §5.0); it fetches its own data once mounted.

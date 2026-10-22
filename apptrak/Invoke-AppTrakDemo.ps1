@@ -23,7 +23,9 @@ $ErrorActionPreference = 'Stop'
 $steps = @(
     'sql\001-create-deployment.sql',
     'sql\002-create-moveit-schema.sql',
-    'sql\003-lookups.sql'
+    'sql\003-lookups.sql',
+    'sql\fm\001-fm-schema.sql',
+    'sql\fm\002-census-features.sql'
 )
 if (-not $SkipSeed) { $steps += 'seed\seed-apptrak-demo.sql', 'seed\seed-membership-demo.sql' }
 $steps += 'sql\backfill-deployment.sql'

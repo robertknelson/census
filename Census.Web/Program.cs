@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.FeatureManagement;
-using Microsoft.FeatureManagement.FeatureFilters;
+using Census.Web.FeatureAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,10 +30,18 @@ builder.Services.Configure<MoveItOptions>(builder.Configuration.GetSection(MoveI
 builder.Services.AddSingleton<MoveItQuestions>();
 builder.Services.AddSingleton<MoveItEntry>();
 builder.Services.Configure<PersonasOptions>(builder.Configuration.GetSection(PersonasOptions.SectionName));
-var personas = builder.Configuration.GetSection(PersonasOptions.SectionName).Get<PersonasOptions>() ?? new PersonasOptions();
-builder.Configuration.AddJsonFile(Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, personas.FeaturesConfigPath)), optional: false, reloadOnChange: true);
-builder.Services.AddFeatureManagement();
-builder.Services.Configure<TargetingEvaluationOptions>(o => o.IgnoreCase = true);
+// Feature access (FM2280, copied into FeatureAccess/; personas.md §6.1): features and their role
+// grants live in AppTrak's fm schema and are edited on the feature access page. The admin policy
+// lets everyone through for now: Census has no sign-in yet, and the page is offered only to a
+// Sys Admin in the persona UX. It becomes a real role check when identity arrives (open item).
+var moveIt = builder.Configuration.GetSection(MoveItOptions.SectionName).Get<MoveItOptions>();
+builder.Services.AddFeatureAccess(o =>
+{
+    o.ConnectionString = moveIt?.ConnectionString;
+    o.SqlDirectory = Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, moveIt?.SqlPath ?? "../apptrak/sql", "fm"));
+    o.ConfigureAdminPolicy = policy => policy.RequireAssertion(_ => true);
+});
+builder.Services.AddSingleton<IRoleCatalog, MemberTypesRoleCatalog>();
 builder.Services.AddSingleton<MemberAccess>();
 
 var app = builder.Build();

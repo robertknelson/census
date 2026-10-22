@@ -4,6 +4,26 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — the feature access page
+
+**FM2280 copied, not referenced.** Its D12 (copy, don't package) and xf-dashboard's adoption say
+copy; a project reference to `C:\github\ai\fm2280` would not exist on the real server. Its open
+item HO4 (reference it once there is a third consumer) is still yours to rule; Census is that
+third consumer.
+
+**The grants left `config/features.json` the day the page came.** Two sources of truth would
+drift the first time someone saved on the page. The JSON became the seed's first grants.
+
+**The seed never overwrites the page.** It inserts missing features and grants only for features
+it just created, so a revoke made on the page survives the next deploy.
+
+**The way in is a fixed rule, not a feature** (system-administrator on Census) — FM2280's D7: the
+admin page must not be switch-off-able from itself.
+
+**No gate tags in Census.** FM2280 tags every feature no `[FeatureGate]` uses as *No gate*; Census
+uses none, so all 16 would carry it. The page got a host switch instead of a Census-only edit to
+its rendering.
+
 ## 2026-10-22 — the tracker as the landing, and the fiscal year
 
 **The tracker is Division embedded, not a second drawing.** Options: a new persona view of the

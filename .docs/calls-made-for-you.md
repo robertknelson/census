@@ -4,6 +4,26 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — P-3a: a period view before his notes
+
+**Built the first view without waiting for his notes.** Options: stop until the notes come;
+build §5's proposed questions as a draft. Call: the draft — "continue", and the standing rule
+says not to stop for a decision a wrong guess would not make useless. It reads only existing
+questions (02, 09, the calendar), so reshaping it is cheap. `personas.md` §5.1 marks it a draft.
+
+**Shipped means first arrival at PROD inside the period** (09's `FirstProd`), even if the
+release has left PROD since — that is said on the row, not hidden by dropping it.
+
+**Stuck shows only in the period holding today.** On hold and past target are statements about
+now; under a past month they would read as that month's.
+
+**Due is this period and the next**, so the end of a month never shows an empty "coming".
+
+**Fiscal year defaults to January; weeks start Monday.** Both doubtful, the first a setting
+(P5). A fiscal year is named by the year it ends in, the usual convention.
+
+**One hue for the bars.** It is one measure across applications; colour would add nothing.
+
 ## 2026-10-22 — P-2: the shell's route, its nav, its landing
 
 **The route is `/personas`.** A working name, matching the API and the spec; rename it by

@@ -3,8 +3,8 @@
 > Spec 2026-10-22, from Robert's morning over Census and Move It: *"what we have built so far
 > is a lot of overlap … we need to focus on the Personas that will need to see/interact with
 > Census, MoveIT, and Atlas."* Position taken in conversation the same day; his answers to the
-> mapping questions are folded in (§3, §12). Status: **P-1 and P-2 built 2026-10-22** on branch
-> `personas` (§10, §13); `/personas` is the shell, the views are P-3. His typed notes
+> mapping questions are folded in (§3, §12). Status: **P-1, P-2 and P-3a built 2026-10-22** on branch
+> `personas` (§10, §13); `/personas` is the shell, the period view (§5.1) its first view. His typed notes
 > from the morning are still to come and get sorted against this frame (§12, P1).
 
 ## 1. The question
@@ -88,6 +88,26 @@ To be written from his notes. The shape, as proposed in conversation:
 Period comparison likely matters more than any single period. The fiscal year's first month is
 a setting.
 
+### 5.1 The period view (P-3a, built before his notes — a draft for them to correct)
+
+The four *See* items are one view at four grains: a fiscal year, a fiscal quarter, a calendar
+month, a Monday-start week. `‹ ›` step a period; *This …* returns to today's. The period rides in
+the URL as `on=` (any day inside it). Every number is for the applications on which that grain's
+feature is on for the member (§4) — Max's *Year* is MortgageGateway, his *Quarter* both.
+
+| Part | Answers | From |
+|---|---|---|
+| Tiles: Shipped, Moves, To production, Approvals, Rollbacks — each with the period before | *How does this period compare with the last?* | 09, calendar |
+| Shipped — release, application, the day first live, days from first build; *left production since* when it is no longer in PROD | *What shipped?* | 09 (`FirstProd`), 02 |
+| Where the change landed — builds arriving at any stage per application, busiest first; PROD arrivals beside | *Which applications carry the most change?* | calendar `arrived` |
+| Due this period and next — releases not live with a target date in either, *past target* flagged | *What is coming?* | 02 |
+| Stuck today — on hold (with the reason) or past target; only in the period holding today | *What is stuck, and where?* | 02 |
+| A line under it all: how many of the period's moves belong to a release, and how many are not yet claimed | curation coverage (§2) | calendar |
+
+Fiscal years are named by the year they end in (`FY27` starts 1 Oct 2026 when the setting is
+10); with the default, January, they are plain calendar years. `Personas:FiscalYearStartMonth`.
+
+
 ## 6. Feature management — what is adopted now
 
 The vocabulary of FM2280 (`C:\github\ai\fm2280\.docs\features\feature-access.md`), not its
@@ -165,7 +185,8 @@ inside its card.
 |---|---|---|
 | P-1 | Manufactured membership seed; Executive role locally; member → roles → features + scope, read from AppTrak; feature grants in JSON config. | A test per seeded member: features on/off and application scope as §4 says. |
 | P-2 | Persona UX shell beside the existing routes: member switcher, feature-trimmed sidebar. | Screenshot per persona; a mixed member sees the union. |
-| P-3+ | The views themselves, from §5 and his notes. | Per view. |
+| P-3a | The period view (§5.1) for the four *See* items. | `tests/Test-Period.mjs`; screenshots. |
+| P-3+ | The remaining views — drill-down, curation — and §5.1 reshaped by his notes. | Per view. |
 
 ## 11. API
 
@@ -205,6 +226,7 @@ it is not a superset (FM2280's rule).
 | P4 | The Executive's questions (§5). | His notes. |
 | P5 | Fiscal year's first month. | A setting; the value from Robert. |
 | P6 | Census's own `membership.Application` row in the real database: does it exist, and its Identifier (assumed `census`, a setting). | Robert, from the real database. |
+| P8 | An application with no health regime (MortgageGateway in the fixtures) has *asserted* deployments only. They count as **shipped** (09 takes asserted PROD) but not as **moves**, which are observed arrivals — so its row is missing from *Where the change landed*. Count asserted moves too, marked, or leave the bar as "what we saw"? | Robert. |
 | P7 | The local applications 2 and 3 are hand-made rows (My WebApp, Your WebApp) while Move It's fixtures call them WidgetPortal and LedgerService. The seed leaves them alone. Should it own them? | Robert's word. |
 
 ## 13. Verification log
@@ -227,3 +249,15 @@ at 390px (inside a 390px frame — headless Edge will not size a window that nar
 Max's pages fit with no page scroll, the matrix scrolling in its card. The switcher's change
 event and nav clicks were not clicked in a browser; each state was loaded by URL, which is the
 same render path.
+
+**2026-10-22, P-3a.** `node tests/Test-Period.mjs`: **24 passed** — calendar and fiscal years
+(FY named by its end year, the day before it in the year before), fiscal Q1, months, Monday weeks
+and a Sunday, stepping across a year and a month end; and the summary: shipped is first PROD
+inside the period and in scope, *left production since*, the period before, moves/PROD/rollbacks/
+approvals counted apart, claimed moves, busiest application first, due this and next, stuck only
+in the period holding today, an empty month. Screenshots against the demo ledger: Ellen's Q3 2026
+(7 shipped, 22 moves, 6 to PROD, 6 approvals, 3 rollbacks; 18 of 22 moves claimed), her Year; Max's
+August (two applications, MortgageGateway's asserted ship counted, P8); Terry's Q4 2026, the
+current quarter — empty, with Sprint 43 under *Stuck today* with its hold reason. At 390px
+(framed) the tiles run two across and the columns stack. `‹ ›` were exercised by URL (`on=`),
+not clicked.

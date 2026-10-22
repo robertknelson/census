@@ -11,4 +11,8 @@ public class PersonasOptions
     public string EstateApplication { get; set; } = "census";
 
     public string FeaturesConfigPath { get; set; } = "../config/features.json";
+
+    // The period view's fiscal year starts on the first of this month (1-12); quarters count
+    // from it. January until Robert names the real one (open item P5).
+    public int FiscalYearStartMonth { get; set; } = 1;
 }

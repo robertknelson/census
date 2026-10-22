@@ -8,8 +8,17 @@ namespace Census.Web.Controllers.Api;
 // one member's features and application scope.
 [ApiController]
 [Route("api/personas")]
-public class PersonasController(MemberAccess access) : ControllerBase
+public class PersonasController(MemberAccess access, MoveItQuestions questions) : ControllerBase
 {
+    // The period view's "shipped" (personas.md §5): question 09's first arrival at PROD per
+    // release, read verbatim. Here rather than on Move It's controller so that stays untouched.
+    [HttpGet("lead-time")]
+    public async Task<IActionResult> LeadTime()
+    {
+        if (!questions.Enabled) return NotFound();
+        return Ok(await questions.RunAsync("questions/09-lead-time.sql"));
+    }
+
     [HttpGet("members")]
     public async Task<IActionResult> Members()
     {

@@ -69,7 +69,43 @@ html, body { margin: 0; background: var(--ps-paper); }
 .ps-chip { padding: 0.15rem 0.6rem; border: 1px solid var(--ps-rule); border-radius: 999px; font-size: 12.5px; }
 .ps-placeholder { margin-top: 0.5rem; padding: 1.5rem 1rem; border: 1px dashed var(--ps-rule); border-radius: 6px; color: var(--ps-muted); text-align: center; }
 
+/* The period view (period-view.mjs). */
+.ps-none { color: var(--ps-muted); font-size: 13px; }
+.ps-period { gap: 0.9rem; }
+.ps-period-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.ps-period-title { min-width: 0; }
+.ps-step { width: 2rem; height: 2rem; border: 1px solid var(--ps-rule); border-radius: 50%; background: var(--ps-panel); color: var(--ps-ink); font-size: 18px; line-height: 1; cursor: pointer; }
+.ps-step:hover { border-color: var(--ps-ink); }
+.ps-today { margin-left: auto; padding: 0.25rem 0.75rem; border: 1px solid var(--ps-rule); border-radius: 999px; background: var(--ps-panel); color: var(--ps-muted); font: inherit; font-size: 12.5px; cursor: pointer; }
+.ps-today:hover { border-color: var(--ps-ink); color: var(--ps-ink); }
+
+.ps-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.6rem; }
+.ps-tile { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.65rem 0.8rem; border: 1px solid var(--ps-rule-soft); border-radius: 6px; background: var(--ps-paper); }
+.ps-tile-label { font-size: 12px; font-weight: 600; color: var(--ps-muted); }
+.ps-tile-value { font: 600 26px/1.15 var(--ps-display); font-variant-numeric: tabular-nums; }
+.ps-tile-vs { font-size: 12px; color: var(--ps-muted); }
+
+.ps-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); gap: 1rem; align-items: start; }
+.ps-list { padding: 0; list-style: none; display: flex; flex-direction: column; }
+.ps-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.15rem 1rem; padding: 0.45rem 0; border-top: 1px solid var(--ps-rule-soft); }
+.ps-list li:first-child { border-top: 0; }
+.ps-list-end { color: var(--ps-muted); font-size: 12.5px; }
+.ps-flag { display: inline-block; padding: 0 0.4rem; border-radius: 3px; background: var(--ps-rule-soft); color: var(--ps-muted); font-size: 11.5px; }
+.ps-flag.is-alert { background: #fbe9e7; color: var(--ps-alert); }
+.ps-flag.is-hold { background: #fff4dd; color: #8a5a00; }
+
+.ps-bars { padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+.ps-bar-row { display: grid; grid-template-columns: minmax(6rem, 9rem) 1fr auto; align-items: center; gap: 0.6rem; font-size: 13px; }
+.ps-bar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-bar-track { height: 0.6rem; }
+.ps-bar { display: block; height: 100%; min-width: 2px; border-radius: 0 4px 4px 0; background: var(--ps-on); }
+.ps-bar-value { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.ps-bar-sub { font-weight: 400; color: var(--ps-muted); }
+.ps-foot { color: var(--ps-muted); font-size: 12.5px; }
+
 @media (max-width: 720px) {
+    .ps-columns { grid-template-columns: 1fr; }
+    .ps-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .ps-top { padding: 0.55rem 1rem; }
     .ps-as { margin-left: 0; width: 100%; min-width: 0; }
     .ps-as select { flex: 1; min-width: 0; width: 100%; max-width: none; }

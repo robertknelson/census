@@ -1,12 +1,15 @@
-import { fetchAccess, fetchMembers } from './personas-api.mjs';
+import { fetchAccess, fetchCalendar, fetchLeadTime, fetchMembers, fetchReleaseStatus } from './personas-api.mjs';
 import { NAV, applicationsFor, navItem, trimNav } from './persona-nav.mjs';
+import { grainOf, periodOf, shiftPeriod } from './period.mjs';
+import { PeriodView } from './period-view.mjs';
 import { escapeHtml } from '../moveit/format.mjs';
 
 // The persona UX shell (personas.md §7, slice P-2): pick a member, see the UX as they would —
 // the nav trimmed to their features, each view shown for the applications where it is on.
-// The views themselves are P-3; until then each item says so and names its applications.
-// The member and the item live in the URL (?as=&at=) so a screen can be linked; the last
-// member is remembered per browser as a convenience.
+// The See items are the period view (P-3, period-view.mjs); the rest say they are not built
+// yet and name their applications. The member, the item and the period live in the URL
+// (?as=&at=&on=, on being a day inside the period) so a screen can be linked; the last member
+// is remembered per browser as a convenience.
 
 const MEMBER_KEY = 'personas.as';
 
@@ -16,6 +19,10 @@ function remembered() {
 
 function remember(identifier) {
     try { localStorage.setItem(MEMBER_KEY, identifier); } catch { /* not remembered */ }
+}
+
+function localDay(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function grantsText(grants) {
@@ -32,9 +39,11 @@ class PersonasPage {
     init(config = {}) {
         this.root = document.getElementById(config.rootId ?? 'personas-root');
         this.estate = config.estateName ?? 'Census';
+        this.fiscalStart = config.fiscalStart ?? 1;
         const params = new URLSearchParams(location.search);
         this.as = params.get('as');
         this.at = params.get('at');
+        this.on = params.get('on');
         this.load();
     }
 
@@ -71,6 +80,7 @@ class PersonasPage {
     url() {
         const params = new URLSearchParams({ as: this.as });
         if (this.at) params.set('at', this.at);
+        if (this.at && this.on) params.set('on', this.on);
         return `${location.pathname}?${params}`;
     }
 
@@ -101,7 +111,7 @@ class PersonasPage {
                             <h1 class="ps-name">${escapeHtml(member.name)}</h1>
                             <p class="ps-roles">${escapeHtml(grantsText(member.grants))}${this.access.estate ? ` <span class="ps-tag">estate-wide</span>` : ''}</p>
                         </div>
-                        ${this.at ? this.itemHtml() : this.overviewHtml()}
+                        ${this.mainHtml()}
                     </main>
                 </div>
             </div>`;
@@ -114,6 +124,40 @@ class PersonasPage {
                 this.render();
             });
         }
+        for (const b of this.root.querySelectorAll('[data-shift]')) {
+            b.addEventListener('click', () => {
+                const n = b.dataset.shift;
+                this.on = n === 'today' ? null : localDay(shiftPeriod(this.period, Number(n), this.fiscalStart).start);
+                this.render();
+            });
+        }
+    }
+
+    mainHtml() {
+        if (!this.at) return this.overviewHtml();
+        const grain = grainOf(this.at);
+        if (!grain) return this.itemHtml();
+        if (this.dataError) return `<p class="ps-error">${escapeHtml(this.dataError)}</p>`;
+        if (!this.data) {
+            this.loadData();
+            return '<p class="ps-none">Reading the ledger…</p>';
+        }
+        const day = this.on ? new Date(`${this.on}T00:00:00`) : new Date();
+        this.period = periodOf(day, grain, this.fiscalStart);
+        const applications = applicationsFor(this.access, this.at).map((a) => ({ applicationId: a.applicationId, name: a.name }));
+        return new PeriodView({ data: this.data, period: this.period, applications, fiscalStart: this.fiscalStart }).html();
+    }
+
+    async loadData() {
+        if (this.loading) return;
+        this.loading = true;
+        try {
+            const [releases, leads, calendar] = await Promise.all([fetchReleaseStatus(), fetchLeadTime(), fetchCalendar()]);
+            this.data = { releases, leads, calendar };
+        } catch (e) {
+            this.dataError = e.message;
+        }
+        this.render();
     }
 
     overviewHtml() {

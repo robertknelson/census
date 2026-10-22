@@ -18,6 +18,18 @@ export function fetchMembers() {
     return getJson('/api/personas/members');
 }
 
+export function fetchLeadTime() {
+    return getJson('/api/personas/lead-time');
+}
+
+export function fetchReleaseStatus() {
+    return getJson('/api/moveit/release-status');
+}
+
+export function fetchCalendar() {
+    return getJson('/api/moveit/calendar');
+}
+
 export function fetchAccess(identifier) {
     return getJson(`/api/personas/members/${encodeURIComponent(identifier)}`);
 }

@@ -357,6 +357,15 @@
 .dv-project-head { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; padding: 1.75rem 0 0.6rem; border-bottom: 2px solid var(--mi-ink); }
 .dv-project-name { font: 600 22px/1.2 var(--mi-display); }
 .dv-project-name.is-unnamed { color: var(--mi-muted); }
+.dv-project-link { color: inherit; text-decoration: none; }
+.dv-project-link:hover { text-decoration: underline; }
+/* A release with nothing under it says so across the whole row, so the grid keeps its columns. */
+.dv-row-item > .dv-label.dv-span { grid-column: 1 / -1; }
+/* The top step of a release not yet live: when it is due. */
+.dv-node-text.dv-due { color: var(--mi-muted); font-weight: 500; }
+/* One application's page: its releases listed under the lines. */
+.dv-list { margin-top: 2rem; }
+.dv-list-head { font: 600 16px/1.2 var(--mi-display); margin: 0 0 0.6rem; }
 .dv-project-meta { color: var(--mi-muted); font-size: 13px; }
 
 .dv-label { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.8rem 1rem 0.8rem 0; min-width: 0; }

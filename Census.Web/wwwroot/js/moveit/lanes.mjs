@@ -17,7 +17,7 @@ export function buildLanes(stages) {
         .map(([sort, names]) => ({ id: `stage-${sort}`, label: names.join(' / '), stages: names }));
     return [
         { id: COMING, label: 'Coming', stages: [] },
-        { id: NOT_SEEN, label: 'Built, not seen', stages: [] },
+        { id: NOT_SEEN, label: 'Built, not yet seen deployed', stages: [] },
         ...stageLanes,
     ];
 }

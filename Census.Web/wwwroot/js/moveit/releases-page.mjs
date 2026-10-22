@@ -1,5 +1,5 @@
 import { fetchApplications, fetchReadyToApprove, fetchReleaseBuilds, fetchReleaseStatus, fetchReleases, fetchStages, fetchWhereIsEverything } from './moveit-api.mjs';
-import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
+import { appLabel, days, daysAgo, escapeHtml, isoDate, shortDate } from './format.mjs';
 import { buildLanes, laneFor } from './lanes.mjs';
 import { laneHue, stageHue } from './stage-hues.mjs';
 import { classifyReleases, currentReleases } from './release-panel.mjs';
@@ -124,22 +124,26 @@ class ReleasesPage {
                 { id: 'name', label: 'Release', class: 'rg-c-title', sort: (r) => r.release.Name.toLowerCase(),
                   render: (r) => `<a class="rg-title rg-link" href="/moveit/release/${r.release.ReleaseId}">${escapeHtml(r.release.Name)}</a>${r.release.Kind === 'hotfix' ? ' <span class="mi-card-kind">hotfix</span>' : ''}` },
                 { id: 'app', label: 'Application', sort: (r) => appLabel(r.app).toLowerCase(), render: (r) => escapeHtml(appLabel(r.app)) },
-                { id: 'contents', label: 'Contents', class: 'rg-c-wrap', sort: (r) => (r.release.Features ?? 0) + (r.release.Fixes ?? 0), defaultDir: 'desc',
+                { id: 'contents', label: "What's in it", class: 'rg-c-wrap', sort: (r) => (r.release.Features ?? 0) + (r.release.Fixes ?? 0), defaultDir: 'desc',
+                  title: 'Worked out from its items: features, fixes, both, or nothing yet. Kind is what the release was declared as.',
                   render: (r) => this.renderContents(r) },
-                { id: 'pieces', label: 'Pieces', class: 'rg-c-track', sort: (r) => r.card.open.length, defaultDir: 'desc', render: (r) => this.renderPieces(r) },
+                { id: 'pieces', label: 'Where its items are', class: 'rg-c-track', sort: (r) => r.card.open.length, defaultDir: 'desc',
+                  title: 'One segment per stage holding any of its items, as wide as how many; hover for the counts', render: (r) => this.renderPieces(r) },
                 { id: 'where', label: 'Highest stage', sort: (r) => r.laneIndex, defaultDir: 'desc',
                   render: (r) => `<span class="mi-stage" style="--lane: ${stageHue(r.release.HighestStage)}">${escapeHtml(r.release.HighestStage)}</span>${r.release.Evidence === 'asserted' ? ' <span class="mi-muted">asserted</span>' : ''}` },
                 { id: 'since', label: 'Since', sort: (r) => r.sinceMs, defaultDir: 'desc', render: (r) => this.renderSince(r) },
                 { id: 'target', label: 'Target', sort: (r) => r.targetMs,
-                  render: (r) => r.release.TargetDate ? `${escapeHtml(shortDate(r.release.TargetDate))}${r.release.PastTarget === 1 ? ' <span class="mi-flag is-alert">late</span>' : ''}` : '<span class="mi-muted">—</span>' },
+                  render: (r) => r.release.TargetDate ? `${escapeHtml(isoDate(r.release.TargetDate))}${r.release.PastTarget === 1 ? ' <span class="mi-flag is-alert">late</span>' : ''}` : '<span class="mi-muted">—</span>' },
+                { id: 'approved', label: 'Approved on', sort: (r) => (r.release.ApprovedAt ? Date.parse(r.release.ApprovedAt) : 0), defaultDir: 'desc',
+                  render: (r) => r.release.ApprovedAt ? escapeHtml(isoDate(r.release.ApprovedAt)) : '<span class="mi-muted">—</span>' },
                 { id: 'builds', label: 'Builds', sort: (r) => r.builds.length, defaultDir: 'desc',
                   render: (r) => r.builds.length ? `<span title="${escapeHtml(r.builds.join(', '))}">${r.builds.length}</span>` : '<span class="mi-muted">none</span>' },
                 { id: 'flags', label: 'Flags', class: 'rg-c-wrap', sort: (r) => r.flags.length, defaultDir: 'desc', render: (r) => renderFlags(r.flags.filter((f) => f !== 'empty')) },
             ],
             facets: [
-                { id: 'kind', label: 'Kind', value: (r) => r.release.Kind, order: ['featureset', 'hotfix'] },
+                { id: 'kind', label: 'Kind', title: 'What the release was declared as: a feature set, or a hotfix', value: (r) => r.release.Kind, order: ['featureset', 'hotfix'] },
                 { id: 'where', label: 'Highest stage', value: (r) => r.where, order: [...laneLabels, 'with the devs', 'no evidence', 'abandoned'] },
-                { id: 'contents', label: 'Contents', value: (r) => r.contents, order: ['features only', 'fixes only', 'mixed', 'empty'] },
+                { id: 'contents', label: "What's in it", title: 'Worked out from its items. A hotfix that carries a feature shows up here.', value: (r) => r.contents, order: ['features only', 'fixes only', 'mixed', 'empty'] },
                 { id: 'flags', label: 'Flags', value: (r) => r.flags.filter((f) => f !== 'empty'), order: ['late', 'on hold', 'awaiting approval', 'ready to approve', 'approved', 'unsigned', 'contradiction'] },
             ],
             pills: [
@@ -149,7 +153,7 @@ class ReleasesPage {
                 { id: 'hold', label: 'On hold', facets: { flags: ['on hold'] } },
                 { id: 'live', label: `Live in ${this.shippedDays} days`, title: `Wholly in the top stage, reached in the last ${this.shippedDays} days`,
                   test: (r) => r.card.shippedAt != null && !r.card.folded },
-                { id: 'unsigned', label: 'Live, no sign-off', title: 'Went live with no approval recorded', facets: { flags: ['unsigned'] } },
+                { id: 'unsigned', label: 'Live, no signoff', title: 'Went live with no approval recorded', facets: { flags: ['unsigned'] } },
             ],
         };
     }

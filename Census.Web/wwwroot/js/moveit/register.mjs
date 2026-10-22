@@ -211,7 +211,7 @@ export class Register {
                     : [...seen].sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0) || String(a).localeCompare(String(b)));
                 if (!values.length) return '';
                 return `<div class="rg-facet">
-                    <span class="rg-facet-h">${escapeHtml(f.label)}</span>
+                    <span class="rg-facet-h"${f.title ? ` title="${escapeHtml(f.title)}"` : ""}>${escapeHtml(f.label)}</span>
                     <span class="rg-facet-vs">${values.map((v) => {
                         const n = counts.get(v) ?? 0;
                         const on = chosen.includes(v);
@@ -226,7 +226,7 @@ export class Register {
     renderTable(page) {
         const arrow = (c) => c.id !== this.state.sort ? '' : this.state.dir === 'desc' ? ' ▾' : ' ▴';
         return `<table class="rg-table">
-            <thead><tr>${this.columns.map((c) => `<th class="${c.class ?? ''} ${c.id === this.state.sort ? 'is-sorted' : ''}" scope="col"><button type="button" class="rg-th" data-sort="${escapeHtml(c.id)}">${escapeHtml(c.label)}${arrow(c)}</button></th>`).join('')}</tr></thead>
+            <thead><tr>${this.columns.map((c) => `<th class="${c.class ?? ''} ${c.id === this.state.sort ? 'is-sorted' : ''}" scope="col"${c.title ? ` title="${escapeHtml(c.title)}"` : ''}><button type="button" class="rg-th" data-sort="${escapeHtml(c.id)}">${escapeHtml(c.label)}${arrow(c)}</button></th>`).join('')}</tr></thead>
             <tbody>${page.map((row) => {
                 const key = String(this.rowKey(row));
                 return `<tr class="rg-row ${key === this.state.sel ? 'is-selected' : ''}" data-key="${escapeHtml(key)}" tabindex="0">${this.columns.map((c) => `<td class="${c.class ?? ''}">${c.render(row)}</td>`).join('')}</tr>`;

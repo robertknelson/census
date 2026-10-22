@@ -4,6 +4,21 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-22 — personas: where estate-wide roles live, and where grants are kept
+
+**A role held on the Census application is estate-wide.** Options: a new table for global
+roles; a sentinel ApplicationId (0 or NULL) meaning "all"; Census registered as an
+application like any other. Call: the last (`personas.md` §4). It uses the membership schema
+as it is — no column, no magic id — and an application's members being its users is already
+what the schema says.
+
+**Feature grants live in JSON config for now, not SQL.** Census keeps everything in JSON
+config, Microsoft.FeatureManagement reads config natively, and nothing here is gated yet. The
+SQL store is a provider swap later — in AppTrak's `fm` schema (his ruling, `personas.md` §6).
+
+**The Executive role's Identifier is assumed `executive`, Census's application Identifier
+`census`** — both settings, both open items (P2, P6) until read from the real database.
+
 ## 2026-10-16 — the calendar's colour axis
 
 **Hues are handed out per shown month, not fixed per release for all time.** Options: a hue

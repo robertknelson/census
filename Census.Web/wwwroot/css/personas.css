@@ -59,7 +59,9 @@ html, body { margin: 0; background: var(--ps-paper); }
 
 .ps-scroll { overflow-x: auto; }
 .ps-matrix { border-collapse: collapse; font-size: 13px; }
-.ps-matrix th, .ps-matrix td { padding: 0.35rem 0.55rem; border-bottom: 1px solid var(--ps-rule-soft); text-align: center; white-space: nowrap; }
+/* Headers may centre over their columns; cell contents are left-justified (his Move It note 13). */
+.ps-matrix th, .ps-matrix td { padding: 0.35rem 0.55rem; border-bottom: 1px solid var(--ps-rule-soft); text-align: left; white-space: nowrap; }
+.ps-matrix thead th { text-align: center; }
 .ps-matrix thead th { font-weight: 600; font-size: 12px; color: var(--ps-muted); border-bottom-color: var(--ps-rule); }
 .ps-matrix .ps-group-h { color: var(--ps-ink); border-bottom: 1px solid var(--ps-rule); }
 .ps-matrix .ps-app-col { text-align: left; font-weight: 600; color: var(--ps-ink); }

@@ -5,7 +5,15 @@
 // Fiscal year and quarter start from fiscalStart (1-12, a setting, open item P5); a fiscal year
 // is named by the calendar year it ends in. Weeks start on Monday.
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Days read yyyy-MM-dd on the reader's calendar (his Move It note 8, carried here). A date-only
+// value (a target date) is that day, never midnight UTC slipping back a day.
+export function isoDay(value) {
+    const text = String(value);
+    if (/^\d{4}-\d{2}-\d{2}(T00:00:00)?$/.test(text)) return text.slice(0, 10);
+    const d = value instanceof Date ? value : new Date(text);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 const LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export const GRAINS = ['year', 'quarter', 'month', 'week'];
@@ -45,7 +53,7 @@ export function periodOf(day, grain, fiscalStart = 1) {
     } else {
         start = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
         end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7);
-        label = `Week of ${start.getDate()} ${MONTHS[start.getMonth()]} ${start.getFullYear()}`;
+        label = `Week of ${isoDay(start)}`;
     }
     return { grain, start, end, label };
 }
@@ -66,8 +74,7 @@ export function contains(period, at) {
 
 export function spanText(period) {
     const last = new Date(period.end.getFullYear(), period.end.getMonth(), period.end.getDate() - 1);
-    const d = (x) => `${x.getDate()} ${MONTHS[x.getMonth()]}`;
-    return `${d(period.start)} – ${d(last)} ${last.getFullYear()}`;
+    return `${isoDay(period.start)} – ${isoDay(last)}`;
 }
 
 function counts(calendar, period, inScope) {
@@ -97,7 +104,7 @@ export function summarize({ releases, leads, calendar, period, applicationIds, n
     const shipped = shippedIn(period)
         .map((l) => ({
             releaseId: l.ReleaseId, applicationId: l.ApplicationId, name: l.Name, kind: l.Kind,
-            at: l.FirstProd, days: l.DaysEndToEnd, rolledBack: status.get(l.ReleaseId)?.HighestStage !== 'PROD',
+            at: l.FirstProd, days: l.DaysEndToEnd, approvedAt: l.ApprovedAt ?? null, rolledBack: status.get(l.ReleaseId)?.HighestStage !== 'PROD',
         }))
         .sort((a, b) => String(a.at).localeCompare(String(b.at)));
 

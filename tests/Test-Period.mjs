@@ -28,7 +28,7 @@ assert('calendar Q3', p.label === 'Q3 2026' && span(p) === '2026-07-01..2026-10-
 p = periodOf(day('2026-10-22'), 'month');
 assert('month', p.label === 'October 2026' && span(p) === '2026-10-01..2026-11-01', `${p.label} ${span(p)}`);
 p = periodOf(day('2026-10-22'), 'week');
-assert('a week starts on Monday', p.label === 'Week of 19 Oct 2026' && span(p) === '2026-10-19..2026-10-26', `${p.label} ${span(p)}`);
+assert('a week starts on Monday', p.label === 'Week of 2026-10-19' && span(p) === '2026-10-19..2026-10-26', `${p.label} ${span(p)}`);
 p = periodOf(day('2026-11-01'), 'week');
 assert('  a Sunday belongs to the week before', iso(p.start) === '2026-10-26', iso(p.start));
 
@@ -36,7 +36,7 @@ const q = periodOf(day('2026-08-15'), 'quarter', 1);
 assert('stepping back a quarter', shiftPeriod(q, -1).label === 'Q2 2026');
 assert('stepping forward across the year', shiftPeriod(q, 2).label === 'Q1 2027', shiftPeriod(q, 2).label);
 assert('stepping weeks across a month end', iso(shiftPeriod(periodOf(day('2026-10-28'), 'week'), 1).start) === '2026-11-02');
-assert('the span reads as days', spanText(periodOf(day('2026-08-15'), 'month')) === '1 Aug – 31 Aug 2026', spanText(periodOf(day('2026-08-15'), 'month')));
+assert('the span reads as yyyy-MM-dd days', spanText(periodOf(day('2026-08-15'), 'month')) === '2026-08-01 – 2026-08-31', spanText(periodOf(day('2026-08-15'), 'month')));
 
 // Two applications in scope (1, 2); 3 is not.
 const releases = [
@@ -46,7 +46,7 @@ const releases = [
     { ReleaseId: 4, ApplicationId: 3, Name: 'D', HighestStage: 'VAL', OnHold: 1, PastTarget: 1, TargetDate: '2026-10-10T00:00:00' },
 ];
 const leads = [
-    { ReleaseId: 1, ApplicationId: 1, Name: 'A', Kind: 'featureset', FirstProd: '2026-08-05T00:00:00+00:00', DaysEndToEnd: 30 },
+    { ReleaseId: 1, ApplicationId: 1, Name: 'A', Kind: 'featureset', FirstProd: '2026-08-05T00:00:00+00:00', DaysEndToEnd: 30, ApprovedAt: '2026-08-03T15:00:00+00:00' },
     { ReleaseId: 2, ApplicationId: 1, Name: 'B', Kind: 'featureset', FirstProd: '2026-08-30T00:00:00+00:00', DaysEndToEnd: 25 },
     { ReleaseId: 5, ApplicationId: 1, Name: 'E', Kind: 'hotfix', FirstProd: '2026-07-10T00:00:00+00:00', DaysEndToEnd: 1 },
     { ReleaseId: 4, ApplicationId: 3, Name: 'D', Kind: 'featureset', FirstProd: '2026-08-12T00:00:00+00:00', DaysEndToEnd: 9 },
@@ -67,6 +67,7 @@ const calendar = [
 const august = periodOf(day('2026-08-15'), 'month');
 const s = summarize({ releases, leads, calendar, period: august, applicationIds: [1, 2], now: day('2026-08-20') });
 assert('shipped: first arrival at PROD inside the month, in scope only', s.shipped.map((r) => r.name).join() === 'A,B', s.shipped.map((r) => r.name).join());
+assert('  shipped rows carry their approval, or none', s.shipped[0].approvedAt === '2026-08-03T15:00:00+00:00' && s.shipped[1].approvedAt === null);
 assert('  one that left PROD since says so', s.shipped.find((r) => r.name === 'B').rolledBack && !s.shipped.find((r) => r.name === 'A').rolledBack);
 assert('  against July: 1 (the hotfix)', s.tiles.shipped.before === 1, s.tiles.shipped.before);
 assert('moves count arrivals in scope; out-of-scope and other months left out', s.tiles.moves.now === 4 && s.tiles.moves.before === 1, `${s.tiles.moves.now}/${s.tiles.moves.before}`);

@@ -110,6 +110,12 @@ Fiscal years are named by the year they end in (`FY27` starts 1 Oct 2026 when th
 10); with the default, January, they are plain calendar years. `Personas:FiscalYearStartMonth`.
 
 
+**His Move It notes carried here (2026-10-22, `move-it-round-2026-10-22.md`).** Every day the
+persona pages print is yyyy-MM-dd (periods too: *2026-08-01 – 2026-08-31*, *Week of
+2026-10-19*); a shipped release says when it was approved, or *no approval recorded*; table cells
+are left-justified, headers may centre; *signoff*, one word. Application names were already the
+registry's.
+
 ### 5.2 Needs you (P-3b) — the curator's home
 
 `curate.queue`: every gap waiting on a human word, for the applications the member curates

@@ -1,15 +1,13 @@
 import { escapeHtml } from '../moveit/format.mjs';
-import { contains } from './period.mjs';
+import { contains, isoDay } from './period.mjs';
 import { periodHeadHtml } from './period-view.mjs';
 import { buildsIn, deploymentsIn } from './drill.mjs';
 
 // The Tech Lead's drill-downs (personas.md §5.3): every deployment, and every build, in a period
 // for the applications in scope. Same period steps as the period view, with a choice of grain.
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const dayText = (iso) => { const d = new Date(`${iso}T00:00:00`); return `${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`; };
-const shortDate = (v) => { const d = new Date(v); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+const dayText = (iso) => `${iso} ${WEEKDAYS[new Date(`${iso}T00:00:00`).getDay()]}`;
 const releaseLink = (id, name) => `<a class="ps-link" href="/moveit/release/${id}">${escapeHtml(name)}</a>`;
 
 class DrillView {
@@ -77,7 +75,7 @@ export class BuildsView extends DrillView {
             <tr>
                 <td>${this.name(b.applicationId)}</td>
                 <td class="ps-mono">${escapeHtml(b.build)}${b.current ? ' <span class="ps-flag">current</span>' : ''}</td>
-                <td>${shortDate(b.firstSeen)}${b.lastSeen && shortDate(b.lastSeen) !== shortDate(b.firstSeen) ? ` – ${shortDate(b.lastSeen)}` : ''}</td>
+                <td>${isoDay(b.firstSeen)}${b.lastSeen && isoDay(b.lastSeen) !== isoDay(b.firstSeen) ? ` – ${isoDay(b.lastSeen)}` : ''}</td>
                 <td>${b.stages.map((s) => `<span class="ps-stage">${escapeHtml(s)}</span>`).join(' ')}</td>
                 <td>${b.claims.length ? b.claims.map((c) => releaseLink(c.releaseId, c.name)).join(', ') : '<span class="ps-flag">unclaimed</span>'}</td>
             </tr>`;

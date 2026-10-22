@@ -1,13 +1,11 @@
 import { escapeHtml } from '../moveit/format.mjs';
-import { spanText, summarize } from './period.mjs';
+import { isoDay, spanText, summarize } from './period.mjs';
 
 // The period view (personas.md §5): one page at every grain, answering the Executive's
 // questions for the applications in scope — what shipped, against the period before; where the
 // change landed; what is due; and, in the period holding today, what is stuck. Read-only; every
 // number is a row from 02, 09 or the calendar.
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const shortDate = (v) => { const d = new Date(v); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; };
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 // The period's heading and its steps, shared with the drill-down pages (drill-view.mjs). grains,
@@ -51,7 +49,7 @@ export class PeriodView {
                     ${this.tile('Shipped', 'releases first live', s.tiles.shipped)}
                     ${this.tile('Moves', 'builds arriving at a stage', s.tiles.moves)}
                     ${this.tile('To production', 'arrivals at PROD', s.tiles.prodMoves)}
-                    ${this.tile('Approvals', 'client sign-offs', s.tiles.approvals)}
+                    ${this.tile('Approvals', 'signoffs recorded', s.tiles.approvals)}
                     ${this.tile('Rollbacks', 'an older build put back', s.tiles.rollbacks)}
                 </div>
             </section>
@@ -83,7 +81,7 @@ export class PeriodView {
                     ${rows.map((r) => `
                         <li>
                             <span class="ps-list-main"><strong>${escapeHtml(r.name)}</strong> · ${this.name(r.applicationId)}${r.kind === 'hotfix' ? ' <span class="ps-flag">hotfix</span>' : ''}${r.rolledBack ? ' <span class="ps-flag is-alert">left production since</span>' : ''}</span>
-                            <span class="ps-list-end">live ${shortDate(r.at)}${r.days != null ? ` · ${plural(r.days, 'day')} from first build` : ''}</span>
+                            <span class="ps-list-end">live ${isoDay(r.at)} · ${r.approvedAt ? `approved ${isoDay(r.approvedAt)}` : 'no approval recorded'}${r.days != null ? ` · ${plural(r.days, 'day')} from first build` : ''}</span>
                         </li>`).join('')}
                 </ul>`}
             </section>`;
@@ -118,7 +116,7 @@ export class PeriodView {
                     ${rows.map((r) => `
                         <li>
                             <span class="ps-list-main"><strong>${escapeHtml(r.Name)}</strong> · ${this.name(r.ApplicationId)}${r.PastTarget === 1 ? ' <span class="ps-flag is-alert">past target</span>' : ''}</span>
-                            <span class="ps-list-end">target ${shortDate(String(r.TargetDate).slice(0, 10) + 'T00:00:00')} · now ${escapeHtml(r.HighestStage)}</span>
+                            <span class="ps-list-end">target ${isoDay(r.TargetDate)} · now ${escapeHtml(r.HighestStage)}</span>
                         </li>`).join('')}
                 </ul>`}
             </section>`;

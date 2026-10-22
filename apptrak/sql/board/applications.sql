@@ -5,20 +5,43 @@
 -- registry has no row, the name the application reports about itself (moveit.Deployment.
 -- Application, from the payload); never derived from an endpoint's moniker or identifier. With
 -- neither, the board shows it by id, which is the honest state.
+--
+-- A database without the membership schema (a fresh demo built by Invoke-AppTrakDemo.ps1) names
+-- from the payload alone: the registry is only read where the table exists.
 -- Read-only.
 
-WITH ids AS (
-    SELECT ApplicationId FROM moveit.Release
-    UNION
-    SELECT ApplicationId FROM health.HealthEndpoint
-),
-reported AS (
-    SELECT ApplicationId, Application,
-           ROW_NUMBER() OVER (PARTITION BY ApplicationId ORDER BY DetectedAt DESC, Id DESC) AS rn
-    FROM moveit.Deployment
-)
-SELECT ids.ApplicationId, COALESCE(a.Name, r.Application) AS Name
-FROM ids
-LEFT JOIN membership.Application a ON a.Id = ids.ApplicationId
-LEFT JOIN reported r ON r.ApplicationId = ids.ApplicationId AND r.rn = 1
-ORDER BY ids.ApplicationId;
+IF OBJECT_ID('membership.Application', 'U') IS NOT NULL
+BEGIN
+    ;WITH ids AS (
+        SELECT ApplicationId FROM moveit.Release
+        UNION
+        SELECT ApplicationId FROM health.HealthEndpoint
+    ),
+    reported AS (
+        SELECT ApplicationId, Application,
+               ROW_NUMBER() OVER (PARTITION BY ApplicationId ORDER BY DetectedAt DESC, Id DESC) AS rn
+        FROM moveit.Deployment
+    )
+    SELECT ids.ApplicationId, COALESCE(a.Name, r.Application) AS Name
+    FROM ids
+    LEFT JOIN membership.Application a ON a.Id = ids.ApplicationId
+    LEFT JOIN reported r ON r.ApplicationId = ids.ApplicationId AND r.rn = 1
+    ORDER BY ids.ApplicationId;
+END
+ELSE
+BEGIN
+    ;WITH ids AS (
+        SELECT ApplicationId FROM moveit.Release
+        UNION
+        SELECT ApplicationId FROM health.HealthEndpoint
+    ),
+    reported AS (
+        SELECT ApplicationId, Application,
+               ROW_NUMBER() OVER (PARTITION BY ApplicationId ORDER BY DetectedAt DESC, Id DESC) AS rn
+        FROM moveit.Deployment
+    )
+    SELECT ids.ApplicationId, r.Application AS Name
+    FROM ids
+    LEFT JOIN reported r ON r.ApplicationId = ids.ApplicationId AND r.rn = 1
+    ORDER BY ids.ApplicationId;
+END

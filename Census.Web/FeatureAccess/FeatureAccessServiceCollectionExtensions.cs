@@ -37,7 +37,9 @@ namespace Census.Web.FeatureAccess
             services.AddScoped<FeatureCommandHandler>();
             services.AddScoped<FeatureQueryHandler>();
             services.AddSingleton<FeatureGateScanner>();
-            services.AddHostedService<FeatureGateScanLogger>();
+            // Census: only with a database. Without one (the Demo profile) the scan would throw at
+            // startup, and an unhandled background exception stops the whole app.
+            if (!string.IsNullOrWhiteSpace(options.ConnectionString)) services.AddHostedService<FeatureGateScanLogger>();
 
             return builder;
         }

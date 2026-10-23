@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Gatehouse.Tests/Gatehouse.Tests.csproj" />
+  <Project Path="Gatehouse.Web/Gatehouse.Web.csproj" />
+</Solution>

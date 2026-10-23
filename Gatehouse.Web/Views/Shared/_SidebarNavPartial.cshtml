@@ -1,0 +1,33 @@
+@inject NavigationFilter NavigationFilter
+@{
+    // The sidebar from the one declaration (Navigation.cs), trimmed on the server for the signed-in user: an item shows
+    // when its feature is on for them, or its policy lets them in (gatehouse.md §6). The browser never sees the rest.
+    var groups = await NavigationFilter.VisibleAsync(User);
+    var here = Context.Request.Path.Value ?? "/";
+    var name = User.FindFirst(ClaimsTransformer.DisplayNameClaim)?.Value ?? User.Identity?.Name;
+    var identifier = User.FindFirst(ClaimsTransformer.IdentifierClaim)?.Value;
+}
+<nav class="gh-nav" aria-label="Sections">
+    <div class="gh-brand">Gatehouse</div>
+    <div class="gh-who" title="@User.Identity?.Name">
+        <strong>@name</strong>
+        @if (identifier != null && identifier != name)
+        {
+            <span>@identifier</span>
+        }
+    </div>
+    @foreach (var group in groups)
+    {
+        <div class="gh-nav-group">
+            @if (group.Label != null)
+            {
+                <h2 class="gh-nav-h">@group.Label</h2>
+            }
+            @foreach (var item in group.Items)
+            {
+                var active = item.Href == "/" ? here == "/" : here.StartsWith(item.Href, StringComparison.OrdinalIgnoreCase);
+                <a class="gh-nav-item@(active ? " is-active" : "")" href="@item.Href" title="@item.Hint" aria-current="@(active ? "page" : null)">@item.Label</a>
+            }
+        </div>
+    }
+</nav>

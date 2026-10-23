@@ -1,0 +1,14 @@
+@{
+    // FM2280's admin page as it is (its module and stylesheet), on the same API routes (gatehouse.md §6).
+    ViewData["Title"] = "Feature access";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/feature-access.css" asp-append-version="true" />
+}
+<div id="feature-access" class="fa gh-fa" data-api-base="/api/feature-access"></div>
+@section Scripts {
+    <script type="module">
+        import featureAccessPage from '/js/feature-access/feature-access-page.mjs';
+        featureAccessPage.init({ root: '#feature-access', gateTags: true });
+    </script>
+}

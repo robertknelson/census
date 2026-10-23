@@ -4,6 +4,26 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-23 — Gatehouse, G-1
+
+**The setting is `Identity:Application`**, not the spec's `Membership:Application`: it is read by the identity
+component, and grouping it with the session's lifetime keeps the porting note to one section.
+
+**FM2280's scripts end in a real `FOR JSON` in Gatehouse.** They build their JSON with a function, so their text never
+said `FOR JSON` and xf-dashboard's handlers would have read them as rows. Wrapping each final select in `FOR JSON`
+(the snapshot under a `feature` or `features` key, unwrapped by the controller) keeps the admin page's answers
+identical. The definitions script returns one array instead of two result sets, which the handlers cannot read.
+
+**The payload is checked in the controller**, at the boundary, before the command runs; the initializer only binds.
+The handlers turn the scripts' `THROW 50404 / 50409` into 404 / 409 through the response status, so the controllers
+answer as FM2280's did.
+
+**The pages still to come are already gated placeholders** (Log Explorer, Trace, Usage, Membership), so the sidebar,
+the gates, the gate scan and the tests are whole from the first slice.
+
+**The test host hides Windows sign-in's request handler** (it needs Kestrel's connection, which the test server
+lacks) and signs in through a test scheme. Nothing in the app changes for tests.
+
 ## 2026-10-23 — Usage, U-4 (scoping, the Executive's figures, ways in)
 
 **A member's application matches the log by its registry name, ignoring case.** The persona UX's access carries

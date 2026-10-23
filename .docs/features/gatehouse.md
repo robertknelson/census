@@ -1,6 +1,6 @@
 # Gatehouse — a reference app for porting Feature Management, Membership and Logs
 
-Status: **spec ruled 2026-10-23 (G1, G2, G4, G6); building G-1.**
+Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates). G-2 (Membership), G-3 (Logs) and G-4 (porting notes) to come.
 
 ## 1. The ask (Robert, 2026-10-23)
 
@@ -77,7 +77,7 @@ the live app's:
   their roles on a cache miss. Gatehouse's auth provider reads `membership` through command/query: the member by
   `Identifier = username`, and one role per `member-types` identifier they hold on **this application** (their
   `MemberApplicationRole` rows for the `membership.Application` whose identifier is the setting
-  `Membership:Application`). The roles become `ClaimTypes.Role` claims, beside the identifier and name claims, as in
+  `Identity:Application`). The roles become `ClaimTypes.Role` claims, beside the identifier and name claims, as in
   xf-dashboard. Census's rule that a role on Census counts estate-wide stays in Census.
 - **The configured sys-admin list** (`Authorization:SystemAdministrators`), as in xf-dashboard: a listed identifier
   gets `system-administrator` without a grant row. It is how the first person reaches the admin pages.
@@ -132,6 +132,40 @@ the live app's:
 | G-2 | Membership on command/query. | Census's membership tests ported; a grant made on the page shows on Home after the next sign-in. |
 | G-3 | Logs: Log Explorer, Trace, Usage on command/query. | The counts against direct SQL as in Census's verification logs; the three pages in a browser. |
 | G-4 | A porting note per component (`PORTING.md` in each folder): what to copy, the lines for `Program.cs`, the SQL to run, what the live app already has. | Read against the live app's shape: a dry run on paper with you. |
+
+## 9a. G-1, built (2026-10-23)
+
+| Folder / file | What |
+|---|---|
+| `Gatehouse.slnx`, `Gatehouse.Web/`, `Gatehouse.Tests/` | The app (.NET 8, port 5296) and its tests. Nothing references Census.Web |
+| `command-query/` | xf-dashboard's contracts kept (`IJsonQueryHandler`, `IJsonCommandHandler`, `ISqlCommandInitializer`, `IInitializerLocator`, `CommandInitializer`, `IParameters`, `Response<T>`) and their implementations, with the corrections in xf-dashboard's open item 27: real async; rows kept on every path; a top-level `FOR JSON` read whole; `THROW 50400/50404/50409` and unique-key violations set 400/404/409. Scripts are embedded by path (`feature-management/sql/feature-list.sql`) |
+| `identity/` | `ClaimsTransformer` (xf-dashboard's shape: split, a cached session per user for `Identity:SessionMinutes`, the auth provider on a miss, `ClaimTypes.Role` claims, the `Authorization:SystemAdministrators` list; no impersonation), `MembershipAuthProvider` + `sql/member-roles.sql` (the member by identifier, their member-types roles on `Identity:Application`) |
+| `feature-management/` | FM2280 on command/query: `FeatureSqlCommandInitializer` and `sql/` (FM2280's scripts, each ending in a real `FOR JSON` so the handlers read them as JSON; the definitions as one array, not two result sets), `FeatureQueryHandler`/`FeatureCommandHandler` on the `fm` connection, the definition store, targeting, the gate scanner, `api/FeatureAccessController` (FM2280's routes and answers, so its page is reused as is), `Navigation.cs` (the one nav declaration and its filter), `views/FeatureAccess.cshtml` |
+| `Views/Shared/_Layout.cshtml`, `_SidebarNavPartial.cshtml` | The sidebar, trimmed on the server from the declaration |
+| `controllers/PagesController.cs` | Home (who you are, your roles, the features on for you), the Feature Access page, and gated placeholders for Log Explorer, Trace, Usage and Membership (their slices fill them) |
+| `setup/Invoke-GatehouseDemo.ps1` | `GatehouseDemo` with FM2280's schema and Gatehouse's four features; the `gatehouse` application and you (`$env:USERNAME`, never in the repo) with `-Roles` on it, in the local AppTrak |
+
+**Verified (2026-10-23):** `dotnet test Gatehouse.slnx` passes 19:
+- **Unit:** every action carries a feature or a named policy; nothing allows anonymous users; every sidebar item names the
+  gate of the page behind it; the admin API sits behind the fixed policy, never a feature; command keys, parameters,
+  camel case, a key claimed twice, `DOMAIN\username`.
+- **End to end against `GatehouseDemo`** (a test sign-in in place of Windows, a stub in place of membership):
+  - a system-administrator sees every item and opens every page;
+  - a technical lead sees the logs and gets 403 on Membership, Feature access and the admin API;
+  - a member with no role sees Home only;
+  - anonymous gets 401;
+  - a feature switched off hides its item and refuses its page without a restart;
+  - the admin API answers 400 for a bad name, 409 for a stale row version, 404 for no feature.
+
+**Live on :5296 with real Windows sign-in**, as yourself:
+- `DOMAIN\you` → your identifier → `system-administrator` from membership; every item, every page 200, the gate scan
+  listing the four gates.
+- `logs.usage` switched off through the API: Usage gone from the sidebar, `/usage` 403; on again: 200; the audit names you.
+- Re-seeded as `technical-lead` (and restarted, past the session cache): the sidebar was Home and the three Logs pages,
+  and Membership, Feature access and the admin API answered 403.
+
+**Not seen:** IIS (the porting note covers it, G5); a grant change reaching a signed-in user within the five minutes
+without a restart (the cache's expiry was not waited out).
 
 ## 10. Open items
 

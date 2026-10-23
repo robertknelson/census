@@ -12,3 +12,6 @@ config/creds/
 
 # Local-only notes: personal or organisational context that never goes to GitHub.
 .docs/local/
+
+# Gatehouse local run settings (your account in the sys-admin list): never in git.
+Gatehouse.Web/appsettings.Local.json

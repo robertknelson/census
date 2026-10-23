@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.32" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.3" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="4.2.1" />
+  </ItemGroup>
+
+  <!-- Every component's scripts travel inside the assembly, named by their path: feature-management/sql/feature-list.sql. -->
+  <ItemGroup>
+    <EmbeddedResource Include="**\*.sql" Exclude="bin\**;obj\**;setup\**" LogicalName="$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\', '/'))" />
+  </ItemGroup>
+
+  <!-- Local run settings (the sys-admin list) stay out of git. -->
+  <ItemGroup>
+    <Content Update="appsettings.Local.json" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+</Project>

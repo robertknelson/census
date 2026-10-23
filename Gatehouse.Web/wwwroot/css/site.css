@@ -1,0 +1,47 @@
+/* Gatehouse: a left sidebar and a page. Plain on purpose: it is here to show where each component goes. */
+:root {
+    --gh-ink: #1c2a36;
+    --gh-ink-soft: #56646f;
+    --gh-paper: #ffffff;
+    --gh-wash: #f1f4f5;
+    --gh-rule: #dde4e7;
+    --gh-nav: #1c2a36;
+    --gh-nav-ink: #d9e2e7;
+    --gh-accent: #1d6a86;
+    --gh-on: #1d6a86;
+    --gh-off: #9a6b12;
+    --gh-font: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    --gh-code: "Cascadia Mono", Consolas, ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--gh-wash); color: var(--gh-ink); font: 14px/1.45 var(--gh-font); }
+code { font-family: var(--gh-code); font-size: 0.9em; }
+
+.gh-shell { display: grid; grid-template-columns: 15rem minmax(0, 1fr); min-height: 100vh; }
+
+.gh-nav { background: var(--gh-nav); color: var(--gh-nav-ink); padding: 1rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.gh-brand { font-size: 1.1rem; font-weight: 700; color: #fff; padding: 0 0.5rem; }
+.gh-who { display: flex; flex-direction: column; padding: 0.25rem 0.5rem 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.12); margin-bottom: 0.5rem; font-size: 0.85rem; }
+.gh-who strong { color: #fff; font-weight: 600; }
+.gh-who span { opacity: 0.7; font-family: var(--gh-code); font-size: 0.8rem; }
+.gh-nav-group { display: flex; flex-direction: column; margin-top: 0.5rem; }
+.gh-nav-h { margin: 0.5rem 0.5rem 0.25rem; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.6; }
+.gh-nav-item { display: block; padding: 0.35rem 0.5rem; border-radius: 4px; color: var(--gh-nav-ink); text-decoration: none; }
+.gh-nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.gh-nav-item.is-active { background: #fff; color: var(--gh-ink); font-weight: 600; }
+
+.gh-main { padding: 1.25rem 1.5rem 2rem; min-width: 0; }
+.gh-h1 { margin: 0 0 0.25rem; font-size: 1.35rem; }
+.gh-h2 { margin: 0 0 0.5rem; font-size: 1rem; }
+.gh-sub { margin: 0 0 1rem; color: var(--gh-ink-soft); }
+.gh-muted { color: var(--gh-ink-soft); margin: 0 0 0.5rem; }
+.gh-card { background: var(--gh-paper); border: 1px solid var(--gh-rule); border-radius: 6px; padding: 1rem 1.1rem; margin-bottom: 1rem; max-width: 60rem; }
+.gh-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; padding: 0; list-style: none; }
+.gh-chips li { padding: 0.1rem 0.6rem; border: 1px solid var(--gh-rule); border-radius: 999px; background: var(--gh-wash); font-family: var(--gh-code); font-size: 0.85rem; }
+.gh-table { border-collapse: collapse; min-width: 24rem; }
+.gh-table th, .gh-table td { padding: 0.25rem 0.75rem 0.25rem 0; border-top: 1px solid var(--gh-rule); text-align: left; }
+.gh-table thead th { border-top: 0; font-size: 0.8rem; color: var(--gh-ink-soft); }
+.gh-on { color: var(--gh-on); font-weight: 600; }
+.gh-off { color: var(--gh-off); }
+.gh-fa { max-width: none; }

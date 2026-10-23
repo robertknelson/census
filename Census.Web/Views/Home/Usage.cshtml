@@ -3,10 +3,13 @@
 @using Microsoft.Extensions.Options
 @inject IOptions<PersonasOptions> PersonasOptions
 @inject IOptions<LogsOptions> LogsOptions
+@inject IOptions<UsageOptions> UsageOptions
 @{
     // Its own page, like Log Explorer and Trace: FM2280's .fa look and nothing else.
     Layout = null;
-    var config = JsonSerializer.Serialize(new { api = "/api/usage", fiscalStart = PersonasOptions.Value.FiscalYearStartMonth, slowMs = LogsOptions.Value.SlowMs });
+    var f = UsageOptions.Value.Friction;
+    var config = JsonSerializer.Serialize(new { api = "/api/usage", fiscalStart = PersonasOptions.Value.FiscalYearStartMonth, slowMs = LogsOptions.Value.SlowMs,
+        friction = new { endedWithinMinutes = f.EndedWithinMinutes, refusedTimes = f.RefusedTimes, loopLoads = f.LoopLoads, loopSeconds = f.LoopSeconds, retrySeconds = f.RetrySeconds } });
 }
 <!DOCTYPE html>
 <html lang="en">

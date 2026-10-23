@@ -4,6 +4,19 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-23 — Usage, U-3 (Friction and When)
+
+**The dead-end rule changed from "3× the median exit rate" to "at least 2× the median and at least 75%".** With the
+median page ending 41% of its visits (the demo), 3× would need 123%, so the rule could never fire. The new rule
+catches a page that ends nearly every visit and leaves the ordinary last pages alone. Both numbers are settings.
+
+**The friction thresholds are settings (`Usage:Friction`)**, and the page shows them in its sentences ("3 or more",
+"within 10 s"), so what you read is the rule applied. They are starting points; open item U8 is to tune them on a
+real month.
+
+**The demo plants one of each signal** in sessions named `demo-*`. The manufactured month has no loops, retries or
+dead ends of its own, and a signal you cannot see firing is not verified.
+
 ## 2026-10-23 — Usage, U-2 (Paths)
 
 **The tree opens one step at a time.** Fully expanded to three steps it ran past two screens on the demo's 48

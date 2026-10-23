@@ -1,6 +1,6 @@
 // Usage's arithmetic (usage.md §4): deltas, durations, rates, unused pages, the opening scope, the days.
 //   node tests/Test-Usage.mjs
-import { applicationsOf, commonEntry, daysOf, delta, duration, ENDED, ENTERED, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from '../Census.Web/wwwroot/js/usage/usage-model.mjs';
+import { applicationsOf, commonEntry, daysOf, delta, duration, ENDED, ENTERED, frictionSignals, heatGrid, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from '../Census.Web/wwwroot/js/usage/usage-model.mjs';
 import { periodOf } from '../Census.Web/wwwroot/js/personas/period.mjs';
 
 let passed = 0, failed = 0;
@@ -56,6 +56,24 @@ const folded = pathTree(many, 'A', { depth: 1 });
 assert('ten rare pages under 5% each fold into one other line', folded.children.length === 2 && folded.children[1].other && folded.children[1].count === 10, folded.children.map((c) => `${c.page}:${c.count}`).join());
 const rows = treeRows(pathTree(seqs, 'Orders', { depth: 2 }));
 assert('rows depth first with levels and keys', rows[0].level === 0 && rows[1].level === 1 && rows[1].key.startsWith(`${rows[0].key}>`), rows.map((r) => `${r.level}${r.page}`).join());
+
+// Friction (§4.4) and When (§4.5).
+const signals = frictionSignals({
+    endedOnError: [{ call: 'Orders.Get', page: 'Orders.Index', sessions: 2, people: 2, examples: [{ sessionId: 'e1' }] }],
+    refused: [{ call: 'Quotes.Rate', sessions: 1, people: 1, refusals: 4 }],
+    loops: [{ page: 'Orders.Detail', sessions: 1, people: 1, loads: 6 }],
+    retries: [{ call: 'Orders.Save', retries: 1, sessions: 1, people: 1 }],
+    slow: [{ page: 'Reports.Index', p90: 4000, requests: 92, sessions: 4, people: 1 }],
+    deadEnds: [{ page: 'Help.Index', views: 25, exits: 25, medianExitRate: 0.405, people: 2 }],
+});
+assert('six signals, ranked by the sessions they touch', signals.length === 6 && signals[0].kind === 'deadEnds' && signals[1].kind === 'slow' && signals[2].kind === 'endedOnError', signals.map((x) => `${x.kind}:${x.sessions}`).join());
+assert('  a sentence names its subject and counts', signals[2].text === '2 sessions ended within 2 min of a failure on Orders.Get (on Orders.Index)', signals[2].text);
+assert('  a dead end says its share against the median', signals[0].text.includes('(100%; the median page ends 41%)'), signals[0].text);
+assert('  the thresholds in the words follow the settings', frictionSignals({ refused: [{ call: 'Q', sessions: 1, people: 1, refusals: 9 }] }, { refusedTimes: 5 })[0].text.includes('5 or more'));
+assert('  no signals, no lines', frictionSignals({}).length === 0);
+const grid = heatGrid([{ dow: 0, hour: 9, loads: 8, sessions: 2, people: 2 }, { dow: 4, hour: 14, loads: 2, sessions: 1, people: 1 }]);
+assert('a week of 24 hours, Monday first', grid.length === 7 && grid[0].label === 'Mon' && grid.every((d) => d.hours.length === 24));
+assert('  the busiest hour is the darkest, a quarter of it one step, empty none', grid[0].hours[9].level === 4 && grid[4].hours[14].level === 1 && grid[3].hours[3].level === 0);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

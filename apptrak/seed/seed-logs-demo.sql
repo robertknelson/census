@@ -151,6 +151,49 @@ DELETE FROM apptrak.Message WHERE StartAt > @now;
 DELETE FROM apptrak.Exception WHERE StartAt > @now;
 DELETE c FROM apptrak.ApiContent c WHERE NOT EXISTS (SELECT 1 FROM apptrak.ApiRequest r WHERE r.Uid = c.Uid);
 
+-- Patterns for Usage's Friction (usage.md §4.4), in WidgetCore PROD over the last day or so, each in a session of
+-- its own: a reload loop, a double-submitted save, a run of refusals, three sessions of slow reports, and a help page
+-- where twenty-five sessions end (a dead end).
+DECLARE @t0 datetimeoffset(7) = DATEADD(hour, -30, @now);
+INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
+SELECT CONVERT(nvarchar(36), NEWID()), v.Sid, REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N''), N'WEBPROD01', N'PROD', N'WidgetCore',
+       DATEADD(second, v.S, @t0), DATEADD(millisecond, v.Ms, DATEADD(second, v.S, @t0)), v.Ms, 0, v.Who, v.Path, N'', v.M, v.Status,
+       v.C, v.A, N'widgetcore.corp.example', N'https', @agent, v.Roles, N'Windows', N'Chrome 141', 0, 0, N'{}', @now, 0
+FROM (VALUES
+    (N'demo-loop', 0, N'aturner', N'underwriter', N'GET', N'/orders/detail/5001', 200, N'Orders', N'Detail', 180),
+    (N'demo-loop', 8, N'aturner', N'underwriter', N'GET', N'/orders/detail/5001', 200, N'Orders', N'Detail', 175),
+    (N'demo-loop', 16, N'aturner', N'underwriter', N'GET', N'/orders/detail/5001', 200, N'Orders', N'Detail', 190),
+    (N'demo-loop', 24, N'aturner', N'underwriter', N'GET', N'/orders/detail/5001', 200, N'Orders', N'Detail', 170),
+    (N'demo-loop', 32, N'aturner', N'underwriter', N'GET', N'/orders/detail/5001', 200, N'Orders', N'Detail', 185),
+    (N'demo-loop', 40, N'aturner', N'underwriter', N'GET', N'/orders/detail/5001', 200, N'Orders', N'Detail', 182),
+    (N'demo-retry', 100, N'bkim', N'underwriter,manager', N'GET', N'/orders', 200, N'Orders', N'Index', 210),
+    (N'demo-retry', 110, N'bkim', N'underwriter,manager', N'POST', N'/api/orders/7001', 200, N'Orders', N'Save', 900),
+    (N'demo-retry', 114, N'bkim', N'underwriter,manager', N'POST', N'/api/orders/7001', 200, N'Orders', N'Save', 880),
+    (N'demo-refused', 200, N'bkim', N'underwriter,manager', N'GET', N'/quotes', 200, N'Quotes', N'Index', 200),
+    (N'demo-refused', 210, N'bkim', N'underwriter,manager', N'POST', N'/api/quotes/rate', 409, N'Quotes', N'Rate', 120),
+    (N'demo-refused', 230, N'bkim', N'underwriter,manager', N'POST', N'/api/quotes/rate', 409, N'Quotes', N'Rate', 115),
+    (N'demo-refused', 250, N'bkim', N'underwriter,manager', N'POST', N'/api/quotes/rate', 409, N'Quotes', N'Rate', 118),
+    (N'demo-refused', 270, N'bkim', N'underwriter,manager', N'POST', N'/api/quotes/rate', 409, N'Quotes', N'Rate', 121)
+) v(Sid, S, Who, Roles, M, Path, Status, C, A, Ms);
+
+-- Slow reports: three sessions, a page load then eight list calls of 2.5 to 5 seconds each.
+INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
+SELECT CONVERT(nvarchar(36), NEWID()), CONCAT(N'demo-slow-', s.n), REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N''), N'WEBPROD01', N'PROD', N'WidgetCore',
+       DATEADD(second, 600 + s.n * 900 + c.k * 20, @t0), DATEADD(millisecond, CASE WHEN c.k = 0 THEN 300 ELSE 2500 + c.k * 300 END, DATEADD(second, 600 + s.n * 900 + c.k * 20, @t0)),
+       CASE WHEN c.k = 0 THEN 300 ELSE 2500 + c.k * 300 END, 0, N'aturner',
+       CASE WHEN c.k = 0 THEN N'/reports' ELSE N'/api/reports/list' END, N'', N'GET', 200, N'Reports', CASE WHEN c.k = 0 THEN N'Index' ELSE N'List' END,
+       N'widgetcore.corp.example', N'https', @agent, N'underwriter', N'Windows', N'Chrome 141', 0, 0, N'{}', @now, 0
+FROM (VALUES (1), (2), (3)) s(n) CROSS JOIN (VALUES (0), (1), (2), (3), (4), (5), (6), (7), (8)) c(k);
+
+-- A dead end: twenty-five sessions that open the help page and go no further.
+INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
+SELECT CONVERT(nvarchar(36), NEWID()), CONCAT(N'demo-help-', h.n), REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N''), N'WEBPROD01', N'PROD', N'WidgetCore',
+       DATEADD(minute, -(h.n * 97), @t0), DATEADD(millisecond, 140, DATEADD(minute, -(h.n * 97), @t0)), 140, 0,
+       CASE WHEN h.n % 2 = 0 THEN N'aturner' ELSE N'bkim' END, N'/help', N'', N'GET', 200, N'Help', N'Index',
+       N'widgetcore.corp.example', N'https', @agent, N'underwriter', N'Windows', N'Chrome 141', 0, 0, N'{}', @now, 0
+FROM (SELECT TOP (25) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n FROM sys.objects) h;
+DELETE FROM apptrak.ApiRequest WHERE SessionId LIKE N'demo-help-%' AND StartAt > @now;
+
 -- The day boundary: one request at 11:10 PM yesterday, on yesterday in the browser's day.
 INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
 VALUES (CONVERT(nvarchar(36), NEWID()), N'late-night-session', N'late-night-request', N'WEBPROD01', N'PROD', N'LedgerService',

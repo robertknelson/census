@@ -21,9 +21,11 @@ public class UsageReader
     private readonly ScriptRunner _scripts;
     private readonly string _schema;
     private readonly int _slowMs;
+    private readonly FrictionOptions _friction;
 
-    public UsageReader(IOptions<LogsOptions> logs, IOptions<MoveItOptions> moveIt, IWebHostEnvironment env)
+    public UsageReader(IOptions<LogsOptions> logs, IOptions<UsageOptions> usage, IOptions<MoveItOptions> moveIt, IWebHostEnvironment env)
     {
+        _friction = usage.Value.Friction;
         var connection = string.IsNullOrWhiteSpace(logs.Value.ConnectionString) ? moveIt.Value.ConnectionString : logs.Value.ConnectionString;
         _schema = logs.Value.Schema;
         _slowMs = logs.Value.SlowMs;
@@ -52,7 +54,19 @@ public class UsageReader
         };
         if (section == "page") parameters.Add(("Page", page, SqlDbType.NVarChar));
         if (section == "paths") parameters.Add(("Cap", PathSessions, SqlDbType.Int));
-        return JsonAsync($"usage-{section}.sql", section is "overview" or "page" or "paths" ? "{}" : "[]", parameters.ToArray());
+        if (section == "friction")
+        {
+            parameters.Add(("EndedWithinMinutes", _friction.EndedWithinMinutes, SqlDbType.Int));
+            parameters.Add(("RefusedTimes", _friction.RefusedTimes, SqlDbType.Int));
+            parameters.Add(("LoopLoads", _friction.LoopLoads, SqlDbType.Int));
+            parameters.Add(("LoopSeconds", _friction.LoopSeconds, SqlDbType.Int));
+            parameters.Add(("RetrySeconds", _friction.RetrySeconds, SqlDbType.Int));
+            parameters.Add(("SlowMinRequests", _friction.SlowMinRequests, SqlDbType.Int));
+            parameters.Add(("DeadEndFactor", _friction.DeadEndFactor, SqlDbType.Float));
+            parameters.Add(("DeadEndMinRate", _friction.DeadEndMinRate, SqlDbType.Float));
+            parameters.Add(("DeadEndMinViews", _friction.DeadEndMinViews, SqlDbType.Int));
+        }
+        return JsonAsync($"usage-{section}.sql", section is "overview" or "page" or "paths" or "friction" ? "{}" : "[]", parameters.ToArray());
     }
 
     private async Task<string> JsonAsync(string file, string empty, params (string Name, object Value, SqlDbType Type)[] parameters)

@@ -152,3 +152,33 @@
 .usage-tree-examples { font-size: 0.8rem; position: sticky; top: 2.75rem; }
 .usage-tree-examples p { margin: 0 0 0.35rem; }
 .usage-tree-caret { display: inline-block; width: 0.9rem; color: var(--fa-ink-soft); font-size: 0.7rem; }
+
+/* Friction (§4.4): ranked sentences, each opening its sessions. */
+.usage-signals { margin: 0; padding: 0; list-style: none; border: 1px solid var(--fa-rule); border-radius: var(--fa-radius); font-size: 0.82rem; }
+.usage-signal { display: grid; grid-template-columns: 1.6rem 9rem 1fr auto; align-items: center; gap: 0.6rem; padding: 0.35rem 0.6rem; border-top: 1px solid var(--fa-rule); }
+.usage-signal:first-child { border-top: 0; }
+.usage-signal.is-open { background: var(--fa-wash); }
+.usage-signal-rank { color: var(--fa-ink-soft); font-variant-numeric: tabular-nums; text-align: right; }
+.usage-signal-kind { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--fa-ink-soft); }
+.usage-signal.is-endedOnError .usage-signal-kind { color: var(--usage-bad); }
+.usage-signal.is-refused .usage-signal-kind, .usage-signal.is-retries .usage-signal-kind { color: var(--usage-warn); }
+.usage-signal-sessions { grid-column: 3 / -1; }
+
+/* When (§4.5): a weekday by hour heatmap; a cell opens its sessions. */
+.usage-when { display: grid; grid-template-columns: minmax(0, 3fr) minmax(16rem, 1fr); gap: 1rem; align-items: start; }
+.usage-heat { width: 100%; border-collapse: separate; border-spacing: 2px; table-layout: fixed; font-size: 0.7rem; }
+.usage-heat thead th { color: var(--fa-ink-soft); font-weight: 400; text-align: left; white-space: nowrap; overflow: visible; }
+.usage-heat tbody th { width: 2.5rem; color: var(--fa-ink-soft); font-weight: 600; text-align: left; }
+.usage-heat td { padding: 0; }
+.usage-heat-cell {
+    display: block;
+    width: 100%;
+    height: 1.4rem;
+    padding: 0;
+    border: 1px solid var(--fa-rule);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--fa-grant) calc(var(--heat) * 100%), var(--fa-paper));
+    cursor: pointer;
+}
+.usage-heat-cell:disabled { cursor: default; background: var(--fa-paper); }
+.usage-heat-cell.is-picked { outline: 2px solid var(--fa-ink); outline-offset: 1px; }

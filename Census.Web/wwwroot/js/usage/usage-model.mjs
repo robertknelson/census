@@ -138,3 +138,55 @@ export function treeRows(tree, key = '', level = 0, rows = []) {
     }
     return rows;
 }
+
+// ---- Friction (§4.4): the signals as sentences, ranked by the sessions they touch. A signal points at sessions;
+// it is never a verdict. ----
+
+const many = (count, one, other = `${one}s`) => `${Number(count).toLocaleString()} ${count === 1 ? one : other}`;
+const seconds = (ms) => `${(ms / 1000).toFixed(1)} s`;
+
+export const FRICTION_KINDS = {
+    endedOnError: 'Ended on an error',
+    refused: 'Refused repeatedly',
+    loops: 'Loop',
+    retries: 'Retry',
+    slow: 'Slow page',
+    deadEnds: 'Dead end',
+};
+
+export function frictionSignals(friction = {}, settings = {}) {
+    const t = { endedWithinMinutes: 2, refusedTimes: 3, loopLoads: 5, loopSeconds: 60, retrySeconds: 10, ...settings };
+    const signals = [];
+    for (const e of friction.endedOnError ?? []) signals.push({ kind: 'endedOnError', subject: e.call, sessions: e.sessions, people: e.people, examples: e.examples ?? [],
+        text: `${many(e.sessions, 'session')} ended within ${t.endedWithinMinutes} min of a failure on ${e.call}${e.page && e.page !== e.call ? ` (on ${e.page})` : ''}` });
+    for (const r of friction.refused ?? []) signals.push({ kind: 'refused', subject: r.call, sessions: r.sessions, people: r.people, examples: r.examples ?? [],
+        text: `${r.call} refused ${many(r.refusals, 'time')}, ${t.refusedTimes} or more in each of ${many(r.sessions, 'session')}, for ${many(r.people, 'person', 'people')}` });
+    for (const o of friction.loops ?? []) signals.push({ kind: 'loops', subject: o.page, sessions: o.sessions, people: o.people, examples: o.examples ?? [],
+        text: `${many(o.people, 'person', 'people')} loaded ${o.page} ${t.loopLoads} or more times within ${t.loopSeconds} s (up to ${o.loads}), in ${many(o.sessions, 'session')}` });
+    for (const r of friction.retries ?? []) signals.push({ kind: 'retries', subject: r.call, sessions: r.sessions, people: r.people, examples: r.examples ?? [],
+        text: `${r.call} sent again within ${t.retrySeconds} s ${many(r.retries, 'time')}, in ${many(r.sessions, 'session')}` });
+    for (const w of friction.slow ?? []) signals.push({ kind: 'slow', subject: w.page, sessions: w.sessions, people: w.people, examples: w.examples ?? [],
+        text: `${w.page}: one request in ten takes ${seconds(w.p90)} or more (90th percentile of ${many(w.requests, 'request')}); ${many(w.sessions, 'session')} met a slow one` });
+    for (const d of friction.deadEnds ?? []) signals.push({ kind: 'deadEnds', subject: d.page, sessions: d.exits, people: d.people, examples: d.examples ?? [],
+        text: `${d.page} ended ${many(d.exits, 'session')} of ${many(d.views, 'visit')} (${Math.round((d.exits / d.views) * 100)}%; the median page ends ${Math.round((d.medianExitRate ?? 0) * 100)}%)` });
+    return signals.sort((a, b) => b.sessions - a.sessions || a.kind.localeCompare(b.kind));
+}
+
+// ---- When (§4.5): page loads by weekday and hour, in the browser's time, shaded against the busiest hour. ----
+
+export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+export const HEAT_LEVELS = 4;
+
+export function heatGrid(cells = []) {
+    const byKey = new Map(cells.map((c) => [`${c.dow}-${c.hour}`, c]));
+    const busiest = Math.max(0, ...cells.map((c) => c.loads));
+    return WEEKDAYS.map((label, dow) => ({
+        label,
+        hours: Array.from({ length: 24 }, (_, hour) => {
+            const c = byKey.get(`${dow}-${hour}`);
+            const loads = c?.loads ?? 0;
+            return { dow, hour, loads, sessions: c?.sessions ?? 0, people: c?.people ?? 0, examples: c?.examples ?? [],
+                level: loads && busiest ? Math.max(1, Math.ceil((loads / busiest) * HEAT_LEVELS)) : 0 };
+        }),
+    }));
+}

@@ -4,12 +4,12 @@
  * period, every page with its views, people, time on page, exits and failures (a page opens a drawer: where people
  * came from and went, what it is used for, who, recent sessions into Trace), and the people. The address keeps the
  * place (?application=&stage=&grain=&on=). Paths (U-2): from a page, the tree of where people went next, or how they
- * reached it. Friction and When come in U-3.
+ * reached it. Friction (U-3): ranked signals, each opening its sessions. When (U-3): page loads by weekday and hour.
  */
 
 import { escapeHtml, CLOSE_ICON } from '../feature-access/utils/dom.mjs';
 import { isoDay, periodOf, shiftPeriod, spanText } from '../personas/period.mjs';
-import { applicationsOf, commonEntry, daysOf, delta, duration, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from './usage-model.mjs';
+import { applicationsOf, commonEntry, daysOf, delta, duration, FRICTION_KINDS, frictionSignals, heatGrid, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from './usage-model.mjs';
 
 const GRAINS = ['week', 'month', 'quarter'];
 const n = (value) => Number(value ?? 0).toLocaleString();
@@ -19,6 +19,9 @@ const localDay = (value) => isoDay(new Date(value));
 class UsagePage {
     #api;
     #fiscalStart = 1;
+    #frictionSettings = {};
+    #openSignal = null;
+    #heatCell = null;
     #root;
     #grain = 'month';
     #period;
@@ -33,6 +36,7 @@ class UsagePage {
         this.#root = config.root;
         this.#api = (config.api ?? '/api/usage').replace(/\/$/, '');
         this.#fiscalStart = config.fiscalStart ?? 1;
+        this.#frictionSettings = config.friction ?? {};
         const here = new URLSearchParams(location.search);
         if (GRAINS.includes(here.get('grain'))) this.#grain = here.get('grain');
         const on = /^\d{4}-\d{2}-\d{2}$/.test(here.get('on') ?? '') ? new Date(`${here.get('on')}T12:00:00`) : new Date();
@@ -75,17 +79,21 @@ class UsagePage {
             }
             const previous = shiftPeriod(this.#period, -1, this.#fiscalStart);
             const started = performance.now();
-            const [overview, prevOverview, pages, prevPages, people, paths] = await Promise.all([
+            const [overview, prevOverview, pages, prevPages, people, paths, friction, when] = await Promise.all([
                 this.#get('overview', this.#scopeParams(this.#period)),
                 this.#get('overview', this.#scopeParams(previous)),
                 this.#get('pages', this.#scopeParams(this.#period)),
                 this.#get('pages', this.#scopeParams(previous)),
                 this.#get('people', this.#scopeParams(this.#period)),
                 this.#get('paths', this.#scopeParams(this.#period)),
+                this.#get('friction', this.#scopeParams(this.#period)),
+                this.#get('when', this.#scopeParams(this.#period)),
             ]);
             const sequences = sequencesOf(paths.sequences);
             if (!pages.some((p) => p.page === this.#paths.start)) this.#paths = { ...this.#paths, start: commonEntry(sequences), selected: null, open: new Set() };
-            this.#data = { overview, prevOverview, pages, prevPages, people, sequences, pathSessions: paths.sessions ?? 0, previous, seconds: (performance.now() - started) / 1000 };
+            this.#openSignal = null;
+            this.#heatCell = null;
+            this.#data = { overview, prevOverview, pages, prevPages, people, sequences, pathSessions: paths.sessions ?? 0, friction, when, previous, seconds: (performance.now() - started) / 1000 };
         } catch (error) {
             this.#data = { error: error.message };
         }
@@ -122,8 +130,7 @@ class UsagePage {
                     </div>
                 </header>
                 <nav class="usage-sections" aria-label="Sections">
-                    <a href="#u-overview">Overview</a><a href="#u-pages">Pages</a><a href="#u-paths">Paths</a><a href="#u-people">People</a>
-                    <span class="fa-muted">Friction and When come next (usage.md §7)</span>
+                    <a href="#u-overview">Overview</a><a href="#u-pages">Pages</a><a href="#u-paths">Paths</a><a href="#u-friction">Friction</a><a href="#u-when">When</a><a href="#u-people">People</a>
                 </nav>
                 ${this.#body()}
             </div>
@@ -138,7 +145,7 @@ class UsagePage {
         if (!d) return '<p class="fa-muted usage-wait">Reading the logs…</p>';
         if (d.error) return `<div class="fa-empty"><p>${escapeHtml(d.error)}</p></div>`;
         if (d.empty) return '<div class="fa-empty"><p>No requests from any application in this period.</p></div>';
-        return `${this.#overview()}${this.#pages()}${this.#pathsSection()}${this.#people()}
+        return `${this.#overview()}${this.#pages()}${this.#pathsSection()}${this.#frictionSection()}${this.#whenSection()}${this.#people()}
             <p class="fa-muted usage-foot">Computed from the log tables in ${d.seconds.toFixed(1)} s; the previous period is ${escapeHtml(d.previous.label)}.</p>`;
     }
 
@@ -256,6 +263,57 @@ class UsagePage {
             </section>`;
     }
 
+    #sessionLinks(examples) {
+        return `<ul class="usage-examples">${examples.map((e) => `<li><a href="/trace?${escapeHtml(new URLSearchParams({ person: e.identifier ?? '', day: localDay(e.at), session: e.sessionId }))}">${escapeHtml(new Date(e.at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))} · ${escapeHtml(e.identifier ?? '')}</a></li>`).join('')}</ul>`;
+    }
+
+    // Friction (§4.4): one sentence per signal, ranked by the sessions it touches; each opens its sessions.
+    #frictionSection() {
+        const signals = frictionSignals(this.#data.friction, this.#frictionSettings);
+        return `
+            <section class="usage-section" id="u-friction">
+                <h2 class="usage-h">Friction <span class="fa-muted">where it may hurt, ranked by the sessions touched; a signal points at sessions, it is not a verdict</span></h2>
+                ${signals.length ? `<ol class="usage-signals">${signals.map((x, i) => {
+                    const key = `${x.kind}:${x.subject}`;
+                    const open = this.#openSignal === key;
+                    return `
+                    <li class="usage-signal is-${x.kind}${open ? ' is-open' : ''}">
+                        <span class="usage-signal-rank">${i + 1}</span>
+                        <span class="usage-signal-kind">${escapeHtml(FRICTION_KINDS[x.kind])}</span>
+                        <span class="usage-signal-text">${escapeHtml(x.text)}</span>
+                        <button type="button" class="fa-button fa-button--small" data-signal="${escapeHtml(key)}" aria-expanded="${open}">${x.examples.length < x.sessions ? `latest ${n(x.examples.length)}` : plural(x.examples.length, 'session')}${open ? ' ▾' : ' ▸'}</button>
+                        ${open ? `<div class="usage-signal-sessions">${this.#sessionLinks(x.examples)}</div>` : ''}
+                    </li>`;
+                }).join('')}</ol>` : '<div class="fa-empty"><p>No friction signals in this period.</p></div>'}
+            </section>`;
+    }
+
+    // When (§4.5): page loads by weekday and hour in the browser's time; a cell opens its sessions.
+    #whenSection() {
+        const grid = heatGrid(this.#data.when);
+        const picked = this.#heatCell ? grid[this.#heatCell.dow].hours[this.#heatCell.hour] : null;
+        const hourLabel = (h) => new Date(2026, 0, 5, h).toLocaleTimeString([], { hour: 'numeric' });
+        return `
+            <section class="usage-section" id="u-when">
+                <h2 class="usage-h">When <span class="fa-muted">page loads by weekday and hour, in this browser's time; darker is busier</span></h2>
+                <div class="usage-when">
+                    <table class="usage-heat" aria-label="Page loads by weekday and hour">
+                        <thead><tr><th></th>${Array.from({ length: 24 }, (_, h) => `<th scope="col">${h % 3 === 0 ? escapeHtml(hourLabel(h)) : ''}</th>`).join('')}</tr></thead>
+                        <tbody>${grid.map((day) => `
+                            <tr><th scope="row">${day.label}</th>${day.hours.map((c) => `
+                                <td><button type="button" class="usage-heat-cell${c === picked ? ' is-picked' : ''}" style="--heat:${c.level / 4}" data-heat="${c.dow}-${c.hour}" ${c.loads ? '' : 'disabled'}
+                                    title="${escapeHtml(`${day.label} ${hourLabel(c.hour)}: ${plural(c.loads, 'page load')}, ${plural(c.sessions, 'session')}`)}" aria-label="${escapeHtml(`${day.label} ${hourLabel(c.hour)}: ${plural(c.loads, 'page load')}`)}"></button></td>`).join('')}</tr>`).join('')}
+                        </tbody>
+                    </table>
+                    <aside class="usage-tree-examples">${picked ? `
+                        <h3 class="usage-h3">${escapeHtml(grid[picked.dow].label)} ${escapeHtml(hourLabel(picked.hour))}</h3>
+                        <p class="fa-muted">${plural(picked.loads, 'page load')} in ${plural(picked.sessions, 'session')} by ${plural(picked.people, 'identifier')}; the latest, into Trace:</p>
+                        ${this.#sessionLinks(picked.examples)}` : '<p class="fa-muted">Pick an hour to see the sessions in it.</p>'}
+                    </aside>
+                </div>
+            </section>`;
+    }
+
     #people() {
         const { people } = this.#data;
         return `
@@ -333,8 +391,17 @@ class UsagePage {
     }
 
     #onClick(event) {
-        const target = event.target.closest('[data-grain], [data-shift], [data-page], [data-action], [data-direction], [data-path-key]');
+        const target = event.target.closest('[data-grain], [data-shift], [data-page], [data-action], [data-direction], [data-path-key], [data-signal], [data-heat]');
         if (!target) return;
+        if (target.dataset.signal) {
+            this.#openSignal = this.#openSignal === target.dataset.signal ? null : target.dataset.signal;
+            return this.#render();
+        }
+        if (target.dataset.heat) {
+            const [dow, hour] = target.dataset.heat.split('-').map(Number);
+            this.#heatCell = this.#heatCell?.dow === dow && this.#heatCell?.hour === hour ? null : { dow, hour };
+            return this.#render();
+        }
         if (target.dataset.direction) {
             this.#paths = { ...this.#paths, direction: target.dataset.direction, selected: null, open: new Set() };
             return this.#render();

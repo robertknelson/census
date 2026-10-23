@@ -1,6 +1,6 @@
 # Usage — how people use an application, from its click streams
 
-Status: **U-1 and U-2 built 2026-10-23 (Overview, Pages with its drawer, People, Paths, the index); U-3 and U-4 to come.** Ruled U1–U3. Asked by Robert the same day: "think about how a user would want
+Status: **U-1, U-2 and U-3 built 2026-10-23: every section of §4. U-4 (persona scoping, the Executive's figures, links in) to come.** Ruled U1–U3. Asked by Robert the same day: "think about how a user would want
 to analyze click streams, sessions for an application, and come up with a proposal on how to construct the UX."
 It follows open item T5 in `log-explorer-and-trace.md`. It reads the same log tables (`[apptrak].[ApiRequest]`,
 `[Session]`, `[Exception]`) and writes nothing.
@@ -122,7 +122,7 @@ Ranked signals, each a sentence with a count and a button that opens its session
 | Loop | The same page loaded ≥ 5 times in a minute by one person. |
 | Retry | The same write (method and path) sent twice within 10 seconds. |
 | Slow page | A page's p90 ≥ `SlowMs`. |
-| Dead end | A page whose exit rate is far above the application's median (≥ 3×) with ≥ 20 views. |
+| Dead end | A page whose exit rate is at least twice the application's median and at least 75%, with ≥ 20 views. (First written as ≥ 3× the median, which cannot fire once the median passes 33%: calls-made-for-you, 2026-10-23.) |
 
 The rules and thresholds are settings. A signal is a pointer to sessions, never a verdict.
 
@@ -206,6 +206,23 @@ sessions. In Edge (headless): After from Orders.Index gives 66 visits, the same 
 loads; Before shows 48% "(entered)", the Pages table's entries for the same page (32 of 66); ▸ opens a line; a
 picked line lists its sessions into Trace. **Not seen:** the cap message (the demo has 48 sessions); real volume.
 
+## 7c. U-3, built (2026-10-23)
+
+| Piece | File |
+|---|---|
+| Readers | `apptrak/sql/logs/usage-friction.sql`: the six signals (§4.4), each grouped by its call or page with sessions, people and up to 20 example sessions. `usage-when.sql`: page loads by the browser's weekday (counted from a fixed Monday, whatever `DATEFIRST` says) and hour, with sessions, people and the five latest sessions per cell. The base query now carries `Path`, for the retry rule |
+| Settings | `Usage:Friction` (`Options/UsageOptions.cs`): EndedWithinMinutes 2, RefusedTimes 3, LoopLoads 5, LoopSeconds 60, RetrySeconds 10, SlowMinRequests 20, DeadEndFactor 2, DeadEndMinRate 0.75, DeadEndMinViews 20. The page gets the thresholds so its sentences say the rule that was applied |
+| Model | `frictionSignals` (each signal one sentence, all ranked by the sessions they touch), `heatGrid` (7 × 24, four steps against the busiest hour) |
+| Page | Friction (numbered sentences, each opening its sessions into Trace) and When (the heatmap; an hour opens its sessions), between Paths and People |
+| Demo | `seed-logs-demo.sql` plants one of each signal in WidgetCore PROD: a reload loop, a double-submitted save, four refusals of one call, three sessions of slow reports, and 25 sessions that open only the help page |
+
+**Verified (2026-10-23, `CensusLogsDemo`):** both scripts run directly and through the API, and all six signals fire
+on the planted patterns (WidgetCore PROD, the last 30 days). The heatmap's 285 page loads equal the Pages table's 285
+views for the same month. `tests/Test-Usage.mjs` passes 30 (7 new: ranking, sentences, thresholds from settings,
+the grid's week and steps); every node suite passes. In Edge (headless): eight ranked signals with the dead end
+first; the third opened to its two sessions into Trace; the heatmap with Wednesday 10 AM picked showing 14 page
+loads in 5 sessions and the latest five. **Not seen:** the signals on real data; the thresholds tuned.
+
 ## 8. Open items
 
 | # | Question | Recommendation | Needed |
@@ -216,4 +233,5 @@ picked line lists its sessions into Trace. **Not seen:** the cap message (the de
 | U4 | **Page names:** controller and action as recorded, or human aliases ("Order detail")? | Recorded first; aliases later as a small declared mapping (observe → tag), never guessed. | His look at the real page list. |
 | U5 | **Executive adoption figures** in the period view, or only on Usage? | In the period view: it is where the Executive already looks. | His word. |
 | U6 | **Cross-application journeys** (a session's referer is another app in the estate). | Show them in Pages as "came from WidgetPortal"; a map of the links between apps belongs to Atlas later. | His word. |
+| U8 | **Tune the friction thresholds** on real data (`Usage:Friction`). | Look at a month of a real application first; the defaults are starting points. | Real volume. |
 | U7 | **Staff and test identifiers**: exclude them from the figures? | A declared list per application, shown as excluded, never hidden silently. | Which identifiers. |

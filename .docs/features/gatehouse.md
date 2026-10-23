@@ -1,6 +1,6 @@
 # Gatehouse — a reference app for porting Feature Management, Membership and Logs
 
-Status: **spec, 2026-10-23, not built.** For Robert's ruling on the open items (§10) before any code.
+Status: **spec ruled 2026-10-23 (G1, G2, G4, G6); building G-1.**
 
 ## 1. The ask (Robert, 2026-10-23)
 
@@ -24,13 +24,17 @@ and **Logs**. It does **not** use Census's `ScriptRunner`; it uses xf-dashboard'
 | G-R5 | **The same command/query pattern as xf-dashboard**, any namespace ("i'll likely be changing them when i port"). | §4. |
 | G-R6 | **Async handlers.** | `QueryAsync` / `ExecuteAsync` are real (xf-dashboard's throw `NotImplementedException`). |
 | G-R7 | **A peer of Census.Web in this repo is fine.** | `Gatehouse.Web/` beside `Census.Web/` (§3). |
+| G-R8 | **Gatehouse, port 5296** (G1: "agreed"). | §3. |
+| G-R9 | **`fm` serves one application** (G2: "NO, it is only for 1 app"). | Feature names carry no application prefix (`logs.explorer`, not `gatehouse.logs.explorer`). Locally, where AppTrak's `fm` is already Census's, Gatehouse's `fm` lives in a database of its own (§8). |
+| G-R10 | **FM2280's data layer moves onto command/query** in Gatehouse (G4: "yes"). FM2280 itself is unchanged. | §6. |
+| G-R11 | **The live app's claims transformation is essentially xf-dashboard's** (G6). | Gatehouse copies its shape (§5): `IClaimsTransformation`, a per-user session cache, an auth provider that resolves the person and roles, the configured sys-admin list; without impersonation (G-R2). |
 
 ## 3. Shape
 
 - **`Gatehouse.Web/`**, an ASP.NET 8 MVC project beside `Census.Web/`, port **5296** (no other project's dispatch
   names it; Census is 5292). It references nothing in Census.Web: what you see is what you port.
 - **`_Layout.cshtml` + `_SidebarNavPartial.cshtml`**, server-rendered, as in the live app.
-- **One component per folder**, each with its C#, `.sql` (embedded resources), views, `.mjs` and CSS together:
+- **One component per folder** (namespaces are Gatehouse's own; you will rename them when porting), each with its C#, `.sql` (embedded resources), views, `.mjs` and CSS together:
 
 | Folder | Holds |
 |---|---|
@@ -68,10 +72,18 @@ the live app's:
 ## 5. Identity
 
 - **Windows authentication** (Negotiate). The name `DOMAIN\username` gives `username`.
-- **The claims transformation** finds `membership.Member` by `Identifier = username` and adds one role claim
-  (`identity.RoleClaimType`) per `member-types` identifier the member holds on **this application**: their
+- **The claims transformation has xf-dashboard's shape (G-R11):** an `IClaimsTransformation` that splits
+  `DOMAIN\username`, keeps a session per user in a cache, and asks an **auth provider** to resolve the person and
+  their roles on a cache miss. Gatehouse's auth provider reads `membership` through command/query: the member by
+  `Identifier = username`, and one role per `member-types` identifier they hold on **this application** (their
   `MemberApplicationRole` rows for the `membership.Application` whose identifier is the setting
-  `Membership:Application`. Census's rule that a role on Census counts estate-wide stays in Census.
+  `Membership:Application`). The roles become `ClaimTypes.Role` claims, beside the identifier and name claims, as in
+  xf-dashboard. Census's rule that a role on Census counts estate-wide stays in Census.
+- **The configured sys-admin list** (`Authorization:SystemAdministrators`), as in xf-dashboard: a listed identifier
+  gets `system-administrator` without a grant row. It is how the first person reaches the admin pages.
+- **The session cache expires** after `Identity:SessionMinutes` (default 5), so a grant made on the Membership page
+  reaches its holder within minutes, with no restart and no sign-out.
+- **No impersonation** (G-R2): xf-dashboard's impersonation paths are left out.
 - **No member, or no roles here:** signed in with no role claims. The sidebar shows only what needs no feature, and
   every gated endpoint refuses.
 - The role claims are FM2280's targeting groups as they are (`ClaimsTargetingContextAccessor` reads the role claim
@@ -95,16 +107,19 @@ the live app's:
 | Nav | Page | Feature |
 |---|---|---|
 | Home | Who you are: identifier, the roles here, the features on for you | none |
-| Logs → Log Explorer | Census's `/logs` | `gatehouse.logs.explorer` |
-| Logs → Trace | Census's `/trace` | `gatehouse.logs.trace` |
-| Logs → Usage | Census's `/usage`, every application in the logs (no persona scoping) | `gatehouse.logs.usage` |
-| Administer → Membership | Census's membership page | `gatehouse.admin.membership` |
+| Logs → Log Explorer | Census's `/logs` | `logs.explorer` |
+| Logs → Trace | Census's `/trace` | `logs.trace` |
+| Logs → Usage | Census's `/usage`, every application in the logs (no persona scoping) | `logs.usage` |
+| Administer → Membership | Census's membership page | `admin.membership` |
 | Administer → Feature access | FM2280's page | fixed policy (§6) |
 
 ## 8. Local runs
 
-- **Your local AppTrak**, with Census's demo seeds (`apptrak/Invoke-AppTrakDemo.ps1`) plus a Gatehouse seed: the
-  `gatehouse` application in `membership.Application`, its features in `fm`, and their grants.
+- **Your local AppTrak** for `membership` and `core.SelectItem`, with Census's demo seeds
+  (`apptrak/Invoke-AppTrakDemo.ps1`) plus the `gatehouse` application in `membership.Application`.
+- **Gatehouse's own `fm`** in a local database of its own (`GatehouseDemo`), because AppTrak's `fm` is Census's locally
+  and `fm` serves one application (G-R9): FM2280's `fm` DDL, Gatehouse's features (unprefixed) and their grants.
+  `FeatureAccess:ConnectionString` names it; in the live app it is wherever that app's `fm` lives.
 - **Your Windows account as a member** with roles on `gatehouse`, in a **git-ignored** local seed
   (`.docs/local/`), so your account name stays out of the repo.
 - **The demo logs** from `CensusLogsDemo`, through `Logs:ConnectionString`, as Census does.
@@ -122,9 +137,10 @@ the live app's:
 
 | # | Question | Recommendation | Needed |
 |---|---|---|---|
-| G1 | **Name and port**: Gatehouse, 5296? | Gatehouse: it decides who gets in, knows who they are, and keeps the log of who came. | His word. |
-| G2 | **Feature names in a shared `fm`.** `fm` has no application column, so Census's features and Gatehouse's sit in one list, and each app's admin page shows the other's. | Prefix by application (`gatehouse.*`). In the live app, its own prefix. An application column in `fm` would be the proper fix, a change to FM2280 for later. | His word; whether the live app's `fm` is shared. |
+| G1 | ~~Name and port~~ **Ruled: Gatehouse, 5296** (G-R8). | — | — |
+| G2 | ~~Feature names in a shared `fm`~~ **Ruled: `fm` serves one application** (G-R9). | — | — |
 | G3 | **Result shape by sniffing the SQL text** (§4). | Keep it, to match the live app; it is a known sharp edge, and each initializer's script is short enough to check by eye. | His word. |
-| G4 | **FM2280's data layer moves onto command/query** in Gatehouse (FM2280 itself uses per-domain handlers). | Yes: the live app is command/query, so the port should be too. FM2280 stays as it is. | His word. |
+| G4 | ~~FM2280's data layer onto command/query~~ **Ruled: yes** (G-R10). | — | — |
 | G5 | **Windows sign-in on Kestrel** locally (Negotiate) against IIS in the live app. | Kestrel with Negotiate for local runs; the porting note covers IIS (Windows authentication on, anonymous off). | — |
-| G6 | **Does the live app's existing claims transformation add roles from somewhere else** (AD groups, an app role table)? | If it does, the features target membership roles while the app checks its own: both kept for a while, then the old checks moved to features one at a time (your gradual-migration rule). | His answer. |
+| G6 | ~~The live app's claims transformation~~ **Answered: essentially xf-dashboard's** (G-R11). | — | — |
+| G7 | **Where do the live app's roles come from today?** xf-dashboard's auth provider reads its own person and role tables. If the live app's does too, its roles and membership's `member-types` are two vocabularies, and features must be granted to the one its claims carry. | The porting note for identity shows both: the auth provider reading membership (Gatehouse's), or features granted to the app's existing roles with no change to its provider. You pick when porting. | His look at the live app's provider. |

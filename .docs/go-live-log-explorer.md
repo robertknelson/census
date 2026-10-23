@@ -45,6 +45,17 @@ The pages work without them, slowly (Usage most of all: `IX_ApiRequest_Applicati
 
 Check: run it a second time; every line says "already there".
 
+**If you ran the script before 2026-10-23's slimming (commit 4d3af7f)**, three indexes exist with extra columns, and
+the script skips an index whose name is already there. Drop them first, then run the script again to build them lean:
+
+```sql
+DROP INDEX IF EXISTS IX_ApiRequest_Application_StartAt ON apptrak.ApiRequest;
+DROP INDEX IF EXISTS IX_ApiRequest_SessionId_StartAt ON apptrak.ApiRequest;
+DROP INDEX IF EXISTS IX_ApiRequest_Identifier_StartAt ON apptrak.ApiRequest;
+```
+
+(On Standard edition the rebuild locks the table while it runs, as above: out of hours.)
+
 Size check before running, so the wait is known:
 
 ```sql

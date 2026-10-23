@@ -45,6 +45,8 @@ builder.Services.AddSingleton<IRoleCatalog, MemberTypesRoleCatalog>();
 builder.Services.AddSingleton<MemberAccess>();
 builder.Services.AddSingleton<MembershipAdmin>();
 builder.Services.AddSingleton<MoveItEdit>();
+builder.Services.Configure<LogsOptions>(builder.Configuration.GetSection(LogsOptions.SectionName));
+builder.Services.AddSingleton<LogReader>();
 
 var app = builder.Build();
 

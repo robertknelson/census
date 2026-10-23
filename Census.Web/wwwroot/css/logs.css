@@ -1,0 +1,732 @@
+/*
+ * log-explorer.scss
+ * Log Explorer (system/log-explorer): a compact control stack and facet accordion on the left, chips and a dense
+ * rows table on the right, a row / fields drawer. Rides the feature-access design system (.fa tokens, table,
+ * drawer, buttons, toasts); this file holds only what is specific to the explorer. Written as plain CSS so any
+ * compiler emits it verbatim. Density is the point (Robert, 2026-09-20).
+ */
+.fa.logx {
+    --logx-side: 17rem;
+    --logx-pressed: var(--fa-wash);
+    --logx-pressed-ink: var(--fa-ink);
+    --logx-pressed-rule: var(--fa-ink-soft);
+    font-size: 13px;
+}
+
+.fa.logx .fa-page {
+    max-width: none;
+    padding: 0.75rem 1rem 1rem;
+}
+
+/* Pressed segments and the Search button stay neutral: wash and ink instead of the site's inverted ink and accent
+   fills, which read as harsh on a page this dense (Robert, 2026-09-20). */
+.fa.logx .fa-segment {
+    height: auto;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.78rem;
+    line-height: 1.3rem;
+}
+
+.fa.logx .fa-segment[aria-pressed="true"] {
+    background: var(--logx-pressed);
+    color: var(--logx-pressed-ink);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 var(--logx-pressed-rule);
+}
+
+.fa.logx .logx-search {
+    border-color: var(--fa-rule-strong);
+    font-weight: 600;
+}
+
+.logx-models {
+    display: flex;
+    align-items: stretch;
+    gap: 0.35rem;
+}
+
+.logx-models .fa-segments {
+    flex: 1 1 auto;
+}
+
+.logx-models .fa-segment {
+    flex: 1 1 0;
+    justify-content: center;
+}
+
+.logx-models .fa-button {
+    flex: none;
+    padding: 0.15rem 0.5rem;
+}
+
+.logx-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.logx-summary {
+    margin: 0 0 0.35rem;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.logx-body {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.logx-side {
+    flex: 0 0 var(--logx-side);
+    min-width: 0;
+}
+
+.logx-splitter {
+    flex: none;
+    align-self: stretch;
+    width: 6px;
+    margin: 0 -0.25rem;
+    border-radius: 3px;
+    background: transparent;
+    cursor: col-resize;
+    touch-action: none;
+}
+
+.logx-splitter:hover,
+.logx-splitter:focus-visible,
+.logx-splitter.is-dragging {
+    background: var(--fa-rule-strong);
+    outline: none;
+}
+
+.logx-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Icons: sized to the text they sit beside, coloured by it */
+
+.logx-icon {
+    width: 0.95em;
+    height: 0.95em;
+    flex: none;
+    vertical-align: -0.12em;
+}
+
+.fa.logx .fa-button .logx-icon {
+    margin-right: 0.3em;
+}
+
+.fa.logx .fa-button .logx-icon:last-child {
+    margin-right: 0;
+    margin-left: 0.3em;
+}
+
+.fa.logx .fa-button .logx-icon:only-child {
+    margin: 0;
+}
+
+.logx-dates-sep .logx-icon {
+    vertical-align: -0.2em;
+}
+
+.logx-pivot .logx-icon {
+    margin-left: 0.2em;
+    opacity: 0.7;
+}
+
+/* Control stack: window (quick picks + dates), actions, operator */
+
+.logx-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+}
+
+.logx-window {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.logx-quick {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.15rem;
+}
+
+.logx-quick-button {
+    padding: 0 0.3rem;
+    border: 0;
+    border-radius: var(--fa-radius);
+    background: none;
+    color: var(--fa-ink-soft);
+    font: inherit;
+    font-size: 0.72rem;
+    line-height: 1.1rem;
+    cursor: pointer;
+}
+
+.logx-quick-button:hover {
+    background: var(--fa-hover);
+    color: var(--fa-ink);
+}
+
+.logx-quick-button[aria-pressed="true"] {
+    color: var(--fa-ink);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+.logx-operator {
+    flex: none;
+}
+
+.logx-operator .fa-segment {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.7rem;
+}
+
+.logx-dates {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.logx-dates input[type="date"] {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.15rem 0.3rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.78rem;
+}
+
+.logx-actions {
+    display: flex;
+    align-items: stretch;
+    gap: 0.35rem;
+}
+
+.logx-actions .fa-button {
+    flex: 1 1 0;
+    justify-content: center;
+}
+
+/* Facet accordion: one bordered stack, thin rows */
+
+.logx-facets {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--fa-rule);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    overflow: hidden;
+}
+
+.logx-facet {
+    border-top: 1px solid var(--fa-rule);
+}
+
+.logx-facet:first-child {
+    border-top: 0;
+}
+
+.logx-facet.has-picks {
+    box-shadow: inset 3px 0 0 var(--fa-grant);
+}
+
+.logx-facet--skeleton {
+    height: 1.7rem;
+    padding: 0.4rem 0.6rem;
+}
+
+.logx-facet-head {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding-right: 0.35rem;
+}
+
+.logx-facet-title {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.25rem 0.6rem;
+    border: 0;
+    background: none;
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+    line-height: 1.25rem;
+    cursor: pointer;
+}
+
+.logx-facet-title::before {
+    content: '▸';
+    flex: none;
+    margin-right: 0.35rem;
+    color: var(--fa-ink-soft);
+    font-size: 0.65rem;
+}
+
+.logx-facet.is-open .logx-facet-title::before {
+    content: '▾';
+}
+
+.logx-facet-title > span:first-child {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logx-facet-title:hover {
+    background: var(--fa-hover);
+}
+
+.logx-facet-title .fa-count {
+    font-size: 0.7rem;
+}
+
+.logx-inout {
+    flex: none;
+    padding: 0 0.35rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: 999px;
+    background: var(--fa-paper);
+    color: var(--fa-ink-soft);
+    font-size: 0.62rem;
+    font-weight: 600;
+    line-height: 1.1rem;
+    cursor: pointer;
+}
+
+.logx-inout.is-nin {
+    border-color: var(--fa-danger-rule);
+    background: var(--fa-danger-soft);
+    color: var(--fa-danger);
+}
+
+.logx-facet-body {
+    padding: 0.15rem 0.6rem 0.4rem;
+    background: var(--fa-wash);
+}
+
+.logx-filter {
+    width: 100%;
+    margin: 0.2rem 0;
+    padding: 0.15rem 0.4rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.78rem;
+}
+
+.logx-options {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: 11rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.logx-options .fa-check {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0.05rem 0.2rem;
+    font-size: 0.78rem;
+    line-height: 1.2rem;
+}
+
+.logx-options .fa-check input {
+    flex: none;
+    margin: 0;
+}
+
+.logx-options .fa-check-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logx-count {
+    flex: none;
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.logx-jump {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.1rem 0.2rem;
+    border: 0;
+    border-radius: var(--fa-radius);
+    background: none;
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.78rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.logx-jump:hover {
+    background: var(--fa-hover);
+}
+
+.logx-bucket {
+    margin: 0.2rem 0;
+    font-size: 0.78rem;
+}
+
+.fa.logx .fa-field select {
+    width: 100%;
+    padding: 0.15rem 0.3rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.78rem;
+}
+
+/* Chips */
+
+.logx-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 1.6rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.78rem;
+}
+
+.logx-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0 0.15rem 0 0.5rem;
+    border: 1px solid var(--fa-grant);
+    border-radius: 999px;
+    background: var(--fa-grant-soft);
+    color: var(--fa-ink);
+    font-size: 0.75rem;
+    line-height: 1.3rem;
+}
+
+.logx-chip.is-nin {
+    border-color: var(--fa-danger-rule);
+    background: var(--fa-danger-soft);
+}
+
+.logx-chip-remove {
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--fa-ink-soft);
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.logx-chip-remove:hover {
+    background: var(--fa-hover);
+    color: var(--fa-ink);
+}
+
+/* Rows table: dense */
+
+.logx-table {
+    font-size: 0.78rem;
+}
+
+.logx-table thead th {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.72rem;
+}
+
+.logx-table .logx-col {
+    white-space: nowrap;
+    text-align: center;
+}
+
+.logx-sort-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.logx-sort {
+    margin-left: 0.25rem;
+    font-size: 0.55rem;
+}
+
+.logx-table .logx-cell {
+    max-width: 22rem;
+    padding: 0.15rem 0.45rem;
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.25rem;
+}
+
+.logx-table .logx-cell--number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.logx-cell-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logx-open {
+    white-space: nowrap;
+}
+
+.logx-open .fa-feature-name {
+    font-size: 0.78rem;
+}
+
+.logx-table .fa-row.is-flagged > td:first-child {
+    box-shadow: inset 3px 0 0 var(--fa-danger);
+}
+
+/* Request cues (support-tooling.md S3): a refusal amber, a write's method in the accent, slow bold, a body marked. */
+.logx-table .fa-row.is-refused > td:first-child { box-shadow: inset 3px 0 0 var(--fa-off); }
+.logx-table .fa-row.is-refused .logx-col-httpStatus { color: var(--fa-off); font-weight: 600; }
+.logx-table .fa-row.is-flagged .logx-col-httpStatus { color: var(--fa-danger); font-weight: 600; }
+.logx-table .fa-row.is-write .logx-col-httpMethod { color: var(--fa-grant-strong); font-weight: 600; }
+.logx-table .fa-row.is-slow .logx-col-elapsed { font-weight: 700; }
+
+.logx-body-mark {
+    margin-left: 0.3rem;
+    padding: 0 0.25rem;
+    border-radius: 3px;
+    background: var(--fa-grant-soft);
+    color: var(--fa-grant-strong);
+    font-family: var(--fa-font-code);
+    font-size: 0.68rem;
+}
+
+/* Quick picks over the results, and the request switches under the controls. */
+.logx-picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.4rem;
+}
+
+.logx-pick {
+    padding: 0.15rem 0.6rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: 999px;
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.logx-pick:hover { border-color: var(--fa-grant); }
+.logx-pick[aria-pressed="true"] { border-color: var(--fa-grant); background: var(--fa-grant-soft); font-weight: 600; }
+
+.logx-noise {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0.35rem 0 0.5rem;
+    font-size: 0.75rem;
+}
+
+.logx-noise-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--fa-ink-soft);
+    cursor: pointer;
+}
+
+.logx-chip.is-pick { border-style: dashed; }
+
+.logx-pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.15rem;
+    font-size: 0.78rem;
+}
+
+.logx-pager .fa-actions {
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+}
+
+.logx-page-size select {
+    margin-left: 0.25rem;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.78rem;
+}
+
+/* Drawer */
+
+.logx-drawer {
+    --fa-drawer-width: 40rem;
+}
+
+.logx-details {
+    margin: 0;
+}
+
+.logx-detail {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 0.4rem;
+    padding: 0.25rem 0;
+    border-top: 1px solid var(--fa-rule);
+    font-size: 0.8rem;
+}
+
+.logx-detail:first-child {
+    border-top: 0;
+}
+
+.logx-detail dt {
+    color: var(--fa-ink-soft);
+    font-weight: 600;
+}
+
+.logx-detail dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.logx-json {
+    margin: 0;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--fa-rule);
+    border-radius: var(--fa-radius);
+    background: var(--fa-wash);
+    font-family: var(--fa-font-code);
+    font-size: 0.74rem;
+    white-space: pre-wrap;
+    max-height: 22rem;
+    overflow: auto;
+}
+
+.logx-pivot {
+    color: var(--fa-grant);
+    text-decoration: underline dotted;
+}
+
+.logx-fields {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.logx-fields th,
+.logx-fields td {
+    padding: 0.25rem 0.4rem;
+    border-top: 1px solid var(--fa-rule);
+    text-align: left;
+}
+
+.logx-fields thead th {
+    border-top: 0;
+    color: var(--fa-ink-soft);
+    font-size: 0.75rem;
+}
+
+.logx-fields td {
+    text-align: center;
+}
+
+@media (max-width: 60rem) {
+    .logx-body {
+        flex-direction: column;
+    }
+    .logx-side {
+        flex-basis: auto;
+        width: 100%;
+    }
+}
+
+/* Census: the explorer is the whole page (/logs). */
+body.logx-host {
+    margin: 0;
+    background: var(--fa-paper, #ffffff);
+}
+
+.fa.logx {
+    min-height: 100vh;
+}
+
+.logx-topbar {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem 0;
+}
+
+.logx-topbar a {
+    color: var(--fa-ink-soft);
+    text-decoration: none;
+}
+
+.logx-topbar a:hover {
+    color: var(--fa-ink);
+    text-decoration: underline;
+}
+
+.logx-topbar strong {
+    font-size: 0.95rem;
+}
+
+.logx-table .logx-col-httpMethod {
+    white-space: nowrap;
+}
+
+.logx-table .logx-col-httpMethod .logx-cell-text {
+    display: inline;
+}

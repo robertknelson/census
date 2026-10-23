@@ -1,0 +1,24 @@
+@{
+    // Its own page, like the persona UX: the explorer borrows FM2280's .fa look and nothing else.
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Census logs</title>
+    <link rel="stylesheet" href="~/css/feature-access.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/logs.css" asp-append-version="true" />
+</head>
+<body class="logx-host">
+    <div class="fa logx">
+        <div class="logx-topbar"><strong>Census · Log Explorer</strong><a href="/personas">Back to personas</a></div>
+        <div id="log-explorer" data-api-base="/api/logs"></div>
+    </div>
+    <script type="module">
+        import logExplorerPage from '/js/logs/log-explorer-page.mjs';
+        logExplorerPage.init({ root: '#log-explorer' });
+    </script>
+</body>
+</html>

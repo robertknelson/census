@@ -42,6 +42,13 @@ export const NAV = [
             { feature: 'surface.day', label: 'Day', hint: 'What changed on the machines, and did it matter', href: '/day' },
         ],
     },
+    {
+        // The shared log tables, every application's (log-explorer-and-trace.md): their own full-width pages.
+        group: 'Troubleshoot',
+        items: [
+            { feature: 'view.log-explorer', label: 'Log Explorer', hint: 'Requests, exceptions and messages, every application', href: '/logs' },
+        ],
+    },
 ];
 
 export function trimNav(nav, features) {

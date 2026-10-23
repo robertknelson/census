@@ -26,7 +26,9 @@ const lead = trimNav(NAV, ['view.quarter', 'view.month', 'view.week', 'drill.dep
 assert('the Tech Lead: no Year, Drill into kept', labels(lead) === 'See:Quarter/Month/Week | Drill into:Deployments/Builds', labels(lead));
 const exec2 = trimNav(NAV, ['view.year', 'surface.moveit']);
 assert('a link out is its own group, kept like any item', labels(exec2) === 'See:Year | Elsewhere in Census:Move It', labels(exec2));
-assert('  links out carry an href; views do not', NAV.every((g) => g.items.every((i) => (g.group === 'Elsewhere in Census') === Boolean(i.href))));
+const OUT = ['Elsewhere in Census', 'Troubleshoot'];
+assert('  links out carry an href; views do not', NAV.every((g) => g.items.every((i) => OUT.includes(g.group) === Boolean(i.href))));
+assert('the Sys Admin Log Explorer is a link out to /logs', navItem(trimNav(NAV, ['view.log-explorer']), 'view.log-explorer')?.href === '/logs');
 assert('nothing granted, no groups', trimNav(NAV, []).length === 0);
 assert('an unknown feature shows nothing', trimNav(NAV, ['no.such']).length === 0);
 

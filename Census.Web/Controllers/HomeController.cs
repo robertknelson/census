@@ -132,6 +132,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // Log Explorer (log-explorer-and-trace.md §4): its own page, full width, reached from the
+    // persona UX's Troubleshoot group. Not mounted without a log database.
+    [HttpGet("/logs")]
+    public IActionResult Logs([FromServices] LogReader logs)
+    {
+        if (!logs.Enabled) return NotFound();
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

@@ -4,6 +4,50 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-23 — Log Explorer, built
+
+**`/logs` is its own full-width page, linked from the persona nav (Troubleshoot → Log Explorer ↗)**, not a view
+inside `/personas`. The explorer is dense and wants the width, and a page of its own goes live without the `fm`
+and `membership` schemas, so you can test it this morning whatever state the personas go-live is in.
+
+**The demo logs live in a database of their own, `CensusLogsDemo`**, not in the local AppTrak: the local AppTrak
+already holds `log` rows that this repo must not show or touch.
+
+**The SQL lives in `apptrak/sql/logs/`**, not a new `logs/` folder: the log tables are AppTrak's logging, and
+the scripts load the way every other Census script does.
+
+**The facet picks reach SQL as one JSON parameter, and the dynamic SQL is built inside the script** (columns
+checked against `sys.columns`) rather than xf-dashboard's WHERE clauses assembled in C#: no SQL in C#, and the
+injection xf-dashboard found in S3 has nowhere to land.
+
+## 2026-10-23 — AppEvent (spec)
+
+**A rendered `Message` column on AppEvent**, rather than leaving words to each reader. Across many
+apps the reader cannot know every app's vocabulary; xf-dashboard's `describeAction` was one app's.
+
+**New AppEvent columns all nullable**, so a plain "interesting event" outside any unit of work stays valid,
+and adding them is safe even if something already writes the table (E2).
+
+**An unregistered kind of work is stored and flagged, never dropped**: a log that loses events
+because a catalog lagged is worse than a flag to tidy.
+
+**The ingest API rejects a lifecycle word outside the fixed set** (400 with the reason): free text in
+CommandActivity would make every executive report per-process.
+
+## 2026-10-23 — Log Explorer and Trace (spec)
+
+**The identifier picker offers who was there that month, busiest first**, not every identifier ever
+logged: the log tables only grow (xf-dashboard's "FOREVER" ruling), and a month is one indexed seek.
+
+**Two indexes beyond xf-dashboard's run book 36: `ApiRequest(StartAt)` and `Message(StartAt)`.** Log
+Explorer opens on today across every identifier, which no index in that set serves; on tables
+that are never purged that first query is a scan.
+
+**"What they did" ships as a seam with a demo fixture source**, so the section can be seen and
+tested now; on the real server it stays hidden until the real provider exists.
+
+**Pages at `/logs` and `/trace`**, not `/day`: Census already has a Day page (the estate's night).
+
 ## 2026-10-22 — large screens first
 
 **Columns by the page's own structure, not a masonry flow.** A detail page has fixed columns (the

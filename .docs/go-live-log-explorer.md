@@ -1,4 +1,4 @@
-# Go-live: Log Explorer and Trace
+# Go-live: Log Explorer, Trace and Usage
 
 Spec: `features/log-explorer-and-trace.md`. Census reads the shared log tables (`[apptrak].[ApiRequest]` and the rest,
 in the AppTrak database); it writes nothing to them.
@@ -31,11 +31,12 @@ database under that schema").
 
 It opens on today's requests, newest first. Check: the Application facet lists your applications with counts;
 Errors today switches to Exception; a row opens the drawer with its body (writes only). **Open session** in the
-drawer goes to `/trace`: the identifier's month, the day's sessions, the session grouped by page.
+drawer goes to `/trace`: the identifier's month, the day's sessions, the session grouped by page. `/usage`
+opens on the busiest application this month: figures, pages (a page opens its drawer) and people.
 
 ## 4. The indexes — `apptrak/sql/logs/001-log-indexes.sql` (R4)
 
-The page works without them, slowly: every search scans tables that are kept forever. Run the script on AppTrak
+The pages work without them, slowly (Usage most of all: `IX_ApiRequest_Application_StartAt` is its index): every search scans tables that are kept forever. Run the script on AppTrak
 (`@schema` at its top is `apptrak`) when the build can take the time:
 
 - **Enterprise / Developer / Azure:** built ONLINE; the apps keep logging while it runs.
@@ -53,6 +54,8 @@ WHERE SCHEMA_NAME(t.schema_id) = 'apptrak' AND t.name IN ('ApiRequest', 'ApiCont
 
 ## 5. (With the personas go-live) the nav item
 
-`apptrak/sql/fm/002-census-features.sql` now adds `view.log-explorer` and `view.trace`, granted to
-`system-administrator`. It is insert-only: re-running it on the real AppTrak adds the two features and their grants
-and changes nothing else. The persona UX then shows **Troubleshoot → Log Explorer ↗, Trace ↗**.
+`apptrak/sql/fm/002-census-features.sql` now adds `view.log-explorer` and `view.trace` (granted to
+`system-administrator`) and `view.usage` (product-owner, application-owner, technical-lead, devops-lead,
+application-administrator, system-administrator: usage.md U2). It is insert-only: re-running it on the real AppTrak
+adds the three features and their grants and changes nothing else. The persona UX then shows **Troubleshoot →
+Log Explorer ↗, Trace ↗** and **Elsewhere in Census → Usage ↗**.

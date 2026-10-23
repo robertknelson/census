@@ -1,0 +1,31 @@
+@using System.Text.Json
+@using Census.Web.Options
+@using Microsoft.Extensions.Options
+@inject IOptions<PersonasOptions> PersonasOptions
+@inject IOptions<LogsOptions> LogsOptions
+@{
+    // Its own page, like Log Explorer and Trace: FM2280's .fa look and nothing else.
+    Layout = null;
+    var config = JsonSerializer.Serialize(new { api = "/api/usage", fiscalStart = PersonasOptions.Value.FiscalYearStartMonth, slowMs = LogsOptions.Value.SlowMs });
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Census usage</title>
+    <link rel="stylesheet" href="~/css/feature-access.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/logs.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/usage.css" asp-append-version="true" />
+</head>
+<body class="logx-host">
+    <div class="fa usage">
+        <div class="logx-topbar"><strong>Census · Usage</strong><a href="/trace">Trace</a><a href="/logs">Log Explorer</a><a href="/personas">Back to personas</a></div>
+        <div id="usage"></div>
+    </div>
+    <script type="module">
+        import usagePage from '/js/usage/usage-page.mjs';
+        usagePage.init({ root: document.getElementById('usage'), ...@Html.Raw(config) });
+    </script>
+</body>
+</html>

@@ -4,6 +4,20 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-23 — Usage, U-1
+
+**U4–U7 taken on my recommendations, so U-1 could start.** Pages are named by the recorded controller and
+action, with no aliases yet (U4). The Executive's figures wait for U-4 (U5). A referer from another application
+shows as "from <its URL>" in a page's came-from list (U6). No identifiers are excluded yet (U7). Each is still open
+in usage.md; reverse any by saying so.
+
+**Usage is a link out under "Elsewhere in Census" for now**, not a See item. Scoping it to the member's
+applications is slice U-4. Until then the page shows every application with a picker, and the nav test's rule
+(only link-out groups carry hrefs) stays true.
+
+**A drop in pages per session is shown without a colour.** Fewer pages can mean people find things faster or give
+up sooner; the number cannot tell which. People and sessions are coloured, and errors are coloured the other way.
+
 ## 2026-10-23 — Trace, built
 
 **The session timeline leaves out the sign-in handshake** (an anonymous 401). Its path is a page's, so it would

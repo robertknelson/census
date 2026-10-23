@@ -25,10 +25,14 @@ INSERT @people (Identifier, Roles, Application, Stage, Browser, Platform) VALUES
     (N'eokafor', N'analyst', N'Reporting', N'PROD', N'Firefox 143', N'Windows'),
     (N'fnguyen', N'developer', N'WidgetCore', N'DEV', N'Chrome 141', N'Windows');
 
-DECLARE @pages TABLE (n int IDENTITY(0,1), Path nvarchar(255), Area nvarchar(50));
-INSERT @pages (Path, Area) VALUES
-    (N'/', N'Home'), (N'/orders', N'Orders'), (N'/orders/detail', N'Orders'), (N'/quotes', N'Quotes'),
-    (N'/reports', N'Reports'), (N'/admin/settings', N'Settings');
+-- Each page with the controller and action the app records (usage.md §3: a page is its controller and action, so
+-- /orders/detail/123 and /orders/detail/456 are one page). Weight makes some pages busier than others.
+DECLARE @pages TABLE (n int IDENTITY(0,1), Path nvarchar(255), Area nvarchar(50), Action nvarchar(50), WithId bit, Weight int);
+INSERT @pages (Path, Area, Action, WithId, Weight) VALUES
+    (N'/', N'Home', N'Index', 0, 3), (N'/orders', N'Orders', N'Index', 0, 5), (N'/orders/detail/', N'Orders', N'Detail', 1, 6),
+    (N'/quotes', N'Quotes', N'Index', 0, 3), (N'/quotes/detail/', N'Quotes', N'Detail', 1, 2),
+    (N'/reports', N'Reports', N'Index', 0, 2), (N'/admin/settings', N'Settings', N'Index', 0, 1);
+DECLARE @pageAction nvarchar(50), @withId bit, @fromPortal bit, @pick int, @weights int = (SELECT SUM(Weight) FROM @pages);
 
 DECLARE @now datetimeoffset(7) = SYSDATETIMEOFFSET();
 DECLARE @today date = CAST(@now AS date);
@@ -61,14 +65,28 @@ BEGIN
                 CAST(DATEADD(day, -@day, @today) AS datetime2(7))), @offset);
             SET @machine = CASE WHEN @stage = N'DEV' THEN N'WEBDEV01' WHEN ABS(CHECKSUM(NEWID())) % 2 = 0 THEN N'WEBPROD01' ELSE N'WEBPROD02' END;
             SET @host = LOWER(@app) + CASE WHEN @stage = N'DEV' THEN N'-dev' ELSE N'' END + N'.corp.example';
+            -- A quarter of WidgetCore's sessions arrive from WidgetPortal's quotes page (usage.md U6).
+            SET @fromPortal = CASE WHEN @app = N'WidgetCore' AND ABS(CHECKSUM(NEWID())) % 4 = 0 THEN 1 ELSE 0 END;
             IF @at < @now
                 INSERT apptrak.Session (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, Identifier, Path, RefererPath, Referer, Platform, Browser, CreatedAt, IsFromApi)
-                VALUES (NEWID(), @sid, REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N''), @machine, @stage, @app, @at, @identifier, N'/', N'', N'', @platform, @browser, @at, 0);
+                VALUES (NEWID(), @sid, REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N''), @machine, @stage, @app, @at, @identifier, N'/',
+                    CASE WHEN @fromPortal = 1 THEN N'/quotes' ELSE N'' END,
+                    CASE WHEN @fromPortal = 1 THEN N'https://widgetportal.corp.example/quotes' ELSE N'' END,
+                    @platform, @browser, @at, 0);
             SET @pagesN = 2 + ABS(CHECKSUM(NEWID())) % 5;
             SET @pg = 0;
             WHILE @pg < @pagesN AND @at < @now
             BEGIN
-                SELECT @path = Path, @area = Area FROM @pages WHERE n = ABS(CHECKSUM(NEWID())) % 6;
+                -- The first page of a session is home or the order list; after that, by weight.
+                SET @pick = ABS(CHECKSUM(NEWID())) % @weights;
+                IF @pg = 0
+                    SELECT @path = Path, @area = Area, @pageAction = Action, @withId = WithId FROM @pages WHERE n = CASE WHEN @pick % 3 = 0 THEN 0 ELSE 1 END;
+                ELSE
+                    SELECT TOP (1) @path = Path, @area = Area, @pageAction = Action, @withId = WithId
+                    FROM (SELECT p.*, SUM(Weight) OVER (ORDER BY n) AS Upto FROM @pages p) w
+                    WHERE Upto > @pick
+                    ORDER BY Upto;
+                IF @withId = 1 SET @path = @path + CONVERT(nvarchar(10), 1000 + ABS(CHECKSUM(NEWID())) % 9000);
 
                 -- The sign-in handshake, then the page itself.
                 SET @cid = REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N'');
@@ -78,7 +96,7 @@ BEGIN
                 SET @elapsed = 60 + ABS(CHECKSUM(NEWID())) % 400;
                 SET @cid = REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N'');
                 INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
-                VALUES (CONVERT(nvarchar(36), NEWID()), @sid, @cid, @machine, @stage, @app, @at, DATEADD(millisecond, @elapsed, @at), @elapsed, 0, @identifier, @path, N'', N'GET', 200, @area, N'Index', @host, N'https', @agent, @roles, @platform, @browser, 0, 0, N'{}', @at, 0);
+                VALUES (CONVERT(nvarchar(36), NEWID()), @sid, @cid, @machine, @stage, @app, @at, DATEADD(millisecond, @elapsed, @at), @elapsed, 0, @identifier, @path, N'', N'GET', 200, @area, @pageAction, @host, N'https', @agent, @roles, @platform, @browser, 0, 0, N'{}', @at, 0);
 
                 SET @calls = 1 + ABS(CHECKSUM(NEWID())) % 6;
                 SET @c = 0;

@@ -29,7 +29,8 @@ INSERT @features VALUES
     ('surface.estate', N'Estate (link)', N'Link out to the Estate'),
     ('surface.day', N'Day (link)', N'Link out to Day'),
     ('view.log-explorer', N'Log Explorer', N'Requests, exceptions and messages in the shared log tables'),
-    ('view.trace', N'Trace', N'One identifier''s month, day and sessions in the shared log tables');
+    ('view.trace', N'Trace', N'One identifier''s month, day and sessions in the shared log tables'),
+    ('view.usage', N'Usage', N'How an application is used, from its click streams');
 
 DECLARE @grants TABLE (Name varchar(100), RoleName varchar(100));
 INSERT @grants VALUES
@@ -103,7 +104,13 @@ INSERT @grants VALUES
     ('surface.day', 'application-administrator'),
     ('surface.day', 'system-administrator'),
     ('view.log-explorer', 'system-administrator'),
-    ('view.trace', 'system-administrator');
+    ('view.trace', 'system-administrator'),
+    ('view.usage', 'product-owner'),
+    ('view.usage', 'application-owner'),
+    ('view.usage', 'technical-lead'),
+    ('view.usage', 'devops-lead'),
+    ('view.usage', 'application-administrator'),
+    ('view.usage', 'system-administrator');
 
 DECLARE @created TABLE (FeatureId int, Name varchar(100));
 

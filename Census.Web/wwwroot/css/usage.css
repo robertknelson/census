@@ -1,0 +1,122 @@
+/*
+ * Usage (usage.md §4): one application over a period. Rides FM2280's .fa tokens like Log Explorer and Trace;
+ * dense on purpose.
+ */
+.fa.usage {
+    --usage-bad: var(--fa-danger);
+    --usage-warn: var(--fa-off);
+    --usage-good: var(--fa-grant-strong);
+    font-size: 13px;
+}
+
+.usage-page { padding: 0.75rem 1rem 2rem; max-width: 110rem; }
+
+.usage-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.5rem 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--fa-rule);
+}
+
+.usage-pick { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.72rem; color: var(--fa-ink-soft); }
+.usage-pick select {
+    min-width: 11rem;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+.usage-bar .fa-segment { text-transform: capitalize; }
+.usage-period { display: flex; align-items: center; gap: 0.4rem; }
+.usage-period strong { min-width: 9rem; text-align: center; font-size: 0.95rem; }
+
+.usage-sections {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 0.4rem 0;
+    background: var(--fa-paper);
+    border-bottom: 1px solid var(--fa-rule);
+    font-size: 0.8rem;
+}
+
+.usage-sections a { color: var(--fa-ink); font-weight: 600; text-decoration: none; }
+.usage-sections a:hover { text-decoration: underline; }
+.usage-sections .fa-muted { margin-left: auto; font-size: 0.72rem; }
+
+.usage-section { margin-top: 1.1rem; scroll-margin-top: 2.5rem; }
+.usage-h { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+.usage-h .fa-muted, .usage-h3 .fa-muted { margin-left: 0.4rem; font-size: 0.75rem; font-weight: 400; }
+.usage-h3 { margin: 0 0 0.35rem; font-size: 0.85rem; font-weight: 600; }
+.usage-wait, .usage-foot { margin-top: 1rem; font-size: 0.75rem; }
+
+.usage-figures { display: grid; grid-template-columns: repeat(5, minmax(9rem, 1fr)); gap: 0.5rem; }
+.usage-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--fa-rule);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+}
+.usage-figure-label { font-size: 0.72rem; color: var(--fa-ink-soft); }
+.usage-figure-value { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.usage-figure-delta { min-height: 1em; font-size: 0.75rem; color: var(--fa-ink-soft); }
+.usage-figure-delta.is-good { color: var(--usage-good); }
+.usage-figure-delta.is-bad { color: var(--usage-bad); font-weight: 600; }
+
+.usage-spark { margin: 0.6rem 0 0; }
+.usage-spark svg { display: block; width: 100%; height: 3rem; }
+.usage-spark rect { fill: var(--fa-grant); opacity: 0.75; }
+.usage-spark rect:hover { opacity: 1; }
+.usage-spark figcaption { font-size: 0.72rem; }
+
+.usage-table { width: 100%; font-size: 0.8rem; }
+.usage-table th, .usage-table td { padding: 0.2rem 0.5rem; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.usage-table th:first-child, .usage-table td:first-child, .usage-table th[scope="row"] { text-align: left; }
+.usage-table thead th { font-size: 0.72rem; color: var(--fa-ink-soft); }
+.usage-table tbody tr[data-page] { cursor: pointer; }
+.usage-table tbody tr:hover > * { background: var(--fa-hover); }
+
+.usage-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--fa-grant-strong);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+.usage-link:hover { text-decoration: underline; }
+
+.usage-bad { color: var(--usage-bad); font-weight: 600; }
+.usage-warn { color: var(--usage-warn); font-weight: 600; }
+.usage-gone { margin: 0.5rem 0 0; font-size: 0.8rem; }
+
+.usage-drawer { --fa-drawer-width: 38rem; }
+.usage-bars { margin: 0; padding: 0; list-style: none; font-size: 0.8rem; }
+.usage-bars li { display: grid; grid-template-columns: 13rem 1fr 6.5rem; align-items: center; gap: 0.5rem; padding: 0.1rem 0; }
+.usage-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.usage-bar-track { height: 0.55rem; border-radius: 3px; background: var(--fa-wash); overflow: hidden; }
+.usage-bar-fill { display: block; height: 100%; background: var(--fa-grant); }
+.usage-bar-value { text-align: right; font-variant-numeric: tabular-nums; }
+
+.usage-calls { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.usage-calls th, .usage-calls td { padding: 0.15rem 0.4rem; border-top: 1px solid var(--fa-rule); text-align: right; }
+.usage-calls th:first-child, .usage-calls td:first-child { text-align: left; }
+.usage-calls thead th { border-top: 0; font-size: 0.72rem; color: var(--fa-ink-soft); }
+.usage-method { display: inline-block; min-width: 3.5rem; font-family: var(--fa-font-code); font-size: 0.72rem; color: var(--fa-ink-soft); }
+.usage-who { display: inline-block; margin: 0 0.6rem 0.2rem 0; }
+.usage-examples { margin: 0; padding-left: 1rem; font-size: 0.8rem; }
+.usage-examples a { color: var(--fa-grant-strong); }

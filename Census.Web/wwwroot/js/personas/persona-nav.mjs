@@ -40,6 +40,8 @@ export const NAV = [
             { feature: 'surface.atlas', label: 'Atlas', hint: 'How the systems connect', href: '/atlas' },
             { feature: 'surface.estate', label: 'Estate', hint: 'Machines, software, hosting, certificates', href: '/estate' },
             { feature: 'surface.day', label: 'Day', hint: 'What changed on the machines, and did it matter', href: '/day' },
+            // Usage (usage.md, U2): a link out until U-4 brings it in, scoped to the member's applications.
+            { feature: 'view.usage', label: 'Usage', hint: 'How an application is used: pages, people, where it hurts', href: '/usage' },
         ],
     },
     {

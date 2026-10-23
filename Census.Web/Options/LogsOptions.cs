@@ -9,4 +9,7 @@ public class LogsOptions
 
     public string ConnectionString { get; set; }
     public string Schema { get; set; } = "apptrak";
+
+    // A request this slow counts as slow in Usage (usage.md §4.2), as in Log Explorer's Slow pick.
+    public int SlowMs { get; set; } = 2000;
 }

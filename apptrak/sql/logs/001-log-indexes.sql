@@ -6,7 +6,8 @@
 -- xf-dashboard's run book 36 (2026-10-20-log-indexes.sql) without its
 -- ActivityEvent index and without the CorrelationId column (the target's
 -- Exception table has it), plus the two window indexes Log Explorer opens on:
--- today, across every identifier.
+-- today, across every identifier; and one for Usage, an application over a period
+-- (usage.md §6).
 --
 -- The log tables have their primary keys only and are kept forever, so every
 -- lookup without these scans an ever-growing table.
@@ -29,6 +30,7 @@ DECLARE @online nvarchar(20) =
 DECLARE @wanted TABLE (TableName sysname, IndexName sysname, Columns nvarchar(200), Includes nvarchar(200) NULL);
 INSERT @wanted VALUES
     (N'ApiRequest', N'IX_ApiRequest_StartAt',            N'StartAt',             N'Identifier, Application, Stage, HttpMethod, HttpStatus, Elapsed'),
+    (N'ApiRequest', N'IX_ApiRequest_Application_StartAt', N'Application, StartAt', N'Stage, SessionId, Identifier, HttpMethod, HttpStatus, HasError, Elapsed, ControllerName, ControllerMethod, Path, StopAt, Roles'),
     (N'ApiRequest', N'IX_ApiRequest_SessionId_StartAt',  N'SessionId, StartAt',  N'Identifier, Path, HttpMethod, HttpStatus, Elapsed, CorrelationId'),
     (N'ApiRequest', N'IX_ApiRequest_Identifier_StartAt', N'Identifier, StartAt', N'SessionId, Path, HttpStatus'),
     (N'ApiRequest', N'IX_ApiRequest_CorrelationId',      N'CorrelationId',       NULL),

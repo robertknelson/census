@@ -150,6 +150,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // Usage (usage.md): how one application is used over a period, from its click streams.
+    // ?application=&stage=&grain=&on= keep the place.
+    [HttpGet("/usage")]
+    public IActionResult Usage([FromServices] UsageReader usage)
+    {
+        if (!usage.Enabled) return NotFound();
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

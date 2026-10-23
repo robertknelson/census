@@ -1,6 +1,6 @@
 # Usage — how people use an application, from its click streams
 
-Status: **proposal, 2026-10-23, nothing built.** Asked by Robert the same day: "think about how a user would want
+Status: **U-1 built 2026-10-23 (Overview, Pages with its drawer, People, the index); U-2..U-4 to come.** Ruled U1–U3. Asked by Robert the same day: "think about how a user would want
 to analyze click streams, sessions for an application, and come up with a proposal on how to construct the UX."
 It follows open item T5 in `log-explorer-and-trace.md`. It reads the same log tables (`[apptrak].[ApiRequest]`,
 `[Session]`, `[Exception]`) and writes nothing.
@@ -154,8 +154,8 @@ The tables only grow, and Usage reads a month of one application at a time.
 - **Per section, one script** in `apptrak/sql/logs/usage-*.sql`. Each orders a session's page loads with `LEAD()`
   over `(SessionId ORDER BY StartAt)` for transitions and time on page. Paths are built in the browser from a
   bounded list of page sequences (sessions in the period, newest first, capped, with the cap stated on the page).
-- **No new tables in v1** (R1). If a quarter gets slow on real volume, a nightly roll-up per application, day
-  and page is the fix. That is a new table, so it needs your ruling (U3).
+- **No new tables** (R1; U3, ruled: not until the work reaches its final shape). Live queries only. If a quarter is
+  slow on real volume, the page says how long it took and offers the month; a roll-up is reconsidered at the end.
 
 ## 7. Slices
 
@@ -166,13 +166,34 @@ The tables only grow, and Usage reads a month of one application at a time.
 | U-3 | Friction (the six signals) + When. |
 | U-4 | Persona nav and scoping; the Executive's figures; links from Trace and application pages. |
 
+## 7a. U-1, built (2026-10-23)
+
+| Piece | File |
+|---|---|
+| Readers | `apptrak/sql/logs/usage-applications.sql` (the pickers), `usage-overview.sql`, `usage-pages.sql`, `usage-page.sql` (the drawer), `usage-people.sql`. They share one base query: the window's requests, without the handshake, each given the page load it came after (`Grp`), and page loads with `LAG`/`LEAD` for came-from, went-to and time on page |
+| Index | `IX_ApiRequest_Application_StartAt` in `001-log-indexes.sql` |
+| Server | `Services/UsageReader.cs`, `Controllers/Api/UsageController.cs` (`GET api/usage/applications`, `/overview`, `/pages`, `/page`, `/people`; a quarter at most), `/usage` + `Views/Home/Usage.cshtml`; `Logs:SlowMs` (2000) |
+| Page | `wwwroot/js/usage/usage-model.mjs` (pure), `usage-page.mjs`, `wwwroot/css/usage.css`; the persona UX's periods (`period.mjs`, fiscal year from `Personas:FiscalYearStartMonth`) |
+| Nav | `view.usage`, a link out under *Elsewhere in Census* until U-4 brings it in scoped; granted per U2 in `fm/002` |
+
+Opens on the busiest application in the period and on PROD when it has one. The previous period is fetched
+alongside for the deltas, and for "not used this period". The page says how long the reads took (U3: a slow
+quarter shows here first).
+
+**Verified (2026-10-23, `CensusLogsDemo`):** the scripts run directly and through the API. WidgetCore PROD,
+October: 48 sessions, median 21m 14s, 3 ending on an error, the same through the API as straight from SQL. A
+four-month window is refused. `tests/Test-Usage.mjs` passes 13 (deltas, durations, rates, unused pages, the
+opening scope, the days); every node suite passes. In Edge (headless): the page with five figures, the sparkline,
+seven pages and two people; the Orders.Detail drawer with came-from, went-to, six calls with failures and refusals,
+who, and five sessions linking into Trace. **Not seen:** the week and quarter grains in a browser; real volume.
+
 ## 8. Open items
 
 | # | Question | Recommendation | Needed |
 |---|---|---|---|
-| U1 | **Name:** Usage, Adoption, or Click streams? | **Usage**: the persona's word, and it covers more than clicks. | His word. |
-| U2 | **Who sees it?** | Product/App Owner, Tech Lead, Sys Admin, scoped to their applications; Executive gets the figures only. | His word. |
-| U3 | **A roll-up table** if live queries are slow at quarter scale. | Not now. Measure on real volume first; this would be the first exception to R1. | Real volume. |
+| U1 | ~~Name~~ **Ruled (Robert, 2026-10-23): "usage is fine."** | — | — |
+| U2 | ~~Who sees it?~~ **Ruled: agreed.** Product/App Owner, Tech Lead, Sys Admin, scoped to their applications; the Executive gets the figures only. | — | — |
+| U3 | ~~A roll-up table~~ **Ruled: "i prefer to start without any extra tables, at least until we reach the final shape of this work effort."** Everything is computed live from the log tables, and the periods are sized to stay quick. A roll-up comes back only once the shape is final. | — | — |
 | U4 | **Page names:** controller and action as recorded, or human aliases ("Order detail")? | Recorded first; aliases later as a small declared mapping (observe → tag), never guessed. | His look at the real page list. |
 | U5 | **Executive adoption figures** in the period view, or only on Usage? | In the period view: it is where the Executive already looks. | His word. |
 | U6 | **Cross-application journeys** (a session's referer is another app in the estate). | Show them in Pages as "came from WidgetPortal"; a map of the links between apps belongs to Atlas later. | His word. |

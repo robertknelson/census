@@ -73,3 +73,68 @@ export function daysOf(period, perDay = []) {
     }
     return days;
 }
+
+// ---- Paths (§4.3): a next-step tree from one page, or the tree of how people reached it. ----
+
+export const ENDED = '(session ended)';
+export const ENTERED = '(entered)';
+const SEPARATOR = '\u001e';
+
+// The API's sessions, each with its page loads in order.
+export function sequencesOf(rows = []) {
+    return rows.map((r) => ({ sessionId: r.sessionId, identifier: r.identifier, at: r.at, pages: String(r.pages ?? '').split(SEPARATOR).filter(Boolean) }));
+}
+
+// The page most sessions start on: where the tree opens.
+export function commonEntry(sequences = []) {
+    const counts = new Map();
+    for (const s of sequences) if (s.pages.length) counts.set(s.pages[0], (counts.get(s.pages[0]) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? null;
+}
+
+// Every visit to the start page begins a path (a page visited twice in a session counts twice). After: the pages
+// that followed, ending in "(session ended)". Before: the pages that led there, beginning at "(entered)". Each level
+// is shares of its parent; children under `fold` of their parent fold into one "other" line when more than one would.
+export function pathTree(sequences, start, { depth = 3, direction = 'after', fold = 0.05, examples = 5 } = {}) {
+    const node = (page) => ({ page, count: 0, sessions: [], children: new Map() });
+    const root = node(start);
+    for (const s of sequences) {
+        s.pages.forEach((page, i) => {
+            if (page !== start) return;
+            root.count++;
+            let at = root;
+            for (let step = 1; step <= depth; step++) {
+                const j = direction === 'after' ? i + step : i - step;
+                const next = j < 0 ? ENTERED : j >= s.pages.length ? ENDED : s.pages[j];
+                if (!at.children.has(next)) at.children.set(next, node(next));
+                at = at.children.get(next);
+                at.count++;
+                if (at.sessions.length < examples && !at.sessions.some((e) => e.sessionId === s.sessionId)) {
+                    at.sessions.push({ sessionId: s.sessionId, identifier: s.identifier, at: s.at });
+                }
+                if (next === ENDED || next === ENTERED) break;
+            }
+        });
+    }
+    const shape = (n, parentCount) => {
+        const children = [...n.children.values()].sort((a, b) => b.count - a.count || a.page.localeCompare(b.page));
+        const small = children.filter((c) => c.count / n.count < fold);
+        const kept = small.length > 1 ? children.filter((c) => !small.includes(c)) : children;
+        const shaped = kept.map((c) => shape(c, n.count));
+        if (small.length > 1) {
+            shaped.push({ page: `other (${small.length} pages)`, count: small.reduce((sum, c) => sum + c.count, 0), share: small.reduce((sum, c) => sum + c.count, 0) / n.count, sessions: [], children: [], other: true });
+        }
+        return { page: n.page, count: n.count, share: parentCount ? n.count / parentCount : 1, sessions: n.sessions, children: shaped };
+    };
+    return shape(root, 0);
+}
+
+// The tree as rows to draw, depth first, each with a key naming its path from the root.
+export function treeRows(tree, key = '', level = 0, rows = []) {
+    for (const child of tree.children) {
+        const path = `${key}>${child.page}`;
+        rows.push({ key: path, level, page: child.page, count: child.count, share: child.share, sessions: child.sessions, other: Boolean(child.other), end: child.page === ENDED || child.page === ENTERED });
+        treeRows(child, path, level + 1, rows);
+    }
+    return rows;
+}

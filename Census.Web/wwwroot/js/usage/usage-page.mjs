@@ -3,12 +3,13 @@
  * Usage (usage.md §4, slice U-1): how one application is used over a period. Overview figures against the previous
  * period, every page with its views, people, time on page, exits and failures (a page opens a drawer: where people
  * came from and went, what it is used for, who, recent sessions into Trace), and the people. The address keeps the
- * place (?application=&stage=&grain=&on=). Paths, Friction and When come in U-2 and U-3.
+ * place (?application=&stage=&grain=&on=). Paths (U-2): from a page, the tree of where people went next, or how they
+ * reached it. Friction and When come in U-3.
  */
 
 import { escapeHtml, CLOSE_ICON } from '../feature-access/utils/dom.mjs';
 import { isoDay, periodOf, shiftPeriod, spanText } from '../personas/period.mjs';
-import { applicationsOf, daysOf, delta, duration, notUsed, rate, scopeOf } from './usage-model.mjs';
+import { applicationsOf, commonEntry, daysOf, delta, duration, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from './usage-model.mjs';
 
 const GRAINS = ['week', 'month', 'quarter'];
 const n = (value) => Number(value ?? 0).toLocaleString();
@@ -25,6 +26,8 @@ class UsagePage {
     #scope = { application: null, stage: null };
     #data = null;
     #drawer = null;
+    // The tree shows its first step; a line opens to the next (open holds the keys of open lines).
+    #paths = { start: null, direction: 'after', depth: 3, selected: null, open: new Set() };
 
     init(config = {}) {
         this.#root = config.root;
@@ -72,14 +75,17 @@ class UsagePage {
             }
             const previous = shiftPeriod(this.#period, -1, this.#fiscalStart);
             const started = performance.now();
-            const [overview, prevOverview, pages, prevPages, people] = await Promise.all([
+            const [overview, prevOverview, pages, prevPages, people, paths] = await Promise.all([
                 this.#get('overview', this.#scopeParams(this.#period)),
                 this.#get('overview', this.#scopeParams(previous)),
                 this.#get('pages', this.#scopeParams(this.#period)),
                 this.#get('pages', this.#scopeParams(previous)),
                 this.#get('people', this.#scopeParams(this.#period)),
+                this.#get('paths', this.#scopeParams(this.#period)),
             ]);
-            this.#data = { overview, prevOverview, pages, prevPages, people, previous, seconds: (performance.now() - started) / 1000 };
+            const sequences = sequencesOf(paths.sequences);
+            if (!pages.some((p) => p.page === this.#paths.start)) this.#paths = { ...this.#paths, start: commonEntry(sequences), selected: null, open: new Set() };
+            this.#data = { overview, prevOverview, pages, prevPages, people, sequences, pathSessions: paths.sessions ?? 0, previous, seconds: (performance.now() - started) / 1000 };
         } catch (error) {
             this.#data = { error: error.message };
         }
@@ -116,8 +122,8 @@ class UsagePage {
                     </div>
                 </header>
                 <nav class="usage-sections" aria-label="Sections">
-                    <a href="#u-overview">Overview</a><a href="#u-pages">Pages</a><a href="#u-people">People</a>
-                    <span class="fa-muted">Paths, Friction and When come next (usage.md §7)</span>
+                    <a href="#u-overview">Overview</a><a href="#u-pages">Pages</a><a href="#u-paths">Paths</a><a href="#u-people">People</a>
+                    <span class="fa-muted">Friction and When come next (usage.md §7)</span>
                 </nav>
                 ${this.#body()}
             </div>
@@ -132,7 +138,7 @@ class UsagePage {
         if (!d) return '<p class="fa-muted usage-wait">Reading the logs…</p>';
         if (d.error) return `<div class="fa-empty"><p>${escapeHtml(d.error)}</p></div>`;
         if (d.empty) return '<div class="fa-empty"><p>No requests from any application in this period.</p></div>';
-        return `${this.#overview()}${this.#pages()}${this.#people()}
+        return `${this.#overview()}${this.#pages()}${this.#pathsSection()}${this.#people()}
             <p class="fa-muted usage-foot">Computed from the log tables in ${d.seconds.toFixed(1)} s; the previous period is ${escapeHtml(d.previous.label)}.</p>`;
     }
 
@@ -193,6 +199,60 @@ class UsagePage {
                     </tbody>
                 </table>` : '<div class="fa-empty"><p>No page loads in this period.</p></div>'}
                 ${gone.length ? `<p class="usage-gone"><strong>Not used this period</strong> (used in ${escapeHtml(this.#data.previous.label)}): ${gone.map((g) => `${escapeHtml(g.page)} <span class="fa-muted">${n(g.views)}</span>`).join(', ')}</p>` : ''}
+            </section>`;
+    }
+
+    // Paths (§4.3): a next-step tree, not a Sankey. Every visit to the chosen page starts a path; each line is its share
+    // of the line above; a line opens the sessions that took it, into Trace.
+    #pathsSection() {
+        const { pages, sequences, pathSessions } = this.#data;
+        const { start, direction, depth, selected } = this.#paths;
+        if (!start) return '<section class="usage-section" id="u-paths"><h2 class="usage-h">Paths</h2><div class="fa-empty"><p>No page loads in this period.</p></div></section>';
+        const tree = pathTree(sequences, start, { depth, direction });
+        const all = treeRows(tree);
+        const parents = new Set(all.map((r) => r.key.slice(0, r.key.lastIndexOf('>'))).filter(Boolean));
+        const rows = all.filter((r) => {
+            const parent = r.key.slice(0, r.key.lastIndexOf('>'));
+            return !parent || this.#paths.open.has(parent);
+        });
+        const picked = all.find((r) => r.key === selected);
+        const capped = sequences.length < pathSessions;
+        const arrow = direction === 'after' ? ' → ' : ' ← ';
+        return `
+            <section class="usage-section" id="u-paths">
+                <h2 class="usage-h">Paths <span class="fa-muted">${direction === 'after' ? 'where people went next' : 'how people got there'}; every visit starts a path; each line is its share of the line above; ▸ opens the next step</span></h2>
+                <div class="usage-path-controls">
+                    <label class="usage-pick">${direction === 'after' ? 'From' : 'To'}
+                        <select data-ref="path-start">${pages.map((p) => `<option value="${escapeHtml(p.page)}"${p.page === start ? ' selected' : ''}>${escapeHtml(p.page)} (${n(p.views)})</option>`).join('')}</select>
+                    </label>
+                    <div class="fa-segments" role="group" aria-label="Direction">
+                        <button type="button" class="fa-segment" data-direction="after" aria-pressed="${direction === 'after'}">After</button>
+                        <button type="button" class="fa-segment" data-direction="before" aria-pressed="${direction === 'before'}">Before</button>
+                    </div>
+                    <label class="usage-pick">Steps
+                        <select data-ref="path-depth">${[2, 3, 4, 5].map((d) => `<option${d === depth ? ' selected' : ''}>${d}</option>`).join('')}</select>
+                    </label>
+                    <span class="fa-muted">${plural(tree.count, 'visit')} to ${escapeHtml(start)}${capped ? ` · read from the newest ${n(sequences.length)} of ${n(pathSessions)} sessions` : ''}</span>
+                </div>
+                <div class="usage-tree-wrap">
+                    <ol class="usage-tree" aria-label="Path tree">
+                        <li class="usage-tree-root"><strong>${escapeHtml(start)}</strong> <span class="fa-muted">${n(tree.count)}</span></li>
+                        ${rows.map((r) => `
+                            <li class="usage-tree-row${r.end ? ' is-end' : ''}${r.other ? ' is-other' : ''}${r.key === selected ? ' is-selected' : ''}" style="--level:${r.level}">
+                                <button type="button" class="usage-tree-line" data-path-key="${escapeHtml(r.key)}" ${r.other ? 'disabled' : ''} title="${escapeHtml(r.other ? 'Pages under 5% each' : 'Show the sessions that took this path')}">
+                                    <span class="usage-tree-label"><span class="usage-tree-caret" aria-hidden="true">${parents.has(r.key) ? (this.#paths.open.has(r.key) ? '▾' : '▸') : ''}</span>${direction === 'after' ? '→' : '←'} ${escapeHtml(r.page)}</span>
+                                    <span class="usage-bar-track"><span class="usage-bar-fill" style="width:${Math.round(r.share * 100)}%"></span></span>
+                                    <span class="usage-bar-value">${Math.round(r.share * 100)}% <span class="fa-muted">${n(r.count)}</span></span>
+                                </button>
+                            </li>`).join('')}
+                    </ol>
+                    <aside class="usage-tree-examples">${picked ? `
+                        <h3 class="usage-h3">${escapeHtml(start)}${arrow}${escapeHtml(picked.key.split('>').slice(1).join(arrow))}</h3>
+                        <p class="fa-muted">${plural(picked.count, 'visit')} took this path; ${picked.sessions.length < picked.count ? `the first ${picked.sessions.length} sessions` : 'their sessions'}, into Trace:</p>
+                        <ul class="usage-examples">${picked.sessions.map((e) => `<li><a href="/trace?${escapeHtml(new URLSearchParams({ person: e.identifier ?? '', day: localDay(e.at), session: e.sessionId }))}">${escapeHtml(new Date(e.at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))} · ${escapeHtml(e.identifier ?? '')}</a></li>`).join('')}</ul>`
+                        : '<p class="fa-muted">Pick a line to see the sessions that took it.</p>'}
+                    </aside>
+                </div>
             </section>`;
     }
 
@@ -273,8 +333,19 @@ class UsagePage {
     }
 
     #onClick(event) {
-        const target = event.target.closest('[data-grain], [data-shift], [data-page], [data-action]');
+        const target = event.target.closest('[data-grain], [data-shift], [data-page], [data-action], [data-direction], [data-path-key]');
         if (!target) return;
+        if (target.dataset.direction) {
+            this.#paths = { ...this.#paths, direction: target.dataset.direction, selected: null, open: new Set() };
+            return this.#render();
+        }
+        if (target.dataset.pathKey) {
+            const key = target.dataset.pathKey;
+            const open = new Set(this.#paths.open);
+            if (open.has(key)) open.delete(key); else open.add(key);
+            this.#paths = { ...this.#paths, selected: key, open };
+            return this.#render();
+        }
         if (target.dataset.action === 'close') return this.#closeDrawer();
         if (target.dataset.page) return this.#openPage(target.dataset.page);
         if (target.dataset.grain) {
@@ -288,6 +359,12 @@ class UsagePage {
 
     #onChange(event) {
         const ref = event.target.dataset.ref;
+        if (ref === 'path-start' || ref === 'path-depth') {
+            this.#paths = ref === 'path-start'
+                ? { ...this.#paths, start: event.target.value, selected: null, open: new Set() }
+                : { ...this.#paths, depth: Number(event.target.value), selected: null };
+            return this.#render();
+        }
         if (ref === 'application') this.#scope = { application: event.target.value, stage: undefined };
         else if (ref === 'stage') this.#scope = { ...this.#scope, stage: event.target.value };
         else return;

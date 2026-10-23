@@ -15,6 +15,9 @@ namespace Census.Web.Services;
 // JSON document, passed through as it is.
 public class UsageReader
 {
+    // Setting: the most sessions the path trees read (usage.md §4.3); the newest are kept, and the page says so.
+    public const int PathSessions = 5000;
+
     private readonly ScriptRunner _scripts;
     private readonly string _schema;
     private readonly int _slowMs;
@@ -48,7 +51,8 @@ public class UsageReader
             ("SlowMs", _slowMs, SqlDbType.Int),
         };
         if (section == "page") parameters.Add(("Page", page, SqlDbType.NVarChar));
-        return JsonAsync($"usage-{section}.sql", section is "overview" or "page" ? "{}" : "[]", parameters.ToArray());
+        if (section == "paths") parameters.Add(("Cap", PathSessions, SqlDbType.Int));
+        return JsonAsync($"usage-{section}.sql", section is "overview" or "page" or "paths" ? "{}" : "[]", parameters.ToArray());
     }
 
     private async Task<string> JsonAsync(string file, string empty, params (string Name, object Value, SqlDbType Type)[] parameters)

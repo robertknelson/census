@@ -120,3 +120,35 @@
 .usage-who { display: inline-block; margin: 0 0.6rem 0.2rem 0; }
 .usage-examples { margin: 0; padding-left: 1rem; font-size: 0.8rem; }
 .usage-examples a { color: var(--fa-grant-strong); }
+
+/* Paths (§4.3): an indented next-step tree, the sessions of a picked line beside it. */
+.usage-path-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 1rem; margin-bottom: 0.5rem; }
+.usage-path-controls > .fa-muted { font-size: 0.75rem; }
+.usage-tree-wrap { display: grid; grid-template-columns: minmax(0, 3fr) minmax(16rem, 1fr); gap: 1rem; align-items: start; }
+.usage-tree { margin: 0; padding: 0; list-style: none; font-size: 0.8rem; border: 1px solid var(--fa-rule); border-radius: var(--fa-radius); }
+.usage-tree-root { padding: 0.3rem 0.6rem; background: var(--fa-wash); border-bottom: 1px solid var(--fa-rule); }
+.usage-tree-row { border-top: 1px solid var(--fa-rule); }
+.usage-tree-row:first-of-type { border-top: 0; }
+.usage-tree-line {
+    display: grid;
+    grid-template-columns: minmax(10rem, 18rem) 1fr 6.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.15rem 0.6rem 0.15rem calc(0.6rem + var(--level) * 1.4rem);
+    border: 0;
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.usage-tree-line:hover { background: var(--fa-hover); }
+.usage-tree-line:disabled { cursor: default; color: var(--fa-ink-soft); }
+.usage-tree-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.usage-tree-row.is-end .usage-tree-label { color: var(--fa-ink-soft); font-style: italic; }
+.usage-tree-row.is-end .usage-bar-fill { background: var(--fa-rule-strong); }
+.usage-tree-row.is-selected .usage-tree-line { background: var(--fa-grant-soft); box-shadow: inset 3px 0 0 var(--fa-grant); }
+.usage-tree-examples { font-size: 0.8rem; position: sticky; top: 2.75rem; }
+.usage-tree-examples p { margin: 0 0 0.35rem; }
+.usage-tree-caret { display: inline-block; width: 0.9rem; color: var(--fa-ink-soft); font-size: 0.7rem; }

@@ -1,6 +1,6 @@
 # Usage — how people use an application, from its click streams
 
-Status: **U-1 built 2026-10-23 (Overview, Pages with its drawer, People, the index); U-2..U-4 to come.** Ruled U1–U3. Asked by Robert the same day: "think about how a user would want
+Status: **U-1 and U-2 built 2026-10-23 (Overview, Pages with its drawer, People, Paths, the index); U-3 and U-4 to come.** Ruled U1–U3. Asked by Robert the same day: "think about how a user would want
 to analyze click streams, sessions for an application, and come up with a proposal on how to construct the UX."
 It follows open item T5 in `log-explorer-and-trace.md`. It reads the same log tables (`[apptrak].[ApiRequest]`,
 `[Session]`, `[Exception]`) and writes nothing.
@@ -186,6 +186,25 @@ four-month window is refused. `tests/Test-Usage.mjs` passes 13 (deltas, duration
 opening scope, the days); every node suite passes. In Edge (headless): the page with five figures, the sparkline,
 seven pages and two people; the Orders.Detail drawer with came-from, went-to, six calls with failures and refusals,
 who, and five sessions linking into Trace. **Not seen:** the week and quarter grains in a browser; real volume.
+
+## 7b. U-2, built (2026-10-23)
+
+| Piece | File |
+|---|---|
+| Reader | `apptrak/sql/logs/usage-paths.sql`: each session's page loads in order (joined by `NCHAR(30)`), the newest 5,000 sessions (`UsageReader.PathSessions`, a setting), and how many sessions there were in all |
+| Model | `usage-model.mjs`: `sequencesOf`, `commonEntry`, `pathTree` (after or before, to 2–5 steps, ending at "(session ended)" or beginning at "(entered)", shares of the parent, lines under 5% folded into "other" when more than one would), `treeRows` |
+| Page | The Paths section between Pages and People: From/To (every page, by views), After / Before, Steps; the tree shows its first step and ▸ opens a line to the next; a picked line lists the sessions that took it, into Trace |
+
+**Calls:** every visit to the chosen page starts a path, so a page seen twice in a session counts twice; a path's
+share is of the line above it. The tree is built in the browser from the sequences, so changing the page, direction
+or depth reads nothing new. The page says when the 5,000-session cap cut the read.
+
+**Verified (2026-10-23, `CensusLogsDemo`):** `tests/Test-Usage.mjs` passes 23 (10 new: splitting, the common
+entry, after and before counts and shares, stopping at the session's end, examples once per session, folding,
+rows depth first); every node suite passes. Through the API: WidgetCore PROD October gives 48 sequences of 48
+sessions. In Edge (headless): After from Orders.Index gives 66 visits, the same as a direct count of its page
+loads; Before shows 48% "(entered)", the Pages table's entries for the same page (32 of 66); ▸ opens a line; a
+picked line lists its sessions into Trace. **Not seen:** the cap message (the demo has 48 sessions); real volume.
 
 ## 8. Open items
 

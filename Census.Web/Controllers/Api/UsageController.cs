@@ -16,7 +16,7 @@ public class UsageController(UsageReader usage) : ControllerBase
     // Setting: the longest window one request reads (a quarter, with room for the browser's offset).
     public static readonly TimeSpan Longest = TimeSpan.FromDays(95);
 
-    private static readonly string[] Sections = ["overview", "pages", "page", "people"];
+    private static readonly string[] Sections = ["overview", "pages", "page", "people", "paths"];
 
     [HttpGet("applications")]
     public async Task<IActionResult> Applications(string from, string to)

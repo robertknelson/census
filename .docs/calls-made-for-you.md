@@ -4,6 +4,15 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-23 — Usage, U-2 (Paths)
+
+**The tree opens one step at a time.** Fully expanded to three steps it ran past two screens on the demo's 48
+sessions. It now shows the first step, ▸ opens a line, and picking a line both opens it and lists its sessions.
+
+**Paths are built in the browser from each session's page sequence**, capped at the newest 5,000 sessions. One
+read serves every start page, direction and depth, so the controls answer instantly. The cap is a setting
+(`UsageReader.PathSessions`) and the page says when it cut the read.
+
 ## 2026-10-23 — Usage, U-1
 
 **U4–U7 taken on my recommendations, so U-1 could start.** Pages are named by the recorded controller and

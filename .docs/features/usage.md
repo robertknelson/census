@@ -148,8 +148,8 @@ compared with agents?"; the roles are what the app logged, nothing inferred.
 
 The tables only grow, and Usage reads a month of one application at a time.
 
-- **Index:** `(Application, StartAt)` on `ApiRequest`, including SessionId, Identifier, HttpMethod, HttpStatus,
-  Elapsed, ControllerName and ControllerMethod. It goes in `001-log-indexes.sql` beside the others, under the same
+- **Index:** `(Application, StartAt)` on `ApiRequest`, carrying Stage only: every column an index carries is written
+  again for every logged request, forever (calls-made-for-you, 2026-10-23). It goes in `001-log-indexes.sql` beside the others, under the same
   Standard-edition warning.
 - **Per section, one script** in `apptrak/sql/logs/usage-*.sql`. Each orders a session's page loads with `LEAD()`
   over `(SessionId ORDER BY StartAt)` for transitions and time on page. Paths are built in the browser from a

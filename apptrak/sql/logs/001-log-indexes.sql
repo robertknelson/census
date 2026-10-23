@@ -10,7 +10,8 @@
 -- (usage.md §6).
 --
 -- The log tables have their primary keys only and are kept forever, so every
--- lookup without these scans an ever-growing table.
+-- lookup without these scans an ever-growing table. Each index carries only what it must: every
+-- column it holds is written again for every logged request, forever (2026-10-23).
 --
 -- Run against the database that holds the log tables (the real AppTrak), with @schema
 -- set to their schema (apptrak there; Logs:Schema in Census). Safe to re-run: each index
@@ -30,9 +31,12 @@ DECLARE @online nvarchar(20) =
 DECLARE @wanted TABLE (TableName sysname, IndexName sysname, Columns nvarchar(200), Includes nvarchar(200) NULL);
 INSERT @wanted VALUES
     (N'ApiRequest', N'IX_ApiRequest_StartAt',            N'StartAt',             N'Identifier, Application, Stage, HttpMethod, HttpStatus, Elapsed'),
-    (N'ApiRequest', N'IX_ApiRequest_Application_StartAt', N'Application, StartAt', N'Stage, SessionId, Identifier, HttpMethod, HttpStatus, HasError, Elapsed, ControllerName, ControllerMethod, Path, StopAt, Roles'),
-    (N'ApiRequest', N'IX_ApiRequest_SessionId_StartAt',  N'SessionId, StartAt',  N'Identifier, Path, HttpMethod, HttpStatus, Elapsed, CorrelationId'),
-    (N'ApiRequest', N'IX_ApiRequest_Identifier_StartAt', N'Identifier, StartAt', N'SessionId, Path, HttpStatus'),
+    -- Usage: the key finds one application's period; only Stage rides along (every Usage read filters on it). The
+    -- other columns are fetched from the table for the rows found, so the index stays small on a table kept forever.
+    (N'ApiRequest', N'IX_ApiRequest_Application_StartAt', N'Application, StartAt', N'Stage'),
+    -- Trace: a session and an identifier's day are found by key and their rows read whole, so no columns ride along.
+    (N'ApiRequest', N'IX_ApiRequest_SessionId_StartAt',  N'SessionId, StartAt',  NULL),
+    (N'ApiRequest', N'IX_ApiRequest_Identifier_StartAt', N'Identifier, StartAt', NULL),
     (N'ApiRequest', N'IX_ApiRequest_CorrelationId',      N'CorrelationId',       NULL),
     (N'ApiRequest', N'IX_ApiRequest_Uid',                N'Uid',                 NULL),
     (N'ApiContent', N'IX_ApiContent_Uid',                N'Uid',                 N'ContentType'),

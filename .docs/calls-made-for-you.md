@@ -4,6 +4,16 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-23 — the log indexes, slimmed
+
+**Each index on `ApiRequest` now carries only what it must.** An index holds one entry per logged request, and every
+column it carries is written again for every request, on tables kept forever. The Usage index had carried twelve
+columns, close to a second copy of each row, and the two Trace indexes from xf-dashboard carried columns their
+queries do not use (Trace reads whole rows). All three are now key-only, apart from Stage on Usage's, which every
+Usage read filters on. On the demo, `ApiRequest`'s indexes went from about twice the table's size to about its size
+(3.3 MB against 3.1 MB). The queries are unchanged and give the same answers; the columns they need are read from
+the table for the rows the key finds. (Prompted by a side note that the Usage index nearly doubled the log.)
+
 ## 2026-10-23 — Usage, U-3 (Friction and When)
 
 **The dead-end rule changed from "3× the median exit rate" to "at least 2× the median and at least 75%".** With the

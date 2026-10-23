@@ -1,6 +1,6 @@
 # Log Explorer and Trace — reading the shared `log` tables
 
-Status: **Log Explorer built 2026-10-23 (L-1, L-2, its nav item); Trace (T-1..T-3) not built.** Go-live: `.docs/go-live-log-explorer.md`. Brought over from xf-dashboard
+Status: **Log Explorer and Trace built 2026-10-23; "What they did" waits on AppEvent (T3).** Go-live: `.docs/go-live-log-explorer.md`. Brought over from xf-dashboard
 (`C:\github\repos\xf-dashboard`: `.docs/features/log-explorer.md`, `.docs/features/support-tooling.md`
 S2, S2b, S3, S7), UX and readers only.
 
@@ -150,6 +150,29 @@ pretty-printed; the session pivot sets one chip and re-searches to that session'
 (`Test-PersonaNav.mjs` 15, with the link-out rule now covering Troubleshoot). **Not seen:** Copy as JSON (headless
 has no clipboard); the real log tables.
 
+## 11b. Trace, built (2026-10-23)
+
+| Piece | File |
+|---|---|
+| Readers | `apptrak/sql/logs/trace-people.sql` (identifiers in the day's month, busiest first, with their applications), `trace-day.sql`, `trace-month.sql`, `trace-session.sql`: xf-dashboard's, one identifier, no polls, each built with `@Schema` in place and checking the table exists |
+| Server | `Services/TraceReader.cs`, `Controllers/Api/TraceController.cs` (`GET api/trace/people`, `day` (2 days at most), `month` (32), `session`), `/trace` in `HomeController` + `Views/Home/Trace.cshtml` |
+| Page | `wwwroot/js/trace/trace-model.mjs`, `trace-page.mjs`, `wwwroot/css/trace.css` |
+| Ways in | Troubleshoot → Trace ↗ (`view.trace` in `fm/002`); Log Explorer's drawer: **Open session**, **This identifier's day**; the session header links back: **In Log Explorer** (`/logs?session=&day=`) |
+
+Changes from xf-dashboard: the picker is identifiers (R2), no names, roles or former logins; the day's header names
+the applications used and the sessions table gains Application (with stage) and Refused; the session leaves out
+the sign-in handshake, which would otherwise open a page group of its own; no polls (T2). **§6's seam is not built:**
+with nothing to read yet, "What they did" and the strip's action marks are left out; the model's `describeAction`
+shows an action's own words, ready for AppEvent's rendered message (T3).
+
+**Verified (2026-10-23, `CensusLogsDemo`):** `tests/Test-Trace.mjs` 14 (page groups, errors by correlation, idle,
+refusals, the copy oldest first, the October grid and totals); the four scripts run directly and through the API;
+a window over two days is refused with its reason. In Edge (headless) on `/trace?person=aturner&day=2026-10-21&session=…`:
+October with 19 active days shaded, error dots and write counts, the 21st outlined; the day's two sessions on the
+strip with red ticks; the session as two page groups newest first, writes with Body, the 500 matched to its
+"Execution Timeout Expired", refusals red, a slow DELETE at 3,509 ms. **Not seen:** Copy and Download (headless),
+the Log Explorer round trip in a browser, real logs.
+
 ## 12. Open items
 
 | # | Question | Recommendation | Needed |
@@ -157,4 +180,5 @@ has no clipboard); the real log tables.
 | T1 | ~~Does the target's `log.Exception` have `CorrelationId`?~~ **Answered (Robert, 2026-10-23): yes**; its absence from xf-dashboard's April DDL was a mistake. The demo DDL includes it, errors match their request by correlation, and the index is unconditional. | — | — |
 | T2 | ~~The target's polls and page-load shape.~~ **Answered (Robert, 2026-10-23):** no polls reach the logs ("if there is something like that, the endpoints are listed as exclusions so the middleware doesn't record them"), so xf-dashboard's poll fading, hatching and switch are not ported; and "i only use /api/ for api calls", so a page load is a GET outside `/api/`. | — | — |
 | T3 | **The real "What they did" provider.** Parked on the AppEvent module (`app-event.md`, Robert 2026-10-23: a generic, cross-system activity log in AppTrak, not a port of the target's ActivityEvents). | When `log.AppEvent` fills: Census reads it as a fourth Log Explorer model and as Trace's action source, by `(Identifier, StartAt)` and `(SessionId, StartAt)`, showing its rendered `Message`. | app-event.md E1, E2. |
+| T5 | **Click streams: how people use a site** (Robert, 2026-10-23, "just asking"). The tables can answer it from page loads alone. Each session is an ordered list of pages, and each page has the API calls under it. That gives: transitions from page to page, entry and exit pages, time on a page (the gap to the next page load), what a page is used for (its calls), and where sessions end after an error. | Later, as its own view, aggregated across sessions; Trace stays one session. Group pages by `ControllerName`/`ControllerMethod`, which the app records, rather than by `Path`: `/orders/123` and `/orders/456` are one page, with no inference from names. What is invisible: clicks that call nothing and changes made only in the browser. Two tabs in one session interleave their pages. | His word on when; a look at real page-load volume. |
 | T4 | **Does the log database's login allow Census to read it?** | Read-only grant on the `apptrak` schema (R7); step 1 of `.docs/go-live-log-explorer.md`. | DBA. |

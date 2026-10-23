@@ -1,4 +1,4 @@
-# Go-live: Log Explorer
+# Go-live: Log Explorer and Trace
 
 Spec: `features/log-explorer-and-trace.md`. Census reads the shared log tables (`[apptrak].[ApiRequest]` and the rest,
 in the AppTrak database); it writes nothing to them.
@@ -30,7 +30,8 @@ database under that schema").
 ## 3. Deploy main, open `/logs`
 
 It opens on today's requests, newest first. Check: the Application facet lists your applications with counts;
-Errors today switches to Exception; a row opens the drawer with its body (writes only).
+Errors today switches to Exception; a row opens the drawer with its body (writes only). **Open session** in the
+drawer goes to `/trace`: the identifier's month, the day's sessions, the session grouped by page.
 
 ## 4. The indexes — `apptrak/sql/logs/001-log-indexes.sql` (R4)
 
@@ -52,6 +53,6 @@ WHERE SCHEMA_NAME(t.schema_id) = 'apptrak' AND t.name IN ('ApiRequest', 'ApiCont
 
 ## 5. (With the personas go-live) the nav item
 
-`apptrak/sql/fm/002-census-features.sql` now adds `view.log-explorer`, granted to `system-administrator`.
-It is insert-only: re-running it on the real AppTrak adds the one feature and its grant and changes nothing
-else. The persona UX then shows **Troubleshoot → Log Explorer ↗**.
+`apptrak/sql/fm/002-census-features.sql` now adds `view.log-explorer` and `view.trace`, granted to
+`system-administrator`. It is insert-only: re-running it on the real AppTrak adds the two features and their grants
+and changes nothing else. The persona UX then shows **Troubleshoot → Log Explorer ↗, Trace ↗**.

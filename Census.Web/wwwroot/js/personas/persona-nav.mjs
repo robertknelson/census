@@ -47,6 +47,7 @@ export const NAV = [
         group: 'Troubleshoot',
         items: [
             { feature: 'view.log-explorer', label: 'Log Explorer', hint: 'Requests, exceptions and messages, every application', href: '/logs' },
+            { feature: 'view.trace', label: 'Trace', hint: "One identifier's month, day and sessions", href: '/trace' },
         ],
     },
 ];

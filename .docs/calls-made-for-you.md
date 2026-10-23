@@ -4,6 +4,18 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-23 — Trace, built
+
+**The session timeline leaves out the sign-in handshake** (an anonymous 401). Its path is a page's, so it would
+open a page group of its own before every real page. Log Explorer still shows it, behind its switch.
+
+**No "What they did" seam until something fills it.** The spec planned an action-source interface with a demo
+fixture. AppEvent is now the source (T3), so a fixture would only show invented words. The model already shows an
+action's own words, ready for AppEvent's rendered message.
+
+**The identifier picker reads the day's month**, busiest first, with the applications each identifier used. It
+does not list every identifier ever logged.
+
 ## 2026-10-23 — Log Explorer, built
 
 **`/logs` is its own full-width page, linked from the persona nav (Troubleshoot → Log Explorer ↗)**, not a view

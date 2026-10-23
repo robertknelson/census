@@ -5,6 +5,23 @@ import { ICONS } from './icons.mjs';
 
 const FOCUSABLE = 'button, input, textarea, select, a[href], [tabindex]:not([tabindex="-1"])';
 
+// Trace (log-explorer-and-trace.md §5): the row's session as a timeline, and its identifier's whole day.
+function traceLinks(row) {
+    if (!row.sessionId) return '';
+    const when = row.startAt ? new Date(row.startAt) : null;
+    const day = when ? `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}-${String(when.getDate()).padStart(2, '0')}` : null;
+    const session = `/trace?${new URLSearchParams({ session: row.sessionId })}`;
+    const person = row.identifier && row.identifier !== 'na' && day
+        ? `/trace?${new URLSearchParams({ person: row.identifier, day, session: row.sessionId })}` : null;
+    return `
+        <section class="fa-section">
+            <div class="fa-actions">
+                <a class="fa-button fa-button--small" href="${escapeHtml(person ?? session)}">Open session</a>
+                ${person ? `<a class="fa-button fa-button--small" href="${escapeHtml(`/trace?${new URLSearchParams({ person: row.identifier, day })}`)}">This identifier's day</a>` : ''}
+            </div>
+        </section>`;
+}
+
 function looksLikeJson(value) {
     return typeof value === 'string' && /^\s*[\[{]/.test(value);
 }
@@ -87,6 +104,7 @@ export class LogDrawer {
                 <button type="button" class="fa-icon-button" data-action="close" aria-label="Close">${CLOSE_ICON}</button>
             </header>
             <div class="fa-drawer-body">
+                ${traceLinks(row)}
                 <section class="fa-section"><dl class="logx-details">${items}</dl></section>
             </div>
             <footer class="fa-drawer-foot">

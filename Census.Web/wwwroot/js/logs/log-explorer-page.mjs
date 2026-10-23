@@ -24,8 +24,9 @@ const NOISE = [
     { key: 'handshake', param: 'hide-handshake', label: 'Hide sign-in handshakes', title: 'The anonymous 401 Windows sign-in sends before each request' }
 ];
 
-// A link may open the explorer on one application or stage: /logs?application=X&stage=Y.
-const LINKED = ['application', 'stage'];
+// A link may open the explorer filtered, and on one day: /logs?application=X&stage=Y, and from Trace
+// /logs?session=S&day=2026-10-23 or ?identifier=I. Each parameter is a facet pick on its field.
+const LINKED = { application: 'application', stage: 'stage', session: 'sessionId', identifier: 'identifier' };
 
 // One click to the rows a complaint usually needs, today.
 const PICKS = [
@@ -162,9 +163,10 @@ class LogExplorerPage {
 
         this.#state.fields = this.#loadFields(this.#state.model);
         const here = new URLSearchParams(location.search);
-        for (const field of LINKED) {
-            if (here.get(field)) this.#state.selection.set(field, { values: new Set([here.get(field)]), isIn: true });
+        for (const [param, field] of Object.entries(LINKED)) {
+            if (here.get(param)) this.#state.selection.set(field, { values: new Set([here.get(param)]), isIn: true });
         }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(here.get('day') ?? '')) Object.assign(this.#state, { start: here.get('day'), end: here.get('day') });
         try {
             Object.assign(this.#state.noise, JSON.parse(localStorage.getItem(NOISE_KEY) ?? '{}') ?? {});
         } catch { /* the defaults stand */ }

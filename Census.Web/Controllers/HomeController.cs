@@ -141,6 +141,15 @@ public class HomeController : Controller
         return View();
     }
 
+    // Trace (log-explorer-and-trace.md §5): an identifier's month, day and sessions, from the same
+    // log tables. ?person=&day=&session= keep the place, so a trace can be sent.
+    [HttpGet("/trace")]
+    public IActionResult Trace([FromServices] TraceReader trace)
+    {
+        if (!trace.Enabled) return NotFound();
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

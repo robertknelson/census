@@ -47,6 +47,7 @@ builder.Services.AddSingleton<MembershipAdmin>();
 builder.Services.AddSingleton<MoveItEdit>();
 builder.Services.Configure<LogsOptions>(builder.Configuration.GetSection(LogsOptions.SectionName));
 builder.Services.AddSingleton<LogReader>();
+builder.Services.AddSingleton<TraceReader>();
 
 var app = builder.Build();
 

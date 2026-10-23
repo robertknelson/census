@@ -1,0 +1,25 @@
+@{
+    // Its own page, like Log Explorer: FM2280's .fa look and nothing else.
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Census trace</title>
+    <link rel="stylesheet" href="~/css/feature-access.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/logs.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/trace.css" asp-append-version="true" />
+</head>
+<body class="logx-host">
+    <div class="fa trace">
+        <div class="logx-topbar"><strong>Census · Trace</strong><a href="/logs">Log Explorer</a><a href="/personas">Back to personas</a></div>
+        <div id="trace" data-api="/api/trace"></div>
+    </div>
+    <script type="module">
+        import tracePage from '/js/trace/trace-page.mjs';
+        tracePage.init({ root: document.getElementById('trace') });
+    </script>
+</body>
+</html>

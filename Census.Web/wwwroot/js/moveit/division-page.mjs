@@ -72,7 +72,7 @@ class DivisionPage {
                 ${this.applicationId || this.embedded ? '' : this.rail.html()}
                 <div class="mi-pane">
                     <div class="mi-head">
-                        ${this.applicationId ? '<a class="mi-back" href="/moveit/division">‹ Division</a><h1 class="mi-head-title" data-ref="title"></h1>' : ''}
+                        ${this.applicationId ? '<a class="mi-back" href="/moveit/division">‹ Division</a><h1 class="mi-head-title" data-ref="title"></h1><a class="mi-back" data-ref="usage" hidden>Usage ↗</a>' : ''}
                         <div class="mi-head-numbers" data-ref="summary"></div>
                         ${this.applicationId ? '' : `<nav class="mi-picks dv-scope" data-ref="scope" aria-label="Releases drawn">
                             <button type="button" class="mi-pick" data-scope="current" title="Releases on the way, and the one now live in production for each application">On the way and live</button>
@@ -134,6 +134,9 @@ class DivisionPage {
             const app = this.applications.find((a) => a.ApplicationId === this.applicationId);
             this.titleEl.textContent = appLabel(app ?? { ApplicationId: this.applicationId });
             document.title = `${this.titleEl.textContent} — Move It`;
+            // How it is used (usage.md U-4): its log rows under its registry name.
+            const usage = this.root.querySelector('[data-ref="usage"]');
+            if (usage && app?.Name) { usage.href = `/usage?${new URLSearchParams({ application: app.Name })}`; usage.hidden = false; }
         } else if (this.embedded) {
             const showing = this.root.querySelector('[data-ref="showing"]');
             if (showing) showing.textContent = `${this.apps.length} application${this.apps.length === 1 ? '' : 's'}`;

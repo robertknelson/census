@@ -208,3 +208,11 @@ html, body { margin: 0; background: var(--ps-paper); }
     .ps-nav-h { padding: 0 0.25rem 0 0; }
     .ps-main { padding: 1rem 1rem 1.5rem; }
 }
+
+/* Usage in the persona UX (usage.md U-4): the page mounted as a view, and its figures in the period view. */
+.ps-usage .usage-page { padding: 0; max-width: none; }
+.ps-usage-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ps-usage-table th, .ps-usage-table td { padding: 0.2rem 0.5rem; border-top: 1px solid var(--ps-rule); text-align: right; }
+.ps-usage-table th[scope="row"], .ps-usage-table thead th:first-child { text-align: left; }
+.ps-usage-table thead th { border-top: 0; font-weight: 600; font-size: 12px; }
+.ps-bad { color: #a33a36; font-weight: 600; }

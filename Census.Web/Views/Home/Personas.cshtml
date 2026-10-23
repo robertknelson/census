@@ -3,6 +3,7 @@
 @using Microsoft.Extensions.Options
 @inject IOptions<PersonasOptions> PersonasOptions
 @inject IOptions<MoveItOptions> MoveItOptions
+@inject IOptions<UsageOptions> UsageOptions
 @{
     // Its own page, not _Layout: the persona UX is built beside the existing UIs and borrows
     // nothing from them, including the v1/v2 switch (personas.md §2).
@@ -10,7 +11,9 @@
     var config = JsonSerializer.Serialize(new { rootId = "personas-root", fiscalStart = PersonasOptions.Value.FiscalYearStartMonth,
         estateApplication = PersonasOptions.Value.EstateApplication,
         staleDays = MoveItOptions.Value.StaleDays, comingDays = MoveItOptions.Value.ComingDays,
-        shippedDays = MoveItOptions.Value.ShippedDays, stepCaptions = MoveItOptions.Value.StepCaptions });
+        shippedDays = MoveItOptions.Value.ShippedDays, stepCaptions = MoveItOptions.Value.StepCaptions,
+        usageFriction = new { endedWithinMinutes = UsageOptions.Value.Friction.EndedWithinMinutes, refusedTimes = UsageOptions.Value.Friction.RefusedTimes,
+            loopLoads = UsageOptions.Value.Friction.LoopLoads, loopSeconds = UsageOptions.Value.Friction.LoopSeconds, retrySeconds = UsageOptions.Value.Friction.RetrySeconds } });
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -20,6 +23,7 @@
     <title>Census personas</title>
     <link rel="stylesheet" href="~/css/moveit.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/feature-access.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/usage.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/personas.css" asp-append-version="true" />
 </head>
 <body>

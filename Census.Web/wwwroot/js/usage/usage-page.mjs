@@ -9,7 +9,7 @@
 
 import { escapeHtml, CLOSE_ICON } from '../feature-access/utils/dom.mjs';
 import { isoDay, periodOf, shiftPeriod, spanText } from '../personas/period.mjs';
-import { applicationsOf, commonEntry, daysOf, delta, duration, FRICTION_KINDS, frictionSignals, heatGrid, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from './usage-model.mjs';
+import { applicationsOf, commonEntry, daysOf, delta, duration, FRICTION_KINDS, frictionSignals, heatGrid, matchApplications, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from './usage-model.mjs';
 
 const GRAINS = ['week', 'month', 'quarter'];
 const n = (value) => Number(value ?? 0).toLocaleString();
@@ -20,6 +20,10 @@ class UsagePage {
     #api;
     #fiscalStart = 1;
     #frictionSettings = {};
+    // In the persona UX (U-4): only the member's applications (names; null is every one), and no address of its own.
+    #only = null;
+    #embedded = false;
+    #missing = [];
     #openSignal = null;
     #heatCell = null;
     #root;
@@ -37,6 +41,8 @@ class UsagePage {
         this.#api = (config.api ?? '/api/usage').replace(/\/$/, '');
         this.#fiscalStart = config.fiscalStart ?? 1;
         this.#frictionSettings = config.friction ?? {};
+        this.#only = config.only ?? null;
+        this.#embedded = config.embedded === true;
         const here = new URLSearchParams(location.search);
         if (GRAINS.includes(here.get('grain'))) this.#grain = here.get('grain');
         const on = /^\d{4}-\d{2}-\d{2}$/.test(here.get('on') ?? '') ? new Date(`${here.get('on')}T12:00:00`) : new Date();
@@ -69,7 +75,9 @@ class UsagePage {
         this.#render();
         try {
             const { from, to } = this.#window(this.#period);
-            this.#applications = applicationsOf(await this.#get('applications', { from, to }));
+            const matched = matchApplications(applicationsOf(await this.#get('applications', { from, to })), this.#only);
+            this.#applications = matched.kept;
+            this.#missing = matched.missing;
             this.#scope = scopeOf(this.#applications, this.#scope);
             this.#setAddress();
             if (!this.#scope.application) {
@@ -101,6 +109,7 @@ class UsagePage {
     }
 
     #setAddress() {
+        if (this.#embedded) return;
         const params = new URLSearchParams({ grain: this.#grain, on: isoDay(this.#period.start) });
         if (this.#scope.application) params.set('application', this.#scope.application);
         params.set('stage', this.#scope.stage || 'all');
@@ -144,9 +153,16 @@ class UsagePage {
         const d = this.#data;
         if (!d) return '<p class="fa-muted usage-wait">Reading the logs…</p>';
         if (d.error) return `<div class="fa-empty"><p>${escapeHtml(d.error)}</p></div>`;
-        if (d.empty) return '<div class="fa-empty"><p>No requests from any application in this period.</p></div>';
+        if (d.empty) return `<div class="fa-empty"><p>${this.#only ? 'None of your applications has log rows in this period under its name' : 'No requests from any application in this period'}.</p></div>${this.#missingHtml()}`;
         return `${this.#overview()}${this.#pages()}${this.#pathsSection()}${this.#frictionSection()}${this.#whenSection()}${this.#people()}
-            <p class="fa-muted usage-foot">Computed from the log tables in ${d.seconds.toFixed(1)} s; the previous period is ${escapeHtml(d.previous.label)}.</p>`;
+            <p class="fa-muted usage-foot">Computed from the log tables in ${d.seconds.toFixed(1)} s; the previous period is ${escapeHtml(d.previous.label)}.</p>${this.#missingHtml()}`;
+    }
+
+    // Applications the member holds a role on with no log rows under their name this period (usage.md U9).
+    #missingHtml() {
+        return this.#missing.length
+            ? `<p class="fa-muted usage-foot">No log rows this period under the name of: ${this.#missing.map(escapeHtml).join(', ')}.</p>`
+            : '';
     }
 
     // goodWhenUp null: the change is shown without a verdict (fewer pages per session is neither good nor bad).

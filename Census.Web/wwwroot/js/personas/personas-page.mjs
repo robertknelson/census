@@ -10,6 +10,7 @@ import divisionPage from '../moveit/division-page.mjs';
 import featureAccessPage from '../feature-access/feature-access-page.mjs';
 import membershipPage from '../membership/membership-page.mjs';
 import curatePage from '../curate/curate-page.mjs';
+import usagePage from '../usage/usage-page.mjs';
 
 // The persona UX shell (personas.md §7, slice P-2): pick a member, see the UX as they would —
 // the nav trimmed to their features, each view shown for the applications where it is on.
@@ -76,6 +77,7 @@ class PersonasPage {
         this.estateApp = config.estateApplication ?? 'census';
         this.division = { shippedDays: config.shippedDays ?? 14, stepCaptions: config.stepCaptions ?? {} };
         this.needsSettings = { staleDays: config.staleDays ?? 14, comingDays: config.comingDays ?? 60 };
+        this.usageFriction = config.usageFriction ?? {};
         this.sets = {};
         const params = new URLSearchParams(location.search);
         this.as = params.get('as');
@@ -277,6 +279,20 @@ class PersonasPage {
                     bind: () => curatePage.init({
                         root: '#curate', feature, by: this.as, headers: { 'X-Census-Member': this.as },
                         applications: applicationsFor(this.access, feature).map((a) => ({ applicationId: a.applicationId, name: a.name })),
+                    }),
+                }),
+            };
+        }
+        if (feature === 'view.usage') {
+            // Usage (usage.md, U-4), mounted and scoped: the applications the member holds a role on, every one when
+            // their role is estate-wide. It reads its own data.
+            return {
+                mount: true,
+                make: () => ({
+                    html: () => '<div id="usage" class="fa usage ps-usage"></div>',
+                    bind: () => usagePage.init({
+                        root: document.getElementById('usage'), embedded: true, fiscalStart: this.fiscalStart, friction: this.usageFriction,
+                        only: this.access.estate ? null : applicationsFor(this.access, feature).map((a) => a.name),
                     }),
                 }),
             };

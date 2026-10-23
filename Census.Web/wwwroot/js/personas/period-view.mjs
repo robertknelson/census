@@ -59,7 +59,45 @@ export class PeriodView {
                 ${this.dueHtml()}
                 ${s.stuck ? this.stuckHtml() : ''}
             </div>
-            ${this.coverageHtml()}`;
+            ${this.coverageHtml()}
+            <section class="ps-section ps-usage-summary" data-usage-summary>
+                <h3 class="ps-h3">Usage in ${escapeHtml(this.summary.period.label)}</h3>
+                <p class="ps-sub">Reading the logs…</p>
+            </section>`;
+    }
+
+    // Usage's figures, one row per application in scope (usage.md §5, U5): PROD, from the log tables, against the
+    // registry's names (an application with no rows under its name says so).
+    async bind(root) {
+        const host = root.querySelector('[data-usage-summary]');
+        if (!host) return;
+        const period = this.summary.period;
+        const label = escapeHtml(period.label);
+        let rows;
+        try {
+            const params = new URLSearchParams({ from: period.start.toISOString(), to: period.end.toISOString(), stage: 'PROD' });
+            const response = await fetch(`/api/usage/summary?${params}`, { headers: { Accept: 'application/json' } });
+            if (response.status === 404) { host.remove(); return; }
+            rows = await response.json();
+        } catch {
+            host.innerHTML = `<h3 class="ps-h3">Usage in ${label}</h3><p class="ps-sub">The logs could not be read.</p>`;
+            return;
+        }
+        const byName = new Map(rows.map((r) => [String(r.application).toLowerCase(), r]));
+        const on = isoDay(period.start);
+        const pct = (part, whole) => (whole ? `${Math.round((part / whole) * 100)}%` : '–');
+        host.innerHTML = `
+            <h3 class="ps-h3">Usage in ${label} <span class="ps-sub">production, from the logs</span></h3>
+            <table class="ps-usage-table">
+                <thead><tr><th>Application</th><th>People</th><th>Sessions</th><th>Ended on an error</th><th></th></tr></thead>
+                <tbody>${this.applications.map((a) => {
+                    const r = byName.get(String(a.name).toLowerCase());
+                    const link = `/usage?${new URLSearchParams({ application: r?.application ?? a.name, stage: 'PROD', grain: period.grain === 'year' ? 'quarter' : period.grain, on })}`;
+                    return r
+                        ? `<tr><th scope="row">${escapeHtml(a.name)}</th><td>${r.people}</td><td>${r.sessions}</td><td class="${r.endedOnError ? 'ps-bad' : ''}">${pct(r.endedOnError, r.sessions)}</td><td><a href="${escapeHtml(link)}">Usage ↗</a></td></tr>`
+                        : `<tr><th scope="row">${escapeHtml(a.name)}</th><td colspan="4" class="ps-sub">No log rows under this name</td></tr>`;
+                }).join('')}</tbody>
+            </table>`;
     }
 
     tile(label, hint, { now, before }) {

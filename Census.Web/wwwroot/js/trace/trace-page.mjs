@@ -186,7 +186,7 @@ class TracePage {
         this.#refs['day-view'].innerHTML = `
             <header class="trace-head">
                 <h2 class="trace-name">${escapeHtml(identifier)}</h2>
-                ${applications.length ? `<p class="trace-roles">${applications.map(a => `<span class="trace-role">${escapeHtml(a)}</span>`).join('')}</p>` : ''}
+                ${applications.length ? `<p class="trace-roles">${applications.map(a => `<a class="trace-role" href="/usage?${escapeHtml(new URLSearchParams({ application: a, grain: 'month', on: dayLabel }))}" title="How ${escapeHtml(a)} is used">${escapeHtml(a)} ↗</a>`).join('')}</p>` : ''}
                 <p class="trace-summary">${escapeHtml(new Date(`${dayLabel}T12:00:00`).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' }))}:
                     ${plural(sessions.length, 'session')} · ${plural(totals.requests, 'request')} · ${plural(totals.writes, 'write')} ·
                     <span class="${totals.errors ? 'trace-bad' : ''}">${plural(totals.errors, 'error')}</span>

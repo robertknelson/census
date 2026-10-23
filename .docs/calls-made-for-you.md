@@ -4,6 +4,20 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-23 — Usage, U-4 (scoping, the Executive's figures, ways in)
+
+**A member's application matches the log by its registry name, ignoring case.** The persona UX's access carries
+the application's id and name only, and the demo's logs use the name. Nothing else is guessed: an application with
+no rows under its name is listed as such (on the page and in the period view), so a mismatch shows instead of
+hiding. Open item U9 is to check the real names; if they differ, the answer is a declared mapping.
+
+**The Executive's figures sit at the foot of the period view**, one row per application in scope (PROD): people,
+sessions, sessions ending on an error. Their **Usage ↗** opens the full page, which an Executive can reach (no
+gates, R5) though it is not in their nav.
+
+**Usage moved from a link out to See → Usage**, mounted inside the persona UX like the curate pages. The
+standalone `/usage` stays for links from Trace, Move It and the period view.
+
 ## 2026-10-23 — the log indexes, slimmed
 
 **Each index on `ApiRequest` now carries only what it must.** An index holds one entry per logged request, and every

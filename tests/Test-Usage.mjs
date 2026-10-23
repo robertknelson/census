@@ -1,6 +1,6 @@
 // Usage's arithmetic (usage.md §4): deltas, durations, rates, unused pages, the opening scope, the days.
 //   node tests/Test-Usage.mjs
-import { applicationsOf, commonEntry, daysOf, delta, duration, ENDED, ENTERED, frictionSignals, heatGrid, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from '../Census.Web/wwwroot/js/usage/usage-model.mjs';
+import { applicationsOf, commonEntry, daysOf, delta, duration, ENDED, ENTERED, frictionSignals, heatGrid, matchApplications, notUsed, pathTree, rate, scopeOf, sequencesOf, treeRows } from '../Census.Web/wwwroot/js/usage/usage-model.mjs';
 import { periodOf } from '../Census.Web/wwwroot/js/personas/period.mjs';
 
 let passed = 0, failed = 0;
@@ -56,6 +56,12 @@ const folded = pathTree(many, 'A', { depth: 1 });
 assert('ten rare pages under 5% each fold into one other line', folded.children.length === 2 && folded.children[1].other && folded.children[1].count === 10, folded.children.map((c) => `${c.page}:${c.count}`).join());
 const rows = treeRows(pathTree(seqs, 'Orders', { depth: 2 }));
 assert('rows depth first with levels and keys', rows[0].level === 0 && rows[1].level === 1 && rows[1].key.startsWith(`${rows[0].key}>`), rows.map((r) => `${r.level}${r.page}`).join());
+
+// Scope (U-4): the member's applications against the log's, by name, ignoring case; the rest named.
+const scoped = matchApplications(apps, ['widgetcore', 'MortgageGateway']);
+assert('a member sees their applications with rows, matched ignoring case', scoped.kept.map((a) => a.application).join() === 'WidgetCore', scoped.kept.map((a) => a.application).join());
+assert('  and the ones with no rows under their name are named', scoped.missing.join() === 'MortgageGateway');
+assert('  estate-wide (no list): every application, none missing', matchApplications(apps, null).kept.length === 3 && matchApplications(apps, null).missing.length === 0);
 
 // Friction (§4.4) and When (§4.5).
 const signals = frictionSignals({

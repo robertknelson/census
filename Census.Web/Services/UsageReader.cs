@@ -40,6 +40,15 @@ public class UsageReader
             ("From", from, SqlDbType.DateTimeOffset),
             ("To", to, SqlDbType.DateTimeOffset));
 
+    // Every application's figures at once (usage.md §5, U5): the period view's row per application.
+    public Task<string> SummaryAsync(string stage, DateTimeOffset from, DateTimeOffset to) =>
+        JsonAsync("usage-summary.sql", "[]",
+            ("Schema", _schema, SqlDbType.NVarChar),
+            ("Stage", stage, SqlDbType.NVarChar),
+            ("From", from, SqlDbType.DateTimeOffset),
+            ("To", to, SqlDbType.DateTimeOffset),
+            ("EndedWithinMinutes", _friction.EndedWithinMinutes, SqlDbType.Int));
+
     public Task<string> SectionAsync(string section, UsageScope scope, string page = null)
     {
         var parameters = new List<(string, object, SqlDbType)>

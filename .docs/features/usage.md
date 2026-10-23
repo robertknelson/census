@@ -1,6 +1,6 @@
 # Usage — how people use an application, from its click streams
 
-Status: **U-1, U-2 and U-3 built 2026-10-23: every section of §4. U-4 (persona scoping, the Executive's figures, links in) to come.** Ruled U1–U3. Asked by Robert the same day: "think about how a user would want
+Status: **built 2026-10-23, all four slices (U-1 to U-4).** Ruled U1–U3; U4–U9 open, each with a call made (calls-made-for-you). Asked by Robert the same day: "think about how a user would want
 to analyze click streams, sessions for an application, and come up with a proposal on how to construct the UX."
 It follows open item T5 in `log-explorer-and-trace.md`. It reads the same log tables (`[apptrak].[ApiRequest]`,
 `[Session]`, `[Exception]`) and writes nothing.
@@ -223,6 +223,22 @@ the grid's week and steps); every node suite passes. In Edge (headless): eight r
 first; the third opened to its two sessions into Trace; the heatmap with Wednesday 10 AM picked showing 14 page
 loads in 5 sessions and the latest five. **Not seen:** the signals on real data; the thresholds tuned.
 
+## 7d. U-4, built (2026-10-23)
+
+| Piece | File |
+|---|---|
+| Scoped view | **See → Usage** in the persona UX (`persona-nav.mjs`; no longer a link out). Mounted like the curate pages (`personas-page.mjs`), scoped to the applications the member holds a role on, or every one when their role is estate-wide. `usage-model.mjs` `matchApplications`: a registry application matches log rows whose Application is its name, ignoring case; the rest are named at the foot of the page (U9). Embedded, the page keeps the persona UX's address |
+| Executive's figures (U5) | `apptrak/sql/logs/usage-summary.sql`, `GET api/usage/summary` (one row per application: people, sessions, sessions ending on an error; PROD); the period view (`period-view.mjs`) closes with **Usage in <period>**, one row per application in scope, "No log rows under this name" where none match, and **Usage ↗** into the page at the same period |
+| Ways in | Trace's day header: each application used that day links to Usage for that month. Move It's application page: **Usage ↗** beside its name |
+
+**Verified (2026-10-23, the demo AppTrak and `CensusLogsDemo`):** `tests/Test-Usage.mjs` passes 33 (3 new: matching
+ignoring case, the missing named, estate-wide sees all); every node suite passes. In Edge (headless), as demo-max
+(product owner on MortgageGateway, technical lead on Reporting): See → Usage, the picker holding only Reporting, and
+"No log rows this period under the name of: MortgageGateway." at the foot. As demo-ellen (Executive, estate-wide), the
+October period view closes with Usage: Reporting 1 person, 31 sessions, 10% ending on an error; WidgetCore 2, 92, 4%;
+three applications with no rows under their name. The Trace and Move It links carry the application and period.
+**Not seen:** a member's view on real names (U9).
+
 ## 8. Open items
 
 | # | Question | Recommendation | Needed |
@@ -234,4 +250,5 @@ loads in 5 sessions and the latest five. **Not seen:** the signals on real data;
 | U5 | **Executive adoption figures** in the period view, or only on Usage? | In the period view: it is where the Executive already looks. | His word. |
 | U6 | **Cross-application journeys** (a session's referer is another app in the estate). | Show them in Pages as "came from WidgetPortal"; a map of the links between apps belongs to Atlas later. | His word. |
 | U8 | **Tune the friction thresholds** on real data (`Usage:Friction`). | Look at a month of a real application first; the defaults are starting points. | Real volume. |
+| U9 | **Registry names against log names.** A member's application matches the log rows whose Application is its registry name (ignoring case). If an app logs under another name (its identifier, a short code), it shows as "no log rows under this name". | Look at the real log's Application values against the registry; if some differ, a declared mapping (registry application → log name) beside the registry, never a guessed one. | His look at real names. |
 | U7 | **Staff and test identifiers**: exclude them from the figures? | A declared list per application, shown as excluded, never hidden silently. | Which identifiers. |

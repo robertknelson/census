@@ -58,4 +58,6 @@ WHERE SCHEMA_NAME(t.schema_id) = 'apptrak' AND t.name IN ('ApiRequest', 'ApiCont
 `system-administrator`) and `view.usage` (product-owner, application-owner, technical-lead, devops-lead,
 application-administrator, system-administrator: usage.md U2). It is insert-only: re-running it on the real AppTrak
 adds the three features and their grants and changes nothing else. The persona UX then shows **Troubleshoot →
-Log Explorer ↗, Trace ↗** and **Elsewhere in Census → Usage ↗**.
+Log Explorer ↗, Trace ↗** and **See → Usage**, scoped to each member's applications; the period view closes with
+Usage's figures per application. Check one member: their applications appear in Usage's picker, and any that log
+under a different name are listed at the foot as having no rows (usage.md U9).

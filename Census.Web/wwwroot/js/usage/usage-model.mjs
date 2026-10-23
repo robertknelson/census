@@ -190,3 +190,14 @@ export function heatGrid(cells = []) {
         }),
     }));
 }
+
+// ---- Scope (§5, U-4): a member sees Usage for the applications they hold a role on. A registry application matches
+// the log rows whose Application is its name, ignoring case; nothing else is guessed. Those with no rows are named. ----
+
+export function matchApplications(applications, names) {
+    if (!names) return { kept: applications, missing: [] };
+    const wanted = new Map(names.map((name) => [name.toLowerCase(), name]));
+    const kept = applications.filter((a) => wanted.has(String(a.application).toLowerCase()));
+    const found = new Set(kept.map((a) => String(a.application).toLowerCase()));
+    return { kept, missing: [...wanted.entries()].filter(([key]) => !found.has(key)).map(([, name]) => name) };
+}

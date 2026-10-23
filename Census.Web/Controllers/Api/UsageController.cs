@@ -33,6 +33,22 @@ public class UsageController(UsageReader usage) : ControllerBase
         }
     }
 
+    // Every application's figures for the persona UX's period view (usage.md U5); a stage, PROD unless asked.
+    [HttpGet("summary")]
+    public async Task<IActionResult> Summary(string from, string to, string stage = "PROD")
+    {
+        if (!usage.Enabled) return NotFound(new { message = "No log database is configured." });
+        if (!TryWindow(from, to, out var start, out var end, out var problem)) return BadRequest(new { message = problem });
+        try
+        {
+            return Content(await usage.SummaryAsync(string.IsNullOrWhiteSpace(stage) ? null : stage.Trim(), start, end), "application/json");
+        }
+        catch (SqlException e) when (e.Number == 50404)
+        {
+            return NotFound(new { message = e.Message });
+        }
+    }
+
     [HttpGet("{section}")]
     public async Task<IActionResult> Section(string section, string application, string stage, string from, string to, int offset = 0, string page = null)
     {

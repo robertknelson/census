@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Census.Web.Services;
+using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Census.Web.Controllers.Api;
@@ -25,7 +26,14 @@ public class LogsController(LogReader logs) : ControllerBase
         if (!LogReader.Tables.TryGetValue(model, out var table)) return NotFound(new { message = $"Unknown log model '{model}'." });
         if (!TryWindow(start, end, out var from, out var to)) return BadRequest(new { message = "The window must be two moments, the second after the first." });
         var columns = (profileFields ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return Ok(await logs.FacetsAsync(table, from, to, columns, Math.Clamp(offset, -840, 840), hideHandshake));
+        try
+        {
+            return Ok(await logs.FacetsAsync(table, from, to, columns, Math.Clamp(offset, -840, 840), hideHandshake));
+        }
+        catch (SqlException e) when (e.Number == 50404)
+        {
+            return NotFound(new { message = e.Message });
+        }
     }
 
     [HttpGet("{model}/search")]
@@ -49,7 +57,7 @@ public class LogsController(LogReader logs) : ControllerBase
         }
 
         var sort = (sortBy ?? string.Empty).Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var (items, total) = await logs.SearchAsync(table, new LogSearch
+        var search = new LogSearch
         {
             Start = from,
             End = to,
@@ -63,8 +71,16 @@ public class LogsController(LogReader logs) : ControllerBase
             SortDescending = sort.Length < 2 || !string.Equals(sort[1], "asc", StringComparison.OrdinalIgnoreCase),
             PageIndex = Math.Max(0, pageIndex),
             PageSize = Math.Clamp(pageSize, 1, 200),
-        });
-        return Ok(new { items, total });
+        };
+        try
+        {
+            var (items, total) = await logs.SearchAsync(table, search);
+            return Ok(new { items, total });
+        }
+        catch (SqlException e) when (e.Number == 50404)
+        {
+            return NotFound(new { message = e.Message });
+        }
     }
 
     private static bool TryWindow(string start, string end, out DateTimeOffset from, out DateTimeOffset to)

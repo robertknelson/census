@@ -11,7 +11,10 @@ SET NOCOUNT ON;
 
 IF @Table NOT IN (N'ApiRequest', N'Exception', N'Message') THROW 50404, N'Unknown log table.', 1;
 
-DECLARE @object int = OBJECT_ID(N'log.' + QUOTENAME(@Table));
+-- @Schema is Logs:Schema (apptrak in the real AppTrak; xf-dashboard's DDL says log).
+DECLARE @from nvarchar(300) = QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table);
+DECLARE @object int = OBJECT_ID(@from);
+IF @object IS NULL THROW 50404, N'The log table is not in this database under that schema (Logs:Schema).', 1;
 DECLARE @op nvarchar(5) = CASE WHEN UPPER(@Operator) = N'OR' THEN N' OR ' ELSE N' AND ' END;
 
 DECLARE @picks nvarchar(max) = (
@@ -38,9 +41,9 @@ DECLARE @skip int = CASE WHEN @PageIndex > 0 THEN @PageIndex ELSE 0 END * @size;
 
 DECLARE @sql nvarchar(max) = N'
 SELECT t.*' + CASE WHEN @Table = N'ApiRequest' THEN N', b.[Content] AS [RequestBody]' ELSE N'' END + N', COUNT(*) OVER () AS [Total]
-FROM log.' + QUOTENAME(@Table) + N' t'
+FROM ' + @from + N' t'
     + CASE WHEN @Table = N'ApiRequest' THEN N'
-OUTER APPLY (SELECT TOP (1) c.[Content] FROM log.[ApiContent] c WHERE c.[Uid] = t.[Uid] AND c.[ContentType] = 0) b' ELSE N'' END + N'
+OUTER APPLY (SELECT TOP (1) c.[Content] FROM ' + QUOTENAME(@Schema) + N'.[ApiContent] c WHERE c.[Uid] = t.[Uid] AND c.[ContentType] = 0) b' ELSE N'' END + N'
 WHERE t.[StartAt] >= @Start AND t.[StartAt] < @End' + @shape
     + CASE WHEN @picks IS NULL THEN N'' ELSE N' AND (' + @picks + N')' END + N'
 ORDER BY t.' + QUOTENAME(@sort) + CASE WHEN @SortDescending = 0 THEN N' ASC' ELSE N' DESC' END + N', t.[Id] DESC

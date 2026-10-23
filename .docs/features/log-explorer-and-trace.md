@@ -13,7 +13,8 @@ with Trace … the UX portion of it, reading the tables, and showing sessions, d
 
 | # | Ruling | Consequence |
 |---|---|---|
-| R1 | **No new tables.** The target's `log` tables are the same shape as xf-dashboard's DDL. | Census reads `log.ApiRequest`, `ApiContent`, `Exception`, `Message`, `Session` as they are. Nothing is written to them. |
+| R1 | **No new tables.** The target's log tables are the same shape as xf-dashboard's DDL. | Census reads `ApiRequest`, `ApiContent`, `Exception`, `Message`, `Session` as they are. Nothing is written to them. |
+| R7 | **In the real AppTrak database, schema `apptrak`** (Robert, 2026-10-23: "in live, it is a databaes named AppTrak, and the schema is [apptrak]"), not xf-dashboard's `log`. | `Logs:Schema`, default `apptrak`; the readers check the table exists under it. The demo database uses `apptrak` too. The index script's `@schema` is `apptrak`. No `Logs:ConnectionString` needed live: AppTrak is Move It's connection. |
 | R2 | **Identifier is the person's key**; who they are is not needed. | No people table, no names beside logins, no former-login resolution (xf-dashboard S7 rules 1–2 dropped). The picker offers identifiers. |
 | R3 | **"What they did" keeps the concept, not the port**: the target's ActivityEvents differ. | A provider seam (§6); the real provider is for later (open item T3). |
 | R4 | **Index scripts are included**: "i'm certain those don't exist". | `apptrak/sql/logs/001-log-indexes.sql` (§7), run on the real log database before use. |
@@ -156,4 +157,4 @@ has no clipboard); the real log tables.
 | T1 | ~~Does the target's `log.Exception` have `CorrelationId`?~~ **Answered (Robert, 2026-10-23): yes**; its absence from xf-dashboard's April DDL was a mistake. The demo DDL includes it, errors match their request by correlation, and the index is unconditional. | — | — |
 | T2 | ~~The target's polls and page-load shape.~~ **Answered (Robert, 2026-10-23):** no polls reach the logs ("if there is something like that, the endpoints are listed as exclusions so the middleware doesn't record them"), so xf-dashboard's poll fading, hatching and switch are not ported; and "i only use /api/ for api calls", so a page load is a GET outside `/api/`. | — | — |
 | T3 | **The real "What they did" provider.** Parked on the AppEvent module (`app-event.md`, Robert 2026-10-23: a generic, cross-system activity log in AppTrak, not a port of the target's ActivityEvents). | When `log.AppEvent` fills: Census reads it as a fourth Log Explorer model and as Trace's action source, by `(Identifier, StartAt)` and `(SessionId, StartAt)`, showing its rendered `Message`. | app-event.md E1, E2. |
-| T4 | **Does the log database's login allow Census to read it?** | Read-only grant on the `log` schema; a line in the go-live runbook. | DBA. |
+| T4 | **Does the log database's login allow Census to read it?** | Read-only grant on the `apptrak` schema (R7); step 1 of `.docs/go-live-log-explorer.md`. | DBA. |

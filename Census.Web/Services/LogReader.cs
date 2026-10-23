@@ -24,10 +24,12 @@ public class LogReader
     };
 
     private readonly ScriptRunner _scripts;
+    private readonly string _schema;
 
     public LogReader(IOptions<LogsOptions> logs, IOptions<MoveItOptions> moveIt, IWebHostEnvironment env)
     {
         var connection = string.IsNullOrWhiteSpace(logs.Value.ConnectionString) ? moveIt.Value.ConnectionString : logs.Value.ConnectionString;
+        _schema = logs.Value.Schema;
         _scripts = new ScriptRunner(Path.GetFullPath(Path.Combine(env.ContentRootPath, moveIt.Value.SqlPath, "logs")), connection);
     }
 
@@ -36,6 +38,7 @@ public class LogReader
     public async Task<List<Dictionary<string, object>>> FacetsAsync(string table, DateTimeOffset start, DateTimeOffset end, IEnumerable<string> columns, int offsetMinutes, bool hideHandshake)
     {
         var rows = await _scripts.ReadAsync("facets.sql",
+            ("Schema", _schema, SqlDbType.NVarChar),
             ("Table", table, SqlDbType.NVarChar),
             ("Start", start, SqlDbType.DateTimeOffset),
             ("End", end, SqlDbType.DateTimeOffset),
@@ -55,6 +58,7 @@ public class LogReader
     public async Task<(List<Dictionary<string, object>> Items, int Total)> SearchAsync(string table, LogSearch search)
     {
         var rows = await _scripts.ReadAsync("search.sql",
+            ("Schema", _schema, SqlDbType.NVarChar),
             ("Table", table, SqlDbType.NVarChar),
             ("Start", search.Start, SqlDbType.DateTimeOffset),
             ("End", search.End, SqlDbType.DateTimeOffset),

@@ -4,17 +4,17 @@
 --
 -- Six identifiers in four of the AppTrak demo's applications on DEV and PROD; sessions of page loads,
 -- each with the API calls after it; writes with stored bodies; the anonymous 401 handshake before
--- each page; refusals, slow calls, errors in log.Exception matched to their request by correlation,
+-- each page; refusals, slow calls, errors in apptrak.Exception matched to their request by correlation,
 -- messages, and one request at 11:10 PM to test the day boundary.
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-DELETE FROM log.ApiContent;
-DELETE FROM log.ApiRequest;
-DELETE FROM log.Exception;
-DELETE FROM log.Message;
-DELETE FROM log.Session;
+DELETE FROM apptrak.ApiContent;
+DELETE FROM apptrak.ApiRequest;
+DELETE FROM apptrak.Exception;
+DELETE FROM apptrak.Message;
+DELETE FROM apptrak.Session;
 
 DECLARE @people TABLE (n int IDENTITY(0,1), Identifier nvarchar(50), Roles nvarchar(50), Application nvarchar(50), Stage nvarchar(15), Browser nvarchar(75), Platform nvarchar(25));
 INSERT @people (Identifier, Roles, Application, Stage, Browser, Platform) VALUES
@@ -62,7 +62,7 @@ BEGIN
             SET @machine = CASE WHEN @stage = N'DEV' THEN N'WEBDEV01' WHEN ABS(CHECKSUM(NEWID())) % 2 = 0 THEN N'WEBPROD01' ELSE N'WEBPROD02' END;
             SET @host = LOWER(@app) + CASE WHEN @stage = N'DEV' THEN N'-dev' ELSE N'' END + N'.corp.example';
             IF @at < @now
-                INSERT log.Session (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, Identifier, Path, RefererPath, Referer, Platform, Browser, CreatedAt, IsFromApi)
+                INSERT apptrak.Session (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, Identifier, Path, RefererPath, Referer, Platform, Browser, CreatedAt, IsFromApi)
                 VALUES (NEWID(), @sid, REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N''), @machine, @stage, @app, @at, @identifier, N'/', N'', N'', @platform, @browser, @at, 0);
             SET @pagesN = 2 + ABS(CHECKSUM(NEWID())) % 5;
             SET @pg = 0;
@@ -72,12 +72,12 @@ BEGIN
 
                 -- The sign-in handshake, then the page itself.
                 SET @cid = REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N'');
-                INSERT log.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
+                INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
                 VALUES (CONVERT(nvarchar(36), NEWID()), @sid, @cid, @machine, @stage, @app, @at, DATEADD(millisecond, 1, @at), 1, 0, N'', @path, N'', N'GET', 401, N'', N'', @host, N'https', @agent, N'', @platform, @browser, 0, 0, N'{}', @at, 0);
                 SET @at = DATEADD(millisecond, 40, @at);
                 SET @elapsed = 60 + ABS(CHECKSUM(NEWID())) % 400;
                 SET @cid = REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N'');
-                INSERT log.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
+                INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
                 VALUES (CONVERT(nvarchar(36), NEWID()), @sid, @cid, @machine, @stage, @app, @at, DATEADD(millisecond, @elapsed, @at), @elapsed, 0, @identifier, @path, N'', N'GET', 200, @area, N'Index', @host, N'https', @agent, @roles, @platform, @browser, 0, 0, N'{}', @at, 0);
 
                 SET @calls = 1 + ABS(CHECKSUM(NEWID())) % 6;
@@ -95,21 +95,21 @@ BEGIN
                     SET @elapsed = CASE WHEN ABS(CHECKSUM(NEWID())) % 30 = 0 THEN 2000 + ABS(CHECKSUM(NEWID())) % 4000 ELSE 15 + ABS(CHECKSUM(NEWID())) % 600 END;
                     SET @cid = REPLACE(CONVERT(nvarchar(36), NEWID()), N'-', N'');
                     SET @uid = CONVERT(nvarchar(36), NEWID());
-                    INSERT log.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
+                    INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
                     VALUES (@uid, @sid, @cid, @machine, @stage, @app, @at, DATEADD(millisecond, @elapsed, @at), @elapsed, CASE WHEN @status = 500 THEN 1 ELSE 0 END, @identifier, @apiPath,
                         CASE WHEN @action = N'List' THEN N'?page=1&size=25' ELSE N'' END, @method, @status, @area, @action, @host, N'https', @agent, @roles, @platform, @browser, 0,
                         CASE WHEN @method IN (N'POST', N'PUT') THEN 1 ELSE 0 END, N'{}', @at, 0);
                     IF @method IN (N'POST', N'PUT')
-                        INSERT log.ApiContent (Uid, ContentType, Content, CreatedAt, IsFromApi)
+                        INSERT apptrak.ApiContent (Uid, ContentType, Content, CreatedAt, IsFromApi)
                         VALUES (@uid, 0, CONCAT(N'{"id":', @id, N',"status":"', CASE @roll % 3 WHEN 0 THEN N'open' WHEN 1 THEN N'pending' ELSE N'closed' END,
                             N'","amount":', 100 + @roll * 7, N'.50,"note":"demo"}'), @at, 0);
                     IF @status = 500
-                        INSERT log.Exception (Uid, SessionId, Machine, Stage, Application, Path, StartAt, Level, Message, ActionName, SourceContext, Tags, Data, CreatedAt, IsFromApi, CorrelationId)
+                        INSERT apptrak.Exception (Uid, SessionId, Machine, Stage, Application, Path, StartAt, Level, Message, ActionName, SourceContext, Tags, Data, CreatedAt, IsFromApi, CorrelationId)
                         VALUES (CONVERT(nvarchar(36), NEWID()), @sid, @machine, @stage, @app, @apiPath, DATEADD(millisecond, @elapsed - 5, @at), N'Error',
                             CASE @roll % 3 WHEN 0 THEN N'Object reference not set to an instance of an object.' WHEN 1 THEN N'Execution Timeout Expired.' ELSE N'Violation of UNIQUE KEY constraint.' END,
                             @area + N'Controller.' + @action, @app + N'.' + @area + N'Service', N'api', N'{"stack":"at ' + @app + N'.' + @area + N'Service.' + @action + N'()"}', @at, 0, @cid);
                     IF @method IN (N'POST', N'PUT', N'DELETE') OR @status <> 200
-                        INSERT log.Message (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, Path, Level, Message, ActionName, SourceContext, Tags, Data, CreatedAt, IsFromApi)
+                        INSERT apptrak.Message (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, Path, Level, Message, ActionName, SourceContext, Tags, Data, CreatedAt, IsFromApi)
                         VALUES (CONVERT(nvarchar(36), NEWID()), @sid, @cid, @machine, @stage, @app, DATEADD(millisecond, 3, @at), @apiPath,
                             CASE WHEN @status = 200 THEN N'Information' WHEN @status = 500 THEN N'Error' ELSE N'Warning' END,
                             CASE WHEN @status = 200 THEN @action + N' ' + LOWER(@area) + N' ' + CONVERT(nvarchar(10), @id)
@@ -128,20 +128,20 @@ BEGIN
 END
 
 -- Writes after the moment the seed ran would be from the future: today's sessions stop at now.
-DELETE FROM log.ApiRequest WHERE StartAt > @now;
-DELETE FROM log.Message WHERE StartAt > @now;
-DELETE FROM log.Exception WHERE StartAt > @now;
-DELETE c FROM log.ApiContent c WHERE NOT EXISTS (SELECT 1 FROM log.ApiRequest r WHERE r.Uid = c.Uid);
+DELETE FROM apptrak.ApiRequest WHERE StartAt > @now;
+DELETE FROM apptrak.Message WHERE StartAt > @now;
+DELETE FROM apptrak.Exception WHERE StartAt > @now;
+DELETE c FROM apptrak.ApiContent c WHERE NOT EXISTS (SELECT 1 FROM apptrak.ApiRequest r WHERE r.Uid = c.Uid);
 
 -- The day boundary: one request at 11:10 PM yesterday, on yesterday in the browser's day.
-INSERT log.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
+INSERT apptrak.ApiRequest (Uid, SessionId, CorrelationId, Machine, Stage, Application, StartAt, StopAt, Elapsed, HasError, Identifier, Path, QueryString, HttpMethod, HttpStatus, ControllerName, ControllerMethod, Host, Scheme, UserAgent, Roles, Platform, Browser, IsPassThrough, HasContent, Data, CreatedAt, IsFromApi)
 VALUES (CONVERT(nvarchar(36), NEWID()), N'late-night-session', N'late-night-request', N'WEBPROD01', N'PROD', N'LedgerService',
     TODATETIMEOFFSET(DATEADD(minute, 23 * 60 + 10, CAST(DATEADD(day, -1, @today) AS datetime2(7))), @offset),
     TODATETIMEOFFSET(DATEADD(minute, 23 * 60 + 10, CAST(DATEADD(day, -1, @today) AS datetime2(7))), @offset),
     120, 0, N'dpatel', N'/api/ledger/close', N'', N'POST', 200, N'Ledger', N'Close', N'ledgerservice.corp.example', N'https', @agent, N'finance', N'Windows', N'Edge 141', 0, 0, N'{}', @now, 0);
 
-SELECT 'log.ApiRequest' AS [table], COUNT(*) AS [rows] FROM log.ApiRequest
-UNION ALL SELECT 'log.ApiContent', COUNT(*) FROM log.ApiContent
-UNION ALL SELECT 'log.Exception', COUNT(*) FROM log.Exception
-UNION ALL SELECT 'log.Message', COUNT(*) FROM log.Message
-UNION ALL SELECT 'log.Session', COUNT(*) FROM log.Session;
+SELECT 'apptrak.ApiRequest' AS [table], COUNT(*) AS [rows] FROM apptrak.ApiRequest
+UNION ALL SELECT 'apptrak.ApiContent', COUNT(*) FROM apptrak.ApiContent
+UNION ALL SELECT 'apptrak.Exception', COUNT(*) FROM apptrak.Exception
+UNION ALL SELECT 'apptrak.Message', COUNT(*) FROM apptrak.Message
+UNION ALL SELECT 'apptrak.Session', COUNT(*) FROM apptrak.Session;

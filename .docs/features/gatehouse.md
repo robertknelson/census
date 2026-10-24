@@ -130,6 +130,7 @@ the live app's:
 |---|---|---|
 | G-1 | Project, Windows sign-in, the claims transformation, the command/query core (async), `_Layout` + the sidebar partial from the nav declaration, Feature Management evaluation and the admin page on command/query, the gate test, Home. | Signed in as yourself: your roles shown; flipping a feature or a grant on the admin page shows or hides a nav item and turns its endpoint 200 ↔ 403 without a restart; the gate test fails on an ungated controller. |
 | G-2 | Membership on command/query. | Census's membership tests ported; a grant made on the page shows on Home after the next sign-in. |
+| G-2b | The visitor welcome and the request to join (§11): the form, the table, the requests on the Membership page, approve and decline. | Signed in as a non-member: the welcome, a request sent, a second refused; as an administrator: the request on the Membership page, approved into a member with the asked roles, who then sees Home. |
 | G-3 | Logs: Log Explorer, Trace, Usage on command/query. | The counts against direct SQL as in Census's verification logs; the three pages in a browser. |
 | G-4 | A porting note per component (`PORTING.md` in each folder): what to copy, the lines for `Program.cs`, the SQL to run, what the live app already has. | Read against the live app's shape: a dry run on paper with you. |
 
@@ -215,3 +216,87 @@ Gatehouse's sidebar is a fixed 15rem column (G-1), so the page is cramped there.
 | G5 | **Windows sign-in on Kestrel** locally (Negotiate) against IIS in the live app. | Kestrel with Negotiate for local runs; the porting note covers IIS (Windows authentication on, anonymous off). | — |
 | G6 | ~~The live app's claims transformation~~ **Answered: essentially xf-dashboard's** (G-R11). | — | — |
 | G7 | **Where do the live app's roles come from today?** xf-dashboard's auth provider reads its own person and role tables. If the live app's does too, its roles and membership's `member-types` are two vocabularies, and features must be granted to the one its claims carry. | The porting note for identity shows both: the auth provider reading membership (Gatehouse's), or features granted to the app's existing roles with no change to its provider. You pick when porting. | His look at the live app's provider. |
+
+## 11. The visitor welcome and the request to join (G-2b; spec 2026-10-24, not built)
+
+The ask (Robert, 2026-10-24): "a Visitor welcome view that allows the user to REQUEST to join. it should capture their
+identifier (windows DOMAIN\USERNAME), and a brief description of why they want to join, their application[] name(s) and
+their role (Product Owner, etc); this is what should show up if they currently are not a member."
+
+### 11.1 Who sees it
+
+- **Signed in by Windows, and no `membership.Member` row with that identifier** (`UserSession.IsMember` false). Home sends
+  them to `/welcome`; the sidebar shows Welcome alone. Every other page refuses them, as today.
+- **A member with no role here** sees Home as today, not the welcome: they are already known, and the Membership page is
+  where their roles are given (V5).
+- **No impersonation** (G-R2): the request is always for the signed-in Windows user.
+
+### 11.2 The form
+
+| Field | Source | Rule |
+|---|---|---|
+| Windows identity | `User.Identity.Name` (`DOMAIN\USERNAME`), shown, never typed | The server writes it; a body that names another is ignored. The identifier is its `USERNAME` part (G-R3) |
+| First name, last name, email | Typed | Needed because `membership.Member` requires them (all `NOT NULL`), so approving needs no typing (V2) |
+| Why you want to join | Typed, required, up to 1,000 characters | |
+| Application(s) | One or more from `membership.Application` (not retired) | At least one (V3) |
+| Role | One from `member-types` (Product Owner, Technical Lead, …), shown by its display name | Asked once, for every application chosen (V4) |
+
+After sending, the page says the request is waiting and shows what was sent; a second request while one waits is refused
+(409), saying so. A declined request shows its reason, and the visitor may ask again.
+
+### 11.3 The table (new DDL in AppTrak's `membership`: your ratification first, V1)
+
+```sql
+CREATE TABLE membership.MembershipRequest (
+    MembershipRequestId int IDENTITY(1,1) NOT NULL CONSTRAINT PK_MembershipRequest PRIMARY KEY,
+    Identifier      nvarchar(100)  NOT NULL,   -- USERNAME, as membership.Member.Identifier
+    WindowsIdentity nvarchar(72)   NOT NULL,   -- DOMAIN\USERNAME, as signed in
+    FirstName       nvarchar(100)  NOT NULL,
+    LastName        nvarchar(100)  NOT NULL,
+    Email           nvarchar(100)  NOT NULL,
+    Reason          nvarchar(1000) NOT NULL,
+    RoleId          int            NOT NULL,   -- core.SelectItem, member-types
+    ApplicationIds  nvarchar(max)  NOT NULL,   -- JSON array of membership.Application Ids
+    Status          varchar(20)    NOT NULL,   -- pending | approved | declined
+    RequestedAt     datetimeoffset NOT NULL CONSTRAINT DF_MembershipRequest_RequestedAt DEFAULT (SYSDATETIMEOFFSET()),
+    DecidedBy       nvarchar(100)  NULL,
+    DecidedAt       datetimeoffset NULL,
+    DecisionNote    nvarchar(1000) NULL
+);
+CREATE UNIQUE INDEX UX_MembershipRequest_Pending ON membership.MembershipRequest (Identifier) WHERE Status = 'pending';
+```
+
+- **One pending request per identifier**, held by the filtered unique index as well as the script's `THROW 50409`.
+- **The applications as a JSON array**, not a child table: a request is read and decided whole, never queried by
+  application, and the approval turns it into `MemberApplicationRole` rows, which are the relational record.
+- **Kept, never deleted:** a decided request is the record of who asked for what and who said yes. Each write also leaves
+  a `MembershipAudit` row (entity `request`), as every Membership write does.
+
+### 11.4 The administrator's half (on the Membership page, `admin.membership`)
+
+- **"Needs a word" leads with the waiting requests**, and a Requests tab lists them: who, why, which applications,
+  which role, when.
+- **Approve** (one script, one transaction): create the member from the request (or refuse with 409 if a member with that
+  identifier or Windows identity now exists), grant the role on each application, mark the request approved, audit all
+  of it. The approver may change the role or drop an application before approving.
+- **Decline** with a note, which the visitor sees.
+- The new member's roles reach them within `Identity:SessionMinutes`, as any grant does.
+
+### 11.5 Gates (both halves, §6)
+
+- `/welcome` and its API (`GET` the visitor's own request, `POST` a request) behind a **fixed policy `Visitor`**: signed
+  in and not a member. Not a feature: switching it off would leave a non-member with a blank page and no way in.
+- Listing, approving and declining requests: `admin.membership`, as the rest of the Membership API.
+- The gate test already fails on an ungated action; the end-to-end tests add: a member gets 403 from `/welcome`, a
+  visitor gets 403 from every other page, a visitor cannot name another identity.
+
+### 11.6 Open items
+
+| # | Question | Recommendation | Needed |
+|---|---|---|---|
+| V1 | **The new table** (§11.3) in AppTrak's `membership` schema. | As drafted. | Your ratification. |
+| V2 | **Ask for first name, last name and email?** Not in your list, but `membership.Member` requires all three. | Yes; otherwise the approver types them. | Your word. |
+| V3 | **Applications not in the registry?** | Pick-list only; one not listed goes in the reason, and the approver registers it first. | — |
+| V4 | **One role for all the applications, or one per application?** You said "their role". | One, as you said; the approver can adjust per application at approval. | — |
+| V5 | **A member with no role here: welcome too?** | No (§11.1): they are known; their roles are given on the Membership page. | Your word if you want otherwise. |
+| V6 | **Telling administrators a request is waiting** (email, a count in the sidebar). | A count beside Membership in the sidebar, for those who can open it; no email (Gatehouse sends none). | — |

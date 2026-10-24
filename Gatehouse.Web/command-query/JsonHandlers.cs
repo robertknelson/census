@@ -15,7 +15,8 @@ namespace Gatehouse.CommandQuery;
 //   * the async methods are real, and the sync ones do not block on them;
 //   * rows are kept on every path;
 //   * a top-level FOR JSON that SQL Server splits into rows of ~2,033 characters is read whole;
-//   * THROW 50400 / 50404 / 50409 and a unique-key violation set the status code, so a controller can answer 400 / 404 / 409.
+//   * THROW 50400 / 50404 / 50409, a unique-key violation and a foreign-key refusal set the status code, so a controller
+//     can answer 400 / 404 / 409.
 public abstract class JsonHandler
 {
     private readonly IConfiguration _configuration;
@@ -165,10 +166,11 @@ public abstract class JsonHandler
             50400 => 400,
             50404 => 404,
             50409 => 409,
-            2601 or 2627 => 409,
+            2601 or 2627 or 547 => 409,
             _ => 500,
         };
         if (ex.Number is 2601 or 2627) response.Status.Message = "The change conflicts with an existing record. Reload and try again.";
+        if (ex.Number == 547) response.Status.Message = "Another record still refers to this one, so it cannot change this way.";
         if (response.Status.HttpCode == 500)
         {
             response.Status.Message = "The database could not complete the request.";

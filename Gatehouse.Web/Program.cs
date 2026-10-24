@@ -1,6 +1,7 @@
 using Gatehouse.CommandQuery;
 using Gatehouse.FeatureManagement;
 using Gatehouse.Identity;
+using Gatehouse.Membership.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Authorization;
@@ -37,6 +38,9 @@ builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
 builder.Services.Configure<FeatureAccessOptions>(builder.Configuration.GetSection(FeatureAccessOptions.SectionName));
 var featureAccess = builder.Configuration.GetSection(FeatureAccessOptions.SectionName).Get<FeatureAccessOptions>() ?? new FeatureAccessOptions();
 builder.Services.AddGatehouseFeatureManagement(featureAccess.AdminRole);
+
+// Membership (§7): Census's membership page on command/query, behind the admin.membership feature.
+builder.Services.AddTransient<ISqlCommandInitializer, MembershipSqlCommandInitializer>();
 
 var app = builder.Build();
 

@@ -4,6 +4,28 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-24 — Gatehouse, G-2 (Membership)
+
+**The membership API is behind `admin.membership`, the page's feature**, not the fixed admin policy. Every endpoint behind
+a nav item carries the item's gate (§6); the way back if it is switched off is the Feature access page, which is fixed.
+
+**Census's checks were kept word for word** (`MembershipRequests`): the body is read into Census's request shapes to be
+checked, then passes to the initializer as sent, so the page's messages are unchanged.
+
+**The page's modules read camel-cased rows.** The handlers camel-case, as xf-dashboard's do; changing the module once
+beats re-casing every row in the controller. The audit's before/after are the scripts' JSON and keep the tables' names.
+
+**Census's estate rule did not travel.** The landing page's first question became "is this application registered, and
+does anyone hold system-administrator on it" (the people offered the administration), and the "estate-wide" tag became
+"here".
+
+**`application-delete.sql` counts Move It's and the health pings' rows only where those tables exist**, and a
+foreign-key refusal now answers 409: the live AppTrak may have neither table, and may have others that refer to an
+application.
+
+**The writes end in `FOR JSON`**, as FM2280's did in G-1: otherwise the handler reads the inner snapshots' text as "FOR
+JSON" and fails on the closing `SELECT @Id`.
+
 ## 2026-10-23 — Gatehouse, G-1
 
 **The setting is `Identity:Application`**, not the spec's `Membership:Application`: it is read by the identity

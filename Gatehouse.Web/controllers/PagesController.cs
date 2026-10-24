@@ -5,6 +5,7 @@ using Gatehouse.FeatureManagement;
 using Gatehouse.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Microsoft.FeatureManagement.Mvc;
 
@@ -37,6 +38,19 @@ public class FeatureAccessPageController : Controller
     public IActionResult Index() => View("~/feature-management/views/FeatureAccess.cshtml");
 }
 
+// Census's membership page (gatehouse.md §7), behind the same feature as its API. It is told which application is this
+// one, so its landing page can say when nobody may administer it.
+[Authorize(Policy = FeatureAccessPolicies.SignedIn)]
+public class MembershipPageController(IOptions<IdentityOptions> identity) : Controller
+{
+    [HttpGet("/admin/membership"), FeatureGate(Features.AdminMembership)]
+    public IActionResult Index()
+    {
+        ViewData["Application"] = identity.Value.Application;
+        return View("~/membership/views/Membership.cshtml");
+    }
+}
+
 // The slices still to come (gatehouse.md §9): each page is already gated as it will be, so switching its feature or
 // granting it shows the nav item and opens the page, as the finished one will.
 [Authorize(Policy = FeatureAccessPolicies.SignedIn)]
@@ -50,9 +64,6 @@ public class ComingController : Controller
 
     [HttpGet("/usage"), FeatureGate(Features.LogsUsage)]
     public IActionResult Usage() => Coming("Usage", "G-3");
-
-    [HttpGet("/admin/membership"), FeatureGate(Features.AdminMembership)]
-    public IActionResult Membership() => Coming("Membership", "G-2");
 
     private IActionResult Coming(string page, string slice)
     {

@@ -1,6 +1,6 @@
 # Gatehouse — a reference app for porting Feature Management, Membership and Logs
 
-Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates). G-2 (Membership), G-3 (Logs) and G-4 (porting notes) to come.
+Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership). G-3 (Logs) and G-4 (porting notes) to come.
 
 ## 1. The ask (Robert, 2026-10-23)
 
@@ -166,6 +166,43 @@ the live app's:
 
 **Not seen:** IIS (the porting note covers it, G5); a grant change reaching a signed-in user within the five minutes
 without a restart (the cache's expiry was not waited out).
+
+## 9b. G-2, built (2026-10-24)
+
+| Folder / file | What |
+|---|---|
+| `membership/sql/` | Census's `apptrak/sql/membership` scripts (not `applications.sql`, which only Census's personas read). Changed: every write ends in `SELECT … AS [key] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER`, so the command handler reads the key back; `application-delete.sql` counts Move It's and the health pings' rows only where those tables exist (`OBJECT_ID`), since they are Census's |
+| `membership/sql/ddl/001-membership-audit.sql` | `membership.MembershipAudit`, as Census's (idempotent). The live AppTrak needs it if Census's go-live has not made it |
+| `membership/data/` | `MembershipSqlCommandInitializer` (keys `gatehouse.membership.*`), `MembershipRequests` (Census's checks, every reason at once, in the page's words) |
+| `membership/api/MembershipController.cs` | Census's routes and answers (`{ key }`, `{ errors: [...] }`), behind `admin.membership`, the page's own feature (§6). The actor is the signed-in identifier |
+| `membership/views/Membership.cshtml`, `controllers/PagesController.cs` | `/admin/membership`, told which application is this one (`Identity:Application`) |
+| `wwwroot/js/membership/` | Census's page, model and API modules, with their two helpers copied beside them (`utils/format.mjs`, `components/record-form.mjs`). Rows are camel-cased, as the handlers send them; the audit's before/after keep the tables' names. Census's estate rule is gone: the landing page asks whether *this* application is registered and has a system-administrator |
+| `wwwroot/css/membership.css` | The rules of Census's `personas.css` the page uses, on Gatehouse's colours, scoped to the page |
+| `command-query/JsonHandlers.cs` | A foreign-key refusal (547) answers 409 with a plain sentence, so deleting a row the live AppTrak still refers to is refused, not a 500 |
+| `setup/Invoke-GatehouseDemo.ps1` | Also makes `membership.MembershipAudit` in the local AppTrak |
+
+**Verified (2026-10-24):** `dotnet test Gatehouse.slnx` passes 22; `node Gatehouse.Tests/js/membership-model.test.mjs` passes 16.
+- **Census's `Test-Membership.ps1`, ported** (`MembershipEndToEndTests`, against the local AppTrak, its rows `gt-test-*` deleted
+  before and after):
+  - create, edit and delete an application and a member;
+  - 409 for a taken identifier or Windows identity, 400 for settings that are not JSON, every reason at once for an empty
+    form, 400 for a body of the wrong shape, 404 for an edit of nothing;
+  - grant and revoke, 409 for either twice, 404 for a role not in member-types;
+  - the identity lookup (the real `MembershipAuthProvider`) sees a grant the moment it is made and loses it on revoke;
+  - the history newest first, by the signed-in identifier, an update keeping both sides;
+  - an application's roles, stages and services added, corrected and removed;
+  - a deleted member's and application's history keeping what hung off them;
+  - deleting an application Move It still names: 409, saying "release".
+- **Census's `Test-Membership.mjs`, ported:** the members folded, the gaps (this application unregistered or with no
+  system-administrator, a member with no role, an application with nobody or no owner), the audit in words.
+- **The gate:** a technical lead gets 403 from the page and the API; the gate test covers the new controller.
+- **Live on :5296 with real Windows sign-in** (Chrome, `Identity:SessionMinutes` = 1): as yourself, on your member page,
+  granted devops-lead on Gatehouse. The page said Granted and its history named you. Home still showed
+  system-administrator alone (inside the session); a minute later, with no restart, Home showed devops-lead and
+  system-administrator. Revoked it on the page; the overview's recent changes lead with the revoke.
+
+**Not seen:** a refusal by a foreign key (547) from a live table; the local AppTrak has none that fires. Phone width:
+Gatehouse's sidebar is a fixed 15rem column (G-1), so the page is cramped there.
 
 ## 10. Open items
 

@@ -1,0 +1,14 @@
+@{
+    // Census's membership page (gatehouse.md §7): its module and its look, on the same API routes.
+    ViewData["Title"] = "Membership";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/membership.css" asp-append-version="true" />
+}
+<div id="membership" class="mb-root"></div>
+@section Scripts {
+    <script type="module">
+        import membershipPage from '/js/membership/membership-page.mjs';
+        membershipPage.init({ root: '#membership', application: @Json.Serialize(ViewData["Application"]) });
+    </script>
+}

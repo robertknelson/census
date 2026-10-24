@@ -1,0 +1,18 @@
+@{
+    // Census's Usage (gatehouse.md §7): how one application is used over a period, every application in the logs.
+    ViewData["Title"] = "Usage";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/feature-access.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/logs.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/usage.css" asp-append-version="true" />
+}
+<div class="fa usage gh-logs">
+    <div id="usage"></div>
+</div>
+@section Scripts {
+    <script type="module">
+        import usagePage from '/js/usage/usage-page.mjs';
+        usagePage.init({ root: document.getElementById('usage'), ...@Json.Serialize(ViewData["Config"]) });
+    </script>
+}

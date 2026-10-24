@@ -1,6 +1,6 @@
 # Gatehouse — a reference app for porting Feature Management, Membership and Logs
 
-Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership); **G-2b built 2026-10-24** (the visitor welcome and the request to join, §11). G-3 (Logs) and G-4 (porting notes) to come.
+Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership); **G-2b built 2026-10-24** (the visitor welcome and the request to join, §11); **G-3 built 2026-10-24** (Logs, §9c). G-4 (porting notes) to come.
 
 ## 1. The ask (Robert, 2026-10-23)
 
@@ -122,7 +122,7 @@ the live app's:
   `FeatureAccess:ConnectionString` names it; in the live app it is wherever that app's `fm` lives.
 - **Your Windows account as a member** with roles on `gatehouse`, in a **git-ignored** local seed
   (`.docs/local/`), so your account name stays out of the repo.
-- **The demo logs** from `CensusLogsDemo`, through `Logs:ConnectionString`, as Census does.
+- **The demo logs** from `CensusLogsDemo`, through the connection string `logs` (Census's `Logs:ConnectionString`).
 
 ## 9. Slices
 
@@ -167,6 +167,41 @@ the live app's:
 
 **Not seen:** IIS (the porting note covers it, G5); a grant change reaching a signed-in user within the five minutes
 without a restart (the cache's expiry was not waited out).
+
+## 9c. G-3, built (2026-10-24)
+
+| Folder / file | What |
+|---|---|
+| `logs/sql/` | Census's `apptrak/sql/logs` scripts, unchanged, but without `usage-summary.sql`, which only Census's personas period view reads. Each JSON script answers `SELECT (… FOR JSON …) AS JsonNode`, which the handler reads whole; the others answer rows |
+| `logs/sql/ddl/001-log-indexes.sql` | Census's key-only log indexes, for the porting note (Census's go-live doc covers running them) |
+| `logs/LogsOptions.cs` | `Logs:Schema` (default `apptrak`), `Logs:SlowMs`, and Usage's `FiscalYearStartMonth` (default 10, Census's `Personas` setting) and friction thresholds |
+| `logs/data/LogsSqlCommandInitializer.cs` | Keys `gatehouse.logs.*`, each naming the parameters its script takes. The schema, the slow threshold and the friction thresholds come from settings, never the request |
+| `logs/api/LogsControllers.cs` | `LogsQueryHandler` on the `logs` connection; Census's three APIs (`/api/logs`, `/api/trace`, `/api/usage`) with their routes, checks and answers, each behind its page's feature |
+| `logs/views/`, `controllers/PagesController.cs` | `/logs`, `/trace`, `/usage` in Gatehouse's layout, full width. Each page is told which of the other two its reader may open |
+| `wwwroot/js/logs`, `trace`, `usage`, `wwwroot/css/logs.css`, `trace.css`, `usage.css` | Census's modules and styles. Changed: Usage imports its own copy of `period.mjs`, and Trace's and Usage's cross-links (Trace to Usage and to Log Explorer, Usage to Trace) are plain text when the reader's feature for the other page is off |
+
+**Verified (2026-10-24):**
+- **Against Census, answer for answer:** Census on :5292 and Gatehouse on :5296, both on `CensusLogsDemo`, asked the same
+  27 questions:
+  - Log Explorer: facets, search (plain, filtered, refused, sorted, exceptions, messages);
+  - Trace: people, month, day, session;
+  - Usage: applications and every section, a page's detail;
+  - empty windows;
+  - the refusals: a bad window, a window too long, an unknown model, an unknown section, an unknown column.
+  Every answer was identical, status code and JSON. Search's total for 1–24 October (4,099) equals a direct
+  `COUNT(*)`.
+- **Tests:** `dotnet test Gatehouse.slnx` passes 29. A devops lead opens Log Explorer and Trace but gets 403 from
+  Usage's page and API; an observer gets 403 from all three APIs. Trace's page tells a devops lead that Usage is
+  closed and a technical lead that it is open, and Usage's tells an application owner that Trace is closed. The reads
+  answer in Census's shapes.
+- **Node:** Census's Trace, Usage and period tests, run against Gatehouse's copies, pass 14, 33 and 25.
+- **In a browser** (headless Edge, real Windows sign-in, as yourself): Log Explorer on a session's day (its 36 requests,
+  the facets), Trace (cdiaz's October, 22 October, one session's timeline), Usage (WidgetCore, PROD, October: overview,
+  pages, paths), each in the sidebar layout.
+
+**Not seen:** the live log tables (the porting note covers the `logs` connection pointing at AppTrak); a page with its
+cross-link turned to text in a browser (the test checks what the page is told); Usage's period picker across a fiscal
+year boundary in Gatehouse.
 
 ## 9b. G-2, built (2026-10-24)
 

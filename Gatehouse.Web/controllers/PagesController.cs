@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Gatehouse.FeatureManagement;
 using Gatehouse.Identity;
+using Gatehouse.Logs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -62,24 +63,33 @@ public class WelcomePageController : Controller
     public IActionResult Index() => View("~/membership/views/Welcome.cshtml");
 }
 
-// The slices still to come (gatehouse.md §9): each page is already gated as it will be, so switching its feature or
-// granting it shows the nav item and opens the page, as the finished one will.
+// Log Explorer, Trace and Usage (gatehouse.md §7): Census's pages, each behind its feature. Each is told which of the
+// other two the reader may open, so its cross-links never lead to a 403.
 [Authorize(Policy = FeatureAccessPolicies.SignedIn)]
-public class ComingController : Controller
+public class LogsPageController(IFeatureManager features, IOptions<LogsOptions> logs, IOptions<UsageOptions> usage) : Controller
 {
     [HttpGet("/logs"), FeatureGate(Features.LogsExplorer)]
-    public IActionResult Logs() => Coming("Log Explorer", "G-3");
+    public IActionResult Logs() => View("~/logs/views/Logs.cshtml");
 
     [HttpGet("/trace"), FeatureGate(Features.LogsTrace)]
-    public IActionResult Trace() => Coming("Trace", "G-3");
+    public async Task<IActionResult> Trace()
+    {
+        ViewData["Config"] = new { links = new { logs = await features.IsEnabledAsync(Features.LogsExplorer), usage = await features.IsEnabledAsync(Features.LogsUsage) } };
+        return View("~/logs/views/Trace.cshtml");
+    }
 
     [HttpGet("/usage"), FeatureGate(Features.LogsUsage)]
-    public IActionResult Usage() => Coming("Usage", "G-3");
-
-    private IActionResult Coming(string page, string slice)
+    public async Task<IActionResult> Usage()
     {
-        ViewData["Title"] = page;
-        ViewData["Slice"] = slice;
-        return View("Coming");
+        var f = usage.Value.Friction;
+        ViewData["Config"] = new
+        {
+            api = "/api/usage",
+            fiscalStart = usage.Value.FiscalYearStartMonth,
+            slowMs = logs.Value.SlowMs,
+            friction = new { endedWithinMinutes = f.EndedWithinMinutes, refusedTimes = f.RefusedTimes, loopLoads = f.LoopLoads, loopSeconds = f.LoopSeconds, retrySeconds = f.RetrySeconds },
+            links = new { trace = await features.IsEnabledAsync(Features.LogsTrace) },
+        };
+        return View("~/logs/views/Usage.cshtml");
     }
 }

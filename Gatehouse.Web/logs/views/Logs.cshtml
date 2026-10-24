@@ -1,0 +1,17 @@
+@{
+    // Census's Log Explorer (gatehouse.md §7): its module and look, on FM2280's .fa design system.
+    ViewData["Title"] = "Log Explorer";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/feature-access.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/logs.css" asp-append-version="true" />
+}
+<div class="fa logx gh-logs">
+    <div id="log-explorer" data-api-base="/api/logs"></div>
+</div>
+@section Scripts {
+    <script type="module">
+        import logExplorerPage from '/js/logs/log-explorer-page.mjs';
+        logExplorerPage.init({ root: '#log-explorer' });
+    </script>
+}

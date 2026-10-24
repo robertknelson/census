@@ -1,0 +1,18 @@
+@{
+    // Census's Trace (gatehouse.md §7): an identifier's month, day and sessions.
+    ViewData["Title"] = "Trace";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/feature-access.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/logs.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/trace.css" asp-append-version="true" />
+}
+<div class="fa trace gh-logs">
+    <div id="trace" data-api="/api/trace"></div>
+</div>
+@section Scripts {
+    <script type="module">
+        import tracePage from '/js/trace/trace-page.mjs';
+        tracePage.init({ root: document.getElementById('trace'), ...@Json.Serialize(ViewData["Config"]) });
+    </script>
+}

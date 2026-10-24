@@ -1,6 +1,9 @@
 using Gatehouse.CommandQuery;
 using Gatehouse.FeatureManagement;
 using Gatehouse.Identity;
+using Gatehouse.Logs;
+using Gatehouse.Logs.Api;
+using Gatehouse.Logs.Data;
 using Gatehouse.Membership.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
@@ -41,6 +44,12 @@ builder.Services.AddGatehouseFeatureManagement(featureAccess.AdminRole);
 
 // Membership (§7): Census's membership page on command/query, behind the admin.membership feature.
 builder.Services.AddTransient<ISqlCommandInitializer, MembershipSqlCommandInitializer>();
+
+// Logs (§7): Log Explorer, Trace and Usage on command/query, reading the log tables through the "logs" connection.
+builder.Services.Configure<LogsOptions>(builder.Configuration.GetSection(LogsOptions.SectionName));
+builder.Services.Configure<UsageOptions>(builder.Configuration.GetSection(UsageOptions.SectionName));
+builder.Services.AddTransient<ISqlCommandInitializer, LogsSqlCommandInitializer>();
+builder.Services.AddScoped<LogsQueryHandler>();
 
 var app = builder.Build();
 

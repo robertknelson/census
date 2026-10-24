@@ -1,0 +1,226 @@
+/* =========================================================================
+   Trace — an identifier's month, day and sessions (/trace)
+   Spec: .docs/features/log-explorer-and-trace.md §5, ported from xf-dashboard's _trace.scss. Dense on purpose: a sys-admin reading what happened.
+   ========================================================================= */
+
+.fa.trace {
+    /* Setting: the error red. */
+    --trace-bad: var(--fa-danger, #a33a36);
+}
+
+.trace-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.6rem 0.9rem;
+    margin-bottom: 1.25rem;
+}
+
+.trace-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.75rem;
+    color: var(--fa-ink-soft);
+}
+
+.trace-field input {
+    min-width: 16rem;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid var(--fa-rule-strong);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+    color: var(--fa-ink);
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+.trace-field input[type="date"] { min-width: 0; }
+.trace-toolbar-gap { flex: 1; }
+.trace-bad { color: var(--trace-bad); font-weight: 600; }
+
+/* ---- The day ------------------------------------------------------------ */
+
+.trace-head { margin-bottom: 0.9rem; }
+.trace-name { margin: 0; font-size: 1.3rem; font-weight: 600; }
+.trace-login { margin-left: 0.4rem; font-family: var(--fa-font-code); font-size: 0.85rem; font-weight: 400; color: var(--fa-ink-soft); }
+.trace-roles { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.35rem 0; }
+.trace-role { padding: 1px 8px; border-radius: 10px; background: var(--fa-wash); border: 1px solid var(--fa-rule); font-size: 0.75rem; }
+.trace-summary { margin: 0; font-size: 0.85rem; color: var(--fa-ink-soft); }
+
+/* The month (S2b): a calendar grid, Sunday to Saturday, shaded by requests against the month's busiest day */
+.trace-month { margin: 0 0 1.25rem; }
+.trace-month-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+.trace-month-head h3 { margin: 0; font-size: 1.1rem; font-weight: 600; min-width: 11rem; text-align: center; }
+.trace-month-head p { margin: 0 0 0 0.5rem; font-size: 0.85rem; }
+.trace-month-grid { display: grid; grid-template-columns: repeat(7, minmax(2.6rem, 4.2rem)); gap: 3px; }
+.trace-month-weekday { font-size: 0.75rem; color: var(--fa-ink-soft); text-align: center; padding-bottom: 2px; }
+.trace-cell {
+    --trace-level: 0;
+    position: relative;
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 2.6rem; padding: 3px 4px;
+    border: 1px solid var(--fa-rule); border-radius: 4px;
+    background: color-mix(in srgb, var(--fa-grant) calc(var(--trace-level) * 70%), var(--fa-paper));
+    color: var(--fa-ink); font: inherit; font-size: 0.75rem; text-align: left; cursor: pointer;
+}
+.trace-cell:hover { border-color: var(--fa-grant-strong); }
+.trace-cell.is-selected { outline: 2px solid var(--fa-grant-strong); outline-offset: 1px; }
+.trace-cell.is-out { border-color: transparent; background: transparent; cursor: default; }
+.trace-cell-date { font-weight: 600; }
+.trace-cell-writes { align-self: flex-end; color: var(--fa-ink-soft); }
+.trace-cell-error { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--trace-bad); }
+
+.trace-strip { margin: 1rem 0 0.75rem; }
+
+.trace-strip-hours {
+    position: relative;
+    height: 1.1rem;
+    font-size: 0.75rem;
+    color: var(--fa-ink-soft);
+}
+
+.trace-strip-hours span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+
+.trace-strip-band {
+    position: relative;
+    height: 2rem;
+    border: 1px solid var(--fa-rule);
+    border-radius: var(--fa-radius);
+    /* One rule per hour: --trace-hours is set by the page to the strip's span. */
+    background: repeating-linear-gradient(90deg, var(--fa-rule) 0 1px, transparent 1px calc(100% / var(--trace-hours, 12))), var(--fa-paper);
+}
+
+.trace-bar {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: var(--fa-grant);
+    opacity: 0.75;
+    cursor: pointer;
+}
+
+.trace-bar:hover, .trace-bar.is-current { opacity: 1; box-shadow: 0 0 0 2px var(--fa-grant-soft); }
+.trace-bar.has-errors { background: color-mix(in srgb, var(--trace-bad) 35%, var(--fa-grant)); }
+.trace-tick { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--trace-bad); }
+
+/* What they did (S7): a mark on the strip for each action, and the list under the sessions. */
+.trace-action-mark {
+    position: absolute;
+    top: -6px;
+    width: 7px;
+    height: 7px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: var(--fa-grant-strong);
+    z-index: 1;
+}
+
+.trace-logins { margin: 0 0 0.3rem; font-size: 0.75rem; }
+.trace-did-head { margin: 1.25rem 0 0.4rem; font-size: 0.95rem; font-weight: 600; }
+.trace-did { margin: 0; padding: 0; list-style: none; font-size: 0.85rem; }
+.trace-did li {
+    display: grid;
+    grid-template-columns: 6.5rem 8rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.2rem 0.4rem;
+    border-bottom: 1px solid var(--fa-rule);
+}
+.trace-did-kind { font-size: 0.75rem; font-weight: 600; color: var(--fa-ink-soft); }
+.trace-did li.is-activity .trace-did-kind { color: var(--fa-grant-strong); }
+.trace-did-text { overflow-wrap: anywhere; }
+
+.trace-sessions {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.trace-sessions th { text-align: left; font-weight: 500; color: var(--fa-ink-soft); border-bottom: 1px solid var(--fa-rule); padding: 0.3rem 0.5rem; }
+.trace-sessions td { padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--fa-rule); }
+.trace-sessions tr.is-current td { background: var(--fa-grant-soft); }
+
+/* ---- The session ---------------------------------------------------------- */
+
+.trace-session-head { margin: 1.5rem 0 0.6rem; }
+.trace-session-head h3 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+.trace-session-head p { margin: 0.2rem 0 0; font-size: 0.85rem; }
+.trace-fold { margin-top: 0.4rem; }
+.trace-id { font-size: 0.75rem; }
+
+.trace-group {
+    margin-bottom: 0.4rem;
+    border: 1px solid var(--fa-rule);
+    border-radius: var(--fa-radius);
+    background: var(--fa-paper);
+}
+
+.trace-group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    background: var(--fa-wash);
+    border-radius: var(--fa-radius);
+}
+
+.trace-group-count { margin-left: auto; font-size: 0.75rem; }
+
+.trace-lines { margin: 0; padding: 0.2rem 0; list-style: none; }
+
+.trace-line {
+    display: grid;
+    grid-template-columns: 6.5rem 4.5rem minmax(0, 1fr) auto auto;
+    align-items: baseline;
+    column-gap: 0.6rem;
+    padding: 0.15rem 0.7rem;
+    font-size: 0.75rem;
+    font-family: var(--fa-font-code);
+}
+
+.trace-line:hover { background: var(--fa-hover); }
+.trace-time { color: var(--fa-ink-soft); white-space: nowrap; min-width: 6.5rem; }
+.trace-method, .trace-kind { font-weight: 600; }
+.trace-path, .trace-text { overflow-wrap: anywhere; }
+.trace-text { grid-column: 3 / -1; font-family: var(--fa-font); }
+.trace-ms { color: var(--fa-ink-soft); text-align: right; }
+
+.trace-line.is-write { background: var(--fa-grant-soft); }
+.trace-line.is-write .trace-method { color: var(--fa-grant-strong); }
+.trace-line.is-failed .trace-path { color: var(--trace-bad); }
+.trace-line.is-error { color: var(--trace-bad); background: color-mix(in srgb, var(--trace-bad) 8%, transparent); }
+.trace-line.is-message { color: var(--fa-ink-soft); }
+.trace-line.is-action .trace-kind { color: var(--fa-grant-strong); }
+.trace-line.is-action .trace-text { font-weight: 500; }
+
+.trace-body { grid-column: 1 / -1; margin: 0.2rem 0 0.3rem 6.5rem; }
+.trace-body summary { cursor: pointer; color: var(--fa-grant-strong); font-family: var(--fa-font); }
+.trace-body pre {
+    margin: 0.3rem 0 0;
+    padding: 0.5rem 0.7rem;
+    max-height: 22rem;
+    overflow: auto;
+    border-radius: var(--fa-radius);
+    background: var(--fa-wash);
+    font-size: 0.75rem;
+}
+
+.trace-idle {
+    margin: 0.3rem 0;
+    padding: 0.1rem 0.7rem;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: var(--fa-ink-soft);
+    text-align: center;
+    list-style: none;
+}
+
+/* Census: the page's own frame. */
+.fa.trace .trace-page { padding: 0.75rem 1rem 2rem; max-width: 110rem; }
+.trace-app { font-size: 0.75rem; color: var(--fa-ink-soft); }

@@ -46,3 +46,6 @@ code { font-family: var(--gh-code); font-size: 0.9em; }
 .gh-on { color: var(--gh-on); font-weight: 600; }
 .gh-off { color: var(--gh-off); }
 .gh-fa { max-width: none; }
+/* Log Explorer, Trace and Usage are dense, full-width pages: they take the whole main column. */
+.gh-main:has(> .gh-logs) { padding: 0; }
+.gh-logs { min-height: 100vh; }

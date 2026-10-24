@@ -4,6 +4,23 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-24 — Gatehouse, G-3 (Logs)
+
+**The log tables have a connection string of their own, `logs`**, like `fm`, rather than Census's `Logs:ConnectionString`:
+one way of naming databases across Gatehouse. In the live app it points where `default` does.
+
+**Census's scripts were kept as they are.** Their JSON scripts already answer one `FOR JSON` document and their keys are
+already camel-case, so the handler reads them unchanged. The diff against Census found no difference.
+
+**Usage's persona summary (`usage-summary.sql`, `/api/usage/summary`) did not travel**: only Census's personas period
+view reads it, and Gatehouse's Usage covers every application (§7).
+
+**The cross-links between the three pages follow the reader's features.** Census's link unconditionally; in Gatehouse a
+link to a page whose feature is off for the reader is plain text, because the server tells each page what is open. This
+follows your rule that controls live on the UX and the server.
+
+**Usage's fiscal year starts in October** (`Usage:FiscalYearStartMonth` = 10), as Census's `Personas` setting does.
+
 ## 2026-10-24 — Gatehouse, G-2b (the visitor welcome)
 
 **V2: the form asks for first name, last name and email.** You ratified V1 and did not say on V2. `membership.Member`

@@ -1,5 +1,6 @@
-// The three log models Log Explorer reads (log-explorer-and-trace.md §4; Application and Stage lead, the tables hold
-// every application's rows), their fields, and the defaults for which fields are facets and columns.
+// The log models Log Explorer reads (log-explorer-and-trace.md §4; Application and Stage lead, the tables hold every
+// application's rows), their fields, and the defaults for which fields are facets and columns. Gatehouse adds AppEvent
+// (gatehouse.md §12.6), offered only to readers with its feature (the page's config.models, decided on the server).
 // kind: text | number | date | bool | list | json. pivot: the drawer offers "everything with this value" on it.
 
 export const DATE_BUCKETS = [
@@ -89,6 +90,34 @@ export const MODELS = {
             f('correlationId', 'Correlation', { sortable: false, pivot: true }),
             f('sessionId', 'Session', { sortable: false, pivot: true }),
             f('data', 'Data', { kind: 'json', sortable: false }),
+            f('id', 'Id', { kind: 'number' })
+        ]
+    },
+    'app-event': {
+        label: 'AppEvent',
+        noun: 'events',
+        fields: [
+            f('application', 'Application', { facet: true, column: true }),
+            f('stage', 'Stage', { facet: true }),
+            f('startAt', 'Start', { kind: 'date', facet: true, column: true }),
+            f('namespace', 'Namespace', { facet: true, column: true }),
+            f('commandName', 'Command', { facet: true, column: true }),
+            f('commandActivity', 'Activity', { facet: true, column: true }),
+            f('message', 'Message', { column: true, sortable: false }),
+            f('identifier', 'Identifier', { facet: true, column: true, pivot: true }),
+            f('subjectType', 'Subject', { facet: true }),
+            f('subjectKey', 'Subject key', { pivot: true }),
+            f('workUid', 'Unit of work', { sortable: false, pivot: true }),
+            f('parentUid', 'Caused by', { sortable: false, pivot: true }),
+            f('uid', 'Uid', { sortable: false, pivot: true }),
+            f('sessionId', 'Session', { sortable: false, pivot: true }),
+            f('correlationId', 'Correlation', { sortable: false, pivot: true }),
+            f('path', 'Path', { facet: true }),
+            f('machine', 'Machine', { facet: true }),
+            f('isFromApi', 'From the API', { kind: 'bool', facet: true }),
+            f('body', 'Body', { kind: 'json', sortable: false }),
+            f('data', 'Data', { kind: 'json', sortable: false }),
+            f('createdAt', 'Arrived', { kind: 'date' }),
             f('id', 'Id', { kind: 'number' })
         ]
     }

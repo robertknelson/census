@@ -9,7 +9,7 @@
 
 SET NOCOUNT ON;
 
-IF @Table NOT IN (N'ApiRequest', N'Exception', N'Message') THROW 50404, N'Unknown log table.', 1;
+IF @Table NOT IN (N'ApiRequest', N'Exception', N'Message', N'AppEvent') THROW 50404, N'Unknown log table.', 1;
 
 -- @Schema is Logs:Schema (apptrak in the real AppTrak; xf-dashboard's DDL says log).
 DECLARE @from nvarchar(300) = QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table);

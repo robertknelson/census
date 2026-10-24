@@ -57,14 +57,18 @@ public abstract class LogsApiController(LogsQueryHandler queries) : ControllerBa
 [Route("api/logs")]
 [Authorize(Policy = FeatureAccessPolicies.SignedIn)]
 [FeatureGate(Features.LogsExplorer)]
-public class LogsController(LogsQueryHandler queries) : LogsApiController(queries)
+public class LogsController(LogsQueryHandler queries, Microsoft.FeatureManagement.IFeatureManager features) : LogsApiController(queries)
 {
     public static readonly IReadOnlyDictionary<string, string> Tables = new Dictionary<string, string>
     {
         ["api-request"] = "ApiRequest",
         ["exception-event"] = "Exception",
         ["message"] = "Message",
+        ["app-event"] = "AppEvent",
     };
+
+    // AppEvent's rows need their own feature as well as the explorer's (gatehouse.md §12.6).
+    private static readonly Dictionary<string, string> ModelFeatures = new() { ["app-event"] = Features.LogsAppEvents };
 
     private static readonly string[] NotFacets = { "log-start", "log-end", "logical-operator", "hide-handshake", "min-elapsed", "profile-fields" };
 
@@ -73,6 +77,7 @@ public class LogsController(LogsQueryHandler queries) : LogsApiController(querie
         int offset = 0, [FromQuery(Name = "hide-handshake")] bool hideHandshake = false)
     {
         if (!Tables.TryGetValue(model, out var table)) return NotFound(new { message = $"Unknown log model '{model}'." });
+        if (!await MayReadAsync(model)) return StatusCode(403, new { message = "This model needs a feature you do not have." });
         if (!TryWindow(start, end, out var from, out var to)) return BadRequest(new { message = "The window must be two moments, the second after the first." });
         var columns = (profileFields ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var response = await QueryAsync(Key("facets").AddParam("Table", table).AddParam("Start", from).AddParam("End", to)
@@ -91,6 +96,7 @@ public class LogsController(LogsQueryHandler queries) : LogsApiController(querie
         [FromQuery(Name = "min-elapsed")] int minElapsed = 0)
     {
         if (!Tables.TryGetValue(model, out var table)) return NotFound(new { message = $"Unknown log model '{model}'." });
+        if (!await MayReadAsync(model)) return StatusCode(403, new { message = "This model needs a feature you do not have." });
         if (!TryWindow(start, end, out var from, out var to)) return BadRequest(new { message = "The window must be two moments, the second after the first." });
 
         var filters = new List<object>();
@@ -121,6 +127,9 @@ public class LogsController(LogsQueryHandler queries) : LogsApiController(querie
         }).ToList();
         return Ok(new { items, total });
     }
+
+    private async Task<bool> MayReadAsync(string model) =>
+        !ModelFeatures.TryGetValue(model, out var feature) || await features.IsEnabledAsync(feature);
 }
 
 // Trace's API (Census's TraceController): an identifier's month and day, one session's timeline. Windows are two

@@ -1,0 +1,25 @@
+/* The units of work (gatehouse.md §12.6), on membership.css's page look. */
+.mb-root .ae-filters { flex-direction: row; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; }
+.mb-root .ae-filters label { display: flex; align-items: center; gap: 0.4rem; font-size: 13px; color: var(--mb-muted); }
+.mb-root .ae-filters select { padding: 0.25rem 0.4rem; border: 1px solid var(--mb-rule); border-radius: 4px; font: inherit; font-size: 13px; background: var(--mb-panel); }
+
+.mb-root .ae-status { display: inline-block; padding: 0 0.45rem; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: var(--mb-rule-soft); color: var(--mb-muted); }
+.mb-root .ae-status.is-completed { background: #e3f1e8; color: #1e5f3a; }
+.mb-root .ae-status.is-failed { background: #fbe9e7; color: var(--mb-alert); }
+.mb-root .ae-status.is-stuck, .mb-root .ae-status.is-handed-off { background: #fff4dd; color: #8a5a00; }
+.mb-root .ae-tile.is-failed .ps-tile-value { color: var(--mb-alert); }
+.mb-root .ae-tile.is-stuck .ps-tile-value { color: #8a5a00; }
+
+.mb-root .ae-steps { list-style: none; padding: 0; display: flex; flex-direction: column; }
+.mb-root .ae-step { margin-left: calc(var(--ae-depth, 0) * 1.1rem); border-left: 2px solid var(--mb-rule); padding-left: 0.75rem; }
+.mb-root .ae-step.is-failed { border-left-color: var(--mb-alert); }
+.mb-root .ae-step.is-completed { border-left-color: #2e7d4f; }
+.mb-root .ae-gap { padding: 0.1rem 0; font-size: 11.5px; color: var(--mb-muted); }
+.mb-root .ae-gap.is-waiting { color: #8a5a00; font-weight: 600; }
+.mb-root .ae-gap.is-working { color: var(--mb-on); font-weight: 600; }
+.mb-root .ae-step-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.75rem; padding: 0.3rem 0; font-size: 13px; }
+.mb-root .ae-when { color: var(--mb-muted); font-variant-numeric: tabular-nums; min-width: 9.5rem; }
+.mb-root .ae-app { font-weight: 600; min-width: 7.5rem; }
+.mb-root .ae-activity { font-family: var(--gh-code); font-size: 12px; min-width: 6rem; }
+.mb-root .ae-message { flex: 1 1 18rem; min-width: 0; }
+.mb-root .ae-who { color: var(--mb-muted); font-size: 12px; }

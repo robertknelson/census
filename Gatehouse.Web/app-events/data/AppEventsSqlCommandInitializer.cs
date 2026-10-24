@@ -36,6 +36,34 @@ public class AppEventsSqlCommandInitializer : SqlCommandInitializer
             new SqlParameter("@Disposition", SqlDbType.VarChar, 20) { Value = (string)n["disposition"] ?? "current" },
         }));
 
+        Initializers.Add($"{Domain}.{Name}.write", (c, p, n) =>
+        {
+            Script(c, "app-event-write.sql").Parameters.Add(Text("@Schema", schema, 128));
+            foreach (var (name, size) in new[] { ("Uid", 36), ("Identifier", 50), ("Path", 255), ("SessionId", 50), ("CorrelationId", 50), ("Machine", 25),
+                         ("Stage", 15), ("Application", 50), ("Namespace", 50), ("CommandName", 50), ("CommandActivity", 50), ("Body", -1), ("Data", -1),
+                         ("WorkUid", 36), ("ParentUid", 36), ("SubjectType", 50), ("SubjectKey", 100), ("Message", 500) })
+            {
+                var value = (string)n[char.ToLowerInvariant(name[0]) + name[1..]];
+                c.Parameters.Add(Text($"@{name}", size > 0 && value?.Length > size ? value[..size] : value, size));
+            }
+            c.Parameters.Add(new SqlParameter("@StartAt", SqlDbType.DateTimeOffset) { Value = (DateTimeOffset)n["startAt"] });
+        });
+        Initializers.Add($"{Domain}.{Name}.works", (c, p, n) =>
+        {
+            Script(c, "works.sql").Parameters.Add(Text("@Schema", schema, 128));
+            c.Parameters.Add(new SqlParameter("@From", SqlDbType.DateTimeOffset) { Value = p.TryGet("from", out DateTimeOffset from) ? from : DBNull.Value });
+            c.Parameters.Add(new SqlParameter("@To", SqlDbType.DateTimeOffset) { Value = p.TryGet("to", out DateTimeOffset to) ? to : DBNull.Value });
+            c.Parameters.Add(Text("@Namespace", p.TryGet("namespace", out string ns) ? ns : null, 50));
+            c.Parameters.Add(Text("@CommandName", p.TryGet("commandName", out string command) ? command : null, 50));
+            c.Parameters.Add(Text("@Status", p.TryGet("status", out string status) ? status : null, 20));
+            c.Parameters.Add(Int("@StuckHours", p.TryGet("stuckHours", out int hours) ? hours : 4));
+            c.Parameters.Add(Int("@Max", 200));
+        });
+        Initializers.Add($"{Domain}.{Name}.work", (c, p, n) =>
+        {
+            Script(c, "work.sql").Parameters.Add(Text("@Schema", schema, 128));
+            c.Parameters.Add(Text("@WorkUid", p.TryGet("workUid", out string work) ? work : null, 36));
+        });
         Initializers.Add($"{Domain}.{Name}.kinds-seen", (c, p, n) =>
         {
             Script(c, "kinds-seen.sql").Parameters.Add(Text("@Schema", schema, 128));

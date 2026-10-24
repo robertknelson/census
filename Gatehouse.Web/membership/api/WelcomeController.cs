@@ -1,12 +1,14 @@
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Gatehouse.AppEvents.Logging;
 using Gatehouse.CommandQuery;
 using Gatehouse.FeatureManagement;
 using Gatehouse.Identity;
 using Gatehouse.Membership.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Gatehouse.Membership.Api;
 
@@ -16,7 +18,7 @@ namespace Gatehouse.Membership.Api;
 [ApiController]
 [Route("api/welcome")]
 [Authorize(Policy = FeatureAccessPolicies.Visitor)]
-public class WelcomeController(IJsonQueryHandler queries, IJsonCommandHandler commands) : ControllerBase
+public class WelcomeController(IJsonQueryHandler queries, IJsonCommandHandler commands, ILogger<WelcomeController> logger) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Get()
@@ -45,7 +47,17 @@ public class WelcomeController(IJsonQueryHandler queries, IJsonCommandHandler co
         if (errors.Count > 0) return BadRequest(new { errors });
         var parameters = Key("request-create").AddParam("username", Identifier).AddParam("windowsIdentity", User.Identity?.Name);
         var response = await commands.ExecuteAsync(parameters, data);
-        return response.IsOkay ? Ok(response.Model?.DeepClone()) : Refused(response);
+        if (!response.IsOkay) return Refused(response);
+        // The request to join is a unit of work (gatehouse.md §12.4): asking is its first step.
+        var id = (int)response.Model["key"];
+        logger.LogActivity(new AppActivity
+        {
+            Namespace = AccessRequest.Namespace, CommandName = AccessRequest.CommandName, Activity = "created",
+            Uid = AccessRequest.CreatedUid(id), WorkUid = AccessRequest.WorkUid(id), SubjectType = AccessRequest.CommandName, SubjectKey = id.ToString(),
+            Identifier = Identifier, Message = $"{((string)data["firstName"])?.Trim()} {((string)data["lastName"])?.Trim()} asked to join",
+            Body = new { applicationIds = data["applicationIds"]?.DeepClone(), roleId = (int)data["roleId"] },
+        });
+        return Ok(response.Model?.DeepClone());
     }
 
     private string Identifier => User.FindFirst(ClaimsTransformer.IdentifierClaim)?.Value;

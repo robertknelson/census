@@ -514,6 +514,40 @@ run by `setup/Invoke-GatehouseDemo.ps1`).
 | A-2 | `LogActivity`, the provider that stands in for the live sink, Gatehouse's own access-request events | Tests: a malformed event refused at the caller; an activity written with its envelope, kind, unit of work and subject; a request to join, approved, read back as one unit of work (created, completed) |
 | A-3 | Log Explorer's AppEvent model and the unit-of-work page | Counts against direct SQL; the page for a demo unit of work with waiting and working times; 403 without the feature |
 
+### 12.8 Built (2026-10-24)
+
+| Where | What |
+|---|---|
+| `app-events/sql/ddl/001-app-event.sql`, `002-app-event-kind.sql` | The table (schema as `-v Schema=`) and the catalog (A-1) |
+| `app-events/logging/AppActivity.cs` | `AppActivity` and `logger.LogActivity(…)`: refused at the caller when malformed; logged in xf-dashboard's `[appevent:` template, its payload in the shape the live sink reads plus the five new columns; `AppActivity.DerivedUid` for Uids worked out again from the same words |
+| `app-events/logging/AppEventLoggerProvider.cs` | The stand-in for the live sink: `AppEventLoggerProvider` (sees the template, adds the envelope), `AppEventQueue` (bounded, drops the oldest), `AppEventWriter` (writes each through `app-event-write.sql`; a failure is logged and dropped) |
+| `app-events/api/AppEventsController.cs`, `AppEventKindsController.cs`; `app-events/AppEventPageControllers.cs` | `/app-events` (the units of work in a window: kind, subject, systems, steps, how long, last step, status), `/app-events/work/{workUid}` (step by step under their causes, waiting and working named, late arrivals, causes missing), `/admin/app-event-kinds` |
+| `app-events/sql/works.sql`, `work.sql`, `kinds*.sql`, `kind-*.sql`, `app-event-write.sql` | The reads and writes; a unit's status: failed, completed (by the application that created it), stuck (`AppEvent:StuckHours`, default 4), running. The business payload comes back as the text it was logged as (the handler would camel-case its keys) |
+| Log Explorer (`logs/`) | An AppEvent model: its facets and rows from the same scripts (the table added to their checked list), offered and answered only with `logs.app-events` |
+| `membership/AccessRequest.cs`, `WelcomeController`, `MembershipController` | Gatehouse's own unit of work: asking logs `created`, approving `completed`, declining `failed`, under the request's derived WorkUid, the decision's parent the asking |
+
+**Verified (2026-10-24):** `dotnet test Gatehouse.slnx` passes 41; `node Gatehouse.Tests/js/app-events-model.test.mjs` 15.
+- **The table script** twice on the demo, and twice on a scratch database holding the real table's 19-column shape with
+  two empty-Uid rows: 24 columns, 8 indexes, both rows kept; under `-v Schema=log` too.
+- **The catalog:** 403 for a technical lead on the screen and its API; the kind the events name but nobody registered
+  (billing / invoice-send) is offered; a bad name refused with every reason (kebab-case, NOUN-VERB, display name);
+  register, a second 409, correct, retire, 404 for none; its history (created, updated, retired) by the actor.
+- **ILogger:** a malformed event throws at the caller; the serialized event has the sink's shape and the new columns;
+  the provider turns a logged activity into its row (envelope from settings) and ignores ordinary logs.
+- **End to end:** a request to join, asked by a visitor and declined by an administrator, reads back as one unit of work:
+  created then failed, each by its own identifier, the decision's parent the asking, the subject the request, the
+  envelope Gatehouse / LOCAL.
+- **The demo week:** completed, failed and stuck units, all registered; the units' events add up to Log Explorer's
+  AppEvent total for the same window; a completed unit's ten steps across WidgetPortal, LedgerService, PolicyMaster in
+  order; 403 for a technical lead on the pages, the API and the explorer's AppEvent model (while ApiRequest stays open);
+  the explorer page offers the model to a system administrator only.
+- **Live on :5296** (headless Edge, your sign-in): the units of work (50 completed, 6 failed, 4 stuck, 2 running), a
+  failed and a stuck unit's pages with waiting and working times, Log Explorer's AppEvent model. Log Explorer's total for
+  the last three days (263) equals a direct `COUNT(*)`.
+
+**Noted:** the filtered indexes need `QUOTED_IDENTIFIER ON` for every write. SqlClient sets it; a sqlcmd session needs
+`-I`.
+
 ## 13. Usage, completed in Gatehouse (spec 2026-10-24)
 
 Robert, 2026-10-24, on Census's open items: 7 "exactly", 8 "yes, and for sys admins", 9 "yes", 10 "later we'll deal

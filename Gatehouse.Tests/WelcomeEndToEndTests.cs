@@ -19,6 +19,8 @@ namespace Gatehouse.Tests;
 // The visitor welcome and the request to join (gatehouse.md §11), both halves, against the local AppTrak: what a
 // visitor sees and is refused, the request (its identity from the sign-in only), and an administrator approving and
 // declining. Visitors are gt-visitor-<run>-*, removed before and after by sql\cleanup-test-visitors.sql.
+// One collection with the other visitor tests: their clean-ups remove every gt-visitor-* row.
+[Collection("visitors")]
 public class WelcomeEndToEndTests : IClassFixture<GatingEndToEndTests.App>, IAsyncLifetime
 {
     private readonly GatingEndToEndTests.App _app;
@@ -26,9 +28,9 @@ public class WelcomeEndToEndTests : IClassFixture<GatingEndToEndTests.App>, IAsy
 
     public WelcomeEndToEndTests(GatingEndToEndTests.App app) => _app = app;
 
-    public Task InitializeAsync() => CleanUp();
+    public Task InitializeAsync() => VisitorCleanUp.RunAsync(_app);
 
-    public Task DisposeAsync() => CleanUp();
+    public Task DisposeAsync() => VisitorCleanUp.RunAsync(_app);
 
     [Fact]
     public async Task A_visitor_is_sent_to_the_welcome_and_refused_everything_else()
@@ -138,14 +140,6 @@ public class WelcomeEndToEndTests : IClassFixture<GatingEndToEndTests.App>, IAsy
         return session.Roles;
     }
 
-    private async Task CleanUp()
-    {
-        var script = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "sql", "cleanup-test-visitors.sql"));
-        await using var connection = new SqlConnection(_app.Services.GetRequiredService<IConfiguration>().GetConnectionString("default"));
-        await connection.OpenAsync();
-        await using var command = new SqlCommand(script, connection);
-        await command.ExecuteNonQueryAsync();
-    }
 
     private static async Task<(HttpStatusCode Status, JsonNode Body)> Post(HttpClient client, string path, object body)
     {

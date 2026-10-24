@@ -49,3 +49,4 @@ code { font-family: var(--gh-code); font-size: 0.9em; }
 /* Log Explorer, Trace and Usage are dense, full-width pages: they take the whole main column. */
 .gh-main:has(> .gh-logs) { padding: 0; }
 .gh-logs { min-height: 100vh; }
+.gh-logs.logx { --logx-side: 20rem; } /* four models' tabs (Gatehouse adds AppEvent) */

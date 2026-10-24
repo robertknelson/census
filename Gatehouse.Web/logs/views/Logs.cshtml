@@ -12,6 +12,6 @@
 @section Scripts {
     <script type="module">
         import logExplorerPage from '/js/logs/log-explorer-page.mjs';
-        logExplorerPage.init({ root: '#log-explorer' });
+        logExplorerPage.init(@Json.Serialize(ViewData["Config"]));
     </script>
 }

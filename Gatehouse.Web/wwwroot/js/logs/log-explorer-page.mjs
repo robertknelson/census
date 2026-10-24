@@ -26,7 +26,7 @@ const NOISE = [
 
 // A link may open the explorer filtered, and on one day: /logs?application=X&stage=Y, and from Trace
 // /logs?session=S&day=2026-10-23 or ?identifier=I. Each parameter is a facet pick on its field.
-const LINKED = { application: 'application', stage: 'stage', session: 'sessionId', identifier: 'identifier' };
+const LINKED = { application: 'application', stage: 'stage', session: 'sessionId', identifier: 'identifier', work: 'workUid' };
 
 // One click to the rows a complaint usually needs, today.
 const PICKS = [
@@ -98,6 +98,8 @@ const SHELL = `
 
 class LogExplorerPage {
     #api;
+    // Gatehouse: the models this reader may open (the server's answer; AppEvent needs its own feature).
+    #models = MODEL_KEYS;
     #refs = {};
     #facets;
     #table;
@@ -132,6 +134,9 @@ class LogExplorerPage {
             ? document.querySelector(config.root)
             : config.root ?? document.querySelector('#log-explorer');
         this.#api = new LogApi(config.apiBase ?? root.dataset.apiBase);
+        this.#models = (config.models ?? MODEL_KEYS).filter(key => MODELS[key]);
+        const asked = new URLSearchParams(location.search).get('model');
+        this.#state.model = this.#models.includes(asked) ? asked : this.#models[0];
 
         root.innerHTML = SHELL;
         root.querySelectorAll('[data-ref]').forEach(element => { this.#refs[element.dataset.ref] = element; });
@@ -306,7 +311,7 @@ class LogExplorerPage {
 
     #renderToolbar() {
         const { model, start, end, operator } = this.#state;
-        this.#refs.models.innerHTML = MODEL_KEYS.map(key => `
+        this.#refs.models.innerHTML = this.#models.map(key => `
             <button type="button" class="fa-segment" data-model="${key}" aria-pressed="${key === model}">${escapeHtml(MODELS[key].label)}</button>`).join('');
         this.#refs.start.value = start;
         this.#refs.end.value = end;

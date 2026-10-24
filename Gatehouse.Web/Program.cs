@@ -1,4 +1,5 @@
 using Gatehouse.AppEvents.Data;
+using Gatehouse.AppEvents.Logging;
 using Gatehouse.CommandQuery;
 using Gatehouse.FeatureManagement;
 using Gatehouse.Identity;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 // Gatehouse (.docs/features/gatehouse.md): a reference app for porting Feature Management, Membership and Logs into a
 // live app with a sidebar, Windows sign-in with a claims transformation, and command/query handlers.
@@ -55,6 +57,10 @@ builder.Services.AddScoped<LogsQueryHandler>();
 // AppEvent (§12): the catalog of kinds in AppTrak; the events in the log tables.
 builder.Services.AddTransient<ISqlCommandInitializer, AppEventsSqlCommandInitializer>();
 builder.Services.AddScoped<AppEventCommandHandler>();
+builder.Services.Configure<AppEventOptions>(builder.Configuration.GetSection(AppEventOptions.SectionName));
+builder.Services.AddSingleton<AppEventQueue>();
+builder.Services.AddSingleton<ILoggerProvider, AppEventLoggerProvider>();
+builder.Services.AddHostedService<AppEventWriter>();
 
 var app = builder.Build();
 

@@ -4,6 +4,25 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-24 — Gatehouse, AppEvent A-2 and A-3 (ILogger, the pages)
+
+**`LogActivity` throws on a malformed event** (an activity outside the six words, a kind not kebab-case NOUN-VERB),
+at the caller, in every environment: a wrongly named event is a programming error, and a row nobody can aggregate is
+worse than a failed test.
+
+**Gatehouse's stand-in for the live sink writes behind the request** (a bounded queue and a background writer; a
+failure is logged and dropped), because AppEvent is not the audit of record (D11) and a request must never wait on it.
+
+**The request to join is Gatehouse's own unit of work**, with Uids derived from the request's id, so the decision finds
+the asking without a lookup: `AppActivity.DerivedUid`.
+
+**A unit's status is decided one way, in SQL and in the page alike:** failed if any step failed; completed if the
+application that created it reported completed; stuck if its last step is a hand-off older than `AppEvent:StuckHours`
+(4); otherwise running.
+
+**The raw events are a fourth Log Explorer model** rather than a new grid: the same facets, rows, drawer and pivots,
+gated by `logs.app-events` on the server and hidden from the tabs without it.
+
 ## 2026-10-24 — Gatehouse, AppEvent A-1 (the table and the catalog)
 
 **The catalog is `membership.AppEventKind`, in AppTrak beside the application registry**; the events stay in the log

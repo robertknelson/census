@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Gatehouse.FeatureManagement;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,13 @@ namespace Gatehouse.Logs;
 public class LogsPageController(IFeatureManager features, IOptions<LogsOptions> logs, IOptions<UsageOptions> usage) : Controller
 {
     [HttpGet("/logs"), FeatureGate(Features.LogsExplorer)]
-    public IActionResult Logs() => View("~/logs/views/Logs.cshtml");
+    public async Task<IActionResult> Logs()
+    {
+        var models = new List<string> { "api-request", "exception-event", "message" };
+        if (await features.IsEnabledAsync(Features.LogsAppEvents)) models.Add("app-event");
+        ViewData["Config"] = new { root = "#log-explorer", models };
+        return View("~/logs/views/Logs.cshtml");
+    }
 
     [HttpGet("/trace"), FeatureGate(Features.LogsTrace)]
     public async Task<IActionResult> Trace()

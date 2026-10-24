@@ -1,0 +1,15 @@
+@{
+    // The units of work (gatehouse.md §12.6): the recent ones, and one unit across systems, by its address.
+    ViewData["Title"] = "App events";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/membership.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app-events.css" asp-append-version="true" />
+}
+<div id="app-events" class="mb-root"></div>
+@section Scripts {
+    <script type="module">
+        import appEventsPage from '/js/app-events/app-events-page.mjs';
+        appEventsPage.init({ root: '#app-events' });
+    </script>
+}

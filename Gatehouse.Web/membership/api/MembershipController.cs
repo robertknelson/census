@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Gatehouse.AppEvents.Logging;
 using Gatehouse.CommandQuery;
 using Gatehouse.FeatureManagement;
 using Gatehouse.Identity;
 using Gatehouse.Membership.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement.Mvc;
 
 namespace Gatehouse.Membership.Api;
@@ -20,7 +22,7 @@ namespace Gatehouse.Membership.Api;
 [Route("api/membership")]
 [Authorize(Policy = FeatureAccessPolicies.SignedIn)]
 [FeatureGate(Features.AdminMembership)]
-public class MembershipController(IJsonQueryHandler queries, IJsonCommandHandler commands) : ControllerBase
+public class MembershipController(IJsonQueryHandler queries, IJsonCommandHandler commands, ILogger<MembershipController> logger) : ControllerBase
 {
     [HttpGet("applications")]
     public Task<IActionResult> Applications() => Read("applications");
@@ -79,12 +81,28 @@ public class MembershipController(IJsonQueryHandler queries, IJsonCommandHandler
     public Task<IActionResult> Requests() => Read("requests");
 
     [HttpPost("requests/{id:int}/approve")]
-    public Task<IActionResult> Approve(int id, [FromBody] JsonNode data) =>
-        Write<RequestDecision>("request-decide", id, data, MembershipRequests.ValidateApprove, p => p.AddParam("approve", true));
+    public Task<IActionResult> Approve(int id, [FromBody] JsonNode data) => Decide(id, data, approve: true);
 
     [HttpPost("requests/{id:int}/decline")]
-    public Task<IActionResult> Decline(int id, [FromBody] JsonNode data) =>
-        Write<RequestDecision>("request-decide", id, data, MembershipRequests.ValidateDecline, p => p.AddParam("approve", false));
+    public Task<IActionResult> Decline(int id, [FromBody] JsonNode data) => Decide(id, data, approve: false);
+
+    // A decision ends the request's unit of work (gatehouse.md §12.4): completed when approved, failed when declined.
+    private async Task<IActionResult> Decide(int id, JsonNode data, bool approve)
+    {
+        var result = await Write<RequestDecision>("request-decide", id, data, approve ? MembershipRequests.ValidateApprove : MembershipRequests.ValidateDecline,
+            p => p.AddParam("approve", approve));
+        if (result is not OkObjectResult) return result;
+        var note = ((string)data["note"])?.Trim();
+        logger.LogActivity(new AppActivity
+        {
+            Namespace = AccessRequest.Namespace, CommandName = AccessRequest.CommandName, Activity = approve ? "completed" : "failed",
+            WorkUid = AccessRequest.WorkUid(id), ParentUid = AccessRequest.CreatedUid(id), SubjectType = AccessRequest.CommandName, SubjectKey = id.ToString(),
+            Identifier = User.FindFirst(ClaimsTransformer.IdentifierClaim)?.Value,
+            Message = approve ? "Approved the request to join" : $"Declined the request to join: {note}",
+            Body = approve ? new { roleId = (int?)data["roleId"], applicationIds = data["applicationIds"]?.DeepClone() } : null,
+        });
+        return result;
+    }
 
     private static IParameters Key(string action) => new Parameters().CommandQuery(MembershipSqlCommandInitializer.Name, action);
 

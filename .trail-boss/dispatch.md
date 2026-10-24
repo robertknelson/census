@@ -1,7 +1,7 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "PUSHED to main 2026-10-22: persona UX at /personas — Tracker, FY views, correct-anything, admin pages"
-resume: "start-census.bat for Census (Demo); persona UX needs the Development profile (dotnet run --launch-profile http, then /personas); apptrak/Invoke-AppTrakDemo.ps1 rebuilds the local AppTrak with fm, audits and demo members; going live: .docs/go-live-personas.md, in order; tests: tests/Test-Personas.ps1, Test-Edit.ps1, Test-Membership.ps1, Test-MoveItQuestions.ps1 and the node tests"
+summary: "Gatehouse built, not pushed: a :5296 app to port Feature Management, Membership and Logs into your live app"
+resume: "Census: start-census.bat (Demo), port 5292. Gatehouse: cd Gatehouse.Web then dotnet run --launch-profile http, port 5296 (first run Gatehouse.Web/setup/Invoke-GatehouseDemo.ps1 after apptrak/Invoke-AppTrakDemo.ps1 and apptrak/Invoke-LogsDemo.ps1); tests: dotnet test Gatehouse.slnx and the node files in Gatehouse.Tests/js; porting: a PORTING.md in each Gatehouse.Web component folder"
 health: green
 links:
   - { label: "GitHub", url: "https://github.com/robertknelson/census" }
@@ -10,6 +10,7 @@ links:
   - { label: "Traffic discovery note", url: "https://github.com/robertknelson/census/blob/main/.docs/features/traffic.md" }
   - { label: "Personas spec", url: "https://github.com/robertknelson/census/blob/main/.docs/features/personas.md" }
   - { label: "Go-live runbook", url: "https://github.com/robertknelson/census/blob/main/.docs/go-live-personas.md" }
+  - { label: "Gatehouse spec", url: "https://github.com/robertknelson/census/blob/main/.docs/features/gatehouse.md" }
 phase_suggestion: execution
 ignite: start-census.bat
 #
@@ -24,47 +25,44 @@ ignite: start-census.bat
 #   2. what's next, if anything
 #   3. any alarming issues outstanding
 #   ...and in plain English. Keep the three headings below; keep the jargon out.
+#
+# PORTS: Census listens on 5292; Gatehouse (Gatehouse.Web, a second app in this repo) on 5296.
 ---
 
 ## The latest feature added
 
-**A new way into Census, built beside the old one: `/personas`, pushed to main 2026-10-22.**
-You pick who you are (Executive, Product Owner, Tech Lead, Application Administrator, Sys Admin)
-and see what that person would see. Who holds which role comes from AppTrak's membership tables;
-which role may use which page comes from a feature grid you edit yourself.
+**Gatehouse, a second, separate app in this repo, built to be copied piece by piece into your live app** (24 October,
+on your laptop, not pushed). It is the live app's shape in miniature: a left sidebar, Windows sign-in, and the
+command/query data layer. It holds three pieces, each in its own folder with a porting note:
 
-- **Everyone lands on the Tracker**, the Division step lines, trimmed to their own applications.
-- **Year, Quarter, Month, Week** on your fiscal year (October to September, so this is FY2027):
-  what shipped, where the change landed, what is due, what is stuck.
-- **Needs you**: every gap waiting on a word, with buttons that settle it.
-- **Correct anything**: every release, feature, fix, build claim, link and event in Move It can be
-  added, corrected or deleted, and every membership row too. Nothing is lost: each change keeps
-  the before and after.
-- **Membership and Feature access** pages for you, the Sys Admin.
-- **Your thirteen Move It notes** are in too: real application names, folded releases, due dates
-  under PROD, plain wording, a page per application.
-- Pages lay out across a wide screen instead of stacking down it.
+- **Feature Management:** your FM2280 grid. Switch a page on or off for a role, and the sidebar and the page follow at
+  once.
+- **Membership:** Census's membership page, plus a new **welcome for people who are not members yet**. They ask to join
+  (why, which applications, which role), and an administrator approves or declines on the Membership page.
+- **Logs:** Log Explorer, Trace and Usage. They gave exactly the same answers as Census on the demo logs, 27 questions
+  out of 27.
+
+Every page is guarded twice, in the sidebar and on the server, and the tests check both.
+
+Earlier (23 October, pushed): Log Explorer, Trace and Usage in Census itself.
 
 ## What's next
 
-**Settle two things, then run it live.** First, restrict who can reach the site (Windows
-sign-in, your account only): Census has no sign-in yet, so anyone who reaches `/personas` can
-edit everything. Second, give Census's own login write rights on the new tables. Then follow
-`.docs/go-live-personas.md` step by step on the real AppTrak and look.
+**Read the five porting notes with me, on paper, against your live app** (the last step of the Gatehouse plan). Then
+push.
 
-**Waiting on you:** whether the membership history table may live in your membership schema
-(P13); the two hand-made local applications (P7); counting declared deployments as moves (P8).
-
-**Parked:** sign-in and real permission checks (P12); scoping the old pages to a member (P10).
+**Waiting on you:**
+- where your live app's roles come from today (two ways set out in the identity note);
+- whether to keep deciding a script's result shape from its text (open item G3);
+- your look at the live site's IIS sign-in settings.
 
 ## Anything alarming
 
-- **No sign-in.** Until the site is restricted, anyone who reaches it can change Move It and
-  membership data. Do not deploy without restricting it.
-- **The runbook lacks the database-permission step** (write rights for Census's login on the
-  new tables and the Move It tables the edit pages change). Without it every save fails.
-- **Everything was tested only on manufactured data.** The live run is the first time it meets
-  real rows; speed on real data is still unmeasured.
-- **Move It now names applications from `membership.Application`.** Check step 0 of the runbook
-  first; if that table is not where Census reads, the Move It pages fail.
-- **Traffic still has a naming risk** (MOVEit, the product, versus Move It).
+- **Your live app's data handlers may be missing what these pieces need** (real async, long JSON read whole, refusals
+  as 404/409). The porting note says how to check, and recommends adding Gatehouse's handlers beside yours so nothing
+  that runs today changes.
+- **Two new tables go into AppTrak's membership schema** (the change history, and the requests to join). The requests
+  table was ratified 24 October.
+- **Everything was tested only on manufactured data.**
+- Census's own items from 22 October still stand: no sign-in on `/personas`, and the database write grants are not yet
+  in its runbook.

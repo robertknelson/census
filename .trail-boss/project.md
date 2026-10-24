@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Before going live: restrict the site to your account (no sign-in yet; anyone reaching /personas can edit) and grant Census''s login write rights on the new tables; then run .docs/go-live-personas.md in order on the real AppTrak, deploy main, and look at /personas as yourself. Answer P13 (membership audit table in your schema) first.'
+next_step: 'Read Gatehouse''s five PORTING.md notes with Robert against the live app (dry run on paper, gatehouse.md §9d); answer G7 (where the live app''s roles come from); then push main (Gatehouse G-1 to G-4 are local only).'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,15 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-24 (Gatehouse G-1 to G-4; local, not pushed)
+- Gatehouse (`Gatehouse.Web/`, port 5296): a reference app beside Census.Web for porting Feature Management, Membership
+  and Logs into his live app (sidebar, Windows sign-in, xf-dashboard-style command/query). Spec
+  `.docs/features/gatehouse.md`.
+- G-1 shell + FM2280 on command/query; G-2 Census's membership page; G-2b visitor welcome / request to join (new table
+  membership.MembershipRequest, V1 ratified); G-3 Log Explorer, Trace, Usage (27 API answers identical to Census);
+  G-4 a PORTING.md per component. 29 .NET tests, 4 node suites; live checks with his real Windows sign-in.
+- His rulings: no impersonation; fm serves one app; no changes to xf-dashboard (read only); never track Copilot files.
 
 ### 2026-10-22 (persona re-imagining; pushed to main on his word)
 - His pivot: personas (Executive, Product/App Owner, Tech Lead, Sys Admin, later an auditor) over

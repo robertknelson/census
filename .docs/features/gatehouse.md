@@ -1,6 +1,6 @@
 # Gatehouse — a reference app for porting Feature Management, Membership and Logs
 
-Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership); **G-2b built 2026-10-24** (the visitor welcome and the request to join, §11); **G-3 built 2026-10-24** (Logs, §9c). G-4 (porting notes) to come.
+Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership); **G-2b built 2026-10-24** (the visitor welcome and the request to join, §11); **G-3 built 2026-10-24** (Logs, §9c); **G-4 written 2026-10-24** (a `PORTING.md` in each component's folder, §9d), waiting for the dry run on paper with you.
 
 ## 1. The ask (Robert, 2026-10-23)
 
@@ -168,6 +168,23 @@ the live app's:
 **Not seen:** IIS (the porting note covers it, G5); a grant change reaching a signed-in user within the five minutes
 without a restart (the cache's expiry was not waited out).
 
+## 9d. G-4, the porting notes (2026-10-24)
+
+One `PORTING.md` per folder, in the order to port them. Each says what the live app already has, what to copy, the
+`Program.cs` lines, the settings, the SQL to run, and how to check it worked.
+
+| Order | Note | The one thing to read first |
+|---|---|---|
+| 1 | `command-query/PORTING.md` | The live handlers may lack four things the components need (real async, rows kept, long `FOR JSON` read whole, THROW → 400/404/409). Recommended: port Gatehouse's handlers **beside** the live ones and hand them to the components only, so nothing that runs today changes |
+| 2 | `identity/PORTING.md` | Add the `identifier` and `member` claims to the live transformation; don't replace it. Where the roles come from is G7: membership's (A) or the live app's own (B) |
+| 3 | `feature-management/PORTING.md` | `fm` serves one application; the sidebar as one declaration; port the gate test, and expect it to name the live app's ungated actions at first |
+| 4 | `membership/PORTING.md` | Two new tables in AppTrak (`MembershipAudit`, `MembershipRequest`); the live app's own `membership.Application` row; the eight colour tokens `membership.css` borrows |
+| 5 | `logs/PORTING.md` | The `logs` connection points at AppTrak; the log indexes per Census's go-live; the long-session check proves the handler |
+
+**Verified:** every file, setting, registration and path a note names exists in Gatehouse as named (checked by listing,
+2026-10-24). Not verified: anything about the live app beyond what xf-dashboard shows (read only), which is why the slice
+ends in a dry run on paper with you.
+
 ## 9c. G-3, built (2026-10-24)
 
 | Folder / file | What |
@@ -248,9 +265,9 @@ Gatehouse's sidebar is a fixed 15rem column (G-1), so the page is cramped there.
 | G2 | ~~Feature names in a shared `fm`~~ **Ruled: `fm` serves one application** (G-R9). | — | — |
 | G3 | **Result shape by sniffing the SQL text** (§4). | Keep it, to match the live app; it is a known sharp edge, and each initializer's script is short enough to check by eye. | His word. |
 | G4 | ~~FM2280's data layer onto command/query~~ **Ruled: yes** (G-R10). | — | — |
-| G5 | **Windows sign-in on Kestrel** locally (Negotiate) against IIS in the live app. | Kestrel with Negotiate for local runs; the porting note covers IIS (Windows authentication on, anonymous off). | — |
+| G5 | **Windows sign-in on Kestrel** locally (Negotiate) against IIS in the live app. | Written into `identity/PORTING.md`: the same `AddNegotiate()` code; hosted in IIS it defers to IIS's Windows authentication (on), anonymous off. | Your check of the live site's IIS settings. |
 | G6 | ~~The live app's claims transformation~~ **Answered: essentially xf-dashboard's** (G-R11). | — | — |
-| G7 | **Where do the live app's roles come from today?** xf-dashboard's auth provider reads its own person and role tables. If the live app's does too, its roles and membership's `member-types` are two vocabularies, and features must be granted to the one its claims carry. | The porting note for identity shows both: the auth provider reading membership (Gatehouse's), or features granted to the app's existing roles with no change to its provider. You pick when porting. | His look at the live app's provider. |
+| G7 | **Where do the live app's roles come from today?** (`identity/PORTING.md` sets out A and B.) xf-dashboard's auth provider reads its own person and role tables. If the live app's does too, its roles and membership's `member-types` are two vocabularies, and features must be granted to the one its claims carry. | The porting note for identity shows both: the auth provider reading membership (Gatehouse's), or features granted to the app's existing roles with no change to its provider. You pick when porting. | His look at the live app's provider. |
 
 ## 11. The visitor welcome and the request to join (G-2b; built 2026-10-24)
 

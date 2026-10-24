@@ -168,6 +168,29 @@ the live app's:
 **Not seen:** IIS (the porting note covers it, G5); a grant change reaching a signed-in user within the five minutes
 without a restart (the cache's expiry was not waited out).
 
+## 9e. The package (2026-10-24)
+
+Robert, 2026-10-24: "the live apps source IS NOT HERE. i am preparing a 'pachage of code' that i will be manually adding
+to 'live' application on another network." So the deliverable is a package that stands alone:
+
+- `Gatehouse.Web/setup/New-GatehousePackage.ps1` builds `out/gatehouse-package-<date>.zip` (git-ignored). Inside are the
+  app, its tests, the solution, the docs the notes cite (this spec and Census's `log-explorer-and-trace.md`, `usage.md`,
+  `go-live-log-explorer.md`), an index (`Gatehouse.Web/PORTING.md`, copied to the root) and `MANIFEST.sha256`. It
+  leaves out build output, `appsettings.Local.json` and anything Copilot. It refuses to build if this machine's user,
+  computer or domain name appears in any file.
+- `Test-GatehousePackage.ps1` (at the package's root) checks the copy against the manifest: missing, changed, extra.
+- Each component is self-contained: its page controllers moved from `controllers/PagesController.cs` into the
+  component's folder (`feature-management/FeatureAccessPageController.cs`, `membership/MembershipPageControllers.cs`,
+  `logs/LogsPageController.cs`). The notes cite only files inside the package.
+
+**Verified (2026-10-24):**
+- The zip, unpacked into an empty folder, checks clean (158 files). Built there, `dotnet test` passes 29.
+- The check catches a changed script, a removed doc and a stray file (exit 1).
+
+**Open:** the live log tables' body columns (Robert, 2026-10-24: live has `BodyType` and `Body`, where the demo has
+`ContentType` and `Content`). Two scripts read them (`logs/sql/search.sql`, `logs/sql/trace-session.sql`); they change
+once the live shape is confirmed (§10, G8).
+
 ## 9d. G-4, the porting notes (2026-10-24)
 
 One `PORTING.md` per folder, in the order to port them. Each says what the live app already has, what to copy, the
@@ -268,6 +291,7 @@ Gatehouse's sidebar is a fixed 15rem column (G-1), so the page is cramped there.
 | G5 | **Windows sign-in on Kestrel** locally (Negotiate) against IIS in the live app. | Written into `identity/PORTING.md`: the same `AddNegotiate()` code; hosted in IIS it defers to IIS's Windows authentication (on), anonymous off. | Your check of the live site's IIS settings. |
 | G6 | ~~The live app's claims transformation~~ **Answered: essentially xf-dashboard's** (G-R11). | — | — |
 | G7 | **Where do the live app's roles come from today?** (`identity/PORTING.md` sets out A and B.) xf-dashboard's auth provider reads its own person and role tables. If the live app's does too, its roles and membership's `member-types` are two vocabularies, and features must be granted to the one its claims carry. | The porting note for identity shows both: the auth provider reading membership (Gatehouse's), or features granted to the app's existing roles with no change to its provider. You pick when porting. | His look at the live app's provider. |
+| G8 | **The live body columns.** The demo keeps a request's body in `apptrak.ApiContent` (`Uid`, `ContentType`, `Content`; `ContentType = 0` is the request body), flagged by `apptrak.ApiRequest.HasContent`. Live has `BodyType` and `Body`. | Make the two scripts match live, so you never hand-edit T-SQL there; keep the local demo working by matching the demo's DDL to live. | The live columns of `apptrak.ApiRequest` and `apptrak.ApiContent` (names only). |
 
 ## 11. The visitor welcome and the request to join (G-2b; built 2026-10-24)
 

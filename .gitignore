@@ -19,3 +19,6 @@ Gatehouse.Web/appsettings.Local.json
 # Copilot: never tracked (Robert, 2026-10-24: "do NOT track anything copilot"). Visual Studio may add these on its own.
 **/*copilot*
 **/*Copilot*
+
+# Gatehouse packages (Gatehouse.Web/setup/New-GatehousePackage.ps1): built, never tracked.
+out/

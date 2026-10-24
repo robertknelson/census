@@ -1,6 +1,6 @@
 # Porting Membership
 
-Port after command/query, identity and Feature Management. Spec: `.docs/features/gatehouse.md` §7, §9b and §11; the
+Port after command/query, identity and Feature Management. Spec: `docs/gatehouse.md` §7, §9b and §11; the
 original is Census's membership page.
 
 ## What the live app already has
@@ -17,7 +17,8 @@ AppTrak's `membership` tables (`Application`, `Member`, `MemberApplicationRole`,
 | `api/MembershipController.cs` | The Membership page's API, behind `admin.membership` |
 | `api/WelcomeController.cs` | The visitor welcome's API, behind the fixed `Visitor` policy |
 | `views/Membership.cshtml`, `views/Welcome.cshtml` | The two pages |
-| `controllers/PagesController.cs`: `MembershipPageController`, `WelcomePageController`, and the first line of `HomeController.Index` (a visitor goes to `/welcome`) | Copy these into the live controllers |
+| `MembershipPageControllers.cs` | The two pages' controllers |
+| `controllers/PagesController.cs`: the first line of `HomeController.Index` | A visitor goes to `/welcome`; copy that line into the live Home action |
 | `wwwroot/js/membership/`, `wwwroot/css/membership.css` | The page and welcome modules, with their two helpers beside them |
 
 `membership.css` takes Gatehouse's colours from `site.css`: `--gh-wash`, `--gh-paper`, `--gh-rule`, `--gh-ink`,

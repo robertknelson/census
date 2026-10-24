@@ -1,6 +1,6 @@
 # Porting Feature Management
 
-Port after command/query and identity. Spec: `.docs/features/gatehouse.md` §6; FM2280 is the original (unchanged).
+Port after command/query and identity. Spec: `docs/gatehouse.md` §6; FM2280 is the original (unchanged).
 
 ## What the live app already has
 
@@ -14,7 +14,7 @@ A sidebar partial (`_SidebarNavPartial.cshtml`) and no feature management. Nothi
 | `data/` | The fm reads and writes as command/query keys (`…feature.*`), `FeatureQueryHandler` / `FeatureCommandHandler` on the `fm` connection, `Payload` (the API's checks) |
 | `sql/` | FM2280's scripts, each ending in a real `FOR JSON` (command/query's PORTING.md, "Scripts") |
 | `api/FeatureAccessController.cs` | FM2280's admin API, same routes and answers, behind the fixed admin policy |
-| `views/FeatureAccess.cshtml` | The admin page: FM2280's module as it is |
+| `views/FeatureAccess.cshtml`, `FeatureAccessPageController.cs` | The admin page (FM2280's module as it is) and its controller, behind the same fixed policy as the API |
 | `FeatureManagementSetup.cs` | The registrations, the policies (`FeatureAccessAdmin`, `SignedIn`, `Visitor`), the role catalog |
 | `Navigation.cs` | The one sidebar declaration, the feature names (`Features`), `NavigationFilter` |
 | `wwwroot/js/feature-access/`, `wwwroot/css/feature-access.css` | FM2280's page module and its design system; **Logs' modules import its `utils/dom.mjs`, `utils/time.mjs` and `components/toast-stack.mjs`, and Logs' styles need `feature-access.css`** |

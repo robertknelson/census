@@ -1,6 +1,6 @@
 # Porting identity
 
-Port after command/query. Spec: `.docs/features/gatehouse.md` §5 and §11.1.
+Port after command/query. Spec: `docs/gatehouse.md` §5 and §11.1.
 
 ## What the live app already has
 

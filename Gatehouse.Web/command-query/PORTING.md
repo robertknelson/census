@@ -1,6 +1,6 @@
 # Porting command/query
 
-Port this first: every other component runs on it. Spec: `.docs/features/gatehouse.md` §4.
+Port this first: every other component runs on it. Spec: `docs/gatehouse.md` §4.
 
 ## What the live app already has
 

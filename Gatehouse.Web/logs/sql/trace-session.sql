@@ -10,7 +10,11 @@ SET NOCOUNT ON;
 
 IF OBJECT_ID(QUOTENAME(@Schema) + N'.[ApiRequest]') IS NULL THROW 50404, N'The log tables are not in this database under that schema (Logs:Schema).', 1;
 
-DECLARE @q nvarchar(max) = REPLACE(N'
+-- The request body's columns: BodyType and Body on the live AppTrak, ContentType and Content on the demo (G8).
+DECLARE @bodyType sysname = CASE WHEN COL_LENGTH(QUOTENAME(@Schema) + N'.[ApiContent]', N'BodyType') IS NOT NULL THEN N'BodyType' ELSE N'ContentType' END;
+DECLARE @body sysname = CASE WHEN @bodyType = N'BodyType' THEN N'Body' ELSE N'Content' END;
+
+DECLARE @q nvarchar(max) = REPLACE(REPLACE(REPLACE(N'
 WITH Requests AS (
     SELECT r.*
     FROM {s}.ApiRequest r
@@ -25,9 +29,9 @@ SELECT (
                    r.Path AS path, r.QueryString AS query, r.ControllerName AS controller, r.ControllerMethod AS action,
                    r.CorrelationId AS correlationId, r.HasError AS hasError, r.Identifier AS identifier,
                    r.Application AS application, r.Stage AS stage, r.Browser AS browser, r.Platform AS platform,
-                   JSON_QUERY(CASE WHEN ISJSON(b.Content) = 1 THEN b.Content END) AS body
+                   JSON_QUERY(CASE WHEN ISJSON(b.Body) = 1 THEN b.Body END) AS body
             FROM Requests r
-            OUTER APPLY (SELECT TOP (1) c.Content FROM {s}.ApiContent c WHERE c.Uid = r.Uid AND c.ContentType = 0) b
+            OUTER APPLY (SELECT TOP (1) c.{body} AS Body FROM {s}.ApiContent c WHERE c.Uid = r.Uid AND c.{bodyType} = 0) b
             ORDER BY r.StartAt DESC
             FOR JSON PATH, INCLUDE_NULL_VALUES
         ), N''[]'')) AS requests,
@@ -48,6 +52,6 @@ SELECT (
             FOR JSON PATH, INCLUDE_NULL_VALUES
         ), N''[]'')) AS messages
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES
-) AS JsonNode;', N'{s}', QUOTENAME(@Schema));
+) AS JsonNode;', N'{s}', QUOTENAME(@Schema)), N'{bodyType}', QUOTENAME(@bodyType)), N'{body}', QUOTENAME(@body));
 
 EXEC sp_executesql @q, N'@SessionId nvarchar(50), @Max int', @SessionId = @SessionId, @Max = @Max;

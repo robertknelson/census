@@ -15,6 +15,10 @@ IF @Table NOT IN (N'ApiRequest', N'Exception', N'Message', N'AppEvent') THROW 50
 DECLARE @from nvarchar(300) = QUOTENAME(@Schema) + N'.' + QUOTENAME(@Table);
 DECLARE @object int = OBJECT_ID(@from);
 IF @object IS NULL THROW 50404, N'The log table is not in this database under that schema (Logs:Schema).', 1;
+-- The request body's columns: BodyType and Body on the live AppTrak, ContentType and Content on the demo (G8). Read
+-- from the table itself, so one script serves both.
+DECLARE @bodyType sysname = CASE WHEN COL_LENGTH(QUOTENAME(@Schema) + N'.[ApiContent]', N'BodyType') IS NOT NULL THEN N'BodyType' ELSE N'ContentType' END;
+DECLARE @body sysname = CASE WHEN @bodyType = N'BodyType' THEN N'Body' ELSE N'Content' END;
 DECLARE @op nvarchar(5) = CASE WHEN UPPER(@Operator) = N'OR' THEN N' OR ' ELSE N' AND ' END;
 
 DECLARE @picks nvarchar(max) = (
@@ -40,10 +44,10 @@ DECLARE @size int = CASE WHEN @PageSize BETWEEN 1 AND 200 THEN @PageSize ELSE 25
 DECLARE @skip int = CASE WHEN @PageIndex > 0 THEN @PageIndex ELSE 0 END * @size;
 
 DECLARE @sql nvarchar(max) = N'
-SELECT t.*' + CASE WHEN @Table = N'ApiRequest' THEN N', b.[Content] AS [RequestBody]' ELSE N'' END + N', COUNT(*) OVER () AS [Total]
+SELECT t.*' + CASE WHEN @Table = N'ApiRequest' THEN N', b.' + QUOTENAME(@body) + N' AS [RequestBody]' ELSE N'' END + N', COUNT(*) OVER () AS [Total]
 FROM ' + @from + N' t'
     + CASE WHEN @Table = N'ApiRequest' THEN N'
-OUTER APPLY (SELECT TOP (1) c.[Content] FROM ' + QUOTENAME(@Schema) + N'.[ApiContent] c WHERE c.[Uid] = t.[Uid] AND c.[ContentType] = 0) b' ELSE N'' END + N'
+OUTER APPLY (SELECT TOP (1) c.' + QUOTENAME(@body) + N' FROM ' + QUOTENAME(@Schema) + N'.[ApiContent] c WHERE c.[Uid] = t.[Uid] AND c.' + QUOTENAME(@bodyType) + N' = 0) b' ELSE N'' END + N'
 WHERE t.[StartAt] >= @Start AND t.[StartAt] < @End' + @shape
     + CASE WHEN @picks IS NULL THEN N'' ELSE N' AND (' + @picks + N')' END + N'
 ORDER BY t.' + QUOTENAME(@sort) + CASE WHEN @SortDescending = 0 THEN N' ASC' ELSE N' DESC' END + N', t.[Id] DESC

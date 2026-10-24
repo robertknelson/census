@@ -39,7 +39,8 @@ INSERT @wanted VALUES
     (N'ApiRequest', N'IX_ApiRequest_Identifier_StartAt', N'Identifier, StartAt', NULL),
     (N'ApiRequest', N'IX_ApiRequest_CorrelationId',      N'CorrelationId',       NULL),
     (N'ApiRequest', N'IX_ApiRequest_Uid',                N'Uid',                 NULL),
-    (N'ApiContent', N'IX_ApiContent_Uid',                N'Uid',                 N'ContentType'),
+    -- BodyType on the live AppTrak, ContentType on the demo (G8): the include follows the table, set below.
+    (N'ApiContent', N'IX_ApiContent_Uid',                N'Uid',                 N'BodyType'),
     (N'Exception',  N'IX_Exception_StartAt',             N'StartAt',             N'Level, SessionId'),
     (N'Exception',  N'IX_Exception_SessionId_StartAt',   N'SessionId, StartAt',  NULL),
     (N'Exception',  N'IX_Exception_CorrelationId',       N'CorrelationId',       NULL),
@@ -48,6 +49,9 @@ INSERT @wanted VALUES
     (N'Message',    N'IX_Message_CorrelationId',         N'CorrelationId',       NULL),
     (N'Session',    N'IX_Session_Identifier_StartAt',    N'Identifier, StartAt', N'SessionId'),
     (N'Session',    N'IX_Session_SessionId',             N'SessionId',           NULL);
+
+IF COL_LENGTH(QUOTENAME(@schema) + N'.[ApiContent]', N'BodyType') IS NULL
+    UPDATE @wanted SET Includes = N'ContentType' WHERE IndexName = N'IX_ApiContent_Uid';
 
 DECLARE @table sysname, @index sysname, @columns nvarchar(200), @includes nvarchar(200), @sql nvarchar(max);
 DECLARE wanted CURSOR LOCAL FAST_FORWARD FOR SELECT TableName, IndexName, Columns, Includes FROM @wanted;

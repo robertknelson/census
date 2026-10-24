@@ -4,6 +4,19 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-24 — Gatehouse, the live body columns (G8)
+
+**The scripts read which body columns the table has**, rather than being rewritten for live or driven by a setting.
+Options: rename the demo to live's names (breaks Census, which reads the same CensusLogsDemo); a `Logs:` setting
+naming the columns (one more thing to get wrong when porting); or `COL_LENGTH` on `ApiContent` (`BodyType` there means
+live's pair, otherwise the demo's). Chose the last: the scripts run on live as shipped, nothing to configure, Census
+untouched.
+
+**"ApiRequest has BodyType and Body" read as `ApiContent`.** The older local copy `apptrak_DEV` has
+`apptrak.ApiContent (Uid, BodyType, Body)` and `ApiRequest` has only `HasContent`, which fits "I later changed my mind
+locally" as a rename. `BodyType = 0` taken as the request body, as `ContentType = 0` is. If live really has the body
+on `ApiRequest` itself, the two reads say nothing is there (no error): tell me and I'll change them.
+
 ## 2026-10-24 — Gatehouse, Usage completed (U-R1, U-R2, U-R3, U-R5)
 
 **A held application matches its log rows by name or identifier**, ignoring case, and one held with no rows under either

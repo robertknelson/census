@@ -187,9 +187,9 @@ to 'live' application on another network." So the deliverable is a package that 
 - The zip, unpacked into an empty folder, checks clean (158 files). Built there, `dotnet test` passes 29.
 - The check catches a changed script, a removed doc and a stray file (exit 1).
 
-**Open:** the live log tables' body columns (Robert, 2026-10-24: live has `BodyType` and `Body`, where the demo has
-`ContentType` and `Content`). Two scripts read them (`logs/sql/search.sql`, `logs/sql/trace-session.sql`); they change
-once the live shape is confirmed (§10, G8).
+**Settled (G8, 2026-10-24):** the live log tables keep the body in `apptrak.ApiContent` as `BodyType` and `Body`, where
+the demo has `ContentType` and `Content`. `logs/sql/search.sql`, `logs/sql/trace-session.sql` and
+`logs/sql/ddl/001-log-indexes.sql` read which pair the table has, so the same scripts run on both (§10, G8).
 
 ## 9d. G-4, the porting notes (2026-10-24)
 
@@ -291,7 +291,7 @@ Gatehouse's sidebar is a fixed 15rem column (G-1), so the page is cramped there.
 | G5 | **Windows sign-in on Kestrel** locally (Negotiate) against IIS in the live app. | Written into `identity/PORTING.md`: the same `AddNegotiate()` code; hosted in IIS it defers to IIS's Windows authentication (on), anonymous off. | Your check of the live site's IIS settings. |
 | G6 | ~~The live app's claims transformation~~ **Answered: essentially xf-dashboard's** (G-R11). | — | — |
 | G7 | **Where do the live app's roles come from today?** (`identity/PORTING.md` sets out A and B.) xf-dashboard's auth provider reads its own person and role tables. If the live app's does too, its roles and membership's `member-types` are two vocabularies, and features must be granted to the one its claims carry. | The porting note for identity shows both: the auth provider reading membership (Gatehouse's), or features granted to the app's existing roles with no change to its provider. You pick when porting. | His look at the live app's provider. |
-| G8 | **The live body columns.** The demo keeps a request's body in `apptrak.ApiContent` (`Uid`, `ContentType`, `Content`; `ContentType = 0` is the request body), flagged by `apptrak.ApiRequest.HasContent`. Live has `BodyType` and `Body`. | Make the two scripts match live, so you never hand-edit T-SQL there; keep the local demo working by matching the demo's DDL to live. | The live columns of `apptrak.ApiRequest` and `apptrak.ApiContent` (names only). |
+| G8 | ~~The live body columns~~ **Settled 2026-10-24.** Live keeps the body in `apptrak.ApiContent` as `BodyType` and `Body` (Robert: "BodyType and Body columns, NOT ContentType and Content"; the older local copy `apptrak_DEV` has exactly that table, `Uid`, `BodyType`, `Body`), with `BodyType = 0` the request body as before the rename. The demo keeps `ContentType` and `Content`. | The three scripts that touch the body (`search.sql`, `trace-session.sql`, `001-log-indexes.sql`) read which pair the table has (`COL_LENGTH`), so they run on live as shipped and on the demo unchanged. Verified: on a scratch database in the live shape, filled from CensusLogsDemo's manufactured rows, both reads answer byte-for-byte as on the demo (200 search rows with bodies, a session's 14 bodies), and the index includes `BodyType`. | — |
 
 ## 11. The visitor welcome and the request to join (G-2b; built 2026-10-24)
 

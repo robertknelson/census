@@ -21,6 +21,11 @@ AppTrak. Gatehouse writes no logs; these pages only read.
 | `LogsPageController.cs` | The three page actions; each tells its page which of the other two the reader may open |
 | `wwwroot/js/logs/`, `trace/`, `usage/`, `wwwroot/css/logs.css`, `trace.css`, `usage.css` | The modules and styles. They need Feature Management's `feature-access` utilities and `feature-access.css` (`.fa`) |
 
+**Usage, completed in Gatehouse (`docs/gatehouse.md` §13):** `UsageAccess.cs` and `sql/usage-scope.sql` (the reader's
+applications, read from AppTrak on the `default` connection; system administrators see all), `@Excluded` in every
+`usage-*.sql`, `usage-summary.sql` and `usage-arrivals.sql` (which also reads `Session.Referer`), the
+`UsageSummaryController`, `views/UsageSummary.cshtml` and `wwwroot/js/usage/usage-summary-page.mjs`.
+
 The one rule in `site.css` these pages use: `.gh-main:has(> .gh-logs) { padding: 0; }`, so they take the whole main
 column. Use the live layout's equivalent.
 
@@ -38,7 +43,7 @@ builder.Services.AddScoped<LogsQueryHandler>();
 ```json
 "ConnectionStrings": { "logs": "<AppTrak: the same as default>" },
 "Logs": { "Schema": "apptrak", "SlowMs": 2000 },
-"Usage": { "FiscalYearStartMonth": 10 }
+"Usage": { "FiscalYearStartMonth": 10, "Excluded": { "*": [ "<a test account>" ], "<an application>": [ "<a staff identifier>" ] } }
 ```
 
 Usage's friction thresholds (`Usage:Friction:*`) default to Census's; tune them against real volume (open item U8 in
@@ -48,8 +53,8 @@ Usage's friction thresholds (`Usage:Friction:*`) default to Census's; tune them 
 
 The log indexes: `sql/ddl/001-log-indexes.sql`, key-only, as Census's go-live does (`docs/go-live-log-explorer.md`:
 drop the three wide indexes first if an earlier version of the script ran, and mind the locking warning on Standard
-edition). Then the features `logs.explorer`, `logs.trace` and `logs.usage` and their grants (Feature Management's step
-2).
+edition). Then the features `logs.explorer`, `logs.trace`, `logs.usage` and `logs.usage-summary` (executive,
+system-administrator) and their grants (Feature Management's step 2).
 
 ## The sidebar
 
@@ -65,3 +70,7 @@ Three items under Logs, each naming its feature (`Features.LogsExplorer`, `LogsT
 - Usage for the live app over a month: the pages are its controller and action names; open item U9 in `docs/usage.md` (registry
   names against the logs' `Application` names) applies.
 - With Trace off for a role that has Usage, Usage's sessions are plain text, not links.
+- A product owner of one application sees it alone in Usage and gets 403 for another; the summary links only where
+  Usage opens; an identifier in `Usage:Excluded` is gone from the figures and named on the page.
+- An application's "Came from" names another application only when that application's own requests recorded the host
+  in the referer.

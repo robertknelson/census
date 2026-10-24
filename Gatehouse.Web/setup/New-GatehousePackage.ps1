@@ -34,7 +34,7 @@ Copy-Item (Join-Path $repo 'Gatehouse.slnx') $stage
 Copy-Item (Join-Path $repo 'Gatehouse.Web\PORTING.md') $stage
 Copy-Item (Join-Path $repo 'Gatehouse.Web\setup\Test-GatehousePackage.ps1') $stage
 New-Item -ItemType Directory -Force (Join-Path $stage 'docs') | Out-Null
-foreach ($doc in '.docs\features\gatehouse.md', '.docs\features\log-explorer-and-trace.md', '.docs\features\usage.md', '.docs\go-live-log-explorer.md') {
+foreach ($doc in '.docs\features\gatehouse.md', '.docs\features\log-explorer-and-trace.md', '.docs\features\usage.md', '.docs\go-live-log-explorer.md', '.docs\features\app-event.md') {
     Copy-Item (Join-Path $repo $doc) (Join-Path $stage 'docs')
 }
 

@@ -1,6 +1,6 @@
 # Gatehouse — a reference app for porting Feature Management, Membership and Logs
 
-Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership); **G-2b built 2026-10-24** (the visitor welcome and the request to join, §11); **G-3 built 2026-10-24** (Logs, §9c); **G-4 written 2026-10-24** (a `PORTING.md` in each component's folder, §9d), waiting for the dry run on paper with you.
+Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership); **G-2b built 2026-10-24** (the visitor welcome and the request to join, §11); **G-3 built 2026-10-24** (Logs, §9c); **G-4 written 2026-10-24** (a `PORTING.md` in each component's folder, §9d, and the package, §9e); **AppEvent (§12) and the rest of Usage (§13) specced 2026-10-24, building.**
 
 ## 1. The ask (Robert, 2026-10-23)
 
@@ -414,3 +414,123 @@ it); the approved-state welcome in a browser (the test checks its status).
 **Noted:** a person in `Authorization:SystemAdministrators` who is not a member is both a visitor (the welcome, the
 Welcome-only sidebar) and a system administrator (every page opens if they type its address). That list is the way in
 for the first administrator, so it is left so.
+
+## 12. AppEvent in Gatehouse (spec 2026-10-24)
+
+Robert, 2026-10-24: "i want to have a fully implemented AppEvent and Usage in Gatehouse." AppEvent's design is Census's
+`docs/app-event.md` (D1–D11); this section is how Gatehouse builds it, with his rulings of the same day.
+
+### 12.1 Rulings (Robert, 2026-10-24)
+
+| # | Ruling | Consequence |
+|---|---|---|
+| AE-R1 | **The lifecycle words, kebab-case** (E1): `created`, `handed-off`, `received`, `started`, `completed`, `failed`. | `CommandActivity` holds only these; anything else is refused at ingest with the list. |
+| AE-R2 | **Nothing writes AppEvent today** (E2). | The columns of D2/D3/D6/D7 are added, and the indexes with them. |
+| AE-R3 | **The catalog of kinds is generic, "completely different from xf-dashboard"; NOUN-VERB names; it must have a management screen** (E5). | §12.3. |
+| AE-R4 | **The senders' sign-in is the live app's home-grown JWT, already active; not a concern now.** | Gatehouse's ingest sits behind a named policy on Windows sign-in; the porting note swaps the scheme. |
+| AE-R5 | **The mainframe can make web calls, and drop files where a C# file-system watcher can see them** (E3). | Two ways in, one validation: the API and a drop folder (§12.4). |
+| AE-R6 | **Who sees what is undetermined, but system administrators see every record; dashboards for executives, application owners and others come later.** | The pages are for system administrators now (§12.6); no dashboards in this slice. |
+
+### 12.2 The table (`apptrak.AppEvent`, the `logs` connection)
+
+The existing shape (Id, Uid, Identifier, Path, SessionId, CorrelationId, Machine, Stage, Application, StartAt, Namespace,
+CommandName, CommandActivity, Body, Data, CreatedAt, IsFromApi, ExecuteOn/ExecuteAt computed), plus the nullable columns
+`WorkUid nvarchar(36)`, `ParentUid nvarchar(36)`, `SubjectType nvarchar(50)`, `SubjectKey nvarchar(100)`, `Message
+nvarchar(500)`, and the indexes of `docs/app-event.md` §6.
+
+- **The unique index on `Uid` skips empty ones** (`WHERE Uid <> N''`). The live sink rebuilds the envelope when it writes,
+  which empties the Uid (`ToAppEvent`, read 2026-10-24); a plain unique index would make every second event of such a
+  sink fail, silently. The sink's fix is in the porting note; until it is ported, nothing calls it (AE-R2).
+- `logs/sql/ddl/002-app-event.sql` creates the table where it is missing (the local demo has none) and adds what is
+  missing where it exists (the real one). Idempotent.
+
+### 12.3 The catalog of kinds (AE-R3)
+
+A kind is **`Namespace` + `CommandName`**: the business area (`underwriting`) and a **NOUN-VERB** name (`quote-request`,
+`policy-renew`), both kebab-case. Gatehouse checks the form (kebab-case; the command at least two words); whether the
+first word is a noun is the registrant's to judge.
+
+- **`membership.AppEventKind`** in AppTrak, beside the application registry: `AppEventKindId`, `Namespace`,
+  `CommandName`, `DisplayName`, `Description`, `ApplicationId` (the owning application, `membership.Application`),
+  `Disposition` (`current` | `retired`), `CreatedAt`, `CreatedBy`; unique on (Namespace, CommandName). Every write
+  audited in `membership.MembershipAudit` (entity `app-event-kind`), as Membership's are.
+- **Unregistered kinds are stored and flagged, never dropped** (D5). The flag is worked out when read, not written: the
+  catalog lives in AppTrak and the events in the `logs` database, which are different databases locally.
+- **The management screen** (`/admin/app-event-kinds`): the registered kinds with their events in the last 30 days; the
+  kinds **seen in events but not registered**, each with Register (observe, then declare: never guessed from the name);
+  add, correct, retire; the history.
+
+### 12.4 Two ways in, one validation (AE-R5)
+
+**The API, `POST /api/app-event`**: one event, or an array of them. An event carries the envelope (Uid, Application,
+Stage, StartAt, and optionally Identifier, Path, SessionId, CorrelationId, Machine) and the event (Namespace, CommandName,
+CommandActivity, and optionally WorkUid, ParentUid, SubjectType, SubjectKey, Message, Body, Data).
+
+- **Refused with every reason, nothing written** when any event lacks Uid, Application, Stage, StartAt, Namespace or
+  CommandName, has a CommandActivity outside AE-R1, a kind not in kebab-case NOUN-VERB form, or Body or Data that are not
+  JSON. A batch is all or nothing, so a sender never has to work out which half landed.
+- **A Uid already stored is a duplicate**: skipped, and counted in the answer (`{ created, duplicates }`), never an error
+  (D10).
+- `StartAt` is the sender's; `CreatedAt` is AppTrak's; `IsFromApi = 1` (D9).
+
+**The drop folder** (`AppEvent:DropFolder`; empty, off): a C# file-system watcher picks up each `*.json` file (one event
+or an array), runs the same validation and write, and moves the file to `processed\` or to `failed\` beside a
+`<file>.error.txt` holding the reasons. Files already there at start-up are picked up too. The folder's permissions are
+who may send.
+
+**.NET apps, through `ILogger`**: `logger.LogActivity(…)` writes with xf-dashboard's `[appevent:` template and the event
+as its `appevent` property, so the live Serilog sink carries it once fixed (the porting note). In Gatehouse a small
+logger provider stands in for that sink and hands the event to the same write.
+
+**Gatehouse uses it itself**, so the .NET path runs for real: the request to join is a unit of work (kind
+`membership` / `access-request`). Asking logs `created`; approving logs `completed`; declining logs `failed`. All carry the
+request's WorkUid, and the subject is the request.
+
+### 12.5 The demo events
+
+Manufactured (no real data): a week of units of work across three systems: a portal, a service and a mainframe job.
+Each has its hand-offs, waits and failures, and some work is stuck. There is one kind nobody registered, and there are
+late and duplicate arrivals. They load into the local `CensusLogsDemo` (`logs/sql/seed/seed-app-events-demo.sql`,
+run by `setup/Invoke-GatehouseDemo.ps1`).
+
+### 12.6 What system administrators see (AE-R6)
+
+- **Log Explorer gains an AppEvent model**, beside ApiRequest, Exception and Message: its facets (application, stage,
+  namespace, command, activity, subject type, identifier) and rows, from the same scripts. The table is added to their
+  checked list. The model is offered, and answered, only with the feature `logs.app-events` (granted to
+  system-administrator); the tab is hidden without it.
+- **One unit of work** (`/app-events/work/{workUid}`, same feature): its events in order across systems, as a tree by
+  ParentUid. Each step shows when it happened, by which application, and how long since the step before, named as
+  **waiting** (handed-off → received) or **working** (started → completed). The page also shows the total, the arrival
+  lag, and whether the kind is registered. From Log Explorer, a row's WorkUid opens it.
+- **The kinds** (`/admin/app-event-kinds`, feature `admin.app-event-kinds`, system-administrator).
+- Dashboards (durations, throughput, stuck work for executives and owners) wait for AE-R6's later decision; the indexes
+  that serve them go in now.
+
+### 12.7 Slices
+
+| Slice | Contents | Verified by |
+|---|---|---|
+| A-1 | The table's DDL, the catalog table and its management screen, the demo events | The DDL twice (idempotent) on the demo and on a copy of AppTrak's empty shape; the screen in a browser: register a seen kind, correct, retire, history |
+| A-2 | Ingest: the API, the drop folder, `LogActivity` and its provider, Gatehouse's own access-request events | Tests: refusals with every reason, all-or-nothing, duplicates, a dropped file processed and a bad one failed with its reasons; a request to join seen as one unit of work |
+| A-3 | Log Explorer's AppEvent model and the unit-of-work page | Counts against direct SQL; the page for a demo unit of work with waiting and working times; 403 without the feature |
+
+## 13. Usage, completed in Gatehouse (spec 2026-10-24)
+
+Robert, 2026-10-24, on Census's open items: 7 "exactly", 8 "yes, and for sys admins", 9 "yes", 10 "later we'll deal
+with usability", 11 "yes".
+
+| # | Ruling | Gatehouse |
+|---|---|---|
+| U-R1 | **A person sees only the applications they hold a role on; system administrators see all** (U2, his 7). | The server decides: Usage's API answers 403 for an application outside the reader's scope, and the applications list is trimmed. A registry application matches the log rows whose Application is its name or identifier, ignoring case; a held application with no rows under either is named at the foot of the page (U9, never guessed). |
+| U-R2 | **An all-applications summary, for executives and system administrators** (U5, his 8). | `/usage/summary`, feature `logs.usage-summary` (executive, system-administrator): every application's people, sessions and sessions ending on an error, this period against the last; each row opens that application's Usage when the reader may. Census's `usage-summary.sql`. |
+| U-R3 | **Staff and test identifiers left out of the figures** (U7, his 9). | `Usage:Excluded`: identifiers for every application (`"*"`) or per application. Every Usage script leaves them out, and every page says who is left out. |
+| U-R4 | **Friendly page names: later** (U4, his 10). | Not built. |
+| U-R5 | **Visits that arrive from another application** (U6, his 11). | Pages gains "came from": for the pages a session entered on, the other applications whose pages linked there. An application's address is the `Host` its own requests recorded (observed, not named); a referer on another application's host is a visit from it. |
+
+| Slice | Contents | Verified by |
+|---|---|---|
+| U-a | Scope (U-R1) | A product owner of one application sees it alone and gets 403 for another; a system administrator sees all; an unmatched held application is named |
+| U-b | The summary (U-R2) | Against direct SQL; 403 for a technical lead |
+| U-c | Exclusions (U-R3) | With the list empty, every Usage answer is unchanged from G-3's diff against Census; with it set, the excluded identifiers' counts are gone and the page names them |
+| U-d | Came from (U-R5) | A demo session entering from another application's page shows it |

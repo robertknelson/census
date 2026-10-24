@@ -1,6 +1,6 @@
 # AppEvent — following a unit of work across systems
 
-Status: **spec, 2026-10-23, not built.** A cross-cutting AppTrak logging module, kept in Census for
+Status: **spec, 2026-10-23; E1–E5 ruled 2026-10-24; being built in Gatehouse** (`gatehouse.md` §12). A cross-cutting AppTrak logging module, kept in Census for
 now ("this does not impact Census. i'm just using Census as the DTO carrier for this module").
 Census only reads the results (log-explorer-and-trace.md T3).
 
@@ -123,8 +123,10 @@ only when queries over the raw rows get slow.
 
 | # | Question | Recommendation | Needed |
 |---|---|---|---|
-| E1 | **What was `CommandActivity` meant to hold?** | The lifecycle vocabulary (D4). If it meant something else, that meaning moves to a column of its own and the lifecycle takes this one. | His answer. |
-| E2 | **Can AppEvent's shape still change?** Does anything write `log.AppEvent` in the real AppTrak or any app? (Nothing in xf-dashboard calls the sink's path.) | If nothing writes it: add the D2/D3/D6/D7 columns. If something does: nullable columns are still safe, but the existing rows' CommandActivity values need mapping. | His check on the real tables and senders. |
-| E3 | **How does the mainframe report?** | HTTP to the ingest API if it can call out; otherwise a file or queue drop that an AppTrak job loads through the same validation. | What the mainframe side can do. |
-| E4 | **Where does the module's code live?** The `LogActivity` extension and sink fix belong in the shared logging library every .NET app references; the ingest endpoint in the real AppTrak API. | Spec here; code in those two homes once named. A Census copy only if he wants to prove it end to end on the demo first. | The repo names. |
-| E5 | **Where does the catalog of work kinds live?** | An AppTrak table beside the application registry: Namespace, CommandName, display words, owning application. Ingest flags kinds not in it. | His ruling; it is a new table in AppTrak, not in `log`. |
+| E1 | ~~What was `CommandActivity` meant to hold?~~ **Ruled 2026-10-24: the lifecycle words, kebab-case** (`created`, `handed-off`, `received`, `started`, `completed`, `failed`). | — | — |
+| E2 | ~~Can AppEvent's shape still change?~~ **Ruled 2026-10-24: nothing writes it today**; the columns go in. Does anything write `log.AppEvent` in the real AppTrak or any app? (Nothing in xf-dashboard calls the sink's path.) | If nothing writes it: add the D2/D3/D6/D7 columns. If something does: nullable columns are still safe, but the existing rows' CommandActivity values need mapping. | His check on the real tables and senders. |
+| E3 | ~~How does the mainframe report?~~ **Ruled 2026-10-24: web calls, and files dropped where a C# file-system watcher sees them**; both are built. | HTTP to the ingest API if it can call out; otherwise a file or queue drop that an AppTrak job loads through the same validation. | What the mainframe side can do. |
+| E4 | **Where does the module's code live?** Proved in Gatehouse and carried to the live network in its package (2026-10-24); the homes there are his. The `LogActivity` extension and sink fix belong in the shared logging library every .NET app references; the ingest endpoint in the real AppTrak API. | Spec here; code in those two homes once named. A Census copy only if he wants to prove it end to end on the demo first. | The repo names. |
+| E5 | ~~Where does the catalog of work kinds live?~~ **Ruled 2026-10-24: generic ("completely different from xf-dashboard"), NOUN-VERB names, with a management screen**: `membership.AppEventKind` (gatehouse.md §12.3). | An AppTrak table beside the application registry: Namespace, CommandName, display words, owning application. Ingest flags kinds not in it. | His ruling; it is a new table in AppTrak, not in `log`. |
+
+Senders' sign-in (2026-10-24): the live app's home-grown JWT, already active; "not a concern now".

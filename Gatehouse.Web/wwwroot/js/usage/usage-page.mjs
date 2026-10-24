@@ -25,6 +25,8 @@ class UsagePage {
     #embedded = false;
     // Gatehouse: which of the other pages the reader may open (the server's answer), so a link is never a 403.
     #links = { trace: true };
+    // Gatehouse (§13 U-R3): the identifiers left out of the figures, by application name or "*".
+    #excluded = {};
     #missing = [];
     #openSignal = null;
     #heatCell = null;
@@ -46,6 +48,7 @@ class UsagePage {
         this.#only = config.only ?? null;
         this.#embedded = config.embedded === true;
         this.#links = { trace: true, ...(config.links ?? {}) };
+        this.#excluded = config.excluded ?? {};
         const here = new URLSearchParams(location.search);
         if (GRAINS.includes(here.get('grain'))) this.#grain = here.get('grain');
         const on = /^\d{4}-\d{2}-\d{2}$/.test(here.get('on') ?? '') ? new Date(`${here.get('on')}T12:00:00`) : new Date();
@@ -90,7 +93,7 @@ class UsagePage {
             }
             const previous = shiftPeriod(this.#period, -1, this.#fiscalStart);
             const started = performance.now();
-            const [overview, prevOverview, pages, prevPages, people, paths, friction, when] = await Promise.all([
+            const [overview, prevOverview, pages, prevPages, people, paths, friction, when, arrivals] = await Promise.all([
                 this.#get('overview', this.#scopeParams(this.#period)),
                 this.#get('overview', this.#scopeParams(previous)),
                 this.#get('pages', this.#scopeParams(this.#period)),
@@ -99,12 +102,13 @@ class UsagePage {
                 this.#get('paths', this.#scopeParams(this.#period)),
                 this.#get('friction', this.#scopeParams(this.#period)),
                 this.#get('when', this.#scopeParams(this.#period)),
+                this.#get('arrivals', this.#scopeParams(this.#period)),
             ]);
             const sequences = sequencesOf(paths.sequences);
             if (!pages.some((p) => p.page === this.#paths.start)) this.#paths = { ...this.#paths, start: commonEntry(sequences), selected: null, open: new Set() };
             this.#openSignal = null;
             this.#heatCell = null;
-            this.#data = { overview, prevOverview, pages, prevPages, people, sequences, pathSessions: paths.sessions ?? 0, friction, when, previous, seconds: (performance.now() - started) / 1000 };
+            this.#data = { overview, prevOverview, pages, prevPages, people, sequences, pathSessions: paths.sessions ?? 0, friction, when, arrivals, previous, seconds: (performance.now() - started) / 1000 };
         } catch (error) {
             this.#data = { error: error.message };
         }
@@ -158,7 +162,15 @@ class UsagePage {
         if (d.error) return `<div class="fa-empty"><p>${escapeHtml(d.error)}</p></div>`;
         if (d.empty) return `<div class="fa-empty"><p>${this.#only ? 'None of your applications has log rows in this period under its name' : 'No requests from any application in this period'}.</p></div>${this.#missingHtml()}`;
         return `${this.#overview()}${this.#pages()}${this.#pathsSection()}${this.#frictionSection()}${this.#whenSection()}${this.#people()}
-            <p class="fa-muted usage-foot">Computed from the log tables in ${d.seconds.toFixed(1)} s; the previous period is ${escapeHtml(d.previous.label)}.</p>${this.#missingHtml()}`;
+            <p class="fa-muted usage-foot">Computed from the log tables in ${d.seconds.toFixed(1)} s; the previous period is ${escapeHtml(d.previous.label)}.</p>${this.#excludedHtml()}${this.#missingHtml()}`;
+    }
+
+    // Gatehouse (§13 U-R3): who is left out of every figure here, so nothing is hidden silently.
+    #excludedHtml() {
+        const app = String(this.#scope.application ?? '').toLowerCase();
+        const left = [...new Set(Object.entries(this.#excluded)
+            .filter(([key]) => key === '*' || key.toLowerCase() === app).flatMap(([, ids]) => ids ?? []))].sort();
+        return left.length ? `<p class="fa-muted usage-foot">Left out of every figure here (Usage:Excluded): ${left.map(escapeHtml).join(', ')}.</p>` : '';
     }
 
     // Applications the member holds a role on with no log rows under their name this period (usage.md U9).
@@ -205,19 +217,21 @@ class UsagePage {
     }
 
     #pages() {
-        const { pages, prevPages } = this.#data;
+        const { pages, prevPages, arrivals } = this.#data;
         const gone = notUsed(prevPages, pages);
+        // Gatehouse (§13 U-R5): the sessions that entered on a page from another application's page.
+        const cameFrom = (page) => (arrivals ?? []).filter((a) => a.page === page).map((a) => `${escapeHtml(a.from)} <span class="fa-muted">${n(a.sessions)}</span>`).join(', ');
         return `
             <section class="usage-section" id="u-pages">
                 <h2 class="usage-h">Pages <span class="fa-muted">${plural(pages.length, 'page')}; a page is the controller and action the app recorded</span></h2>
                 ${pages.length ? `
                 <table class="fa-matrix usage-table">
-                    <thead><tr><th>Page</th><th>Views</th><th>People</th><th title="Median gap to the next page load">Time on page</th><th title="Sessions that started here">Entries</th><th title="Sessions that ended here">Exits</th><th>Calls</th><th>Failed</th><th>Refused</th><th>Slow</th></tr></thead>
+                    <thead><tr><th>Page</th><th>Views</th><th>People</th><th title="Median gap to the next page load">Time on page</th><th title="Sessions that started here">Entries</th><th title="Sessions that entered here from another application">Came from</th><th title="Sessions that ended here">Exits</th><th>Calls</th><th>Failed</th><th>Refused</th><th>Slow</th></tr></thead>
                     <tbody>${pages.map((p) => `
                         <tr class="fa-row" data-page="${escapeHtml(p.page)}" tabindex="0">
                             <th scope="row"><button type="button" class="usage-link" data-page="${escapeHtml(p.page)}">${escapeHtml(p.page)}</button></th>
                             <td>${n(p.views)}</td><td>${n(p.people)}</td><td>${duration(p.medianSeconds)}</td>
-                            <td>${rate(p.entries, p.views)}</td><td>${rate(p.exits, p.views)}</td><td>${n(p.calls)}</td>
+                            <td>${rate(p.entries, p.views)}</td><td class="usage-from">${cameFrom(p.page)}</td><td>${rate(p.exits, p.views)}</td><td>${n(p.calls)}</td>
                             <td class="${p.failed ? 'usage-bad' : ''}">${rate(p.failed, p.calls)}</td>
                             <td class="${p.refused ? 'usage-warn' : ''}">${rate(p.refused, p.calls)}</td>
                             <td>${rate(p.slow, p.calls)}</td>

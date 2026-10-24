@@ -53,6 +53,7 @@ builder.Services.Configure<LogsOptions>(builder.Configuration.GetSection(LogsOpt
 builder.Services.Configure<UsageOptions>(builder.Configuration.GetSection(UsageOptions.SectionName));
 builder.Services.AddTransient<ISqlCommandInitializer, LogsSqlCommandInitializer>();
 builder.Services.AddScoped<LogsQueryHandler>();
+builder.Services.AddScoped<UsageAccess>();
 
 // AppEvent (§12): the catalog of kinds in AppTrak; the events in the log tables.
 builder.Services.AddTransient<ISqlCommandInitializer, AppEventsSqlCommandInitializer>();

@@ -82,5 +82,12 @@ const grid = heatGrid([{ dow: 0, hour: 9, loads: 8, sessions: 2, people: 2 }, { 
 assert('a week of 24 hours, Monday first', grid.length === 7 && grid[0].label === 'Mon' && grid.every((d) => d.hours.length === 24));
 assert('  the busiest hour is the darkest, a quarter of it one step, empty none', grid[0].hours[9].level === 4 && grid[4].hours[14].level === 1 && grid[3].hours[3].level === 0);
 
+// Gatehouse (gatehouse.md §13 U-R1): a held application as { name, identifier }, matched by either, ignoring case.
+const logApps = [{ application: 'WidgetCore' }, { application: 'ledger' }, { application: 'Reporting' }];
+const held = matchApplications(logApps, [{ name: 'WidgetCore', identifier: 'widgetcore' }, { name: 'Ledger Service', identifier: 'LEDGER' }, { name: 'My WebApp', identifier: 'my-webapp' }]);
+assert('held by name or identifier', held.kept.map((a) => a.application).join() === 'WidgetCore,ledger', held.kept.map((a) => a.application).join());
+assert('  a held one with no rows under either is named', held.missing.join() === 'My WebApp', held.missing.join());
+assert('  names alone still work', matchApplications(logApps, ['reporting']).kept.length === 1);
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

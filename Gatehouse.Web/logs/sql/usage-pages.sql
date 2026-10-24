@@ -5,6 +5,8 @@
 -- @Schema is Logs:Schema (R7); the query is built with it in place, every value a parameter.
 -- Index: IX_ApiRequest_Application_StartAt.
 
+-- Gatehouse: @Excluded (Usage:Excluded, gatehouse.md §13 U-R3) is a JSON array of { application, identifier }; an
+-- application of * means every one. Those identifiers' requests are left out of every figure.
 SET NOCOUNT ON;
 
 IF OBJECT_ID(QUOTENAME(@Schema) + N'.[ApiRequest]') IS NULL THROW 50404, N'The log tables are not in this database under that schema (Logs:Schema).', 1;
@@ -20,6 +22,8 @@ WITH r AS (
     FROM {s}.ApiRequest
     WHERE Application = @Application AND (@Stage IS NULL OR Stage = @Stage) AND StartAt >= @From AND StartAt < @To
       AND NOT (HttpStatus = 401 AND Identifier IN (N'''', N''na''))
+      AND NOT EXISTS (SELECT 1 FROM OPENJSON(@Excluded) WITH (LeftOutOf nvarchar(50) N''$.application'', LeftOut nvarchar(50) N''$.identifier'') x
+                      WHERE (x.LeftOutOf = N''*'' OR x.LeftOutOf = Application) AND x.LeftOut = Identifier)
 ), g AS (
     SELECT r.*, SUM(IsPage) OVER (PARTITION BY SessionId ORDER BY StartAt, IsPage DESC ROWS UNBOUNDED PRECEDING) AS Grp
     FROM r
@@ -56,5 +60,5 @@ SELECT (
     FOR JSON PATH, INCLUDE_NULL_VALUES
 ) AS JsonNode;', N'{s}', QUOTENAME(@Schema));
 
-EXEC sp_executesql @q, N'@Application nvarchar(50), @Stage nvarchar(15), @From datetimeoffset, @To datetimeoffset, @OffsetMinutes int, @SlowMs int',
-    @Application = @Application, @Stage = @Stage, @From = @From, @To = @To, @OffsetMinutes = @OffsetMinutes, @SlowMs = @SlowMs;
+EXEC sp_executesql @q, N'@Application nvarchar(50), @Stage nvarchar(15), @From datetimeoffset, @To datetimeoffset, @OffsetMinutes int, @SlowMs int, @Excluded nvarchar(max)',
+    @Application = @Application, @Stage = @Stage, @From = @From, @To = @To, @OffsetMinutes = @OffsetMinutes, @SlowMs = @SlowMs, @Excluded = @Excluded;

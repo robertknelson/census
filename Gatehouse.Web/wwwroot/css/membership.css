@@ -113,3 +113,7 @@
 @media (max-width: 640px) {
     .mb-root .wl-summary { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* The usage summary (gatehouse.md §13 U-R2): a pressed choice, and a rise or fall against the period before. */
+.mb-root .ps-cancel.is-active { border-color: var(--mb-ink); color: var(--mb-ink); font-weight: 600; }
+.mb-root .usage-up, .mb-root .usage-down { font-size: 12px; color: var(--mb-muted); }

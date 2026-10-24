@@ -567,3 +567,31 @@ with usability", 11 "yes".
 | U-b | The summary (U-R2) | Against direct SQL; 403 for a technical lead |
 | U-c | Exclusions (U-R3) | With the list empty, every Usage answer is unchanged from G-3's diff against Census; with it set, the excluded identifiers' counts are gone and the page names them |
 | U-d | Came from (U-R5) | A demo session entering from another application's page shows it |
+
+### 13.1 Built (2026-10-24)
+
+| Where | What |
+|---|---|
+| `logs/UsageAccess.cs`, `logs/sql/usage-scope.sql` | The reader's applications (none needed for a system administrator) and the exclusions, decided on the server |
+| `logs/api/LogsControllers.cs` | Usage's API answers only the reader's applications (403 otherwise) and leaves the excluded out; a new `arrivals` section; `UsageSummaryController` (`/api/usage-summary`, `logs.usage-summary`) with each row's `canOpen` |
+| `logs/sql/usage-*.sql` | `@Excluded` in every script's first read of the requests; `usage-summary.sql` (Census's) and `usage-arrivals.sql` (new) |
+| `wwwroot/js/usage/` | The held applications by name or identifier, "Came from" on the Pages table, who is left out; `usage-summary-page.mjs` (`/usage/summary`) |
+| `Views/Shared/_SidebarNavPartial.cshtml` | The current item is the longest route the address is or starts with (`/usage/summary` is not `/usage`) |
+
+**Verified (2026-10-24):** `dotnet test Gatehouse.slnx` passes 45; `node Gatehouse.Tests/js/usage-model.test.mjs` 36.
+- **Scope:** a member holding product-owner on WidgetCore and My WebApp gets WidgetCore's rows alone, 200 for it and 403
+  for WidgetPortal and LedgerService; the page is told both held applications (My WebApp has no rows, so it is named);
+  a system administrator gets every application and no scope.
+- **Summary:** 403 for a technical lead; an executive sees every application and may open none (no `logs.usage`); a
+  system administrator may open all; WidgetCore's people and sessions equal its own Usage overview's.
+- **Exclusions:** on a host with bkim left out of WidgetCore, WidgetCore's people fall by one and its sessions too, bkim
+  leaves its people list and its summary row, WidgetPortal's figures do not move, and the page names bkim. With no
+  exclusions, every Usage answer and the summary are still identical to Census's (the G-3 diff, run again).
+- **Came from:** WidgetCore's 21 sessions that arrived from WidgetPortal's pages (Orders.Index 14, Home.Index 7 since
+  September), named by the host WidgetPortal's own requests recorded.
+- **Live** (headless Edge and Chrome, your sign-in): the summary for October, and WidgetCore's Usage with Came from.
+
+**Caught in testing:** the first exclusion filter compared OPENJSON's own columns with themselves (unqualified names bind
+to the nearest scope), so a non-empty list left out everyone. An empty list hid it from the diff against Census; the
+exclusion test found it. The filter's columns are now named `LeftOutOf` and `LeftOut`.
+

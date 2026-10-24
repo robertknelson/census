@@ -23,6 +23,10 @@ public class UsageOptions
     public int FiscalYearStartMonth { get; set; } = 10;
 
     public FrictionOptions Friction { get; set; } = new();
+
+    // Staff and test identifiers left out of every figure (gatehouse.md §13 U-R3): per application name, or "*" for
+    // every application. The pages say who is left out.
+    public System.Collections.Generic.Dictionary<string, string[]> Excluded { get; set; } = new(System.StringComparer.OrdinalIgnoreCase);
 }
 
 public class FrictionOptions

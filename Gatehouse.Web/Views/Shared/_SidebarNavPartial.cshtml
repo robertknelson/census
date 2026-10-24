@@ -6,6 +6,10 @@
     var here = Context.Request.Path.Value ?? "/";
     var name = User.FindFirst(ClaimsTransformer.DisplayNameClaim)?.Value ?? User.Identity?.Name;
     var identifier = User.FindFirst(ClaimsTransformer.IdentifierClaim)?.Value;
+    // The item for this page: the longest route the address is, or starts with (/usage/summary is not /usage).
+    var current = groups.SelectMany(g => g.Items)
+        .Where(i => i.Href == "/" ? here == "/" : here.Equals(i.Href, StringComparison.OrdinalIgnoreCase) || here.StartsWith(i.Href + "/", StringComparison.OrdinalIgnoreCase))
+        .OrderByDescending(i => i.Href.Length).FirstOrDefault();
 }
 <nav class="gh-nav" aria-label="Sections">
     <div class="gh-brand">Gatehouse</div>
@@ -25,7 +29,7 @@
             }
             @foreach (var item in group.Items)
             {
-                var active = item.Href == "/" ? here == "/" : here.StartsWith(item.Href, StringComparison.OrdinalIgnoreCase);
+                var active = item == current;
                 <a class="gh-nav-item@(active ? " is-active" : "")" href="@item.Href" title="@item.Hint" aria-current="@(active ? "page" : null)">@item.Label@if (item.Count > 0) { <span class="gh-count" title="Requests to join waiting">@item.Count</span> }</a>
             }
         </div>

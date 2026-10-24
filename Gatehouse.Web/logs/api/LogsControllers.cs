@@ -176,12 +176,13 @@ public class TraceController(LogsQueryHandler queries) : LogsApiController(queri
 }
 
 // Usage's API (Census's UsageController): how one application is used over a period. One application, a stage (absent:
-// every stage), a window the browser sends for its own period, at most a quarter and a few days.
+// every stage), a window the browser sends for its own period, at most a quarter and a few days. Gatehouse (§13): only
+// the applications the reader holds a role on (all for a system administrator), and the excluded identifiers left out.
 [ApiController]
 [Route("api/usage")]
 [Authorize(Policy = FeatureAccessPolicies.SignedIn)]
 [FeatureGate(Features.LogsUsage)]
-public class UsageController(LogsQueryHandler queries) : LogsApiController(queries)
+public class UsageController(LogsQueryHandler queries, UsageAccess access) : LogsApiController(queries)
 {
     // Settings: the longest window one request reads (a quarter, with room for the browser's offset), and the most
     // sessions the path trees read (the newest are kept, and the page says so).
@@ -192,13 +193,17 @@ public class UsageController(LogsQueryHandler queries) : LogsApiController(queri
     private static readonly Dictionary<string, bool> Sections = new()
     {
         ["overview"] = true, ["page"] = true, ["paths"] = true, ["friction"] = true, ["pages"] = false, ["people"] = false, ["when"] = false,
+        ["arrivals"] = false,
     };
 
     [HttpGet("applications")]
     public async Task<IActionResult> Applications(string from, string to)
     {
         if (!TryWindow(from, to, out var start, out var end, out var problem)) return BadRequest(new { message = problem });
-        return Rows(await QueryAsync(Key("usage-applications").AddParam("From", start).AddParam("To", end)));
+        var response = await QueryAsync(Key("usage-applications").AddParam("From", start).AddParam("To", end).AddParam("Excluded", access.ExcludedJson()));
+        if (!response.IsOkay) return Refused(response);
+        var scope = await access.ScopeAsync(User);
+        return Ok(new JsonArray(response.Items.Where(r => UsageAccess.InScope(scope, (string)r["application"])).Select(r => r.DeepClone()).ToArray()));
     }
 
     [HttpGet("{section}")]
@@ -208,7 +213,9 @@ public class UsageController(LogsQueryHandler queries) : LogsApiController(queri
         if (string.IsNullOrWhiteSpace(application)) return BadRequest(new { message = "Choose an application." });
         if (section == "page" && string.IsNullOrWhiteSpace(page)) return BadRequest(new { message = "Choose a page." });
         if (!TryWindow(from, to, out var start, out var end, out var problem)) return BadRequest(new { message = problem });
-        var parameters = Key($"usage-{section}").AddParam("Application", application.Trim()).AddParam("Stage", string.IsNullOrWhiteSpace(stage) ? null : stage.Trim())
+        if (!UsageAccess.InScope(await access.ScopeAsync(User), application.Trim()))
+            return StatusCode(403, new { message = "You hold no role on that application." });
+        var parameters = Key($"usage-{section}").AddParam("Excluded", access.ExcludedJson()).AddParam("Application", application.Trim()).AddParam("Stage", string.IsNullOrWhiteSpace(stage) ? null : stage.Trim())
             .AddParam("From", start).AddParam("To", end).AddParam("OffsetMinutes", Math.Clamp(offset, -840, 840));
         if (section == "page") parameters.AddParam("Page", page.Trim());
         if (section == "paths") parameters.AddParam("Cap", PathSessions);
@@ -222,5 +229,33 @@ public class UsageController(LogsQueryHandler queries) : LogsApiController(queri
         if (!TryWindow(from, to, out start, out end)) problem = "The window must be two moments, the second after the first.";
         else if (end - start > Longest) problem = "Usage reads at most a quarter at a time.";
         return problem == null;
+    }
+}
+
+// Every application's usage at once (gatehouse.md §13 U-R2), for executives and system administrators: people, sessions,
+// sessions ending on an error, one stage (PROD unless asked). Each row says whether the reader may open that
+// application's Usage (its feature and their scope), so the summary links only where the link opens.
+[ApiController]
+[Route("api/usage-summary")]
+[Authorize(Policy = FeatureAccessPolicies.SignedIn)]
+[FeatureGate(Features.LogsUsageSummary)]
+public class UsageSummaryController(LogsQueryHandler queries, UsageAccess access, Microsoft.FeatureManagement.IFeatureManager features) : LogsApiController(queries)
+{
+    [HttpGet]
+    public async Task<IActionResult> Get(string from, string to, string stage = "PROD")
+    {
+        if (!TryWindow(from, to, out var start, out var end)) return BadRequest(new { message = "The window must be two moments, the second after the first." });
+        if (end - start > UsageController.Longest) return BadRequest(new { message = "Usage reads at most a quarter at a time." });
+        var response = await QueryAsync(Key("usage-summary").AddParam("Stage", string.IsNullOrWhiteSpace(stage) ? null : stage.Trim())
+            .AddParam("From", start).AddParam("To", end).AddParam("Excluded", access.ExcludedJson()));
+        if (!response.IsOkay) return Refused(response);
+        var usage = await features.IsEnabledAsync(Features.LogsUsage);
+        var scope = usage ? await access.ScopeAsync(User) : null;
+        return Ok(new JsonArray(response.Items.Select(r =>
+        {
+            var row = r.DeepClone().AsObject();
+            row["canOpen"] = usage && UsageAccess.InScope(scope, (string)r["application"]);
+            return (JsonNode)row;
+        }).ToArray()));
     }
 }

@@ -1,0 +1,14 @@
+@{
+    // Every application's usage at once (gatehouse.md §13 U-R2).
+    ViewData["Title"] = "Usage summary";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/membership.css" asp-append-version="true" />
+}
+<div id="usage-summary" class="mb-root"></div>
+@section Scripts {
+    <script type="module">
+        import summaryPage from '/js/usage/usage-summary-page.mjs';
+        summaryPage.init({ root: '#usage-summary', ...@Json.Serialize(ViewData["Config"]) });
+    </script>
+}

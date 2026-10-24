@@ -4,6 +4,23 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-24 — Gatehouse, Usage completed (U-R1, U-R2, U-R3, U-R5)
+
+**A held application matches its log rows by name or identifier**, ignoring case, and one held with no rows under either
+is named at the foot of the page (Census's U9, observed, never guessed).
+
+**Usage's API refuses an application outside the reader's scope (403)** as well as trimming the list: the page alone is
+one address away from bypass.
+
+**The summary links an application only where the server says the reader may open it** (`logs.usage` and the scope),
+so an executive's summary is plain figures.
+
+**Exclusions are settings** (`Usage:Excluded`, per application or `*`), left out in SQL, and every page that leaves
+anyone out says who.
+
+**"Came from" names the other application by its observed host**: the Host its own requests recorded. A referer on
+that host is a visit from it. Nothing is inferred from the name in the URL.
+
 ## 2026-10-24 — Gatehouse, AppEvent A-2 and A-3 (ILogger, the pages)
 
 **`LogActivity` throws on a malformed event** (an activity outside the six words, a kind not kebab-case NOUN-VERB),

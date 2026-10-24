@@ -29,6 +29,7 @@ public static class Navigation
             new NavItem("Log Explorer", "/logs", Feature: Features.LogsExplorer, Hint: "Requests, exceptions and messages"),
             new NavItem("Trace", "/trace", Feature: Features.LogsTrace, Hint: "One identifier's month, day and sessions"),
             new NavItem("Usage", "/usage", Feature: Features.LogsUsage, Hint: "How an application is used"),
+            new NavItem("Usage summary", "/usage/summary", Feature: Features.LogsUsageSummary, Hint: "Every application's usage at once"),
             new NavItem("App events", "/app-events", Feature: Features.LogsAppEvents, Hint: "Units of business work, across systems"),
         }),
         new NavGroup("Administer", new[]

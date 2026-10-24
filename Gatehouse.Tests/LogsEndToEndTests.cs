@@ -56,9 +56,12 @@ public class LogsEndToEndTests : IClassFixture<GatingEndToEndTests.App>
         Assert.NotNull(search["items"][0]["startAt"]);
         var facets = await lead.GetFromJsonAsync<JsonArray>("/api/logs/api-request/facets?start=2026-10-01T00:00:00-04:00&end=2026-10-24T00:00:00-04:00&profile-fields=Application");
         Assert.Equal("application", (string)facets[0]["name"]);
-        var overview = await lead.GetFromJsonAsync<JsonObject>($"/api/usage/overview?application=WidgetCore&stage=PROD&{Window}");
+        // Usage answers a technical lead only for applications they hold a role on (§13 U-R1); a system administrator, all.
+        var admin = _app.As("gt-logs-admin3", "system-administrator");
+        var overview = await admin.GetFromJsonAsync<JsonObject>($"/api/usage/overview?application=WidgetCore&stage=PROD&{Window}");
         Assert.NotNull(overview);
-        Assert.Equal(HttpStatusCode.BadRequest, (await lead.GetAsync("/api/usage/overview?application=WidgetCore&from=2026-01-01T00:00:00Z&to=2026-10-01T00:00:00Z")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.GetAsync("/api/usage/overview?application=WidgetCore&from=2026-01-01T00:00:00Z&to=2026-10-01T00:00:00Z")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await lead.GetAsync($"/api/usage/overview?application=WidgetCore&stage=PROD&{Window}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await lead.GetAsync($"/api/logs/nope/search?log-start=2026-10-01T00:00:00Z&log-end=2026-10-02T00:00:00Z")).StatusCode);
     }
 }

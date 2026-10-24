@@ -20,7 +20,7 @@ public class LogsSqlCommandInitializer : SqlCommandInitializer
     private static readonly (string Name, SqlDbType Type)[] UsageScope =
     {
         ("Application", SqlDbType.NVarChar), ("Stage", SqlDbType.NVarChar), ("From", SqlDbType.DateTimeOffset), ("To", SqlDbType.DateTimeOffset),
-        ("OffsetMinutes", SqlDbType.Int),
+        ("OffsetMinutes", SqlDbType.Int), ("Excluded", SqlDbType.NVarChar),
     };
 
     public LogsSqlCommandInitializer(IOptions<LogsOptions> logs, IOptions<UsageOptions> usage)
@@ -51,18 +51,21 @@ public class LogsSqlCommandInitializer : SqlCommandInitializer
         Add("trace-month", "trace-month.sql", Window.Prepend(("Identifier", SqlDbType.NVarChar)).Append(("OffsetMinutes", SqlDbType.Int)).ToArray());
         Add("trace-session", "trace-session.sql", ("SessionId", SqlDbType.NVarChar), ("Max", SqlDbType.Int));
 
-        Add("usage-applications", "usage-applications.sql", Window);
+        Add("usage-applications", "usage-applications.sql", Window.Append(("Excluded", SqlDbType.NVarChar)).ToArray());
+        Add("usage-summary", "usage-summary.sql", Window.Prepend(("Stage", SqlDbType.NVarChar)).Append(("Excluded", SqlDbType.NVarChar)).ToArray());
+        Add("usage-arrivals", "usage-arrivals.sql", UsageScope);
+        Add("usage-scope", "usage-scope.sql", ("Identifier", SqlDbType.NVarChar));
         foreach (var section in new[] { "overview", "pages", "people", "when" })
             Add($"usage-{section}", $"usage-{section}.sql", UsageScope);
         Add("usage-page", "usage-page.sql", UsageScope.Append(("Page", SqlDbType.NVarChar)).ToArray());
         Add("usage-paths", "usage-paths.sql", UsageScope.Append(("Cap", SqlDbType.Int)).ToArray());
         Add("usage-friction", "usage-friction.sql", UsageScope);
 
-        // The thresholds every usage section may read: the slow request, and (friction) the signals' settings.
-        foreach (var key in Initializers.Keys.Where(k => k.Contains(".usage-") && !k.EndsWith("applications")).ToList())
+        // The thresholds every usage section may read: the slow request, and (friction, the summary) the signals' settings.
+        foreach (var key in Initializers.Keys.Where(k => k.Contains(".usage-") && !k.EndsWith("applications") && !k.EndsWith("scope")).ToList())
         {
             var bind = Initializers[key];
-            var friction = key.EndsWith("friction");
+            var friction = key.EndsWith("friction") || key.EndsWith("summary");
             Initializers[key] = (command, parameters, node) =>
             {
                 bind(command, parameters, node);

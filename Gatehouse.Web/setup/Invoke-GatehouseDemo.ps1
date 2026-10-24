@@ -4,7 +4,8 @@
          Gatehouse's features with their first grants.
       2. The local AppTrak's membership: the 'gatehouse' application, and you (your Windows username) as a member
          holding -Roles on it. Your name is read here at run time; it is never written in the repo.
-      3. The Membership page's audit table (membership.MembershipAudit), if Census has not already made it.
+      3. The Membership page's audit table (membership.MembershipAudit) and the requests to join
+         (membership.MembershipRequest), if they are not there yet.
 
     Run Census's apptrak\Invoke-AppTrakDemo.ps1 first (it builds membership and core.SelectItem's member-types list).
     Run again with other -Roles to see the sidebar and the gates change (within Identity:SessionMinutes).
@@ -35,4 +36,5 @@ $web = Split-Path $PSScriptRoot -Parent
 Invoke-Step $FmDatabase (Join-Path $web 'feature-management\sql\ddl\001-fm-schema.sql')
 Invoke-Step $FmDatabase (Join-Path $PSScriptRoot 'seed-gatehouse-features.sql')
 Invoke-Step $AppTrakDatabase (Join-Path $web 'membership\sql\ddl\001-membership-audit.sql')
+Invoke-Step $AppTrakDatabase (Join-Path $web 'membership\sql\ddl\002-membership-request.sql')
 Invoke-Step $AppTrakDatabase (Join-Path $PSScriptRoot 'seed-gatehouse-membership.sql') @("Identifier=$Identifier", "Roles=$Roles")

@@ -8,6 +8,7 @@ export class MembershipApi {
     recent() { return this.#get('/api/membership/audit/recent'); }
     appParts() { return this.#get('/api/membership/app-parts'); }
     audit(entity, id) { return this.#get(`/api/membership/audit/${entity}/${id}`); }
+    requests() { return this.#get('/api/membership/requests'); }
 
     saveApplication(id, body) { return this.#post(id ? `/api/membership/applications/${id}` : '/api/membership/applications', body); }
     saveMember(id, body) { return this.#post(id ? `/api/membership/members/${id}` : '/api/membership/members', body); }
@@ -17,6 +18,8 @@ export class MembershipApi {
     deletePart(body) { return this.#post('/api/membership/parts/delete', body); }
     grant(body) { return this.#post('/api/membership/grants/grant', body); }
     revoke(body) { return this.#post('/api/membership/grants/revoke', body); }
+    approve(id, body) { return this.#post(`/api/membership/requests/${id}/approve`, body); }
+    decline(id, body) { return this.#post(`/api/membership/requests/${id}/decline`, body); }
 
     async #get(url) {
         const response = await this.#fetch(url, { headers: { Accept: 'application/json' } });

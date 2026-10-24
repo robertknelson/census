@@ -89,6 +89,41 @@ public static class MembershipRequests
             ? new List<string> { "Say which part to remove." }
             : new List<string>();
 
+    // The visitor's request to join (gatehouse.md §11.2). Who they are comes from the sign-in, not from here.
+    public static List<string> Validate(JoinRequest request)
+    {
+        var errors = new List<string>();
+        Require(errors, request.FirstName, "First name", 100);
+        Require(errors, request.LastName, "Last name", 100);
+        Require(errors, request.Email, "Email", 100);
+        Require(errors, request.Reason, "Why you want to join", 1000);
+        if (request.RoleId <= 0) errors.Add("Pick your role.");
+        ApplicationIds(errors, request.ApplicationIds, "Pick at least one application.");
+        return errors;
+    }
+
+    public static List<string> ValidateApprove(RequestDecision request)
+    {
+        var errors = new List<string>();
+        if (request.RoleId <= 0) errors.Add("Pick the role to grant.");
+        ApplicationIds(errors, request.ApplicationIds, "Approve at least one application.");
+        if ((request.Note ?? "").Trim().Length > 1000) errors.Add("The note can be at most 1000 characters.");
+        return errors;
+    }
+
+    public static List<string> ValidateDecline(RequestDecision request)
+    {
+        var errors = new List<string>();
+        Require(errors, request.Note, "Why it is declined", 1000);
+        return errors;
+    }
+
+    private static void ApplicationIds(List<string> errors, int[] ids, string none)
+    {
+        if (ids == null || ids.Length == 0) errors.Add(none);
+        else if (ids.Length > 50 || Array.Exists(ids, id => id <= 0)) errors.Add("Those applications are not ones on offer.");
+    }
+
     private static void Require(List<string> errors, string value, string label, int max)
     {
         if (string.IsNullOrWhiteSpace(value)) errors.Add($"{label} is required.");
@@ -127,6 +162,23 @@ public class AppPartSave
     public int ServiceTypeId { get; set; }
     public string StartOn { get; set; }
     public string Status { get; set; }
+}
+
+public class JoinRequest
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Email { get; set; }
+    public string Reason { get; set; }
+    public int RoleId { get; set; }
+    public int[] ApplicationIds { get; set; }
+}
+
+public class RequestDecision
+{
+    public int RoleId { get; set; }
+    public int[] ApplicationIds { get; set; }
+    public string Note { get; set; }
 }
 
 public class GrantSave

@@ -34,6 +34,43 @@ public class MembershipSqlCommandInitializer : SqlCommandInitializer
             Actor(p), Text("@Part", SqlDbType.VarChar, (string)n["part"], 30), Int("@ApplicationId", (int?)n["applicationId"] ?? 0),
             Int("@Key", (int?)n["oldKey"] ?? 0),
         }));
+
+        // The visitor welcome and the requests to join (gatehouse.md §11).
+        Initializers.Add($"{Domain}.{Name}.welcome-choices", (c, p, n) => Script(c, "welcome-choices.sql"));
+        Initializers.Add($"{Domain}.{Name}.welcome-mine", (c, p, n) => Script(c, "welcome-mine.sql").Parameters.Add(Identifier(p)));
+        Initializers.Add($"{Domain}.{Name}.request-create", InitializeRequestCreate);
+        Initializers.Add($"{Domain}.{Name}.requests", (c, p, n) => Script(c, "admin-requests.sql"));
+        Initializers.Add($"{Domain}.{Name}.requests-pending-count", (c, p, n) => Script(c, "requests-pending-count.sql"));
+        Initializers.Add($"{Domain}.{Name}.request-decide", InitializeRequestDecide);
+    }
+
+    // The identifier and Windows identity are the signed-in user's, from the parameters; never from the body.
+    private static void InitializeRequestCreate(SqlCommand command, IParameters parameters, JsonNode node)
+    {
+        Script(command, "request-create.sql").Parameters.AddRange(new[]
+        {
+            Identifier(parameters),
+            Text("@WindowsIdentity", SqlDbType.NVarChar, parameters.TryGet("windowsIdentity", out string windows) ? windows : null, 72),
+            Text("@FirstName", SqlDbType.NVarChar, Trim(node["firstName"]), 100),
+            Text("@LastName", SqlDbType.NVarChar, Trim(node["lastName"]), 100),
+            Text("@Email", SqlDbType.NVarChar, Trim(node["email"]), 100),
+            Text("@Reason", SqlDbType.NVarChar, Trim(node["reason"]), 1000),
+            Int("@RoleId", (int)node["roleId"]),
+            Text("@ApplicationIds", SqlDbType.NVarChar, node["applicationIds"].ToJsonString(), -1),
+        });
+    }
+
+    private static void InitializeRequestDecide(SqlCommand command, IParameters parameters, JsonNode node)
+    {
+        var note = Trim(node["note"]);
+        Script(command, "request-decide.sql").Parameters.AddRange(new[]
+        {
+            Actor(parameters), Id(parameters),
+            new SqlParameter("@Approve", SqlDbType.Bit) { Value = parameters.TryGet("approve", out bool approve) && approve },
+            Int("@RoleId", (int?)node["roleId"] ?? 0),
+            Text("@ApplicationIds", SqlDbType.NVarChar, node["applicationIds"]?.ToJsonString() ?? "[]", -1),
+            Text("@Note", SqlDbType.NVarChar, string.IsNullOrEmpty(note) ? null : note, 1000),
+        });
     }
 
     private static void InitializeApplicationSave(SqlCommand command, IParameters parameters, JsonNode node)
@@ -109,6 +146,9 @@ public class MembershipSqlCommandInitializer : SqlCommandInitializer
 
     private static SqlParameter Actor(IParameters parameters) =>
         Text("@Actor", SqlDbType.NVarChar, parameters.TryGet("username", out string user) ? user : null, 100);
+
+    private static SqlParameter Identifier(IParameters parameters) =>
+        Text("@Identifier", SqlDbType.NVarChar, parameters.TryGet("username", out string user) ? user : null, 100);
 
     private static SqlParameter Id(IParameters parameters) => Int("@Id", parameters.TryGet("id", out int id) ? id : 0);
 

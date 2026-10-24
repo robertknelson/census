@@ -1,6 +1,6 @@
 # Gatehouse — a reference app for porting Feature Management, Membership and Logs
 
-Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership). G-3 (Logs) and G-4 (porting notes) to come.
+Status: **G-1 built 2026-10-23** (the shell: Windows sign-in, the claims transformation, command/query, the sidebar, Feature Management and its gates); **G-2 built 2026-10-24** (Membership); **G-2b built 2026-10-24** (the visitor welcome and the request to join, §11). G-3 (Logs) and G-4 (porting notes) to come.
 
 ## 1. The ask (Robert, 2026-10-23)
 
@@ -217,7 +217,7 @@ Gatehouse's sidebar is a fixed 15rem column (G-1), so the page is cramped there.
 | G6 | ~~The live app's claims transformation~~ **Answered: essentially xf-dashboard's** (G-R11). | — | — |
 | G7 | **Where do the live app's roles come from today?** xf-dashboard's auth provider reads its own person and role tables. If the live app's does too, its roles and membership's `member-types` are two vocabularies, and features must be granted to the one its claims carry. | The porting note for identity shows both: the auth provider reading membership (Gatehouse's), or features granted to the app's existing roles with no change to its provider. You pick when porting. | His look at the live app's provider. |
 
-## 11. The visitor welcome and the request to join (G-2b; spec 2026-10-24, not built)
+## 11. The visitor welcome and the request to join (G-2b; built 2026-10-24)
 
 The ask (Robert, 2026-10-24): "a Visitor welcome view that allows the user to REQUEST to join. it should capture their
 identifier (windows DOMAIN\USERNAME), and a brief description of why they want to join, their application[] name(s) and
@@ -244,7 +244,7 @@ their role (Product Owner, etc); this is what should show up if they currently a
 After sending, the page says the request is waiting and shows what was sent; a second request while one waits is refused
 (409), saying so. A declined request shows its reason, and the visitor may ask again.
 
-### 11.3 The table (new DDL in AppTrak's `membership`: your ratification first, V1)
+### 11.3 The table (new DDL in AppTrak's `membership`, V1 ratified 2026-10-24: `membership/sql/ddl/002-membership-request.sql`)
 
 ```sql
 CREATE TABLE membership.MembershipRequest (
@@ -294,9 +294,47 @@ CREATE UNIQUE INDEX UX_MembershipRequest_Pending ON membership.MembershipRequest
 
 | # | Question | Recommendation | Needed |
 |---|---|---|---|
-| V1 | **The new table** (§11.3) in AppTrak's `membership` schema. | As drafted. | Your ratification. |
-| V2 | **Ask for first name, last name and email?** Not in your list, but `membership.Member` requires all three. | Yes; otherwise the approver types them. | Your word. |
+| V1 | ~~The new table~~ **Ratified 2026-10-24** ("V1, new table"), as drafted. | — | — |
+| V2 | **Ask for first name, last name and email?** Not in your list, but `membership.Member` requires all three. | Built so (calls-made-for-you, 2026-10-24); say if you would rather the approver types them. | — |
 | V3 | **Applications not in the registry?** | Pick-list only; one not listed goes in the reason, and the approver registers it first. | — |
 | V4 | **One role for all the applications, or one per application?** You said "their role". | One, as you said; the approver can adjust per application at approval. | — |
 | V5 | **A member with no role here: welcome too?** | No (§11.1): they are known; their roles are given on the Membership page. | Your word if you want otherwise. |
 | V6 | **Telling administrators a request is waiting** (email, a count in the sidebar). | A count beside Membership in the sidebar, for those who can open it; no email (Gatehouse sends none). | — |
+
+### 11.7 Built (2026-10-24)
+
+| Where | What |
+|---|---|
+| `membership/sql/ddl/002-membership-request.sql` | The table of §11.3, idempotent; `setup/Invoke-GatehouseDemo.ps1` runs it |
+| `membership/sql/welcome-choices.sql`, `welcome-mine.sql`, `request-create.sql` | What a visitor may pick (applications not retired, member-types by display name, nothing more), their latest request, and the request itself (refused for a member, a second waiting request, or a choice not on offer) |
+| `membership/sql/admin-requests.sql`, `request-decide.sql`, `requests-pending-count.sql` | The requests for the Membership page; approve (member, grants, request, all audited, in one transaction) or decline with a note; the sidebar's count |
+| `identity/ClaimsTransformer.cs` | A `member` claim, `true` or `false` |
+| `feature-management/` | The fixed `Visitor` policy (signed in, `member` = `false`); the sidebar shows a visitor the Welcome item alone, and a count beside Membership when requests wait |
+| `membership/api/WelcomeController.cs`, `/welcome` (`controllers/PagesController.cs`, `membership/views/Welcome.cshtml`) | The visitor's API and page, behind `Visitor`. Home sends a visitor there |
+| `membership/api/MembershipController.cs` | `GET requests`, `POST requests/{id}/approve`, `POST requests/{id}/decline`, behind `admin.membership` |
+| `wwwroot/js/membership/welcome-page.mjs`, `membership-page.mjs` | The welcome (form, waiting, approved, declined with its reason); the Membership page's Requests tab, and "Needs a word" leading with waiting requests |
+
+**Verified (2026-10-24):** `dotnet test Gatehouse.slnx` passes 26; the node model test 18.
+- **End to end (`WelcomeEndToEndTests`, local AppTrak):** a visitor is sent from `/` to the welcome, sees Welcome alone in
+  the sidebar, and gets 403 from the Logs, Membership and Feature access pages and APIs; a member gets 403 from the
+  welcome and its API. A request with every field empty is refused with every reason; an application not on offer, 400.
+  A body naming another Windows identity is ignored: the request is the signed-in user's. A second request while one
+  waits: 409. The administrator sees it and the sidebar count; approval with no application, 400; approved with a
+  changed role and an application dropped, it makes the member with that role on the kept application only (the real
+  identity lookup), audits it, and a second approval is 409. Declining needs a note; the visitor sees it and may ask
+  again.
+- **Live on :5296 with real Windows sign-in**, your local member row removed for the run (local demo data):
+  - signed in as a visitor, `/` went to the welcome, with Welcome alone in the sidebar; filled the form in Chrome
+    (Gatehouse and WidgetCore, Product Owner); it said Sent and showed the request waiting;
+  - the Requests tab showed it; approved it as system-administrator on Gatehouse only, WidgetCore unticked; the
+    database held the new member with that one grant, the request approved, your note;
+  - restarted with nothing but membership: Home showed system-administrator and every sidebar item; `/welcome` was 403.
+  - To approve your own request I ran that first part with you in `Authorization:SystemAdministrators` (a run-time
+    setting, not a file). Afterwards your member row's names were set back to the seed's.
+
+**Not seen:** the sidebar count live (no request was waiting when the admin's page was shot; the end-to-end test checks
+it); the approved-state welcome in a browser (the test checks its status).
+
+**Noted:** a person in `Authorization:SystemAdministrators` who is not a member is both a visitor (the welcome, the
+Welcome-only sidebar) and a system administrator (every page opens if they type its address). That list is the way in
+for the first administrator, so it is left so.

@@ -1,0 +1,14 @@
+@{
+    // The visitor welcome (gatehouse.md §11): who you are signed in as, and the request to join.
+    ViewData["Title"] = "Welcome";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/membership.css" asp-append-version="true" />
+}
+<div id="welcome" class="mb-root"></div>
+@section Scripts {
+    <script type="module">
+        import welcomePage from '/js/membership/welcome-page.mjs';
+        welcomePage.init({ root: '#welcome' });
+    </script>
+}

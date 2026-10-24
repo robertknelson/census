@@ -20,6 +20,8 @@ public class HomeController(IFeatureManager features) : Controller
     [HttpGet("/")]
     public async Task<IActionResult> Index()
     {
+        // Not a member: the welcome is their page (gatehouse.md §11.1).
+        if (User.HasClaim(ClaimsTransformer.MemberClaim, "false")) return Redirect("/welcome");
         var on = new System.Collections.Generic.List<(string Name, bool On)>();
         await foreach (var name in features.GetFeatureNamesAsync()) on.Add((name, await features.IsEnabledAsync(name)));
         ViewData["Features"] = on.OrderBy(f => f.Name).ToList();
@@ -49,6 +51,15 @@ public class MembershipPageController(IOptions<IdentityOptions> identity) : Cont
         ViewData["Application"] = identity.Value.Application;
         return View("~/membership/views/Membership.cshtml");
     }
+}
+
+// The visitor welcome (gatehouse.md §11): a signed-in non-member asks to join. The fixed Visitor policy, never a
+// feature, so a newcomer always has a way in; a member is refused it.
+[Authorize(Policy = FeatureAccessPolicies.Visitor)]
+public class WelcomePageController : Controller
+{
+    [HttpGet("/welcome")]
+    public IActionResult Index() => View("~/membership/views/Welcome.cshtml");
 }
 
 // The slices still to come (gatehouse.md §9): each page is already gated as it will be, so switching its feature or

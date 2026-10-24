@@ -25,4 +25,9 @@
     <ProjectReference Include="..\Gatehouse.Web\Gatehouse.Web.csproj" />
   </ItemGroup>
 
+  <!-- The local clean-up scripts the end-to-end tests run, beside the test assembly. -->
+  <ItemGroup>
+    <None Update="sql\**\*.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

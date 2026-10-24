@@ -56,6 +56,12 @@ export function describeAudit(entry) {
         const g = after ?? before ?? {};
         return `${entry.action === 'granted' ? 'Granted' : 'Revoked'} ${g.Role} to ${g.Member} on ${g.Application}`;
     }
+    if (entry.entity === 'request') {
+        const r = after ?? before ?? {};
+        const who = r.Identifier ?? entry.entityKey;
+        if (entry.action === 'requested') return `${r.FirstName} ${r.LastName} (${who}) asked to join`;
+        return `${entry.action === 'approved' ? 'Approved' : 'Declined'} ${who}'s request to join${r.DecisionNote ? `: ${r.DecisionNote}` : ''}`;
+    }
     if (entry.entity.startsWith('application-')) {
         const part = entry.entity.slice('application-'.length);
         const row = after ?? before ?? {};

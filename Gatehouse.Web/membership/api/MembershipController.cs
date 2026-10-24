@@ -74,6 +74,18 @@ public class MembershipController(IJsonQueryHandler queries, IJsonCommandHandler
     [HttpPost("grants/revoke")]
     public Task<IActionResult> Revoke([FromBody] JsonNode data) => Write<GrantSave>("grant-save", null, data, MembershipRequests.Validate, p => p.AddParam("revoke", true));
 
+    // The requests to join (gatehouse.md §11.4).
+    [HttpGet("requests")]
+    public Task<IActionResult> Requests() => Read("requests");
+
+    [HttpPost("requests/{id:int}/approve")]
+    public Task<IActionResult> Approve(int id, [FromBody] JsonNode data) =>
+        Write<RequestDecision>("request-decide", id, data, MembershipRequests.ValidateApprove, p => p.AddParam("approve", true));
+
+    [HttpPost("requests/{id:int}/decline")]
+    public Task<IActionResult> Decline(int id, [FromBody] JsonNode data) =>
+        Write<RequestDecision>("request-decide", id, data, MembershipRequests.ValidateDecline, p => p.AddParam("approve", false));
+
     private static IParameters Key(string action) => new Parameters().CommandQuery(MembershipSqlCommandInitializer.Name, action);
 
     private async Task<IActionResult> Read(string action, Func<IParameters, IParameters> with = null)
@@ -95,7 +107,7 @@ public class MembershipController(IJsonQueryHandler queries, IJsonCommandHandler
         var parameters = Key(action).AddParam("username", User.FindFirst(ClaimsTransformer.IdentifierClaim)?.Value ?? User.Identity?.Name);
         if (id.HasValue) parameters.AddParam("id", id.Value);
         var response = await commands.ExecuteAsync(with?.Invoke(parameters) ?? parameters, data);
-        return response.IsOkay ? Ok(new { key = response.Model?["key"]?.DeepClone() }) : Refused(response);
+        return response.IsOkay ? Ok(response.Model?.DeepClone() ?? new JsonObject()) : Refused(response);
     }
 
     private IActionResult Refused(Response response) =>

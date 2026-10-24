@@ -30,6 +30,7 @@ code { font-family: var(--gh-code); font-size: 0.9em; }
 .gh-nav-item { display: block; padding: 0.35rem 0.5rem; border-radius: 4px; color: var(--gh-nav-ink); text-decoration: none; }
 .gh-nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
 .gh-nav-item.is-active { background: #fff; color: var(--gh-ink); font-weight: 600; }
+.gh-count { margin-left: 0.4rem; padding: 0 0.45rem; border-radius: 999px; background: var(--gh-off); color: #fff; font-size: 0.75rem; font-weight: 600; }
 
 .gh-main { padding: 1.25rem 1.5rem 2rem; min-width: 0; }
 .gh-h1 { margin: 0 0 0.25rem; font-size: 1.35rem; }

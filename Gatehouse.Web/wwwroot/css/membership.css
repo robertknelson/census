@@ -95,3 +95,21 @@
 @media (max-width: 640px) {
     .mb-root .ps-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* The visitor welcome and the requests to join (gatehouse.md §11). */
+.wl-page { max-width: 48rem; }
+.mb-root .wl-summary { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: 0.3rem 1rem; margin: 0; font-size: 13.5px; }
+.mb-root .wl-summary dt { color: var(--mb-muted); font-weight: 600; font-size: 12px; }
+.mb-root .wl-summary dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mb-root .wl-apps { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin: 0; padding: 0.5rem 0.6rem; border: 1px solid var(--mb-rule); border-radius: 4px; }
+.mb-root .wl-apps legend { padding: 0 0.25rem; font-size: 12px; font-weight: 600; color: var(--mb-muted); }
+.mb-root .wl-check { display: inline-flex; flex-direction: row; align-items: center; gap: 0.35rem; font-size: 13.5px; font-weight: 400; color: var(--mb-ink); }
+.mb-root .wl-declined { border-color: #e9c4bf; background: #fdf6f5; }
+.mb-root .rq-card { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.75rem 0; border-top: 1px solid var(--mb-rule-soft); }
+.mb-root .rq-card:first-of-type { border-top: 0; }
+.mb-root .rq-decide { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.mb-root .rq-decide select, .mb-root .rq-decide input[type="text"] { padding: 0.3rem 0.45rem; border: 1px solid var(--mb-rule); border-radius: 4px; font: inherit; font-size: 13px; background: var(--mb-panel); }
+.mb-root .rq-decide input[type="text"] { flex: 1 1 16rem; min-width: 0; }
+@media (max-width: 640px) {
+    .mb-root .wl-summary { grid-template-columns: minmax(0, 1fr); }
+}

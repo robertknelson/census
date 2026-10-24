@@ -111,10 +111,20 @@ public class GatingEndToEndTests : IClassFixture<GatingEndToEndTests.App>
     public class App : WebApplicationFactory<Program>
     {
         public static readonly ConcurrentDictionary<string, string[]> Roles = new();
+        public static readonly ConcurrentDictionary<string, bool> Visitors = new();
 
         public HttpClient As(string user, params string[] roles)
         {
             Roles[user] = roles;
+            var client = CreateClient();
+            client.DefaultRequestHeaders.Add("X-Test-User", $@"TEST\{user}");
+            return client;
+        }
+
+        // Signed in by Windows with no membership.Member row (gatehouse.md §11.1).
+        public HttpClient AsVisitor(string user)
+        {
+            Visitors[user] = true;
             var client = CreateClient();
             client.DefaultRequestHeaders.Add("X-Test-User", $@"TEST\{user}");
             return client;
@@ -143,7 +153,7 @@ public class GatingEndToEndTests : IClassFixture<GatingEndToEndTests.App>
     {
         public Task ResolveAsync(UserSession session)
         {
-            session.IsMember = true;
+            session.IsMember = !App.Visitors.ContainsKey(session.UserName);
             session.FirstName = session.UserName;
             session.Roles = App.Roles.TryGetValue(session.UserName, out var roles) ? roles.ToList() : new();
             return Task.CompletedTask;

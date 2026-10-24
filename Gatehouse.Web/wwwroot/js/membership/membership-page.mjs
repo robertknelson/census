@@ -27,7 +27,8 @@ class MembershipPage {
     async load() {
         this.root.innerHTML = '<p class="ps-none">Reading membership…</p>';
         try {
-            const [applications, memberRows, lists, recent, parts] = await Promise.all([this.api.applications(), this.api.members(), this.api.lists(), this.api.recent(), this.api.appParts()]);
+            const [applications, memberRows, lists, recent, parts, requests] = await Promise.all([this.api.applications(), this.api.members(), this.api.lists(), this.api.recent(), this.api.appParts(), this.api.requests()]);
+            this.requests = requests;
             this.parts = parts;
             this.stages = lists.filter((l) => l.list === 'stages');
             this.serviceTypes = lists.filter((l) => l.list === 'service-types');
@@ -57,6 +58,7 @@ class MembershipPage {
         let body;
         if (kind === 'applications') body = this.applicationsHtml();
         else if (kind === 'members') body = this.membersHtml();
+        else if (kind === 'requests') body = this.requestsHtml();
         else if (kind === 'app' || kind === 'new-app') body = await this.applicationHtml(kind === 'app' ? Number(id) : null);
         else if (kind === 'member' || kind === 'new-member') body = await this.memberHtml(kind === 'member' ? Number(id) : null);
         else body = this.overviewHtml();
@@ -65,7 +67,7 @@ class MembershipPage {
             <div class="mb-page">
                 <header class="mb-head">
                     <h2 class="mb-title">Membership</h2>
-                    <nav class="mb-tabs">${tab('overview', 'Overview')}${tab('applications', `Applications <span class="mb-n">${this.applications.length}</span>`)}${tab('members', `Members <span class="mb-n">${this.members.length}</span>`)}</nav>
+                    <nav class="mb-tabs">${tab('overview', 'Overview')}${tab('applications', `Applications <span class="mb-n">${this.applications.length}</span>`)}${tab('members', `Members <span class="mb-n">${this.members.length}</span>`)}${tab('requests', `Requests <span class="mb-n">${this.pending().length}</span>`)}</nav>
                 </header>
                 ${this.flash ? `<p class="mb-flash">${escapeHtml(this.flash)}</p>` : ''}
                 ${body}
@@ -83,6 +85,8 @@ class MembershipPage {
         const appLink = (a) => `<a href="#" class="ps-link" data-go="app:${a.applicationId}">${escapeHtml(a.name)}</a>`;
         const memberLink = (m) => `<a href="#" class="ps-link" data-go="member:${m.memberId}">${escapeHtml(m.name)}</a>`;
         const needs = [];
+        const waiting = this.pending();
+        if (waiting.length) needs.push(`<li><strong>${waiting.length} request${waiting.length === 1 ? '' : 's'} to join ${waiting.length === 1 ? 'is' : 'are'} waiting</strong>: ${waiting.map((r) => escapeHtml(`${r.firstName} ${r.lastName}`)).join(', ')}. <a href="#" class="ps-link" data-go="requests">Decide</a></li>`);
         if (gaps.hereMissing) needs.push(`<li><strong>This application is not registered</strong> (identifier <code>${escapeHtml(this.application)}</code>), so no one can hold a role on it. <a href="#" class="ps-link" data-go="new-app">Register it</a></li>`);
         else if (gaps.hereNobody) needs.push('<li><strong>No one is system-administrator here.</strong> Without one, only the configured list (Authorization:SystemAdministrators) reaches the administration.</li>');
         if (gaps.noRoles.length) needs.push(`<li><strong>${gaps.noRoles.length} member${gaps.noRoles.length === 1 ? ' holds' : 's hold'} no role anywhere</strong>, so ${gaps.noRoles.length === 1 ? 'sees' : 'see'} nothing: ${gaps.noRoles.map(memberLink).join(', ')}</li>`);
@@ -162,6 +166,47 @@ class MembershipPage {
                             <td class="mb-wrap">${summary(m)}</td>
                         </tr>`).join('')}</tbody>
                 </table></div>
+            </section>`;
+    }
+
+    // ---- the requests to join (gatehouse.md §11.4) ----
+
+    pending() {
+        return this.requests.filter((r) => r.status === 'pending');
+    }
+
+    requestsHtml() {
+        const appName = (id) => this.applications.find((a) => a.applicationId === id)?.name ?? `application ${id}`;
+        const ids = (r) => { try { return JSON.parse(r.applicationIds); } catch { return []; } };
+        const card = (r) => {
+            const asked = ids(r);
+            const head = `<p><strong>${escapeHtml(`${r.firstName} ${r.lastName}`)}</strong> <span class="ps-mono">${escapeHtml(r.windowsIdentity)}</span> · ${escapeHtml(r.email)} · asked ${escapeHtml(isoDate(r.requestedAt))}</p>
+                <p>${escapeHtml(r.reason)}</p>
+                <p class="ps-sub">Asks for <strong>${escapeHtml(r.role ?? '?')}</strong> on ${asked.map((id) => escapeHtml(appName(id))).join(', ')}</p>`;
+            if (r.status !== 'pending') {
+                return `<div class="rq-card">${head}<p class="ps-sub">${r.status === 'approved' ? 'Approved' : 'Declined'} by ${escapeHtml(r.decidedBy ?? '')} on ${escapeHtml(isoDate(r.decidedAt))}${r.decisionNote ? `: ${escapeHtml(r.decisionNote)}` : ''}</p></div>`;
+            }
+            return `<div class="rq-card">${head}
+                <form class="rq-decide" data-request="${r.membershipRequestId}">
+                    <select name="roleId" aria-label="Role to grant">${this.roles.map((x) => `<option value="${x.id}"${x.id === r.roleId ? ' selected' : ''}>${escapeHtml(x.identifier)}</option>`).join('')}</select>
+                    ${asked.map((id) => `<label class="wl-check"><input type="checkbox" name="applicationIds" value="${id}" checked /> ${escapeHtml(appName(id))}</label>`).join('')}
+                    <input type="text" name="note" maxlength="1000" placeholder="Note (required to decline)" aria-label="Note" />
+                    <button type="submit" class="ps-save">Approve</button>
+                    <button type="button" class="ps-cancel" data-decline>Decline</button>
+                    <span class="ps-form-status" data-status></span>
+                </form></div>`;
+        };
+        const waiting = this.pending();
+        const decided = this.requests.filter((r) => r.status !== 'pending');
+        return `
+            <section class="ps-section">
+                <h3 class="ps-h3">Waiting <span class="mb-n">${waiting.length}</span></h3>
+                <p class="ps-sub">Approving makes them a member and grants the role on each application ticked; they see it at their next sign-in, within minutes.</p>
+                ${waiting.length ? waiting.map(card).join('') : '<p class="ps-none">No request is waiting.</p>'}
+            </section>
+            <section class="ps-section">
+                <h3 class="ps-h3">Decided</h3>
+                ${decided.length ? decided.map(card).join('') : '<p class="ps-none">None yet.</p>'}
             </section>`;
     }
 
@@ -327,6 +372,20 @@ class MembershipPage {
                 if (!this.armed(b)) return;
                 const call = b.dataset.deleteRecord === 'application' ? () => this.api.deleteApplication(Number(id)) : () => this.api.deleteMember(Number(id));
                 this.write(call, 'Deleted. The history keeps what it was.', b.closest('form'), () => (b.dataset.deleteRecord === 'application' ? 'applications' : 'members'));
+            });
+        }
+        for (const form of this.root.querySelectorAll('form[data-request]')) {
+            const id = Number(form.dataset.request);
+            const body = () => {
+                const v = new FormData(form);
+                return { roleId: Number(v.get('roleId')), applicationIds: v.getAll('applicationIds').map(Number), note: v.get('note') };
+            };
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.write(() => this.api.approve(id, body()), 'Approved: a member now, with the roles ticked.', form);
+            });
+            form.querySelector('[data-decline]').addEventListener('click', () => {
+                this.write(() => this.api.decline(id, body()), 'Declined. They see your note on their welcome page.', form);
             });
         }
         const grant = this.root.querySelector('[data-form="grant"]');

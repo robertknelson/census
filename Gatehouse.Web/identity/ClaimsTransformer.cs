@@ -24,6 +24,8 @@ public class ClaimsTransformer(
     public const string IdentifierClaim = "identifier";
     public const string DisplayNameClaim = "display-name";
     public const string SessionClaim = "session";
+    // "true" for a membership.Member, "false" for a visitor, who is offered the welcome (gatehouse.md §11.1).
+    public const string MemberClaim = "member";
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
@@ -52,6 +54,7 @@ public class ClaimsTransformer(
         identity.AddClaim(new Claim(IdentifierClaim, session.UserName));
         identity.AddClaim(new Claim(DisplayNameClaim, session.DisplayName));
         identity.AddClaim(new Claim(SessionClaim, session.Id));
+        identity.AddClaim(new Claim(MemberClaim, session.IsMember ? "true" : "false"));
         return new ClaimsPrincipal(identity);
     }
 

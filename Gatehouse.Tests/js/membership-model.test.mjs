@@ -46,5 +46,10 @@ assert('a delete in words', describeAudit(gone) === 'Deleted member tess', descr
 const part = { entity: 'application-stage', action: 'created', entityKey: '3:42', newValue: JSON.stringify({ ApplicationId: 3, StageId: 42, Name: 'Val' }) };
 assert('an application part in words', describeAudit(part) === 'Added stage 42 named Val on application 3', describeAudit(part));
 
+const asked = { entity: 'request', action: 'requested', entityKey: '5', newValue: JSON.stringify({ Identifier: 'vera', FirstName: 'Vera', LastName: 'Visitor' }) };
+assert('a request to join in words', describeAudit(asked) === 'Vera Visitor (vera) asked to join', describeAudit(asked));
+const declined = { entity: 'request', action: 'declined', entityKey: '5', newValue: JSON.stringify({ Identifier: 'vera', DecisionNote: 'Ask your manager.' }) };
+assert('  declined, with its note', describeAudit(declined) === "Declined vera's request to join: Ask your manager.", describeAudit(declined));
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed) process.exit(1);

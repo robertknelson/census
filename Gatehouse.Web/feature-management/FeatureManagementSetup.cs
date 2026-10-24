@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Gatehouse.CommandQuery;
 using Gatehouse.FeatureManagement.Data;
 using Gatehouse.FeatureManagement.Evaluation;
+using Gatehouse.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 using Microsoft.FeatureManagement.FeatureFilters;
@@ -28,6 +29,10 @@ public static class FeatureAccessPolicies
 
     // Anyone signed in: pages that need no feature (Home).
     public const string SignedIn = "SignedIn";
+
+    // Signed in and not a member: the welcome and the request to join (gatehouse.md §11.5). Fixed, never a feature, so
+    // a newcomer always has a way in.
+    public const string Visitor = "Visitor";
 }
 
 // The roles a feature may be granted to: AppTrak's member-types list (core.SelectItem), the same identifiers
@@ -69,7 +74,8 @@ public static class FeatureManagementSetup
         services.AddScoped<NavigationFilter>();
         services.AddAuthorizationBuilder()
             .AddPolicy(FeatureAccessPolicies.Admin, policy => policy.RequireRole(adminRole))
-            .AddPolicy(FeatureAccessPolicies.SignedIn, policy => policy.RequireAuthenticatedUser());
+            .AddPolicy(FeatureAccessPolicies.SignedIn, policy => policy.RequireAuthenticatedUser())
+            .AddPolicy(FeatureAccessPolicies.Visitor, policy => policy.RequireAuthenticatedUser().RequireClaim(ClaimsTransformer.MemberClaim, "false"));
         return services;
     }
 }

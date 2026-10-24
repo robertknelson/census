@@ -26,7 +26,7 @@
             @foreach (var item in group.Items)
             {
                 var active = item.Href == "/" ? here == "/" : here.StartsWith(item.Href, StringComparison.OrdinalIgnoreCase);
-                <a class="gh-nav-item@(active ? " is-active" : "")" href="@item.Href" title="@item.Hint" aria-current="@(active ? "page" : null)">@item.Label</a>
+                <a class="gh-nav-item@(active ? " is-active" : "")" href="@item.Href" title="@item.Hint" aria-current="@(active ? "page" : null)">@item.Label@if (item.Count > 0) { <span class="gh-count" title="Requests to join waiting">@item.Count</span> }</a>
             }
         </div>
     }

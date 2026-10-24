@@ -4,6 +4,24 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-24 — Gatehouse, G-2b (the visitor welcome)
+
+**V2: the form asks for first name, last name and email.** You ratified V1 and did not say on V2. `membership.Member`
+requires all three, so without them approval would mean the administrator typing a stranger's name.
+
+**Who a visitor is: a `member` claim** from the claims transformation (true or false), and a fixed `Visitor` policy on
+it. A feature could be switched off and leave a newcomer with a blank page.
+
+**The sidebar shows a visitor the Welcome item alone**, even if the configured sys-admin list also names them; typing an
+address still reaches what their roles allow.
+
+**A request's applications are kept as a JSON array** on the request (§11.3); approving turns them into grant rows.
+
+**The approver can change the role and untick applications** at approval, and must give a note to decline (the visitor
+sees it).
+
+**The sidebar count beside Membership (V6)** is a query per page for those who can see Membership; no email.
+
 ## 2026-10-24 — Gatehouse, G-2 (Membership)
 
 **The membership API is behind `admin.membership`, the page's feature**, not the fixed admin policy. Every endpoint behind

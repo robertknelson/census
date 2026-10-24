@@ -11,14 +11,19 @@ INSERT @features VALUES
     ('logs.explorer', N'Log Explorer', N'Requests, exceptions and messages in the shared log tables'),
     ('logs.trace', N'Trace', N'One identifier''s month, day and sessions'),
     ('logs.usage', N'Usage', N'How an application is used, from its click streams'),
-    ('admin.membership', N'Membership', N'Applications, members and the roles they hold');
+    ('admin.membership', N'Membership', N'Applications, members and the roles they hold'),
+    ('logs.app-events', N'App events', N'Every unit of business work, across systems (gatehouse.md §12)'),
+    ('admin.app-event-kinds', N'Event kinds', N'The catalog of kinds of work the events name'),
+    ('logs.usage-summary', N'Usage summary', N'Every application''s usage at once');
 
 DECLARE @grants TABLE (Name varchar(100), RoleName varchar(100));
 INSERT @grants VALUES
     ('logs.explorer', 'system-administrator'), ('logs.explorer', 'technical-lead'), ('logs.explorer', 'devops-lead'),
     ('logs.trace', 'system-administrator'), ('logs.trace', 'technical-lead'), ('logs.trace', 'devops-lead'),
     ('logs.usage', 'system-administrator'), ('logs.usage', 'technical-lead'), ('logs.usage', 'product-owner'), ('logs.usage', 'application-owner'),
-    ('admin.membership', 'system-administrator');
+    ('admin.membership', 'system-administrator'),
+    ('logs.app-events', 'system-administrator'), ('admin.app-event-kinds', 'system-administrator'),
+    ('logs.usage-summary', 'system-administrator'), ('logs.usage-summary', 'executive');
 
 DECLARE @created TABLE (FeatureId int, Name varchar(100));
 INSERT fm.Feature (Name, DisplayName, Description, IsEnabled, CreatedBy)

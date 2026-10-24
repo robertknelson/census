@@ -1,3 +1,4 @@
+using Gatehouse.AppEvents.Data;
 using Gatehouse.CommandQuery;
 using Gatehouse.FeatureManagement;
 using Gatehouse.Identity;
@@ -50,6 +51,10 @@ builder.Services.Configure<LogsOptions>(builder.Configuration.GetSection(LogsOpt
 builder.Services.Configure<UsageOptions>(builder.Configuration.GetSection(UsageOptions.SectionName));
 builder.Services.AddTransient<ISqlCommandInitializer, LogsSqlCommandInitializer>();
 builder.Services.AddScoped<LogsQueryHandler>();
+
+// AppEvent (§12): the catalog of kinds in AppTrak; the events in the log tables.
+builder.Services.AddTransient<ISqlCommandInitializer, AppEventsSqlCommandInitializer>();
+builder.Services.AddScoped<AppEventCommandHandler>();
 
 var app = builder.Build();
 

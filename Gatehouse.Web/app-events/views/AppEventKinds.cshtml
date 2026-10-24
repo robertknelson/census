@@ -1,0 +1,14 @@
+@{
+    // The catalog of kinds of work (gatehouse.md §12.3): registered kinds, kinds seen but not registered, the history.
+    ViewData["Title"] = "Event kinds";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/membership.css" asp-append-version="true" />
+}
+<div id="app-event-kinds" class="mb-root"></div>
+@section Scripts {
+    <script type="module">
+        import kindsPage from '/js/app-events/kinds-page.mjs';
+        kindsPage.init({ root: '#app-event-kinds' });
+    </script>
+}

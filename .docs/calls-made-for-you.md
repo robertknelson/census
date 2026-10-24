@@ -4,6 +4,27 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-10-24 — Gatehouse, AppEvent A-1 (the table and the catalog)
+
+**The catalog is `membership.AppEventKind`, in AppTrak beside the application registry**; the events stay in the log
+tables. Locally those are two databases, so "registered or not" is worked out when read (the catalog screen sets the
+kinds the events name beside the registered ones), never written on the event.
+
+**NOUN-VERB is checked as form only**: kebab-case, and the command at least two words. Whether the first word is a noun is
+the registrant's call; no code can tell.
+
+**A kind is retired, never deleted** (events keep naming it), and every change is in `membership.MembershipAudit`
+(entity `app-event-kind`), as Membership's are.
+
+**The unique index on Uid skips empty Uids.** The live sink rebuilds the envelope when it writes and empties the Uid; a
+plain unique index would make every second such event fail, and the sink swallows the failure.
+
+**The table script takes the schema as a sqlcmd variable** (`-v Schema=apptrak`, required). A side note found that
+xf-dashboard's sink writes `[log].[AppEvent]` while Gatehouse reads `Logs:Schema` (`apptrak`), so the script must not
+fix the schema.
+
+**Gatehouse's AppEvent is ILogger only** (your ruling): no ingest API, no drop folder.
+
 ## 2026-10-24 — Gatehouse, G-3 (Logs)
 
 **The log tables have a connection string of their own, `logs`**, like `fm`, rather than Census's `Logs:ConnectionString`:

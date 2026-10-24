@@ -34,6 +34,7 @@ public static class Navigation
         {
             new NavItem("Membership", "/admin/membership", Feature: Features.AdminMembership, Hint: "Applications, members and their roles",
                 CountKey: "membership.requests-pending-count"),
+            new NavItem("Event kinds", "/admin/app-event-kinds", Feature: Features.AdminAppEventKinds, Hint: "The kinds of work the events name"),
             new NavItem("Feature access", "/admin/feature-access", Policy: FeatureAccessPolicies.Admin, Hint: "Which roles may use which features"),
         }),
     };
@@ -46,6 +47,9 @@ public static class Features
     public const string LogsTrace = "logs.trace";
     public const string LogsUsage = "logs.usage";
     public const string AdminMembership = "admin.membership";
+    public const string LogsAppEvents = "logs.app-events";
+    public const string AdminAppEventKinds = "admin.app-event-kinds";
+    public const string LogsUsageSummary = "logs.usage-summary";
 }
 
 // The declaration trimmed to what the signed-in user may open. A group left empty goes. A visitor (not a member) sees

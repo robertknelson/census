@@ -430,6 +430,7 @@ Robert, 2026-10-24: "i want to have a fully implemented AppEvent and Usage in Ga
 | AE-R4 | **The senders' sign-in is the live app's home-grown JWT, already active; not a concern now.** | Gatehouse's ingest sits behind a named policy on Windows sign-in; the porting note swaps the scheme. |
 | AE-R5 | **The mainframe can make web calls, and drop files where a C# file-system watcher can see them** (E3). | Two ways in, one validation: the API and a drop folder (§12.4). |
 | AE-R6 | **Who sees what is undetermined, but system administrators see every record; dashboards for executives, application owners and others come later.** | The pages are for system administrators now (§12.6); no dashboards in this slice. |
+| AE-R7 | **"don't worry about outside apps calling, that's already solved in 'live'. just deal with the Ilogger"** (2026-10-24, overriding AE-R4/AE-R5 for Gatehouse). | No ingest API and no drop folder in Gatehouse. AppEvent arrives only through `ILogger` (§12.4). |
 
 ### 12.2 The table (`apptrak.AppEvent`, the `logs` connection)
 
@@ -460,30 +461,28 @@ first word is a noun is the registrant's to judge.
   kinds **seen in events but not registered**, each with Register (observe, then declare: never guessed from the name);
   add, correct, retire; the history.
 
-### 12.4 Two ways in, one validation (AE-R5)
+### 12.4 Through ILogger (AE-R7)
 
-**The API, `POST /api/app-event`**: one event, or an array of them. An event carries the envelope (Uid, Application,
-Stage, StartAt, and optionally Identifier, Path, SessionId, CorrelationId, Machine) and the event (Namespace, CommandName,
-CommandActivity, and optionally WorkUid, ParentUid, SubjectType, SubjectKey, Message, Body, Data).
+**`logger.LogActivity(…)`**, an `ILogger` extension, with no Serilog in the caller. It logs xf-dashboard's
+`[appevent:` template (`SerilogMessageTemplates.AppEventFormat`) with the event serialized as its `appevent` property,
+so the live Serilog sink, which already routes that template to AppEvent, carries it. The caller names the kind (Namespace,
+NOUN-VERB CommandName), the step (AE-R1), the plain words, and optionally the unit of work, the parent event, the
+subject, the business payload. The extension fills the event's own Uid and the moment it happened; the sink adds the
+envelope (application, stage, identifier, session, correlation, machine).
 
-- **Refused with every reason, nothing written** when any event lacks Uid, Application, Stage, StartAt, Namespace or
-  CommandName, has a CommandActivity outside AE-R1, a kind not in kebab-case NOUN-VERB form, or Body or Data that are not
-  JSON. A batch is all or nothing, so a sender never has to work out which half landed.
-- **A Uid already stored is a duplicate**: skipped, and counted in the answer (`{ created, duplicates }`), never an error
-  (D10).
-- `StartAt` is the sender's; `CreatedAt` is AppTrak's; `IsFromApi = 1` (D9).
+- **The extension refuses a malformed event before it is logged**: an activity outside AE-R1, or a kind not in
+  kebab-case NOUN-VERB form, throws `ArgumentException` at the caller, in development and in production alike. A
+  wrongly named event is a programming error, and the log is no place to discover it.
+- **In Gatehouse, a logger provider stands in for the live sink**: it recognizes the template, adds the same envelope
+  (application and stage from settings, identifier and session from the request), and writes through one
+  command/query script to `<Logs:Schema>.AppEvent`. It writes on a background queue, so a request never waits on it, and
+  it logs and drops what it cannot write: AppEvent is not the audit of record (D11).
+- **The live sink needs four fixes**, and the porting note lists them. It must write to the schema the pages read (it
+  says `[log]`, Gatehouse `Logs:Schema`); keep the event's own StartAt and Uid instead of overwriting them; take the
+  envelope from the log context instead of a fresh `LogInfo`; and write the five new columns.
 
-**The drop folder** (`AppEvent:DropFolder`; empty, off): a C# file-system watcher picks up each `*.json` file (one event
-or an array), runs the same validation and write, and moves the file to `processed\` or to `failed\` beside a
-`<file>.error.txt` holding the reasons. Files already there at start-up are picked up too. The folder's permissions are
-who may send.
-
-**.NET apps, through `ILogger`**: `logger.LogActivity(…)` writes with xf-dashboard's `[appevent:` template and the event
-as its `appevent` property, so the live Serilog sink carries it once fixed (the porting note). In Gatehouse a small
-logger provider stands in for that sink and hands the event to the same write.
-
-**Gatehouse uses it itself**, so the .NET path runs for real: the request to join is a unit of work (kind
-`membership` / `access-request`). Asking logs `created`; approving logs `completed`; declining logs `failed`. All carry the
+**Gatehouse uses it itself**, so the path runs for real: the request to join is a unit of work (kind `membership` /
+`access-request`). Asking logs `created`; approving logs `completed`; declining logs `failed`. All three carry the
 request's WorkUid, and the subject is the request.
 
 ### 12.5 The demo events
@@ -512,7 +511,7 @@ run by `setup/Invoke-GatehouseDemo.ps1`).
 | Slice | Contents | Verified by |
 |---|---|---|
 | A-1 | The table's DDL, the catalog table and its management screen, the demo events | The DDL twice (idempotent) on the demo and on a copy of AppTrak's empty shape; the screen in a browser: register a seen kind, correct, retire, history |
-| A-2 | Ingest: the API, the drop folder, `LogActivity` and its provider, Gatehouse's own access-request events | Tests: refusals with every reason, all-or-nothing, duplicates, a dropped file processed and a bad one failed with its reasons; a request to join seen as one unit of work |
+| A-2 | `LogActivity`, the provider that stands in for the live sink, Gatehouse's own access-request events | Tests: a malformed event refused at the caller; an activity written with its envelope, kind, unit of work and subject; a request to join, approved, read back as one unit of work (created, completed) |
 | A-3 | Log Explorer's AppEvent model and the unit-of-work page | Counts against direct SQL; the page for a demo unit of work with waiting and working times; 403 without the feature |
 
 ## 13. Usage, completed in Gatehouse (spec 2026-10-24)

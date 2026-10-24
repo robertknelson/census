@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Gatehouse built, not pushed: a :5296 app to port Feature Management, Membership and Logs into your live app"
+summary: "Gatehouse package ready, not pushed: Feature Management, Membership, Logs, Usage, AppEvent for your live app"
 resume: "Census: start-census.bat (Demo), port 5292. Gatehouse: cd Gatehouse.Web then dotnet run --launch-profile http, port 5296 (first run Gatehouse.Web/setup/Invoke-GatehouseDemo.ps1 after apptrak/Invoke-AppTrakDemo.ps1 and apptrak/Invoke-LogsDemo.ps1); tests: dotnet test Gatehouse.slnx and the node files in Gatehouse.Tests/js; porting: a PORTING.md in each Gatehouse.Web component folder"
 health: green
 links:
@@ -41,6 +41,13 @@ command/query data layer. It holds three pieces, each in its own folder with a p
   (why, which applications, which role), and an administrator approves or declines on the Membership page.
 - **Logs:** Log Explorer, Trace and Usage. They gave exactly the same answers as Census on the demo logs, 27 questions
   out of 27.
+- **Usage, completed:** each person sees only the applications they hold a role on; an all-applications summary for
+  executives and system administrators; staff and test accounts left out of the figures (and named); visits that came
+  from another of your applications.
+- **AppEvent:** each piece of business work followed across systems through ILogger (`LogActivity`), with a page per
+  unit of work (how long it waited between systems, how long it was worked), the stuck and failed ones, and a screen to
+  manage the kinds of work.
+- **The package:** `out/gatehouse-package-2026-10-24.zip`, every file checksummed, a porting note per piece.
 
 Every page is guarded twice, in the sidebar and on the server, and the tests check both.
 
@@ -48,8 +55,8 @@ Earlier (23 October, pushed): Log Explorer, Trace and Usage in Census itself.
 
 ## What's next
 
-**Read the five porting notes with me, on paper, against your live app** (the last step of the Gatehouse plan). Then
-push.
+**Carry the package across and port it**, in the order its index gives. Before AppEvent: fix the live log sink
+(four fixes, in AppEvent's porting note). Then push.
 
 **Waiting on you:**
 - where your live app's roles come from today (two ways set out in the identity note);

@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Read Gatehouse''s five PORTING.md notes with Robert against the live app (dry run on paper, gatehouse.md §9d); answer G7 (where the live app''s roles come from); then push main (Gatehouse G-1 to G-4 are local only).'
+next_step: 'Robert carries out/gatehouse-package-<date>.zip to the live network and ports it in the order of its PORTING.md; open: G7 (where live roles come from), G8 (live body columns BodyType/Body), the live sink''s schema and four fixes; then push main (all Gatehouse work is local only).'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,13 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-24 (later: Usage completed, AppEvent built, the package)
+- Usage: scope by membership (sys admins all), /usage/summary for executives and sys admins, Usage:Excluded, "came from".
+- AppEvent (ILogger only, his ruling): LogActivity, the unit-of-work pages, Log Explorer's AppEvent model, the catalog of
+  kinds (membership.AppEventKind, NOUN-VERB, management screen). The live sink needs four fixes (schema, Uid/StartAt,
+  envelope, new columns).
+- The package: out/gatehouse-package-<date>.zip with MANIFEST.sha256; 45 .NET tests and 5 node suites pass from it.
 
 ### 2026-10-24 (Gatehouse G-1 to G-4; local, not pushed)
 - Gatehouse (`Gatehouse.Web/`, port 5296): a reference app beside Census.Web for porting Feature Management, Membership

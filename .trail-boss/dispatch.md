@@ -1,6 +1,6 @@
 ---
 # ── the app reads exactly these; everything else is yours ──
-summary: "Gatehouse package ready, not pushed: Feature Management, Membership, Logs, Usage, AppEvent for your live app"
+summary: "Gatehouse done and pushed: Feature Management, Membership, Logs, Usage, AppEvent, ready to port into your live app"
 resume: "Census: start-census.bat (Demo), port 5292. Gatehouse: cd Gatehouse.Web then dotnet run --launch-profile http, port 5296 (first run Gatehouse.Web/setup/Invoke-GatehouseDemo.ps1 after apptrak/Invoke-AppTrakDemo.ps1 and apptrak/Invoke-LogsDemo.ps1); tests: dotnet test Gatehouse.slnx and the node files in Gatehouse.Tests/js; porting: a PORTING.md in each Gatehouse.Web component folder"
 health: green
 links:
@@ -32,7 +32,7 @@ ignite: start-census.bat
 ## The latest feature added
 
 **Gatehouse, a second, separate app in this repo, built to be copied piece by piece into your live app** (24 October,
-on your laptop, not pushed). It is the live app's shape in miniature: a left sidebar, Windows sign-in, and the
+pushed). Gatehouse itself is the package: a project of its own, one folder per piece. It is the live app's shape in miniature: a left sidebar, Windows sign-in, and the
 command/query data layer. It holds three pieces, each in its own folder with a porting note:
 
 - **Feature Management:** your FM2280 grid. Switch a page on or off for a role, and the sidebar and the page follow at
@@ -47,7 +47,10 @@ command/query data layer. It holds three pieces, each in its own folder with a p
 - **AppEvent:** each piece of business work followed across systems through ILogger (`LogActivity`), with a page per
   unit of work (how long it waited between systems, how long it was worked), the stuck and failed ones, and a screen to
   manage the kinds of work.
-- **The package:** `out/gatehouse-package-2026-10-24.zip`, every file checksummed, a porting note per piece.
+- **Live's body columns:** the log scripts now read `BodyType`/`Body` on live and `ContentType`/`Content` on the demo,
+  whichever the table has, so nothing needs hand-editing there.
+- A porting note per piece, and an index (`Gatehouse.Web/PORTING.md`) giving the order. (A zip script exists too; it
+  is optional.)
 
 Every page is guarded twice, in the sidebar and on the server, and the tests check both.
 
@@ -55,13 +58,14 @@ Earlier (23 October, pushed): Log Explorer, Trace and Usage in Census itself.
 
 ## What's next
 
-**Carry the package across and port it**, in the order its index gives. Before AppEvent: fix the live log sink
-(four fixes, in AppEvent's porting note). Then push.
+**Port Gatehouse into your live app**, in the order its index gives. Before AppEvent: fix the live log sink (four
+fixes, in AppEvent's porting note). No more slices are planned; what you hit on live picks the next one.
 
-**Waiting on you:**
-- where your live app's roles come from today (two ways set out in the identity note);
-- whether to keep deciding a script's result shape from its text (open item G3);
+**Decided when you port (nothing needed now):**
+- where your live app's roles come from: almost certainly its own tables, so grant features to its own role names;
 - your look at the live site's IIS sign-in settings.
+
+**Later, if wanted:** friendly page names in Usage; dashboards on AppEvent's units of work.
 
 ## Anything alarming
 

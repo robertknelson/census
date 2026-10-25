@@ -15,7 +15,7 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Robert carries out/gatehouse-package-<date>.zip to the live network and ports it in the order of its PORTING.md; open: G7 (where live roles come from), G8 (live body columns BodyType/Body), the live sink''s schema and four fixes; then push main (all Gatehouse work is local only).'
+next_step: 'Robert ports Gatehouse (Gatehouse.Web, one folder per piece) into the live app in the order of Gatehouse.Web/PORTING.md; fix the live log sink (four fixes, app-events/PORTING.md) before AppEvent; then report back what live showed.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
@@ -24,6 +24,12 @@ relates: []
 ---
 
 ## notes
+
+### 2026-10-24 (close: G8, pushed)
+- "Package" meant a segregated project, not a zip (his words); Gatehouse is the deliverable.
+- G8 settled: live keeps the body in apptrak.ApiContent as BodyType/Body (apptrak_DEV, schema only, shows it); the three
+  body scripts read whichever pair the table has. Verified identical on a live-shaped scratch database; 45 tests pass.
+- G7 left to porting (likely the live app's own roles). Main pushed through 649286b.
 
 ### 2026-10-24 (later: Usage completed, AppEvent built, the package)
 - Usage: scope by membership (sys admins all), /usage/summary for executives and sys admins, Usage:Excluded, "came from".

@@ -15,15 +15,22 @@ scope:
 
 # ── state ──
 phase: discovery
-next_step: 'Robert ports Gatehouse (Gatehouse.Web, one folder per piece) into the live app in the order of Gatehouse.Web/PORTING.md; fix the live log sink (four fixes, app-events/PORTING.md) before AppEvent; then report back what live showed.'
+next_step: 'Robert answers four things (demo profile open or signed in; who may edit Census settings; feature-picture link titles; push): see dispatch Anything alarming. Then unit-level saves for the settings editors before a second editor arrives.'
 standing: underway          # underway|parked|blocked|review — where it sits across the range (docs/STANDING.md)
 
 # ── synthesis ──
 themes: []
 relates: []
+focus: true
 ---
 
 ## notes
+
+### 2026-11-05 (Census on AppTrak, committed locally, not pushed)
+- He chose FM2280 over Gatehouse for his own app, and turned Census toward an enterprise solution on AppTrak (D-001 to D-005 in .docs/decisions.md).
+- Built and verified, each slice before/after-captured: R-1 reset (undoable); I-1/I-2 Windows sign-in and impersonation from xf-dashboard via Gatehouse (ImpersonatedBy on three audit tables); C-1 every SQL path on command/query (80 keys, declared shapes); O-1 owners see only their own (Move It reads trimmed, writes gated by curate features); S-1 role drift report; T-1..T-9 eight config documents held in AppTrak as audited rows (machines.json stays a file for the collector); impersonation banner on every page; Log Explorer/Trace/Usage gated and Usage scoped.
+- A test once really ran a reset because a precondition was wrong; recovered with the reset's own undo; the test now refuses to run as an administrator.
+- Open for him: demo profile sign-in (plinth window 401s), who may edit Census settings, feature-picture link titles, push.
 
 ### 2026-10-24 (close: G8, pushed)
 - "Package" meant a segregated project, not a zip (his words); Gatehouse is the deliverable.

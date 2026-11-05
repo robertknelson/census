@@ -28,6 +28,7 @@
 </head>
 <body>
     @RenderBody()
+    <partial name="_ImpersonationBanner" />
     @{
         var uxPath = Context.Request.Path.Value ?? "/";
         var onClassic = uxPath.StartsWith("/classic", StringComparison.OrdinalIgnoreCase);

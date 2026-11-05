@@ -1,0 +1,27 @@
+@using Census.Web.Identity
+@* While a system administrator acts as someone else (census-on-apptrak.md §10), every page says so and offers Stop.
+   Decided on the server from the sign-in's claims; nothing is rendered otherwise. The persona shell has its own. *@
+@if (User.IsImpersonating())
+{
+    var effective = User.FindFirst(CensusClaims.Name)?.Value ?? User.Effective();
+    var canonical = User.FindFirst(CensusClaims.CanonicalName)?.Value ?? User.Canonical();
+    <div class="imp-banner" role="status" title="You (@canonical) are acting as @effective (@User.Effective()). What you change is recorded as theirs, with you beside it.">
+        Impersonating <strong>@effective</strong>
+        <button type="button" class="imp-banner-stop" data-imp-stop>Stop</button>
+    </div>
+    <style>
+        .imp-banner { position: fixed; left: 12px; bottom: 12px; z-index: 10000; display: inline-flex; align-items: center; gap: .5rem;
+            padding: .3rem .35rem .3rem .8rem; border: 1px solid #e8710a; border-radius: 999px; background: #1f2530; color: #ffd2a8;
+            font: 13px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+        .imp-banner strong { color: #fff; font-weight: 600; }
+        .imp-banner-stop { padding: .15rem .75rem; border: 1px solid #e8710a; border-radius: 999px; background: transparent; color: #ffd2a8;
+            font: inherit; font-weight: 600; cursor: pointer; }
+        .imp-banner-stop:hover { background: #e8710a; color: #fff; }
+    </style>
+    <script type="module">
+        document.querySelector('[data-imp-stop]')?.addEventListener('click', async () => {
+            await fetch('/api/impersonation/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+            location.reload();
+        });
+    </script>
+}

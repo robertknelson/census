@@ -51,13 +51,62 @@ The reset keys on this table. Every new table must be placed in it in the same c
   them back with their ids (`IDENTITY_INSERT`). Undoing is possible; nothing is lost.
 - **Guarded on both halves:**
   - Server: refused unless the setting `Reset:Allowed` is `true` (default false, absent from production config),
-    plus feature `admin.reset`, held by system-administrator only. The script refuses unless the database
+    plus system-administrator on Census (the fixed rule the other Administer pages use, not a feature; see §5.1). The script refuses unless the database
     carries the extended property `AllowAssertionReset = 1`, set by hand once per non-production AppTrak.
   - UX: shown on the Administer page only when the server says it is allowed. The user types the word RESET and a
     reason. There is no browser confirm dialog.
 - **One transaction.** The result names each table and how many rows it removed.
 - **After a reset** the Move It board shows empty releases over the observed builds, which is the clean slate
   he asked for. The demo manifests can be reloaded with `Invoke-AppTrakManifests.ps1`.
+
+### 5.1 R-1, built (2026-11-05)
+
+| File | What |
+|------|------|
+| `apptrak/sql/reset/001-reset-schema.sql` | `reset.AssertedTable` (the one list of what a reset wipes, with the order), `reset.Reset`, `reset.Snapshot`. Idempotent. |
+| `apptrak/sql/reset/002-arm-reset.sql` | The database's key: extended property `AllowAssertionReset = 1`. Run by hand; the file says how to disarm. |
+| `reset-assertions.sql`, `restore-assertions.sql` | The reset and its undo, each in one transaction. Both refuse 50410 when the database is not armed. The reset refuses 50400 with no reason. The restore refuses 50404 for an unknown reset, and 50410 when the reset is already restored or when an asserted table holds rows. |
+| `armed.sql`, `tables.sql`, `resets.sql` | The status: armed or not, rows now per asserted table, the resets so far |
+| `Services/AssertionReset.cs`, `Controllers/Api/ResetController.cs` | `GET api/admin/reset` returns the status with `allowed` and `why`, decided on the server for the member viewed as. `POST api/admin/reset` takes `{ confirm: "RESET", reason }`. `POST api/admin/reset/{id}/restore` undoes one. |
+| `wwwroot/js/reset/reset-page.mjs` | *Administer → Reset*: what would be wiped and its rows; the form only when allowed, otherwise why not; the resets so far with *Restore* |
+| `appsettings.Development.json` | `Reset:Allowed: true`. Development only, absent everywhere else. |
+| `tests/Test-Reset.ps1` | The SQL half on a scratch copy (16 checks) and the API half (10 checks) |
+
+**Deviations from §5 as written, and why:**
+- **Offered by the fixed rule, not a feature `admin.reset`.** The other Administer pages (Membership, Feature access) are
+  offered to system-administrator on Census by a fixed rule, so they cannot be switched off from inside themselves
+  (FM2280 D7). The reset follows the local form. Unlike those pages, its API checks the role on the server (403),
+  rather than letting every request through until sign-in.
+- **On `ScriptRunner`, not command/query.** C-1 brings the plumbing. `ScriptRunner` now maps 50400 to 400 and 50410
+  to 409 (Potemkin `sql-refusal-to-http-status`), so the reset's refusals are not 500s.
+- **The restore goes into empty tables only.** Anything written since the reset would collide on ids. Reset again
+  first (that keeps the newer rows too), then restore. The page says so.
+
+**Verified:**
+- `Test-Reset.ps1 -BaseUrl http://localhost:5292 -NotAdmin demo-paula`: 26 passed, 0 failed.
+  - A scratch database holding a copy of the local Move It rows (80 asserted rows, 39 deployments).
+  - Unarmed: refused, nothing touched.
+  - Armed: the asserted tables are emptied and `moveit.Deployment` is unchanged.
+  - Reset again, then restore: identical to before by SHA-256 of each table's `FOR JSON`, ids and all.
+  - A new row after a restore takes an id above every restored one.
+  - The API refuses a product owner (403), a missing RESET or reason (400), and a second restore (409).
+  - On the local AppTrak, a reset and its restore leave it as it began.
+- Atomic to readers. A status read during a reset held open for 6 s blocked, then saw every table at 0. A status read
+  during a restore held open saw every row back. Neither saw a half state.
+- Live, headless Edge at 1400 px wide:
+  - Sam (system-administrator) gets *Reset* under Administer. The page shows 80 rows; the button stays disabled until
+    RESET and a reason are typed.
+  - After a reset: every count is 0, the Tracker reads "Nothing on the way", and the reset is listed with *Restore*.
+  - Paula (product owner) has no *Reset* in her menu, and `?at=admin.reset` lands her on the Tracker.
+
+**Not verified:**
+- Typing into the form and clicking in a browser. The clicks were exercised through the API.
+- Phone width.
+- The `Reset:Allowed` off case through the API. It would need a restart under another environment. The check is one
+  line in `ResetController.Refused`.
+- One headless shot taken while my API calls were still running showed a mixed state (`WorkItemLink` at 0, the rest
+  full). I could not reproduce it under control (above) and believe it was the overlapping runs, but I cannot
+  explain it fully.
 
 ## 6. Census's assertion layer into AppTrak
 

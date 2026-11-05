@@ -118,6 +118,14 @@ html, body { margin: 0; background: var(--ps-paper); }
 .mb-wrap { white-space: normal !important; }
 .mb-retired td { color: var(--ps-muted); }
 
+/* The reset (reset-page.mjs). */
+.rs-lede { max-width: 62rem; font-size: 13.5px; line-height: 1.5; }
+.rs-n { text-align: right !important; font-variant-numeric: tabular-nums; }
+.rs-why { margin-top: 0.4rem; font-size: 13px; font-weight: 600; }
+.rs-errors { margin: 0; padding: 0.45rem 0.75rem 0.45rem 1.75rem; border-radius: 6px; background: #fbe9e7; color: var(--ps-alert); font-size: 13px; }
+.rs-go { border-color: var(--ps-alert); background: var(--ps-alert); }
+.rs-go:disabled { opacity: 0.45; cursor: not-allowed; }
+
 /* The curate pages (curate-page.mjs, record-form.mjs). */
 .cu-root { display: flex; flex-direction: column; gap: 1rem; }
 .cu-row { border-top: 1px solid var(--ps-rule-soft); }

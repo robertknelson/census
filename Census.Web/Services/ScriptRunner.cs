@@ -8,8 +8,9 @@ using Microsoft.Data.SqlClient;
 namespace Census.Web.Services;
 
 // Runs one AppTrak script file with parameters (the membership page and the curate pages): reads
-// come back as column → value rows; a write returns its first value, or the 404 / 409 the script
-// THROWs (50404 / 50409) with its own words.
+// come back as column → value rows; a write returns its first value, or the refusal the script
+// THROWs with its own words: 50400 → 400, 50404 → 404, 50409 and 50410 (the record's state forbids
+// it) → 409.
 public class ScriptRunner(string sqlPath, string connectionString)
 {
     public bool Enabled => !string.IsNullOrWhiteSpace(connectionString);
@@ -40,9 +41,9 @@ public class ScriptRunner(string sqlPath, string connectionString)
         {
             return new WriteResult { Status = 200, Key = (await command.ExecuteScalarAsync())?.ToString() };
         }
-        catch (SqlException e) when (e.Number is 50404 or 50409)
+        catch (SqlException e) when (e.Number is 50400 or 50404 or 50409 or 50410)
         {
-            return new WriteResult { Status = e.Number - 50000, Message = e.Message };
+            return new WriteResult { Status = e.Number == 50410 ? 409 : e.Number - 50000, Message = e.Message };
         }
     }
 

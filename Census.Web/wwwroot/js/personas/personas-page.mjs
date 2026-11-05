@@ -9,6 +9,7 @@ import { escapeHtml } from '../moveit/format.mjs';
 import divisionPage from '../moveit/division-page.mjs';
 import featureAccessPage from '../feature-access/feature-access-page.mjs';
 import membershipPage from '../membership/membership-page.mjs';
+import resetPage from '../reset/reset-page.mjs';
 import curatePage from '../curate/curate-page.mjs';
 import usagePage from '../usage/usage-page.mjs';
 
@@ -26,6 +27,7 @@ const LANDING = 'view.tracker';
 // cannot be switched off from inside itself (FM2280 D7): system-administrator held on Census.
 const ADMIN = 'admin.features';
 const MEMBERSHIP = 'admin.membership';
+const RESET = 'admin.reset';
 const ADMIN_ROLE = 'system-administrator';
 
 // The data each built view reads, fetched once per page load.
@@ -113,8 +115,8 @@ class PersonasPage {
             return;
         }
         this.nav = trimNav(NAV, this.access.features);
-        if ((this.at === ADMIN || this.at === MEMBERSHIP) && !this.isAdmin()) this.at = null;
-        if (this.at && this.at !== OVERVIEW && this.at !== ADMIN && this.at !== MEMBERSHIP && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
+        if ((this.at === ADMIN || this.at === MEMBERSHIP || this.at === RESET) && !this.isAdmin()) this.at = null;
+        if (this.at && this.at !== OVERVIEW && this.at !== ADMIN && this.at !== MEMBERSHIP && this.at !== RESET && (!navItem(this.nav, this.at) || navItem(this.nav, this.at).href)) this.at = null;
         if (!this.at) this.at = navItem(this.nav, LANDING) ? LANDING : OVERVIEW;
         this.render();
     }
@@ -164,6 +166,7 @@ class PersonasPage {
                                 <h2 class="ps-nav-h">Administer</h2>
                                 <a class="ps-nav-item${this.at === MEMBERSHIP ? ' is-active' : ''}" href="#" data-at="${MEMBERSHIP}" title="Applications, members, and who holds which role where">Membership</a>
                                 <a class="ps-nav-item${this.at === ADMIN ? ' is-active' : ''}" href="#" data-at="${ADMIN}" title="Which roles may use which features">Feature access</a>
+                                <a class="ps-nav-item${this.at === RESET ? ' is-active' : ''}" href="#" data-at="${RESET}" title="Wipe what people have added, keep what was observed; undoable">Reset</a>
                             </div>` : ''}
                     </nav>
                     <main class="ps-main">
@@ -207,6 +210,13 @@ class PersonasPage {
             this.view = {
                 html: () => '<div id="membership" class="mb-root"></div>',
                 bind: () => membershipPage.init({ root: '#membership', headers: { 'X-Census-Member': this.as }, estate: this.estateApp }),
+            };
+            return this.view.html();
+        }
+        if (this.at === RESET) {
+            this.view = {
+                html: () => '<div id="reset" class="mb-root"></div>',
+                bind: () => resetPage.init({ root: '#reset', headers: { 'X-Census-Member': this.as } }),
             };
             return this.view.html();
         }

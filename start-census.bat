@@ -18,9 +18,9 @@ if /i "%~1"=="real" (
     echo Starting Census Web against the DEMO fleet ^(output-demo\^).  Use "start-census.bat real" for the real tree.
 )
 
-set "ASPNETCORE_URLS=http://localhost:5199"
+set "ASPNETCORE_URLS=http://localhost:5292"
 echo.
-echo     http://localhost:5199
+echo     http://localhost:5292
 echo.
 echo Ctrl+C to stop.
 echo.

@@ -13,6 +13,13 @@ links:
   - { label: "Gatehouse spec", url: "https://github.com/robertknelson/census/blob/main/.docs/features/gatehouse.md" }
 phase_suggestion: execution
 ignite: start-census.bat
+windows:                                   # OPT-IN: shown through plinth (private door)
+  - host: census
+    at: http://localhost:5292
+    audience: [robert]
+    ask: "the estate from the phone: does the demo fleet read at phone width?"
+    look:
+      - { label: "the estate", path: "/" }
 #
 # ignite runs blind from the repo root in cmd.exe (`wt -d <dir> cmd /k <command>`),
 # so it is a .bat, not PowerShell. Defaults to the DEMO fleet: this repo's real

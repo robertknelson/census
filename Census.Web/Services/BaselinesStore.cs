@@ -10,7 +10,7 @@ namespace Census.Web.Services;
 
 public class BaselinesStore
 {
-    private readonly string _baselinesConfigPath;
+    private readonly AssertionDocuments _documents;
 
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
@@ -26,20 +26,21 @@ public class BaselinesStore
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public BaselinesStore(IOptions<CensusOptions> options, IHostEnvironment env)
+    // The document is AppTrak's rows or the file, as AssertionDocuments decides (census-on-apptrak.md §6).
+    public BaselinesStore(AssertionDocuments documents)
     {
-        _baselinesConfigPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.BaselinesConfigPath));
+        _documents = documents;
     }
 
     public BaselinesConfig Load()
     {
-        if (!File.Exists(_baselinesConfigPath)) return new BaselinesConfig();
-        var json = File.ReadAllText(_baselinesConfigPath);
+        var json = _documents.Read("baselines");
+        if (json == null) return new BaselinesConfig();
         return JsonSerializer.Deserialize<BaselinesConfig>(json, ReadOptions) ?? new BaselinesConfig();
     }
 
     public void Save(BaselinesConfig config)
     {
-        File.WriteAllText(_baselinesConfigPath, JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine);
+        _documents.Write("baselines", JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine).EnsureSaved();
     }
 }

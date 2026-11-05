@@ -14,7 +14,7 @@ namespace Census.Web.Services;
 
 public partial class BlacklistEvaluator
 {
-    private readonly string _blacklistConfigPath;
+    private readonly AssertionDocuments _documents;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -22,9 +22,10 @@ public partial class BlacklistEvaluator
         PropertyNameCaseInsensitive = true,
     };
 
-    public BlacklistEvaluator(IOptions<CensusOptions> options, IHostEnvironment env)
+    // The document is AppTrak's rows or the file, as AssertionDocuments decides (census-on-apptrak.md §6).
+    public BlacklistEvaluator(AssertionDocuments documents)
     {
-        _blacklistConfigPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.BlacklistConfigPath));
+        _documents = documents;
     }
 
     [GeneratedRegex(@"^(\S+)\s+(\S+)\s+\[.*\]$")]
@@ -35,8 +36,8 @@ public partial class BlacklistEvaluator
 
     public BlacklistConfig LoadConfig()
     {
-        if (!File.Exists(_blacklistConfigPath)) return new BlacklistConfig();
-        var json = File.ReadAllText(_blacklistConfigPath);
+        var json = _documents.Read("blacklist");
+        if (json == null) return new BlacklistConfig();
         return JsonSerializer.Deserialize<BlacklistConfig>(json, JsonOptions) ?? new BlacklistConfig();
     }
 

@@ -7,4 +7,10 @@ public class WriteResult
     public int Status { get; init; }
     public string Key { get; init; }
     public string Message { get; init; }
+
+    // For a store whose callers expect a save to happen or throw, as a file write did.
+    public void EnsureSaved()
+    {
+        if (Status != 200) throw new System.InvalidOperationException(Message ?? $"The save was refused ({Status}).");
+    }
 }

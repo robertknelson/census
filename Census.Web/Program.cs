@@ -23,6 +23,8 @@ builder.Configuration.AddCommandLine(args);
 builder.Services.AddControllersWithViews();
 builder.Services.Configure<CensusOptions>(builder.Configuration.GetSection(CensusOptions.SectionName));
 builder.Services.AddMemoryCache(o => o.SizeLimit = builder.Configuration.GetSection(CensusOptions.SectionName).GetValue<int?>(nameof(CensusOptions.SnapshotCacheEntries)) ?? 1000);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<AssertionDocuments>();
 builder.Services.AddSingleton<CensusStore>();
 builder.Services.AddSingleton<BlacklistEvaluator>();
 builder.Services.AddSingleton<AssetsStore>();
@@ -48,6 +50,7 @@ builder.Services.AddSingleton<ISqlCommandInitializer, EntrySqlCommandInitializer
 builder.Services.AddSingleton<ISqlCommandInitializer, EditSqlCommandInitializer>();
 builder.Services.AddSingleton<ISqlCommandInitializer, MembershipSqlCommandInitializer>();
 builder.Services.AddSingleton<ISqlCommandInitializer, ResetSqlCommandInitializer>();
+builder.Services.AddSingleton<ISqlCommandInitializer, AssertionSqlCommandInitializer>();
 builder.Services.AddSingleton<ISqlCommandInitializer, LogsSqlCommandInitializer>();
 builder.Services.AddSingleton<IInitializerLocator, SqlCommandInitializerContainer>();
 builder.Services.AddSingleton<JsonQueryHandler>();

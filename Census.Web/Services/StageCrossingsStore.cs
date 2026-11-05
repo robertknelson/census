@@ -10,7 +10,7 @@ namespace Census.Web.Services;
 
 public class StageCrossingsStore
 {
-    private readonly string _configPath;
+    private readonly AssertionDocuments _documents;
 
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
@@ -26,20 +26,22 @@ public class StageCrossingsStore
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public StageCrossingsStore(IOptions<CensusOptions> options, IHostEnvironment env)
+    // The document is AppTrak's rows or the file, as AssertionDocuments decides (census-on-apptrak.md §6).
+    public StageCrossingsStore(AssertionDocuments documents)
     {
-        _configPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.StageCrossingsConfigPath));
+        _documents = documents;
     }
 
     public StageCrossingsConfig Load()
     {
-        if (!File.Exists(_configPath)) return new StageCrossingsConfig();
-        var config = JsonSerializer.Deserialize<StageCrossingsConfig>(File.ReadAllText(_configPath), ReadOptions) ?? new StageCrossingsConfig();
+        var json = _documents.Read("stage-crossings");
+        if (json == null) return new StageCrossingsConfig();
+        var config = JsonSerializer.Deserialize<StageCrossingsConfig>(json, ReadOptions) ?? new StageCrossingsConfig();
         return config with { Accepted = config.Accepted ?? [] };
     }
 
     public void Save(StageCrossingsConfig config)
     {
-        File.WriteAllText(_configPath, JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine);
+        _documents.Write("stage-crossings", JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine).EnsureSaved();
     }
 }

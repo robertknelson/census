@@ -11,7 +11,7 @@ namespace Census.Web.Services;
 
 public class EntityTagsStore
 {
-    private readonly string _configPath;
+    private readonly AssertionDocuments _documents;
 
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
@@ -27,15 +27,16 @@ public class EntityTagsStore
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public EntityTagsStore(IOptions<CensusOptions> options, IHostEnvironment env)
+    // The document is AppTrak's rows or the file, as AssertionDocuments decides (census-on-apptrak.md §6).
+    public EntityTagsStore(AssertionDocuments documents)
     {
-        _configPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.EntityTagsConfigPath));
+        _documents = documents;
     }
 
     public EntityTagsConfig Load()
     {
-        if (!File.Exists(_configPath)) return new EntityTagsConfig();
-        var json = File.ReadAllText(_configPath);
+        var json = _documents.Read("entity-tags");
+        if (json == null) return new EntityTagsConfig();
         var config = JsonSerializer.Deserialize<EntityTagsConfig>(json, ReadOptions) ?? new EntityTagsConfig();
 
         // A round-trip through System.Text.Json drops every dictionary's comparer, and here
@@ -45,7 +46,7 @@ public class EntityTagsStore
 
     public void Save(EntityTagsConfig config)
     {
-        File.WriteAllText(_configPath, JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine);
+        _documents.Write("entity-tags", JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine).EnsureSaved();
     }
 
     private static Dictionary<string, Dictionary<string, Dictionary<string, EntityTagAssertion>>> Normalize(

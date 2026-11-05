@@ -131,7 +131,7 @@ if ($BaseUrl) {
     }
     $sourceBefore = Get-Fingerprint $Source
     $s = Call Get '/api/admin/reset'
-    Assert-That 'status for you, a system administrator: allowed, the tables and their rows' ($s.Status -eq 200 -and $s.Body.allowed -and $s.Body.tables.Count -eq 6) ($s.Body | ConvertTo-Json -Compress -Depth 4)
+    Assert-That 'status for you, a system administrator: allowed, the tables and their rows' ($s.Status -eq 200 -and $s.Body.allowed -and $s.Body.tables.Count -eq (Invoke-Sql $Source 'SELECT COUNT(*) AS N FROM reset.AssertedTable')[0].N) ($s.Body | ConvertTo-Json -Compress -Depth 4)
     $r = Call Post '/api/admin/reset' @{ confirm = 'reset please'; reason = 'x' }
     Assert-That 'without the word RESET: 400' ($r.Status -eq 400) $r.Status
     $r = Call Post '/api/admin/reset' @{ confirm = 'RESET'; reason = '' }

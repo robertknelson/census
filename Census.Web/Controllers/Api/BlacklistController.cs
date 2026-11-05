@@ -46,18 +46,19 @@ public class BlacklistController : ControllerBase
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    private readonly string _blacklistConfigPath;
+    private readonly AssertionDocuments _documents;
 
-    public BlacklistController(IOptions<CensusOptions> options, IHostEnvironment env)
+    // The document is AppTrak's rows or the file, as AssertionDocuments decides (census-on-apptrak.md §6).
+    public BlacklistController(AssertionDocuments documents)
     {
-        _blacklistConfigPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.BlacklistConfigPath));
+        _documents = documents;
     }
 
     [HttpGet]
     public ActionResult<BlacklistConfig> Get()
     {
-        if (!System.IO.File.Exists(_blacklistConfigPath)) return Ok(new BlacklistConfig { Version = 1 });
-        var json = System.IO.File.ReadAllText(_blacklistConfigPath);
+        var json = _documents.Read("blacklist");
+        if (json == null) return Ok(new BlacklistConfig { Version = 1 });
         return Ok(JsonSerializer.Deserialize<BlacklistConfig>(json, ReadOptions) ?? new BlacklistConfig { Version = 1 });
     }
 
@@ -67,7 +68,7 @@ public class BlacklistController : ControllerBase
         var errors = Validate(config);
         if (errors.Count > 0) return BadRequest(new { errors });
 
-        System.IO.File.WriteAllText(_blacklistConfigPath, JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine);
+        _documents.Write("blacklist", JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine).EnsureSaved();
         return NoContent();
     }
 

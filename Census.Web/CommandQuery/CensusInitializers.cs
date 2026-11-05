@@ -107,6 +107,18 @@ public class MembershipSqlCommandInitializer : SqlCommandInitializer
     }
 }
 
+// Census's own assertion layer (census-on-apptrak.md §6): its config documents as audited rows.
+public class AssertionSqlCommandInitializer : SqlCommandInitializer
+{
+    public AssertionSqlCommandInitializer()
+    {
+        const SqlDbType S = SqlDbType.NVarChar;
+        Script("assertion.read", "census/assertions.sql", ResultShape.Rows, ("Document", SqlDbType.VarChar));
+        Script("assertion.save", "census/assertions-save.sql", ResultShape.Scalar, ("Document", SqlDbType.VarChar), ("Rows", S), ("Actor", S), ("ImpersonatedBy", S));
+        Script("assertion.counts", "census/assertion-counts.sql", ResultShape.Rows);
+    }
+}
+
 // The reset (census-on-apptrak.md §5).
 public class ResetSqlCommandInitializer : SqlCommandInitializer
 {

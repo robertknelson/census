@@ -11,7 +11,7 @@ namespace Census.Web.Services;
 
 public class SystemsStore
 {
-    private readonly string _configPath;
+    private readonly AssertionDocuments _documents;
 
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
@@ -27,15 +27,16 @@ public class SystemsStore
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public SystemsStore(IOptions<CensusOptions> options, IHostEnvironment env)
+    // The document is AppTrak's rows or the file, as AssertionDocuments decides (census-on-apptrak.md §6).
+    public SystemsStore(AssertionDocuments documents)
     {
-        _configPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.SystemsConfigPath));
+        _documents = documents;
     }
 
     public SystemsConfig Load()
     {
-        if (!File.Exists(_configPath)) return new SystemsConfig();
-        var json = File.ReadAllText(_configPath);
+        var json = _documents.Read("systems");
+        if (json == null) return new SystemsConfig();
         var config = JsonSerializer.Deserialize<SystemsConfig>(json, ReadOptions) ?? new SystemsConfig();
         // Round-trips drop the comparer; the name is the key, so rebuild case-insensitive.
         return config with
@@ -48,6 +49,6 @@ public class SystemsStore
 
     public void Save(SystemsConfig config)
     {
-        File.WriteAllText(_configPath, JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine);
+        _documents.Write("systems", JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine).EnsureSaved();
     }
 }

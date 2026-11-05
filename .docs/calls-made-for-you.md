@@ -4,6 +4,29 @@ Non-pivotal decisions made without stopping, per the collaboration contract ("ma
 best guess and proceed, period"). Newest first. Each entry: the question, the options, the
 call, the reason. Reverse any of them by saying so.
 
+## 2026-11-05 — Census on AppTrak (census-on-apptrak.md)
+
+**Census's config documents are kept as keyed JSON rows (one per asserted unit) by one engine, not a table per file.**
+Options: nine tables, each with its own audit, schema and migration; or one table keyed by document and the unit's
+path, its value the unit's JSON. Chose the second. The shapes are still moving (CA-5), the stores keep their JSON
+contract unchanged, and the audit and the reset cover every document alike. Reverse by saying "a table per file".
+
+**machines.json stays a file.** It is the collector's input (Invoke-Census.ps1 on a box with no AppTrak), and Census
+has no editor for it.
+
+**A system administrator signed in as themselves sees and changes every application's Move It rows; impersonating,
+they get the member's scope exactly** (O-1). So impersonating shows what the member sees.
+
+**Move It's reads are trimmed in C#, by a rule each key declares, not in each SQL script** (O-1). One place decides,
+24 scripts stay untouched, and a key with no rule throws rather than leaking.
+
+**Product owners and application owners get curate.releases and curate.feature-sets** (fm/003-owners-curate.sql),
+D-004's "add their own releases and features". Build claims and events stay with the administrators. Change either on
+the Feature access page.
+
+**Command/query declares each key's result shape** (rows, JSON, a scalar) instead of guessing from the SQL text, as
+Gatehouse does (C-1). The reset script mentions FOR JSON only in dynamic SQL and would have been misread.
+
 ## 2026-10-24 — Gatehouse, the live body columns (G8)
 
 **The scripts read which body columns the table has**, rather than being rewritten for live or driven by a setting.

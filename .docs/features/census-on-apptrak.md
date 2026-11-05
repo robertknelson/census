@@ -186,6 +186,101 @@ refuses a parameter named `@Key` at start-up.
 - The tag shape is still moving, so `census.EntityTag` keeps the flexible part as a JSON column with a fixed key
   (entity kind plus identity). It avoids an `ALTER` every time an axis changes (CA-5).
 
+### 6.1 T-1 to T-9, built together (2026-11-05)
+
+Robert, traveling: "proceed until you can no longer proceed."
+
+**What moved.** Eight documents now live in AppTrak when Census runs with AppTrak:
+- entity-tags
+- systems
+- stage-crossings
+- declared-entities
+- assets
+- baselines
+- blacklist
+- views
+
+**One engine, not nine tables.** `Services/AssertionDocuments.cs` keeps each document as rows of `census.Assertion`:
+- one row per unit a person asserts (a tagged entity, a system, a baseline, a blacklist rule);
+- keyed by its path in the document (`["databases","SQL01","MSSQLSERVER","MyDB"]`);
+- its value the unit's JSON;
+- plus a root row holding the rest of the document (version, the containers).
+
+The rows reassemble the document exactly, in order. So every store reads and writes the same JSON it always did, and
+nothing above the stores changed. Each changed row is audited in `census.AssertionAudit` (PreviousValue / NewValue,
+ChangedBy, ImpersonatedBy). Both tables join the reset.
+
+**How each document is cut** (`AssertionDocuments.Documents`):
+
+| Document | One row per |
+|----------|-------------|
+| entity-tags | `databases.*.*.*`, `applications.*.*.*` |
+| systems | `systems.*` |
+| stage-crossings | `accepted[]`, by caller and target |
+| declared-entities | `onMachines.*.*`, `external.*` |
+| assets | `assets.*` |
+| baselines | `baselines[]`, by id |
+| blacklist | `rules[]`, by id |
+| views | `views[]`, by id |
+
+**Where a document lives.** It is in the database when it is listed in `Census:AssertionsInDatabase` (all eight, in
+`appsettings.Development.json`) and AppTrak is configured. Otherwise it is in its file, as before. The demo profile,
+which ignite starts, has no AppTrak, so it stays on the files, and the fixture tests are unchanged.
+- **A document moved to the database starts empty.** It is filled only by *Import from file*, never on its own, so a
+  reset stays empty.
+- **Export** gives the document back as its JSON file, for git, a diff, or another AppTrak.
+- Both sit under *Census documents* on the Reset page, for administrators (`api/admin/assertions`).
+
+| File | What |
+|------|------|
+| `apptrak/sql/census/001-assertions.sql` | `census.Assertion`, `census.AssertionAudit`, and their place in the reset. Idempotent. |
+| `census/assertions.sql`, `assertions-save.sql`, `assertion-counts.sql` | Read a document's rows; save a document (create, update, delete, audit, one transaction); counts per document |
+| `Services/AssertionDocuments.cs` | The engine: where a document lives, the split and the reassembly, import and export |
+| Seven stores, `BlacklistEvaluator`, `BlacklistController` | Read and write through the engine instead of the file |
+| `Controllers/Api/AssertionsController.cs`, `reset-page.mjs` | List, Import, Export |
+| `tests/Capture-Census.ps1`, `tests/Test-Assertions.ps1` | The before/after capture of Census's reads, and the per-document checks |
+
+**Calls made, recorded here and in `calls-made-for-you.md`:**
+- **One engine with keyed JSON rows, not a table per file** (refines CA-5). Nine shapes would have meant nine schemas,
+  nine audits and nine migrations, while the shapes are still moving. The rows keep CA-5's point: the key is a
+  column, the changing part is JSON. A query that needs a tag's system can read `JSON_VALUE` on one row.
+- **`machines.json` stays a file.** It is the collector's input: `Invoke-Census.ps1` reads it on a box that has no
+  AppTrak. Census has no editor for it either. This drops the planned T-5.
+- **Saves are still whole-document, last writer wins**, as with the files. An edit that only changes formatting is no
+  change (units are compared by meaning). Two people saving at once could still undo each other's unit; see the
+  open item below.
+
+**Verified (2026-11-05, local AppTrak, the app on the demo fleet's Census paths):**
+- **Reads.** `Capture-Census.ps1`: 29 Census reads (the estate, graphs, findings, compliance, triage, blast radius,
+  the documents themselves) are byte-identical with all eight documents in their files and with all eight imported
+  into AppTrak. Two files-mode runs are identical, so the capture is deterministic.
+- **Fixtures.** The demo files' hashes are unchanged after all of it.
+- **Writes.** `Test-Assertions.ps1`, 83 passed. For each of the eight documents:
+  - the import exports back as the file, by meaning;
+  - after the first save through its own API (which puts it in the model's form, an absent list becoming `[]`, as a
+    file save does), saving it unchanged changes no row;
+  - one unit changed through the API while impersonating demo-sam is exactly one audited row (updated, demo-sam,
+    `ImpersonatedBy` you);
+  - its file is untouched, and saving the original back restores the export.
+
+  Then a reset empties all eight, and its restore brings each back byte for byte.
+- **Older suites.** Run against the documents held in AppTrak: `Test-StageCrossings` 25 and `Test-Day` 50. They now
+  sign in, which they had not since I-1. `Test-Personas` 18, with expectations brought up to date: `view.usage`,
+  `view.log-explorer` and `view.trace` from 10-24, D-004's owner grants, and the fleet read from the registry.
+- **Other suites.** `Test-Identity` 21, `Test-Ownership` 50, `Test-Edit` 30, `Test-Reset` 23 (now counting the
+  reset's own list of tables), `Test-Membership` 35. All 14 node suites pass.
+- **Page.** A screenshot of the Reset page shows *Census documents*: eight in AppTrak, their rows, Import and Export.
+
+**Open, for you:**
+- **Unit-level saves.** The editors send whole documents. Now that the rows are per unit, each editor could save just
+  its unit, which would end last-writer-wins. That is the change to make before a second person edits Census's config
+  (trigger 1).
+- **Who may edit Census's config.** Its editors (tags, systems, baselines, blacklist, views) still accept any
+  signed-in user, as they did any request before sign-in. Gate them, as Move It's writes now are, when you say which
+  roles.
+- **On the real AppTrak:** run `census/001-assertions.sql`, list the documents in `Census:AssertionsInDatabase` for that
+  environment, and Import each from its file once.
+
 ## 7. Scoped ownership (D-004)
 
 - A release belongs to an application (`moveit.Release.ApplicationId`, already present). **A person's own releases

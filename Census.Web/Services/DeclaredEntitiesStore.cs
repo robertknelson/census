@@ -11,7 +11,7 @@ namespace Census.Web.Services;
 
 public class DeclaredEntitiesStore
 {
-    private readonly string _configPath;
+    private readonly AssertionDocuments _documents;
 
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
@@ -27,15 +27,16 @@ public class DeclaredEntitiesStore
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public DeclaredEntitiesStore(IOptions<CensusOptions> options, IHostEnvironment env)
+    // The document is AppTrak's rows or the file, as AssertionDocuments decides (census-on-apptrak.md §6).
+    public DeclaredEntitiesStore(AssertionDocuments documents)
     {
-        _configPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.DeclaredEntitiesConfigPath));
+        _documents = documents;
     }
 
     public DeclaredEntitiesConfig Load()
     {
-        if (!File.Exists(_configPath)) return new DeclaredEntitiesConfig();
-        var json = File.ReadAllText(_configPath);
+        var json = _documents.Read("declared-entities");
+        if (json == null) return new DeclaredEntitiesConfig();
         var config = JsonSerializer.Deserialize<DeclaredEntitiesConfig>(json, ReadOptions) ?? new DeclaredEntitiesConfig();
 
         // A round-trip through System.Text.Json drops every dictionary's comparer, and the
@@ -55,6 +56,6 @@ public class DeclaredEntitiesStore
 
     public void Save(DeclaredEntitiesConfig config)
     {
-        File.WriteAllText(_configPath, JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine);
+        _documents.Write("declared-entities", JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine).EnsureSaved();
     }
 }

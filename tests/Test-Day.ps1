@@ -17,6 +17,12 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
+# Census requires Windows sign-in (census-on-apptrak.md §10): every call goes as you.
+foreach ($c in 'Invoke-WebRequest', 'Invoke-RestMethod') {
+    $PSDefaultParameterValues["$($c):UseDefaultCredentials"] = $true
+    $PSDefaultParameterValues["$($c):AllowUnencryptedAuthentication"] = $true
+}
+
 $script:passed = 0
 $script:failed = 0
 function Assert-That {

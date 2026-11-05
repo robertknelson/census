@@ -10,7 +10,7 @@ namespace Census.Web.Services;
 
 public class ViewsStore
 {
-    private readonly string _configPath;
+    private readonly AssertionDocuments _documents;
 
     private static readonly JsonSerializerOptions ReadOptions = new()
     {
@@ -26,20 +26,21 @@ public class ViewsStore
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public ViewsStore(IOptions<CensusOptions> options, IHostEnvironment env)
+    // The document is AppTrak's rows or the file, as AssertionDocuments decides (census-on-apptrak.md §6).
+    public ViewsStore(AssertionDocuments documents)
     {
-        _configPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.ViewsConfigPath));
+        _documents = documents;
     }
 
     public ViewsConfig Load()
     {
-        if (!File.Exists(_configPath)) return new ViewsConfig();
-        var json = File.ReadAllText(_configPath);
+        var json = _documents.Read("views");
+        if (json == null) return new ViewsConfig();
         return JsonSerializer.Deserialize<ViewsConfig>(json, ReadOptions) ?? new ViewsConfig();
     }
 
     public void Save(ViewsConfig config)
     {
-        File.WriteAllText(_configPath, JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine);
+        _documents.Write("views", JsonSerializer.Serialize(config, WriteOptions) + Environment.NewLine).EnsureSaved();
     }
 }

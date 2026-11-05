@@ -25,6 +25,8 @@ class ResetPage {
             const response = await fetch('/api/admin/reset', { headers: { Accept: 'application/json', ...this.headers } });
             if (!response.ok) throw new Error(`The reset did not answer (${response.status}).`);
             this.status = await response.json();
+            const docs = await fetch('/api/admin/assertions', { headers: { Accept: 'application/json', ...this.headers } });
+            this.documents = docs.ok ? await docs.json() : [];
         } catch (e) {
             this.root.innerHTML = `<p class="ps-error">${escapeHtml(e.message)}</p>`;
             return;
@@ -61,12 +63,34 @@ class ResetPage {
                     </table></div>
                     ${s.allowed ? this.formHtml(total) : `<p class="rs-why">Not offered here:</p><ul class="mb-needs">${s.why.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul>`}
                 </section>
+                ${this.documentsHtml()}
                 <section class="ps-section">
                     <h3 class="ps-h3">Resets so far</h3>
                     ${this.resetsHtml()}
                 </section>
             </div>`;
         this.bind();
+    }
+
+    // Census's own documents (census-on-apptrak.md §6): where each lives, and for one in the database, Import from its
+    // file (after a reset, say) and Export back to JSON.
+    documentsHtml() {
+        if (!this.documents?.length) return '';
+        return `
+            <section class="ps-section">
+                <h3 class="ps-h3">Census documents</h3>
+                <div class="ps-scroll"><table class="ps-table">
+                    <thead><tr><th>Document</th><th>Lives in</th><th class="rs-n">Rows</th><th>Last changed</th><th></th></tr></thead>
+                    <tbody>${this.documents.map((d) => `<tr>
+                        <td>${escapeHtml(d.document)}</td>
+                        <td>${d.inDatabase ? 'AppTrak' : `its file <span class="ps-none">${escapeHtml(d.file)}</span>`}</td>
+                        <td class="rs-n">${d.inDatabase ? d.rows : '—'}</td>
+                        <td>${d.updatedAt ? escapeHtml(when(d.updatedAt)) : '—'}</td>
+                        <td>${d.inDatabase ? `<button type="button" class="ps-save" data-import="${escapeHtml(d.document)}" title="Fill it from ${escapeHtml(d.file)}; every changed row is audited">Import from file</button>
+                            <a class="ps-link" href="/api/admin/assertions/${encodeURIComponent(d.document)}/export" download="${escapeHtml(d.document)}.json">Export</a>` : ''}</td>
+                    </tr>`).join('')}</tbody>
+                </table></div>
+            </section>`;
     }
 
     formHtml(total) {
@@ -106,6 +130,15 @@ class ResetPage {
                 const r = await this.post('/api/admin/reset', { confirm: form.confirm.value, reason: form.reason.value.trim() });
                 this.errors = r.errors;
                 this.flash = r.ok ? `Reset #${r.payload.key} done. Every asserted table is empty; the rows are kept.` : '';
+                this.load();
+            });
+        }
+        for (const b of this.root.querySelectorAll('[data-import]')) {
+            b.addEventListener('click', async () => {
+                b.disabled = true;
+                const r = await this.post(`/api/admin/assertions/${encodeURIComponent(b.dataset.import)}/import`);
+                this.errors = r.errors;
+                this.flash = r.ok ? `${b.dataset.import} imported from its file: ${r.payload.changed} row(s) changed.` : '';
                 this.load();
             });
         }

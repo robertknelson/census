@@ -350,6 +350,11 @@ who does not hold `view.log-explorer`, `view.trace` or `view.usage`, by the same
 administrator signed in as themselves passes. `Test-Ownership.ps1` (54) pins it: as Paula, Log Explorer and Trace are
 403 and Usage is 200; as you, all of them answer.
 
+**Usage scoped too (2026-11-05):** a member sees Usage only for the applications they hold a role on, matched by
+the registry's name or identifier, ignoring case. That is U-R1 as Gatehouse has it. The list and the summary are
+trimmed, and another application's section is 403. A system administrator signed in as themselves sees every
+application, and those answers are byte-identical to the C-1 baseline. `Test-Ownership.ps1` 58.
+
 **Open, for you:**
 - **The feature picture lists an item's links with the linked item's title, even when that item belongs to an
   application the member does not see.** A dependency names what it depends on. Say if those should be hidden.

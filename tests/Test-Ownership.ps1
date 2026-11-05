@@ -101,6 +101,12 @@ try {
     Assert-That 'Log Explorer page and API: 403' ((& $status '/logs') -eq 403 -and (& $status '/api/logs/api-request/search?log-start=2026-10-01&log-end=2026-10-02') -eq 403)
     Assert-That 'Trace page and API: 403' ((& $status '/trace') -eq 403 -and (& $status '/api/trace/people?from=2026-10-01&to=2026-10-02') -eq 403)
     Assert-That 'Usage, which she holds: 200' ((& $status '/usage') -eq 200 -and (& $status '/api/usage/applications?from=2026-10-01&to=2026-10-02') -eq 200)
+    $ua = @((Invoke-WebRequest -Uri "$BaseUrl/api/usage/applications?from=2026-09-23&to=2026-10-23" @c).Content | ConvertFrom-Json | ForEach-Object { $_.application } | Sort-Object -Unique)
+    Assert-That 'Usage lists her applications only (by name or identifier)' ($ua.Count -gt 0 -and @($ua | Where-Object { $_ -notin 'WidgetCore', 'Reporting', 'widgetcore', 'reporting' }).Count -eq 0) ($ua -join ',')
+    $us = @((Invoke-WebRequest -Uri "$BaseUrl/api/usage/summary?from=2026-09-23&to=2026-10-23" @c).Content | ConvertFrom-Json | ForEach-Object { $_.application })
+    Assert-That 'the Usage summary too' ($us.Count -gt 0 -and @($us | Where-Object { $_ -notin 'WidgetCore', 'Reporting' }).Count -eq 0) ($us -join ',')
+    Assert-That "another application's Usage section: 403" ((& $status '/api/usage/overview?application=LedgerService&stage=PROD&from=2026-09-23&to=2026-10-23') -eq 403)
+    Assert-That 'her own: 200' ((& $status '/api/usage/overview?application=WidgetCore&stage=PROD&from=2026-09-23&to=2026-10-23') -eq 200)
 
     Write-Host 'As demo-max: product owner on MortgageGateway (4), technical lead on Reporting (5)'
     Assert-That 'impersonate demo-max' ((Post '/api/impersonation' @{ identifier = 'demo-max' }).Status -eq 200)

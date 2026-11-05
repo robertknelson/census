@@ -74,6 +74,7 @@ public class MoveItScope(MemberAccess members, JsonQueryHandler queries)
         private Dictionary<int, int> _buildRelease;
         private Dictionary<int, int> _eventRelease;
         private Dictionary<int, int> _linkItem;
+        private HashSet<string> _logNames;
 
         public Reader(MemberAccessResult access, JsonQueryHandler queries, bool administrator)
         {
@@ -129,6 +130,25 @@ public class MoveItScope(MemberAccess members, JsonQueryHandler queries)
                 }
             }
             return kept.ToJsonString();
+        }
+
+        // A log row's application (Usage, usage.md U-R1 as Gatehouse has it): one the member sees, matched by the
+        // registry's name or identifier, ignoring case.
+        public async Task<bool> SeesLogApplicationAsync(string application)
+        {
+            if (All) return true;
+            if (string.IsNullOrWhiteSpace(application)) return false;
+            if (_logNames == null)
+            {
+                var seen = _access?.Applications.Select(a => a.ApplicationId).ToHashSet() ?? [];
+                _logNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var r in (await _queries.QueryAsync(ResponseExtensions.Key("membership.applications"))).Rows().Where(r => seen.Contains(Convert.ToInt32(r["ApplicationId"]))))
+                {
+                    if (r["Name"] is string n) _logNames.Add(n);
+                    if (r["Identifier"] is string i) _logNames.Add(i);
+                }
+            }
+            return _logNames.Contains(application.Trim());
         }
 
         public async Task<int?> ReleaseAppAsync(int releaseId) => (await ReleaseApps()).TryGetValue(releaseId, out var a) ? a : null;

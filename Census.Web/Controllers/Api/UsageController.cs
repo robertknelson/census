@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Census.Web.Identity;
 using Census.Web.Services;
@@ -13,7 +15,7 @@ namespace Census.Web.Controllers.Api;
 [ApiController]
 [Route("api/usage")]
 [RequireFeature("view.usage")]
-public class UsageController(UsageReader usage) : ControllerBase
+public class UsageController(UsageReader usage, MoveItScope owners) : ControllerBase
 {
     // Setting: the longest window one request reads (a quarter, with room for the browser's offset).
     public static readonly TimeSpan Longest = TimeSpan.FromDays(95);
@@ -27,7 +29,14 @@ public class UsageController(UsageReader usage) : ControllerBase
         if (!TryWindow(from, to, out var start, out var end, out var problem)) return BadRequest(new { message = problem });
         try
         {
-            return Ok(await usage.ApplicationsAsync(start, end));
+            // Only the applications the member sees (usage.md U-R1); everyone's for a system administrator.
+            var reader = await owners.ForAsync(User);
+            var kept = new List<Dictionary<string, object>>();
+            foreach (var row in await usage.ApplicationsAsync(start, end))
+            {
+                if (await reader.SeesLogApplicationAsync(row["application"] as string)) kept.Add(row);
+            }
+            return Ok(kept);
         }
         catch (SqlException e) when (e.Number == 50404)
         {
@@ -43,7 +52,15 @@ public class UsageController(UsageReader usage) : ControllerBase
         if (!TryWindow(from, to, out var start, out var end, out var problem)) return BadRequest(new { message = problem });
         try
         {
-            return Content(await usage.SummaryAsync(string.IsNullOrWhiteSpace(stage) ? null : stage.Trim(), start, end), "application/json");
+            var json = await usage.SummaryAsync(string.IsNullOrWhiteSpace(stage) ? null : stage.Trim(), start, end);
+            var reader = await owners.ForAsync(User);
+            if (reader.All) return Content(json, "application/json");
+            var kept = new System.Text.Json.Nodes.JsonArray();
+            foreach (var item in (System.Text.Json.Nodes.JsonNode.Parse(json) as System.Text.Json.Nodes.JsonArray ?? []).ToList())
+            {
+                if (await reader.SeesLogApplicationAsync(item?["application"]?.GetValue<string>())) kept.Add(item?.DeepClone());
+            }
+            return Content(kept.ToJsonString(), "application/json");
         }
         catch (SqlException e) when (e.Number == 50404)
         {
@@ -57,6 +74,7 @@ public class UsageController(UsageReader usage) : ControllerBase
         if (!usage.Enabled) return NotFound(new { message = "No log database is configured." });
         if (Array.IndexOf(Sections, section) < 0) return NotFound(new { message = $"Unknown section '{section}'." });
         if (string.IsNullOrWhiteSpace(application)) return BadRequest(new { message = "Choose an application." });
+        if (!await (await owners.ForAsync(User)).SeesLogApplicationAsync(application)) return StatusCode(403, new { message = "That application is not one of yours." });
         if (section == "page" && string.IsNullOrWhiteSpace(page)) return BadRequest(new { message = "Choose a page." });
         if (!TryWindow(from, to, out var start, out var end, out var problem)) return BadRequest(new { message = problem });
         var scope = new UsageScope(application.Trim(), string.IsNullOrWhiteSpace(stage) ? null : stage.Trim(), start, end, Math.Clamp(offset, -840, 840));

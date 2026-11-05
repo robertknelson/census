@@ -36,9 +36,9 @@ BEGIN
     SET @Id = CAST(SCOPE_IDENTITY() AS int);
 END
 
-INSERT moveit.EditAudit (Entity, EntityId, ReleaseId, Action, PreviousValue, NewValue, ChangedBy)
+INSERT moveit.EditAudit (Entity, EntityId, ReleaseId, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
 VALUES ('workitem', @Id, @ReleaseId, CASE WHEN @prev IS NULL THEN 'created' ELSE 'updated' END, @prev,
-        (SELECT * FROM moveit.WorkItem WHERE Id = @Id FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), @Actor);
+        (SELECT * FROM moveit.WorkItem WHERE Id = @Id FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT @Id AS Id;

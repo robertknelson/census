@@ -27,8 +27,8 @@ END
 
 IF @prev IS NULL THROW 50404, 'That no longer exists.', 1;
 
-INSERT moveit.EditAudit (Entity, EntityId, ReleaseId, Action, PreviousValue, NewValue, ChangedBy)
-VALUES (@Entity, @Id, @releaseId, 'deleted', @prev, NULL, @Actor);
+INSERT moveit.EditAudit (Entity, EntityId, ReleaseId, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES (@Entity, @Id, @releaseId, 'deleted', @prev, NULL, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT @Id AS Id;

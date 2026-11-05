@@ -2,15 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Census.Web.FeatureAccess.Api;
+using Census.Web.Identity;
 using Census.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Census.Web.Controllers.Api;
 
 // The curate pages' API (personas.md §6.3): read every asserted row as stored; create, correct or
-// delete any of them. Lets every request through until Census has sign-in (P12); each change is
-// attributed to the member viewed as and audited (moveit.EditAudit).
+// delete any of them. Any signed-in user until scoped ownership (census-on-apptrak.md §7, O-1) trims
+// it to the applications they own; each change is attributed to the member acted as, with the real
+// user beside it when they differ (§10), and audited (moveit.EditAudit).
 [ApiController]
 [Route("api/edit")]
 public class EditController(MoveItEdit edit) : ControllerBase
@@ -57,7 +58,7 @@ public class EditController(MoveItEdit edit) : ControllerBase
         return Result(await edit.DeleteAsync(entity, id, Actor));
     }
 
-    private string Actor => User.Identity?.Name ?? (Request.Headers.TryGetValue(FeatureAccessController.ActorHeader, out var member) ? member.ToString() : "census");
+    private Actor Actor => User.Actor();
 
     private async Task<IActionResult> Save(List<string> errors, Func<Task<WriteResult>> write)
     {

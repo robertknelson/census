@@ -7,9 +7,10 @@
     the observed one (moveit.Deployment) alone, that a restore brings back every row byte for byte
     (FOR JSON of each table, hashed), and what a restore refuses. Drops the scratch database at the end.
 
-    API half (-BaseUrl, Census.Web running on the local AppTrak, armed, Reset:Allowed true): the status,
-    the refusals (not a system administrator, no reason, no RESET), then a reset and the restore of it,
-    so the local AppTrak ends as it began. Never point it at the real server.
+    API half (-BaseUrl, Census.Web running on the local AppTrak, armed, Reset:Allowed true, you signed in
+    as a system administrator): the status, the refusals (no reason, no RESET), then a reset and the
+    restore of it, so the local AppTrak ends as it began. A non-administrator's 403s are Test-Identity.ps1
+    -Mode NonAdmin's. Never point it at the real server.
 
       .\tests\Test-Reset.ps1                                  # SQL half only
       .\tests\Test-Reset.ps1 -BaseUrl http://localhost:5292   # both halves
@@ -17,9 +18,7 @@
 param(
     [string]$Server = 'localhost',
     [string]$Source = 'AppTrak',
-    [string]$BaseUrl,
-    [string]$Admin = 'demo-sam',
-    [string]$NotAdmin = 'demo-pat'
+    [string]$BaseUrl
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
@@ -67,7 +66,7 @@ function Get-Count { param([string]$Database, [string]$Table) (Invoke-Sql $Datab
 
 Write-Host "Scratch database from $Source's Move It rows"
 Invoke-Sql 'master' "IF DB_ID('$scratch') IS NOT NULL BEGIN ALTER DATABASE $scratch SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE $scratch; END; CREATE DATABASE $scratch;" | Out-Null
-foreach ($f in '001-create-deployment.sql', '002-create-moveit-schema.sql', 'edit\001-edit-audit.sql') {
+foreach ($f in '001-create-deployment.sql', '002-create-moveit-schema.sql', 'edit\001-edit-audit.sql', 'identity\001-impersonated-by.sql') {
     foreach ($batch in ((Get-Content (Join-Path $sql $f) -Raw) -split '(?m)^\s*GO\s*$')) { if ($batch.Trim()) { Invoke-Sql $scratch $batch | Out-Null } }
 }
 foreach ($t in $tables + 'Deployment') {
@@ -124,30 +123,26 @@ Invoke-Sql 'master' "ALTER DATABASE $scratch SET SINGLE_USER WITH ROLLBACK IMMED
 if ($BaseUrl) {
     Write-Host "API ($BaseUrl, on $Source)"
     function Call {
-        param([string]$Method, [string]$Path, [string]$As, $Body)
-        $args = @{ Uri = "$BaseUrl$Path"; Method = $Method; Headers = @{ 'X-Census-Member' = $As }; SkipHttpErrorCheck = $true }
+        param([string]$Method, [string]$Path, $Body)
+        $args = @{ Uri = "$BaseUrl$Path"; Method = $Method; UseDefaultCredentials = $true; AllowUnencryptedAuthentication = $true; SkipHttpErrorCheck = $true }
         if ($Body) { $args.ContentType = 'application/json'; $args.Body = ($Body | ConvertTo-Json) }
         $r = Invoke-WebRequest @args
         return @{ Status = [int]$r.StatusCode; Body = if ($r.Content) { $r.Content | ConvertFrom-Json } else { $null } }
     }
     $sourceBefore = Get-Fingerprint $Source
-    $s = Call Get '/api/admin/reset' $Admin
-    Assert-That 'status for a system administrator: allowed, the tables and their rows' ($s.Status -eq 200 -and $s.Body.allowed -and $s.Body.tables.Count -eq 6) ($s.Body | ConvertTo-Json -Compress -Depth 4)
-    $s = Call Get '/api/admin/reset' $NotAdmin
-    Assert-That 'status for anyone else: not allowed, and why' ($s.Status -eq 200 -and -not $s.Body.allowed -and $s.Body.why.Count -gt 0) ($s.Body | ConvertTo-Json -Compress)
-    Assert-That 'reset by anyone else: 403' ((Call Post '/api/admin/reset' $NotAdmin @{ confirm = 'RESET'; reason = 'x' }).Status -eq 403)
-    $r = Call Post '/api/admin/reset' $Admin @{ confirm = 'reset please'; reason = 'x' }
+    $s = Call Get '/api/admin/reset'
+    Assert-That 'status for you, a system administrator: allowed, the tables and their rows' ($s.Status -eq 200 -and $s.Body.allowed -and $s.Body.tables.Count -eq 6) ($s.Body | ConvertTo-Json -Compress -Depth 4)
+    $r = Call Post '/api/admin/reset' @{ confirm = 'reset please'; reason = 'x' }
     Assert-That 'without the word RESET: 400' ($r.Status -eq 400) $r.Status
-    $r = Call Post '/api/admin/reset' $Admin @{ confirm = 'RESET'; reason = '' }
+    $r = Call Post '/api/admin/reset' @{ confirm = 'RESET'; reason = '' }
     Assert-That 'without a reason: 400' ($r.Status -eq 400) $r.Status
     Assert-That 'nothing changed yet' ((Get-Fingerprint $Source) -eq $sourceBefore)
-    $r = Call Post '/api/admin/reset' $Admin @{ confirm = 'RESET'; reason = 'Test-Reset.ps1' }
-    $s = Call Get '/api/admin/reset' $Admin
+    $r = Call Post '/api/admin/reset' @{ confirm = 'RESET'; reason = 'Test-Reset.ps1' }
+    $s = Call Get '/api/admin/reset'
     Assert-That 'reset: 200, every asserted table empty, the reset listed first' ($r.Status -eq 200 -and @($s.Body.tables | Where-Object { $_.rowsNow -ne 0 }).Count -eq 0 -and $s.Body.resets[0].resetId -eq [int]$r.Body.key) ($r.Body | ConvertTo-Json -Compress)
-    Assert-That 'restore by anyone else: 403' ((Call Post "/api/admin/reset/$($r.Body.key)/restore" $NotAdmin).Status -eq 403)
-    $back = Call Post "/api/admin/reset/$($r.Body.key)/restore" $Admin
+    $back = Call Post "/api/admin/reset/$($r.Body.key)/restore"
     Assert-That 'restore: 200, and the source is as it began' ($back.Status -eq 200 -and (Get-Fingerprint $Source) -eq $sourceBefore) $back.Status
-    Assert-That 'restore again: 409' ((Call Post "/api/admin/reset/$($r.Body.key)/restore" $Admin).Status -eq 409)
+    Assert-That 'restore again: 409' ((Call Post "/api/admin/reset/$($r.Body.key)/restore").Status -eq 409)
 }
 
 Write-Host ''

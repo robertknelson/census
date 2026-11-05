@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Census.Web.FeatureAccess.Api;
+using Census.Web.Identity;
 using Census.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Census.Web.Controllers.Api;
 
-// The membership page's API (personas.md §6.2). Like feature access, it is offered only to a Sys
-// Admin in the persona UX and lets every request through until Census has sign-in (P12); the
-// change is attributed to the member viewed as.
+// The membership page's API (personas.md §6.2). Offered only to a system administrator on Census in
+// the persona UX, and refused (403) to anyone else here: the signed-in user's own role, which carries
+// through impersonation (census-on-apptrak.md §10). A change is attributed to the member acted as,
+// with the real user beside it when they differ.
 [ApiController]
+[Authorize(Policy = CensusClaims.AdministerPolicy)]
 [Route("api/membership")]
 public class MembershipController(MembershipAdmin membership) : ControllerBase
 {
@@ -86,7 +89,7 @@ public class MembershipController(MembershipAdmin membership) : ControllerBase
     [HttpPost("grants/revoke")]
     public Task<IActionResult> Revoke([FromBody] GrantSave request) => SaveGrant(request, revoke: true);
 
-    private string Actor => User.Identity?.Name ?? (Request.Headers.TryGetValue(FeatureAccessController.ActorHeader, out var member) ? member.ToString() : "census");
+    private Actor Actor => User.Actor();
 
     private async Task<IActionResult> Read(Func<Task<List<Dictionary<string, object>>>> read)
     {

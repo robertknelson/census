@@ -28,15 +28,15 @@ IF @Revoke = 0
 BEGIN
     IF @held = 1 THROW 50409, 'That member already holds that role there.', 1;
     INSERT membership.MemberApplicationRole (MemberId, ApplicationId, RoleId) VALUES (@MemberId, @ApplicationId, @RoleId);
-    INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy)
-    VALUES ('grant', @key, 'granted', NULL, @row, @Actor);
+    INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+    VALUES ('grant', @key, 'granted', NULL, @row, @Actor, @ImpersonatedBy);
 END
 ELSE
 BEGIN
     IF @held = 0 THROW 50409, 'That member does not hold that role there.', 1;
     DELETE membership.MemberApplicationRole WHERE MemberId = @MemberId AND ApplicationId = @ApplicationId AND RoleId = @RoleId;
-    INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy)
-    VALUES ('grant', @key, 'revoked', @row, NULL, @Actor);
+    INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+    VALUES ('grant', @key, 'revoked', @row, NULL, @Actor, @ImpersonatedBy);
 END
 
 COMMIT;

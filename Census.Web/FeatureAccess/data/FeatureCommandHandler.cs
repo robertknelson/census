@@ -27,12 +27,13 @@ namespace Census.Web.FeatureAccess.Data
             _roleCatalog = roleCatalog;
         }
 
-        public async Task<FeatureResponse> ExecuteAsync(string key, string actor, int? featureId, JsonNode data)
+        public async Task<FeatureResponse> ExecuteAsync(string key, Census.Web.Identity.Actor actor, int? featureId, JsonNode data)
         {
             var payload = new Payload(data);
             var parameters = new List<SqlParameter>
             {
-                SqlJson.Parameter("@Actor", SqlDbType.NVarChar, actor, 100)
+                SqlJson.Parameter("@Actor", SqlDbType.NVarChar, actor.Identifier, 100),
+                SqlJson.Parameter("@ImpersonatedBy", SqlDbType.NVarChar, actor.ImpersonatedBy, 100)
             };
             if (featureId.HasValue)
             {

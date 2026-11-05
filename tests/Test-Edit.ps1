@@ -22,7 +22,14 @@ function Assert-That {
     if ($Condition) { $script:passed++; Write-Host "  PASS  $Name" -ForegroundColor Green }
     else            { $script:failed++; Write-Host "  FAIL  $Name  [actual: $Actual]" -ForegroundColor Red }
 }
-$headers = @{ 'X-Census-Member' = 'demo-sam' }
+# Signed in as you (Windows, census-on-apptrak.md §10), acting as demo-sam through impersonation, so what this writes
+# is demo-sam's as before. You must be a system administrator here (appsettings.Local.json).
+$headers = @{}
+foreach ($c in 'Invoke-WebRequest', 'Invoke-RestMethod') {
+    $PSDefaultParameterValues["$($c):UseDefaultCredentials"] = $true
+    $PSDefaultParameterValues["$($c):AllowUnencryptedAuthentication"] = $true
+}
+Invoke-WebRequest -Uri "$BaseUrl/api/impersonation" -Method Post -ContentType 'application/json' -Body '{"identifier":"demo-sam"}' | Out-Null
 function Post {
     param([string]$Path, $Body = @{})
     $r = Invoke-WebRequest -Uri "$BaseUrl$Path" -Method Post -Headers $headers -ContentType 'application/json' -Body ($Body | ConvertTo-Json) -SkipHttpErrorCheck
@@ -110,4 +117,5 @@ Assert-That 'recent corrections lead with the last delete' ($recent[0].Entity -e
 
 Write-Host ''
 Write-Host "$($script:passed) passed, $($script:failed) failed" -ForegroundColor ($(if ($script:failed) { 'Red' } else { 'Green' }))
+Invoke-WebRequest -Uri "$BaseUrl/api/impersonation/stop" -Method Post -ContentType 'application/json' -Body '{}' | Out-Null
 if ($script:failed) { exit 1 }

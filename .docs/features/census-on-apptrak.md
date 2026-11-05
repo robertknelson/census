@@ -217,3 +217,63 @@ it works like impersonation with no identity under it and no guard on it. Owners
 | CA-8 | Keep xf-dashboard's config-only dev persona? | **No.** *View as* (I-2) does the same at runtime, with a banner, and one path is less to guard in production (their Finding 3). |
 | CA-9 | Can a system administrator impersonate another system administrator? | **Yes**, as in xf-dashboard §9.5. The `ImpersonatedBy` stamp is what makes that safe. |
 | CA-10 | Census has no visitor page. What does impersonating a member with no role show? | **What that member would see:** Overview only, plus the banner with *Stop*. The carry-through keeps Administer. |
+
+### 10.6 I-1 and I-2, built together (2026-11-05)
+
+Robert, 2026-11-05: "Change what you have to in the tables to make this happen. Go" (CA-7 ratified: the column on all
+three audit tables).
+
+| File | What |
+|------|------|
+| `apptrak/sql/identity/001-impersonated-by.sql` | `ImpersonatedBy nvarchar(100) NULL` on `moveit.EditAudit`, `membership.MembershipAudit`, `fm.FeatureAudit`. Idempotent; nullable, so FM2280's and Gatehouse's writers keep working. |
+| 22 audit inserts in `apptrak/sql/edit`, `membership`, `fm` | Write `@ImpersonatedBy` beside `@Actor` |
+| `Identity/CensusIdentity.cs` | Options, claims, the `Actor` pair, the session (canonical user, five minutes), `ImpersonationStore` (the target per real user, kept apart from the session, sliding `Impersonation:Hours`, default 8), `ClaimsTransformer` |
+| `Controllers/Api/ImpersonationController.cs` | `POST api/impersonation { identifier }` and `POST api/impersonation/stop` |
+| `PersonasController` | `GET api/personas/me`: who, acting as whom, that member's access, `administer`, `canImpersonate`, all decided on the server. The member list and any one member's access are now for administrators only. |
+| `Program.cs` | Negotiate, every request signed in (fallback policy), the `CensusAdminister` policy, and feature access's admin policy made a real check. `appsettings.Local.json` (git-ignored) holds your account in `Authorization:SystemAdministrators`. Environment variables and the command line still outrank it. |
+| `ScriptRunner`, `MoveItEdit`, `MembershipAdmin`, `AssertionReset`, FM's `FeatureCommandHandler` | Take the `Actor` pair, not a string |
+| `EditController`, `MembershipController`, `ResetController`, `FeatureAccessController` | The actor comes from the principal. `X-Census-Member` is gone. Membership answers 403 to a non-administrator. |
+| `personas-page.mjs`, `personas-api.mjs`, `personas.css` | *View as* only when the server offers it, driving the impersonate API; the banner with *Stop* and the header's warning edge; a page for a signed-in user who is not a member |
+| `tests/Test-Identity.ps1` | Three modes: Admin (21 checks), NonAdmin (13), Disabled (7) |
+| `Test-Edit.ps1`, `Test-Membership.ps1`, `Test-Reset.ps1` | Sign in, and act as demo-sam by impersonation in place of the header |
+
+**Deviations, and why:**
+- **Start and stop are logged through `ILogger`, not as AppEvents.** Census has no AppEvent sink; Gatehouse has one.
+  Both identities and the session id are on each line (Finding 2). Moving these to AppEvents waits on Census having
+  that sink.
+- **The banner is on the persona shell only.** The other pages (Estate, Atlas, Day, Move It, Logs, Trace, Usage) now
+  require sign-in, but they neither scope by user nor show the banner.
+- **The identity resolution reads membership through `MemberAccess`**, not command/query. C-1 brings the plumbing.
+- **`ImpersonatedBy` is recorded but not yet shown** in the history lists (curate, membership, feature access).
+
+**Verified (2026-11-05, local AppTrak, signed in as yourself):**
+- `Test-Identity.ps1`:
+  - **Admin, 21 passed.** Without credentials: 401. A forged header changes nothing. Impersonating yourself is 400;
+    an unknown member is 404. As demo-paula you see only her two applications and none of her missing features,
+    and Administer carries through. A write as her lands with `ChangedBy` demo-paula and `ImpersonatedBy` you on all
+    three audit tables. *Stop* returns you, and a write as yourself leaves `ImpersonatedBy` NULL.
+  - **NonAdmin, 13 passed.** View as and Administer are not offered. Impersonate, stop, the member list, membership,
+    feature access, reset and restore all answer 403.
+  - **Disabled, 7 passed.** View as is not offered, impersonate is 403, stop is 200.
+- `Test-Reset.ps1` 23 passed, `Test-Edit.ps1` 30, `Test-Membership.ps1` 32. Fourteen node suites pass.
+- Headless Edge with Negotiate at 1400 px. As yourself: *View as* reads "Yourself" and Administer is offered. As
+  Paula: the banner "Impersonating **Paula Product** [Stop]", the header's orange edge, her Tracker with Reporting
+  and WidgetCore only, her nav, and Administer carried through.
+
+**Not verified:**
+- Clicking *View as* and *Stop* in a browser; impersonation was started through the API.
+- Phone width.
+- A second real Windows user. One account exists here, so the non-administrator is simulated by overriding the list.
+
+**An incident during the build, recorded.** The first NonAdmin run happened before the configuration-order fix, so I
+was still an administrator. Its "should be refused" `POST api/admin/reset` really ran, as reset #3 (13:20, reason
+"x"), and emptied the local Move It tables.
+- Recovered the way the reset is meant to be undone: reset #4 kept the four test audit rows written since, then
+  #3 was restored. All 84 rows are back.
+- `Test-Identity.ps1 -Mode NonAdmin` now stops before any refusal check if you turn out to be an administrator.
+
+**Open, for you:**
+- **Signing in now gates every page, the `demo` profile and ignite included.** Plinth's window and anything viewed
+  from the road will answer 401 unless what fetches it carries Windows credentials.
+- **The curate API accepts any signed-in user until O-1.** Impersonating Paula, a release could be written on an
+  application that is not hers.

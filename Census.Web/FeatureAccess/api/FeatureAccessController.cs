@@ -70,10 +70,8 @@ namespace Census.Web.FeatureAccess.Api
         public async Task<IActionResult> RevokeRole(int featureId, [FromBody] JsonNode data) =>
             ToResult(await _commands.ExecuteAsync(FeatureKeys.RoleRevoke, Actor, featureId, data));
 
-        // Census has no sign-in yet: the persona UX sends the member it is viewing as.
-        private string Actor => User.Identity?.Name ?? (Request.Headers.TryGetValue(ActorHeader, out var member) ? member.ToString() : "census");
-
-        public const string ActorHeader = "X-Census-Member";
+        // The member acted as, and the real user beside it when they differ (census-on-apptrak.md §10).
+        private Census.Web.Identity.Actor Actor => Census.Web.Identity.CensusPrincipal.Actor(User);
 
         private IActionResult ToResult(FeatureResponse response) => response.Status switch
         {

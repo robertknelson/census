@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Threading.Tasks;
+using Census.Web.Identity;
 using Microsoft.Data.SqlClient;
 
 namespace Census.Web.Services;
@@ -31,11 +32,13 @@ public class ScriptRunner(string sqlPath, string connectionString)
         return rows;
     }
 
-    public async Task<WriteResult> WriteAsync(string file, string actor, params (string Name, object Value, SqlDbType Type)[] parameters)
+    // Every write names its actor: the effective user as @Actor, and the real one as @ImpersonatedBy while a system
+    // administrator acts as someone else (census-on-apptrak.md §10.3), NULL otherwise. Scripts that audit use both.
+    public async Task<WriteResult> WriteAsync(string file, Actor actor, params (string Name, object Value, SqlDbType Type)[] parameters)
     {
         await using var connection = new SqlConnection(connectionString);
         await connection.OpenAsync();
-        var all = new List<(string, object, SqlDbType)>(parameters) { ("Actor", actor, SqlDbType.NVarChar) };
+        var all = new List<(string, object, SqlDbType)>(parameters) { ("Actor", actor.Identifier, SqlDbType.NVarChar), ("ImpersonatedBy", actor.ImpersonatedBy, SqlDbType.NVarChar) };
         await using var command = Command(connection, file, all.ToArray());
         try
         {

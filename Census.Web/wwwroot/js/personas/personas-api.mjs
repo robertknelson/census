@@ -38,6 +38,19 @@ export function fetchStageMismatch() {
     return getJson('/api/personas/stage-mismatch');
 }
 
-export function fetchAccess(identifier) {
-    return getJson(`/api/personas/members/${encodeURIComponent(identifier)}`);
+// Who is signed in, who they act as, that member's access, and what the shell offers (census-on-apptrak.md §10).
+export function fetchMe() {
+    return getJson('/api/personas/me');
+}
+
+// A system administrator acts as a member, or stops (census-on-apptrak.md §10). The server's words on a refusal.
+export async function impersonate(identifier) {
+    return postJson(identifier ? '/api/impersonation' : '/api/impersonation/stop', identifier ? { identifier } : {});
+}
+
+async function postJson(url, body) {
+    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.errors?.join(' ') ?? `Refused (${response.status}).`);
+    return payload;
 }

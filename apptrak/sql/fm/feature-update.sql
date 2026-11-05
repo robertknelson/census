@@ -19,8 +19,8 @@ WHERE FeatureId = @FeatureId
 IF @@ROWCOUNT = 0
     THROW 50409, 'The feature was changed by someone else. Reload it and try again.', 1;
 
-INSERT fm.FeatureAudit (FeatureId, Action, PreviousValue, NewValue, ChangedBy)
-VALUES (@FeatureId, 'update', @Previous, fm.FeatureSnapshot(@FeatureId), @Actor);
+INSERT fm.FeatureAudit (FeatureId, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES (@FeatureId, 'update', @Previous, fm.FeatureSnapshot(@FeatureId), @Actor, @ImpersonatedBy);
 
 COMMIT;
 

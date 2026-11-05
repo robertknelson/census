@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Census.Web.Identity;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
@@ -92,30 +93,30 @@ public class MoveItEdit
         return errors;
     }
 
-    public Task<WriteResult> SaveAsync(int? id, ReleaseEdit r, string actor) => _scripts.WriteAsync("edit/release-save.sql", actor,
+    public Task<WriteResult> SaveAsync(int? id, ReleaseEdit r, Actor actor) => _scripts.WriteAsync("edit/release-save.sql", actor,
         ("Id", (object)id, SqlDbType.Int), ("ApplicationId", r.ApplicationId, SqlDbType.Int), ("Name", r.Name.Trim(), SqlDbType.NVarChar),
         ("Kind", r.Kind, SqlDbType.NVarChar), ("TargetDate", DateOrNull(r.TargetDate), SqlDbType.Date), ("Note", Text(r.Note), SqlDbType.NVarChar));
 
-    public Task<WriteResult> SaveAsync(int? id, WorkItemEdit r, string actor) => _scripts.WriteAsync("edit/workitem-save.sql", actor,
+    public Task<WriteResult> SaveAsync(int? id, WorkItemEdit r, Actor actor) => _scripts.WriteAsync("edit/workitem-save.sql", actor,
         ("Id", (object)id, SqlDbType.Int), ("ApplicationId", r.ApplicationId, SqlDbType.Int), ("ReleaseId", (object)r.ReleaseId, SqlDbType.Int),
         ("Kind", r.Kind, SqlDbType.NVarChar), ("Title", r.Title.Trim(), SqlDbType.NVarChar), ("Description", Text(r.Description), SqlDbType.NVarChar),
         ("BuiltBy", Text(r.BuiltBy), SqlDbType.NVarChar), ("ExternalRef", Text(r.ExternalRef), SqlDbType.NVarChar),
         ("IncludedInBuild", Text(r.IncludedInBuild), SqlDbType.NVarChar), ("FoundInStage", Text(r.FoundInStage), SqlDbType.NVarChar),
         ("RemovedAt", MomentOrNull(r.RemovedAt), SqlDbType.DateTimeOffset), ("RemovedNote", Text(r.RemovedNote), SqlDbType.NVarChar));
 
-    public Task<WriteResult> SaveAsync(int? id, BuildEdit r, string actor) => _scripts.WriteAsync("edit/build-save.sql", actor,
+    public Task<WriteResult> SaveAsync(int? id, BuildEdit r, Actor actor) => _scripts.WriteAsync("edit/build-save.sql", actor,
         ("Id", (object)id, SqlDbType.Int), ("ReleaseId", r.ReleaseId, SqlDbType.Int), ("Build", r.Build.Trim(), SqlDbType.NVarChar), ("Note", Text(r.Note), SqlDbType.NVarChar));
 
-    public Task<WriteResult> SaveAsync(int? id, EventEdit r, string actor) => _scripts.WriteAsync("edit/event-save.sql", actor,
+    public Task<WriteResult> SaveAsync(int? id, EventEdit r, Actor actor) => _scripts.WriteAsync("edit/event-save.sql", actor,
         ("Id", (object)id, SqlDbType.Int), ("ReleaseId", r.ReleaseId, SqlDbType.Int), ("Kind", r.Kind, SqlDbType.NVarChar),
         ("Stage", Text(r.Stage), SqlDbType.NVarChar), ("Build", Text(r.Build), SqlDbType.NVarChar), ("At", MomentOrNull(r.At), SqlDbType.DateTimeOffset),
         ("EventBy", r.By.Trim(), SqlDbType.NVarChar), ("Note", Text(r.Note), SqlDbType.NVarChar));
 
-    public Task<WriteResult> SaveAsync(int? id, LinkEdit r, string actor) => _scripts.WriteAsync("edit/link-save.sql", actor,
+    public Task<WriteResult> SaveAsync(int? id, LinkEdit r, Actor actor) => _scripts.WriteAsync("edit/link-save.sql", actor,
         ("Id", (object)id, SqlDbType.Int), ("WorkItemId", r.WorkItemId, SqlDbType.Int), ("LinkedWorkItemId", r.LinkedWorkItemId, SqlDbType.Int),
         ("Kind", r.Kind, SqlDbType.NVarChar), ("Note", Text(r.Note), SqlDbType.NVarChar));
 
-    public Task<WriteResult> DeleteAsync(string entity, int id, string actor) => entity switch
+    public Task<WriteResult> DeleteAsync(string entity, int id, Actor actor) => entity switch
     {
         "release" => _scripts.WriteAsync("edit/release-delete.sql", actor, ("Id", id, SqlDbType.Int)),
         "workitem" => _scripts.WriteAsync("edit/workitem-delete.sql", actor, ("Id", id, SqlDbType.Int)),

@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Census.Web.Identity;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
@@ -65,7 +66,7 @@ public class MembershipAdmin
         return errors;
     }
 
-    public Task<WriteResult> SaveApplicationAsync(int? id, ApplicationSave r, string actor) =>
+    public Task<WriteResult> SaveApplicationAsync(int? id, ApplicationSave r, Actor actor) =>
         _scripts.WriteAsync("application-save.sql", actor,
             ("Id", (object)id ?? DBNull.Value, SqlDbType.Int),
             ("Identifier", r.Identifier.Trim(), SqlDbType.NVarChar),
@@ -75,7 +76,7 @@ public class MembershipAdmin
             ("ApplicationTypeId", r.ApplicationTypeId, SqlDbType.Int),
             ("Settings", string.IsNullOrWhiteSpace(r.Settings) ? "{ \"settings\":null}" : r.Settings, SqlDbType.NVarChar));
 
-    public Task<WriteResult> SaveMemberAsync(int? id, MemberSave r, string actor) =>
+    public Task<WriteResult> SaveMemberAsync(int? id, MemberSave r, Actor actor) =>
         _scripts.WriteAsync("member-save.sql", actor,
             ("Id", (object)id ?? DBNull.Value, SqlDbType.Int),
             ("Identifier", r.Identifier.Trim(), SqlDbType.NVarChar),
@@ -84,17 +85,17 @@ public class MembershipAdmin
             ("LastName", r.LastName.Trim(), SqlDbType.NVarChar),
             ("Email", (r.Email ?? "").Trim(), SqlDbType.NVarChar));
 
-    public Task<WriteResult> SaveGrantAsync(GrantSave r, bool revoke, string actor) =>
+    public Task<WriteResult> SaveGrantAsync(GrantSave r, bool revoke, Actor actor) =>
         _scripts.WriteAsync("grant-save.sql", actor,
             ("MemberId", r.MemberId, SqlDbType.Int),
             ("ApplicationId", r.ApplicationId, SqlDbType.Int),
             ("RoleId", r.RoleId, SqlDbType.Int),
             ("Revoke", revoke, SqlDbType.Bit));
 
-    public Task<WriteResult> DeleteApplicationAsync(int id, string actor) =>
+    public Task<WriteResult> DeleteApplicationAsync(int id, Actor actor) =>
         _scripts.WriteAsync("application-delete.sql", actor, ("Id", id, SqlDbType.Int));
 
-    public Task<WriteResult> DeleteMemberAsync(int id, string actor) =>
+    public Task<WriteResult> DeleteMemberAsync(int id, Actor actor) =>
         _scripts.WriteAsync("member-delete.sql", actor, ("Id", id, SqlDbType.Int));
 
     // An application's parts (personas.md §6.3, E-3): the roles it uses, its stages, its services.
@@ -124,7 +125,7 @@ public class MembershipAdmin
         return errors;
     }
 
-    public Task<WriteResult> SavePartAsync(AppPartSave r, string actor) => _scripts.WriteAsync("app-part-save.sql", actor,
+    public Task<WriteResult> SavePartAsync(AppPartSave r, Actor actor) => _scripts.WriteAsync("app-part-save.sql", actor,
         ("Part", r.Part, SqlDbType.VarChar), ("ApplicationId", r.ApplicationId, SqlDbType.Int), ("OldKey", (object)r.OldKey, SqlDbType.Int),
         ("RoleId", r.RoleId, SqlDbType.Int), ("Alias", string.IsNullOrWhiteSpace(r.Alias) ? null : r.Alias.Trim(), SqlDbType.NVarChar),
         ("StageId", r.StageId, SqlDbType.Int), ("Name", (r.Name ?? "").Trim(), SqlDbType.NVarChar),
@@ -132,7 +133,7 @@ public class MembershipAdmin
         ("StartOn", DateOnly.TryParse(r.StartOn, out var d) ? d.ToDateTime(TimeOnly.MinValue) : null, SqlDbType.Date),
         ("Status", (r.Status ?? "").Trim(), SqlDbType.NVarChar));
 
-    public Task<WriteResult> DeletePartAsync(AppPartSave r, string actor) => _scripts.WriteAsync("app-part-delete.sql", actor,
+    public Task<WriteResult> DeletePartAsync(AppPartSave r, Actor actor) => _scripts.WriteAsync("app-part-delete.sql", actor,
         ("Part", r.Part, SqlDbType.VarChar), ("ApplicationId", r.ApplicationId, SqlDbType.Int), ("Key", (object)r.OldKey ?? 0, SqlDbType.Int));
 
     private static void Require(List<string> errors, string value, string label, int max)

@@ -68,8 +68,8 @@ BEGIN
 END
 ELSE THROW 50404, 'Unknown part.', 1;
 
-INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy)
-VALUES ('application-' + @Part, CONCAT(@ApplicationId, ':', @key), CASE WHEN @prev IS NULL THEN 'created' ELSE 'updated' END, @prev, @new, @Actor);
+INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES ('application-' + @Part, CONCAT(@ApplicationId, ':', @key), CASE WHEN @prev IS NULL THEN 'created' ELSE 'updated' END, @prev, @new, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT CONCAT(@ApplicationId, ':', @key) AS PartKey;

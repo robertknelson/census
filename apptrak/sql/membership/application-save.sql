@@ -31,8 +31,8 @@ END
 DECLARE @new nvarchar(max) = (SELECT Id, Identifier, Name, Tags, Disposition, ApplicationTypeId, JSON_QUERY(Settings) AS Settings
                               FROM membership.Application WHERE Id = @Id FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy)
-VALUES ('application', CAST(@Id AS nvarchar(100)), CASE WHEN @prev IS NULL THEN 'created' ELSE 'updated' END, @prev, @new, @Actor);
+INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES ('application', CAST(@Id AS nvarchar(100)), CASE WHEN @prev IS NULL THEN 'created' ELSE 'updated' END, @prev, @new, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT @Id AS Id;

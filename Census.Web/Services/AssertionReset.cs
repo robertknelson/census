@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Census.Web.Identity;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -14,30 +15,24 @@ namespace Census.Web.Services;
 // The reset (census-on-apptrak.md §5, D-003): wipes every asserted row in AppTrak and keeps each as
 // JSON so the wipe can be undone. Two keys, both on the server: the setting Reset:Allowed (absent,
 // false; never set in production) and the database's own AllowAssertionReset property, which the
-// scripts check themselves. Only a system administrator on Census may see it offered or use it.
+// scripts check themselves. Only a system administrator on Census may see it offered or use it: the
+// signed-in user's own role, which carries through impersonation (census-on-apptrak.md §10).
 public class AssertionReset
 {
-    public const string AdminRole = "system-administrator";
-
     private readonly ScriptRunner _scripts;
-    private readonly MemberAccess _access;
     private readonly bool _setting;
 
-    public AssertionReset(IOptions<MoveItOptions> options, IWebHostEnvironment env, IConfiguration configuration, MemberAccess access)
+    public AssertionReset(IOptions<MoveItOptions> options, IWebHostEnvironment env, IConfiguration configuration)
     {
         _scripts = new ScriptRunner(Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.SqlPath)), options.Value.ConnectionString);
-        _access = access;
         _setting = configuration.GetValue<bool>("Reset:Allowed");
     }
 
     public bool Enabled => _scripts.Enabled;
 
-    public async Task<bool> IsAdminAsync(string actor) =>
-        (await _access.AccessAsync(actor))?.EstateRoles.Contains(AdminRole, StringComparer.OrdinalIgnoreCase) == true;
-
-    public async Task<ResetStatus> StatusAsync(string actor)
+    // admin: the signed-in user is a system administrator on Census (the real user; it carries through impersonation).
+    public async Task<ResetStatus> StatusAsync(bool admin)
     {
-        var admin = await IsAdminAsync(actor);
         var armed = (bool)(await _scripts.ReadAsync("reset/armed.sql"))[0]["Armed"];
         var why = new List<string>();
         if (!admin) why.Add("Only a system administrator on Census may reset.");
@@ -67,10 +62,10 @@ public class AssertionReset
     // The setting is the app's key; the role is checked by the caller. The database's key is the script's.
     public bool SettingAllows => _setting;
 
-    public Task<WriteResult> ResetAsync(string reason, string actor) =>
+    public Task<WriteResult> ResetAsync(string reason, Actor actor) =>
         _scripts.WriteAsync("reset/reset-assertions.sql", actor, ("Reason", reason, SqlDbType.NVarChar));
 
-    public Task<WriteResult> RestoreAsync(int resetId, string actor) =>
+    public Task<WriteResult> RestoreAsync(int resetId, Actor actor) =>
         _scripts.WriteAsync("reset/restore-assertions.sql", actor, ("ResetId", resetId, SqlDbType.Int));
 }
 

@@ -1,4 +1,4 @@
-import { fetchAccess, fetchCalendar, fetchLeadTime, fetchMembers, fetchOrderViolations, fetchReleaseStatus, fetchStageMismatch } from './personas-api.mjs';
+import { fetchCalendar, fetchLeadTime, fetchMe, fetchMembers, fetchOrderViolations, fetchReleaseStatus, fetchStageMismatch, impersonate } from './personas-api.mjs';
 import { fetchApplications, fetchApprovalVsProd, fetchBuildsSeen, fetchEvents, fetchHistory, fetchReadyToApprove, fetchStages, fetchWhereIsEverything } from '../moveit/moveit-api.mjs';
 import { NAV, applicationsFor, navItem, trimNav } from './persona-nav.mjs';
 import { GRAINS, grainOf, periodOf, shiftPeriod } from './period.mjs';
@@ -13,14 +13,12 @@ import resetPage from '../reset/reset-page.mjs';
 import curatePage from '../curate/curate-page.mjs';
 import usagePage from '../usage/usage-page.mjs';
 
-// The persona UX shell (personas.md §7, slice P-2): pick a member, see the UX as they would —
-// the nav trimmed to their features, each view shown for the applications where it is on.
-// The See items are the period view (P-3, period-view.mjs); the rest say they are not built
-// yet and name their applications. The member, the item and the period live in the URL
-// (?as=&at=&on=, on being a day inside the period) so a screen can be linked; the last member
-// is remembered per browser as a convenience.
+// The persona UX shell (personas.md §7, slice P-2): the signed-in user sees the UX as their roles
+// give it — the nav trimmed to their features, each view shown for the applications where it is on.
+// A system administrator can act as any member (View as, census-on-apptrak.md §10): the server
+// switches who requests run as, and a banner with Stop shows while it does. The item and the period
+// live in the URL (?at=&on=, on being a day inside the period) so a screen can be linked.
 
-const MEMBER_KEY = 'personas.as';
 const OVERVIEW = 'overview';
 const LANDING = 'view.tracker';
 // The feature access page (personas.md §6.1). Offered by a fixed rule, never by a feature, so it
@@ -28,7 +26,6 @@ const LANDING = 'view.tracker';
 const ADMIN = 'admin.features';
 const MEMBERSHIP = 'admin.membership';
 const RESET = 'admin.reset';
-const ADMIN_ROLE = 'system-administrator';
 
 // The data each built view reads, fetched once per page load.
 const LOADERS = {
@@ -48,14 +45,6 @@ const LOADERS = {
         return { stages, applications, history, items, status, events, approvals, ready, violations, mismatches };
     },
 };
-
-function remembered() {
-    try { return localStorage.getItem(MEMBER_KEY); } catch { return null; }
-}
-
-function remember(identifier) {
-    try { localStorage.setItem(MEMBER_KEY, identifier); } catch { /* not remembered */ }
-}
 
 function localDay(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -82,7 +71,6 @@ class PersonasPage {
         this.usageFriction = config.usageFriction ?? {};
         this.sets = {};
         const params = new URLSearchParams(location.search);
-        this.as = params.get('as');
         this.at = params.get('at');
         this.on = params.get('on');
         this.grain = params.get('g');
@@ -91,27 +79,16 @@ class PersonasPage {
 
     async load() {
         try {
-            this.members = await fetchMembers();
+            this.me = await fetchMe();
+            this.members = this.me.canImpersonate ? await fetchMembers() : [];
         } catch (e) {
             this.root.innerHTML = `<p class="ps-error">${escapeHtml(e.message)}</p>`;
             return;
         }
-        const known = (id) => this.members.some((m) => m.identifier === id);
-        if (!known(this.as)) this.as = known(remembered()) ? remembered() : this.members[0]?.identifier;
-        if (!this.as) {
-            this.root.innerHTML = '<p class="ps-error">No members in membership.Member.</p>';
-            return;
-        }
-        await this.show(this.as);
-    }
-
-    async show(identifier) {
-        this.as = identifier;
-        remember(identifier);
-        try {
-            this.access = await fetchAccess(identifier);
-        } catch (e) {
-            this.root.innerHTML = `<p class="ps-error">${escapeHtml(e.message)}</p>`;
+        this.as = this.me.identifier;
+        this.access = this.me.access;
+        if (!this.access) {
+            this.renderStranger();
             return;
         }
         this.nav = trimNav(NAV, this.access.features);
@@ -121,12 +98,67 @@ class PersonasPage {
         this.render();
     }
 
+    // View as: the server switches who this user's requests run as; the page reloads to show it everywhere.
+    async actAs(identifier) {
+        try {
+            await impersonate(identifier === this.me.canonical.identifier ? null : identifier);
+            location.reload();
+        } catch (e) {
+            this.root.querySelector('[data-ps="as-error"]')?.replaceChildren(document.createTextNode(e.message));
+        }
+    }
+
+    // The header: who is signed in, who they act as, View as (offered by the server) and the banner with Stop.
+    topHtml(who) {
+        const me = this.me;
+        const option = (m) => `<option value="${escapeHtml(m.identifier)}"${m.identifier === me.identifier ? ' selected' : ''}>${escapeHtml(m.name)} · ${escapeHtml(m.grants.map((g) => g.role).filter((r, i, a) => a.indexOf(r) === i).join(', ') || 'no roles')}</option>`;
+        const others = this.members.filter((m) => m.identifier.toLowerCase() !== me.canonical.identifier.toLowerCase());
+        return `
+            <header class="ps-top${me.impersonating ? ' is-impersonating' : ''}">
+                <span class="ps-brand">Census</span>
+                ${who}
+                ${me.impersonating ? `
+                    <span class="ps-imp" title="You (${escapeHtml(me.canonical.name)}) are acting as ${escapeHtml(me.name)} (${escapeHtml(me.identifier)}). What you change is recorded as theirs, with you beside it.">
+                        Impersonating <strong>${escapeHtml(me.name)}</strong>
+                        <button type="button" class="ps-imp-stop" data-ps="stop">Stop</button>
+                    </span>` : ''}
+                ${me.canImpersonate ? `
+                    <label class="ps-as">View as
+                        <select data-ps="as">
+                            <option value="${escapeHtml(me.canonical.identifier)}"${me.impersonating ? '' : ' selected'}>Yourself · ${escapeHtml(me.canonical.name)}</option>
+                            ${others.map(option).join('')}
+                        </select>
+                    </label>
+                    <span class="ps-as-error" data-ps="as-error"></span>` : ''}
+            </header>`;
+    }
+
+    bindTop() {
+        this.root.querySelector('[data-ps="as"]')?.addEventListener('change', (e) => this.actAs(e.target.value));
+        this.root.querySelector('[data-ps="stop"]')?.addEventListener('click', () => this.actAs(this.me.canonical.identifier));
+    }
+
+    // Signed in, but not in AppTrak's membership: nothing to show but how to get in.
+    renderStranger() {
+        this.root.innerHTML = `
+            <div class="ps-shell">
+                ${this.topHtml(`<span class="ps-who"><strong>${escapeHtml(this.me.name)}</strong> <span class="ps-roles">not a member</span></span>`)}
+                <div class="ps-body"><main class="ps-main"><section class="ps-section">
+                    <p><strong>${escapeHtml(this.me.name)}</strong> (${escapeHtml(this.me.identifier)}) is not in AppTrak's membership, so there is nothing to show yet.
+                    A system administrator adds members and their roles on Administer → Membership.</p>
+                </section></main></div>
+            </div>`;
+        this.bindTop();
+    }
+
+    // Administer is offered when the signed-in user is a system administrator, decided on the server;
+    // it carries through impersonation so the way out is always reachable.
     isAdmin() {
-        return this.access.estateRoles.includes(ADMIN_ROLE);
+        return this.me.administer;
     }
 
     url() {
-        const params = new URLSearchParams({ as: this.as });
+        const params = new URLSearchParams();
         if (this.at) params.set('at', this.at);
         if (this.at && this.on && grainOf(this.at)) params.set('on', this.on);
         if (this.at?.startsWith('drill.') && this.grain) params.set('g', this.grain);
@@ -142,15 +174,7 @@ class PersonasPage {
         const member = this.access.member;
         this.root.innerHTML = `
             <div class="ps-shell">
-                <header class="ps-top">
-                    <span class="ps-brand">Census <span class="ps-brand-sub">persona preview</span></span>
-                    <span class="ps-who"><strong>${escapeHtml(member.name)}</strong> <span class="ps-roles">${escapeHtml(grantsText(member.grants))}</span>${this.access.estate ? ' <span class="ps-tag">estate-wide</span>' : ''}</span>
-                    <label class="ps-as">View as
-                        <select data-ps="as">
-                            ${this.members.map((m) => `<option value="${escapeHtml(m.identifier)}"${m.identifier === this.as ? ' selected' : ''}>${escapeHtml(m.name)} · ${escapeHtml(m.grants.map((g) => g.role).filter((r, i, a) => a.indexOf(r) === i).join(', ') || 'no roles')}</option>`).join('')}
-                        </select>
-                    </label>
-                </header>
+                ${this.topHtml(`<span class="ps-who"><strong>${escapeHtml(member.name)}</strong> <span class="ps-roles">${escapeHtml(grantsText(member.grants))}</span>${this.access.estate ? ' <span class="ps-tag">estate-wide</span>' : ''}</span>`)}
                 <div class="ps-body">
                     <nav class="ps-nav" aria-label="Views">
                         <a class="ps-nav-item${this.at === OVERVIEW ? ' is-active' : ''}" href="#" data-at="${OVERVIEW}">Overview</a>
@@ -175,7 +199,7 @@ class PersonasPage {
                 </div>
             </div>`;
 
-        this.root.querySelector('[data-ps="as"]').addEventListener('change', (e) => this.show(e.target.value));
+        this.bindTop();
         for (const a of this.root.querySelectorAll('[data-at]')) {
             a.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -209,14 +233,14 @@ class PersonasPage {
         if (this.at === MEMBERSHIP) {
             this.view = {
                 html: () => '<div id="membership" class="mb-root"></div>',
-                bind: () => membershipPage.init({ root: '#membership', headers: { 'X-Census-Member': this.as }, estate: this.estateApp }),
+                bind: () => membershipPage.init({ root: '#membership', estate: this.estateApp }),
             };
             return this.view.html();
         }
         if (this.at === RESET) {
             this.view = {
                 html: () => '<div id="reset" class="mb-root"></div>',
-                bind: () => resetPage.init({ root: '#reset', headers: { 'X-Census-Member': this.as } }),
+                bind: () => resetPage.init({ root: '#reset' }),
             };
             return this.view.html();
         }
@@ -224,7 +248,7 @@ class PersonasPage {
             // FM2280's page as it is, its API told who is making the change (the member viewed as).
             this.view = {
                 html: () => '<div id="feature-access" class="fa ps-fa" data-api-base="/api/feature-access"></div>',
-                bind: () => featureAccessPage.init({ root: '#feature-access', headers: { 'X-Census-Member': this.as }, gateTags: false }),
+                bind: () => featureAccessPage.init({ root: '#feature-access', gateTags: false }),
             };
             return this.view.html();
         }
@@ -287,7 +311,7 @@ class PersonasPage {
                 make: () => ({
                     html: () => '<div id="curate" class="cu-root"></div>',
                     bind: () => curatePage.init({
-                        root: '#curate', feature, by: this.as, headers: { 'X-Census-Member': this.as },
+                        root: '#curate', feature, by: this.as,
                         applications: applicationsFor(this.access, feature).map((a) => ({ applicationId: a.applicationId, name: a.name })),
                     }),
                 }),

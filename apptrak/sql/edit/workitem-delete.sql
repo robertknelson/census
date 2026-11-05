@@ -14,8 +14,8 @@ DECLARE @releaseId int = (SELECT ReleaseId FROM moveit.WorkItem WHERE Id = @Id);
 DELETE FROM moveit.WorkItemLink WHERE WorkItemId = @Id OR LinkedWorkItemId = @Id;
 DELETE FROM moveit.WorkItem WHERE Id = @Id;
 
-INSERT moveit.EditAudit (Entity, EntityId, ReleaseId, Action, PreviousValue, NewValue, ChangedBy)
-VALUES ('workitem', @Id, @releaseId, 'deleted', @prev, NULL, @Actor);
+INSERT moveit.EditAudit (Entity, EntityId, ReleaseId, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES ('workitem', @Id, @releaseId, 'deleted', @prev, NULL, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT @Id AS Id;

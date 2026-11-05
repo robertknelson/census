@@ -15,8 +15,8 @@ INSERT fm.FeatureRole (FeatureId, RoleName, GrantedBy)
 SELECT DISTINCT @FeatureId, CONVERT(varchar(100), r.[value]), @Actor
 FROM OPENJSON(@Roles) r;
 
-INSERT fm.FeatureAudit (FeatureId, Action, PreviousValue, NewValue, ChangedBy)
-VALUES (@FeatureId, 'create', NULL, fm.FeatureSnapshot(@FeatureId), @Actor);
+INSERT fm.FeatureAudit (FeatureId, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES (@FeatureId, 'create', NULL, fm.FeatureSnapshot(@FeatureId), @Actor, @ImpersonatedBy);
 
 COMMIT;
 

@@ -32,8 +32,8 @@ END
 DECLARE @new nvarchar(max) = (SELECT Id, Identifier, WindowsIdentity, FirstName, LastName, Email
                               FROM membership.Member WHERE Id = @Id FOR JSON PATH, WITHOUT_ARRAY_WRAPPER);
 
-INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy)
-VALUES ('member', CAST(@Id AS nvarchar(100)), CASE WHEN @prev IS NULL THEN 'created' ELSE 'updated' END, @prev, @new, @Actor);
+INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES ('member', CAST(@Id AS nvarchar(100)), CASE WHEN @prev IS NULL THEN 'created' ELSE 'updated' END, @prev, @new, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT @Id AS Id;

@@ -31,8 +31,8 @@ DELETE FROM moveit.ReleaseBuild WHERE ReleaseId = @Id;
 DELETE FROM moveit.WorkItem WHERE ReleaseId = @Id;
 DELETE FROM moveit.Release WHERE Id = @Id;
 
-INSERT moveit.EditAudit (Entity, EntityId, ReleaseId, Action, PreviousValue, NewValue, ChangedBy)
-VALUES ('release', @Id, @Id, 'deleted', @prev, NULL, @Actor);
+INSERT moveit.EditAudit (Entity, EntityId, ReleaseId, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES ('release', @Id, @Id, 'deleted', @prev, NULL, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT @Id AS Id;

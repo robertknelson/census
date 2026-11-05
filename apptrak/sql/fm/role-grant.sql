@@ -19,8 +19,8 @@ BEGIN
         ModifiedAt = SYSUTCDATETIME()
     WHERE FeatureId = @FeatureId;
 
-    INSERT fm.FeatureAudit (FeatureId, Action, PreviousValue, NewValue, ChangedBy)
-    VALUES (@FeatureId, 'role.grant', @Previous, fm.FeatureSnapshot(@FeatureId), @Actor);
+    INSERT fm.FeatureAudit (FeatureId, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+    VALUES (@FeatureId, 'role.grant', @Previous, fm.FeatureSnapshot(@FeatureId), @Actor, @ImpersonatedBy);
 END
 
 COMMIT;

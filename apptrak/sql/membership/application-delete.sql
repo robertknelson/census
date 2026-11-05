@@ -32,8 +32,8 @@ DELETE FROM membership.ApplicationStage WHERE ApplicationId = @Id;
 DELETE FROM membership.ApplicationService WHERE ApplicationId = @Id;
 DELETE FROM membership.Application WHERE Id = @Id;
 
-INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy)
-VALUES ('application', CAST(@Id AS nvarchar(100)), 'deleted', @prev, NULL, @Actor);
+INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES ('application', CAST(@Id AS nvarchar(100)), 'deleted', @prev, NULL, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT @Id AS Id;

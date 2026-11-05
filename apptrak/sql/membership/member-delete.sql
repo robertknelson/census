@@ -14,8 +14,8 @@ IF @prev IS NULL THROW 50404, 'That member no longer exists.', 1;
 DELETE FROM membership.MemberApplicationRole WHERE MemberId = @Id;
 DELETE FROM membership.Member WHERE Id = @Id;
 
-INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy)
-VALUES ('member', CAST(@Id AS nvarchar(100)), 'deleted', @prev, NULL, @Actor);
+INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES ('member', CAST(@Id AS nvarchar(100)), 'deleted', @prev, NULL, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT @Id AS Id;

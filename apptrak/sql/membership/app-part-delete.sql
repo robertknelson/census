@@ -24,8 +24,8 @@ END
 
 IF @prev IS NULL THROW 50404, 'That is no longer on the application.', 1;
 
-INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy)
-VALUES ('application-' + @Part, CONCAT(@ApplicationId, ':', @Key), 'deleted', @prev, NULL, @Actor);
+INSERT membership.MembershipAudit (Entity, EntityKey, Action, PreviousValue, NewValue, ChangedBy, ImpersonatedBy)
+VALUES ('application-' + @Part, CONCAT(@ApplicationId, ':', @Key), 'deleted', @prev, NULL, @Actor, @ImpersonatedBy);
 
 COMMIT;
 SELECT CONCAT(@ApplicationId, ':', @Key) AS PartKey;

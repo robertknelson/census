@@ -34,6 +34,12 @@ html, body { margin: 0; background: var(--ps-paper); }
 .ps-who { display: flex; align-items: baseline; gap: 0.5rem; min-width: 0; padding-left: 1rem; border-left: 1px solid rgba(255, 255, 255, 0.2); font-size: 13px; }
 .ps-who strong { font-weight: 600; white-space: nowrap; }
 .ps-who .ps-roles { color: rgba(255, 255, 255, 0.7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-top.is-impersonating { box-shadow: inset 0 -3px 0 #e8710a; }
+.ps-imp { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.15rem 0.3rem 0.15rem 0.7rem; border: 1px solid #e8710a; border-radius: 999px; background: rgba(232, 113, 10, 0.18); color: #ffd2a8; font-size: 13px; white-space: nowrap; }
+.ps-imp strong { color: #fff; font-weight: 600; }
+.ps-imp-stop { padding: 0.1rem 0.7rem; border: 1px solid #e8710a; border-radius: 999px; background: transparent; color: #ffd2a8; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.ps-imp-stop:hover { background: #e8710a; color: #fff; }
+.ps-as-error { color: #ffb4a8; font-size: 12.5px; }
 .ps-as { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; font-size: 12.5px; color: rgba(255, 255, 255, 0.75); }
 .ps-as select { max-width: 22rem; padding: 0.25rem 0.4rem; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; background: #2a3240; color: #fff; font: inherit; }
 

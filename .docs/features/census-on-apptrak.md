@@ -151,3 +151,69 @@ workflow from a clean slate.
 | CA-4 | Drift check: a report, or enforced by foreign key? | **A report.** `fm.FeatureRole` holds the role identifier, and AppTrak's real `core.SelectItem` is not ours to constrain. |
 | CA-5 | Census tags: columns per axis, or a JSON column? | **JSON for the axes, columns for the key.** The shape changed three times in two months. Revisit when it holds still. |
 | CA-6 | Is `Reset:Allowed` only for local AppTrak, or also for his work dev AppTrak before go-live? | **Both, by hand.** The database's extended property is the second key, so a copied config file alone cannot arm it in production. |
+
+## 10. Identity and impersonation (D-005; spec 2026-11-05)
+
+### 10.1 Where Census stands
+
+Census has no sign-in (personas P12). *View as* is a dropdown that sends `X-Census-Member`, which any client can set:
+it works like impersonation with no identity under it and no guard on it. Ownership (§7) and the reset's role check
+(§5.1) both trust that header today. Real impersonation needs real identity first.
+
+### 10.2 What xf-dashboard does (read 2026-11-05; read only, nothing changed there)
+
+`.docs/features/auth-and-impersonation.md` §4 and §9, `ClaimsTransformer.cs`, `api/UserAccessController.cs`:
+
+- **Windows Negotiate**, then an `IClaimsTransformation` that keeps a `UserSession` per real `DOMAIN\user` in a
+  cache. The session holds two identities, **canonical** (the real user) and **effective** (who requests run as).
+- **Impersonate** (sys-admin only, `Impersonation:IsEnabled`) overwrites the cached session's effective user and
+  roles with the target's. **Stop** resets them to canonical and is authorized on the *canonical* roles, so it always
+  works. Self-impersonation is refused.
+- **Effective roles are the target's exactly**, plus `sys-admin` carried through from canonical so the way out is
+  always reachable. A target with no roles gets `visitor`, and the carry-through is added after that.
+- **A banner on every page** names the person and holds *Stop*; the header gets a warning edge.
+- **The effective user is the actor** (their decision 011): reads scope by it and writes record it, so impersonating
+  reproduces what the user sees.
+- A second, config-only path (`Impersonation:Identifier`) runs a developer as a fixed person.
+- Their own security review (`auth-impersonation-security-review.md`) leaves these open:
+  - impersonated actions are attributed only to the target (Finding 1, High);
+  - start and stop log lines carry no session id (Finding 2);
+  - nothing stops the config path in Production (Finding 3);
+  - impersonation silently ends when the cache entry expires (Finding 5).
+
+### 10.3 What Census takes
+
+- **The identity half from Gatehouse, not straight from xf-dashboard.** `Gatehouse.Web/identity/` is xf-dashboard's
+  shape already ported to AppTrak's `membership` (G-R11). It brings Negotiate, `ClaimsTransformer`, `UserSession`,
+  `MembershipAuthProvider`, `Authorization:SystemAdministrators`, and a five-minute session so grants arrive without
+  a restart. Census keeps its own rule that a role on the Census application counts estate-wide.
+- **The impersonation half from xf-dashboard:** canonical and effective identities on the session, impersonate and
+  stop, the sys-admin carry-through, the visitor fallback, the `IsEnabled` switch, and the banner. Rewritten to
+  Census's form (ES6 modules, no widget framework), not copied.
+- **Their open findings fixed from the start, not inherited:**
+  - **Finding 1:** every audited write records the effective user as `ChangedBy` (their decision 011 kept) **and**
+    the real user when they differ, in a nullable `ImpersonatedBy` column on each audit table (CA-7).
+  - **Finding 2:** start and stop are AppEvents (`impersonation-started` / `impersonation-stopped`) carrying both
+    identities and the session id.
+  - **Finding 3:** no config-only path. Locally, *View as* becomes impersonation itself, so it is not needed (CA-8).
+  - **Finding 5:** the impersonation target is kept beside the session. When the five-minute refresh rebuilds the
+    session, it re-resolves the target's roles and keeps impersonating, rather than silently dropping back.
+- **`X-Census-Member` goes away.** The actor comes from the signed-in principal everywhere: the reset, the curate
+  pages, membership, feature access. *View as* stays as the control, now offered only to a system administrator and
+  backed by the impersonate API.
+
+### 10.4 Slices (before C-1 and O-1, because both need a real actor)
+
+| Slice | What | Verified by |
+|-------|------|-------------|
+| I-1 | Identity: Negotiate, plus the claims transformation and session from Gatehouse, and the sys-admin list. The actor comes from the principal. The header is retired. | Signed in as yourself, your roles come from AppTrak. A member with no role sees nothing gated. A forged `X-Census-Member` changes nothing. |
+| I-2 | Impersonation: the API, *View as* on top of it, the banner and *Stop*, the carry-through, `ImpersonatedBy` on the audits, and the AppEvents. | As Sam, impersonate Paula: you see her nav and her applications, and get 403 where she gets 403. The banner shows. A write records Paula and you. *Stop* returns you to yourself. A non-admin's impersonate is 403. With `IsEnabled` off there is no *View as*, and the API answers 403. |
+
+### 10.5 Open items
+
+| # | Question | Call (under GO; reverse by saying so) |
+|---|----------|---------------------------------------|
+| CA-7 | How a write records the real user while impersonating | **A nullable `ImpersonatedBy` on each audit table** (`moveit.EditAudit`, `membership.MembershipAudit`, `fm.FeatureAudit`), passed as a second parameter. Their decision 011 stays: `ChangedBy` is the effective user. This is a schema change on three tables, two of them shared with FM2280 and Gatehouse, so it is flagged for you. |
+| CA-8 | Keep xf-dashboard's config-only dev persona? | **No.** *View as* (I-2) does the same at runtime, with a banner, and one path is less to guard in production (their Finding 3). |
+| CA-9 | Can a system administrator impersonate another system administrator? | **Yes**, as in xf-dashboard §9.5. The `ImpersonatedBy` stamp is what makes that safe. |
+| CA-10 | Census has no visitor page. What does impersonating a member with no role show? | **What that member would see:** Overview only, plus the banner with *Stop*. The carry-through keeps Administer. |

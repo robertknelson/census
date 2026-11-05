@@ -3,6 +3,17 @@
 Pivotal and load-bearing decisions, newest first. Non-pivotal calls made under GO live in
 `calls-made-for-you.md`. Spec: `features/census-on-apptrak.md`.
 
+## D-005 — System administrators can impersonate
+- **2026-11-05 · pivotal · accepted · ruled**
+
+His words: "There's one other important thing that well a feature that we must have for sis. Admins and that is
+impersonation. I'm not going to tell you exactly how to implement it, but I will point you to another repo that I've
+been using. That really has worked out pretty well. C:/GitHub/repos/xf-dashboard ... see if that is something that
+we would be able to roll into our current project. At least the same functionality if not reuse of any of the code"
+
+This takes up what Gatehouse ruled out for itself (gatehouse.md G-R2, "No impersonation"): Gatehouse was a porting
+reference, and Census is the product. The shape is in `features/census-on-apptrak.md` §10.
+
 ## D-004 — Product owners see their own releases and features, nobody else's
 - **2026-11-05 · pivotal · accepted · ruled**
 

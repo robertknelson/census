@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Census.Web.CommandQuery;
 using Census.Web.Identity;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
@@ -17,27 +18,29 @@ namespace Census.Web.Services;
 // boundary; uniqueness and existence are the scripts' (THROW 50404 / 50409).
 public class MembershipAdmin
 {
-    private readonly ScriptRunner _scripts;
+    private readonly JsonQueryHandler _queries;
+    private readonly JsonCommandHandler _commands;
 
-    public MembershipAdmin(IOptions<MoveItOptions> options, IWebHostEnvironment env)
+    public MembershipAdmin(JsonQueryHandler queries, JsonCommandHandler commands)
     {
-        _scripts = new ScriptRunner(Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.SqlPath, "membership")), options.Value.ConnectionString);
+        _queries = queries;
+        _commands = commands;
     }
 
-    public bool Enabled => _scripts.Enabled;
+    public bool Enabled => _queries.Enabled;
 
-    public Task<List<Dictionary<string, object>>> ApplicationsAsync() => _scripts.ReadAsync("admin-applications.sql");
+    public Task<List<Dictionary<string, object>>> ApplicationsAsync() => Read("membership.admin-applications");
 
-    public Task<List<Dictionary<string, object>>> MembersAsync() => _scripts.ReadAsync("members.sql");
+    public Task<List<Dictionary<string, object>>> MembersAsync() => Read("membership.members");
 
-    public Task<List<Dictionary<string, object>>> ListsAsync() => _scripts.ReadAsync("admin-lists.sql");
+    public Task<List<Dictionary<string, object>>> ListsAsync() => Read("membership.admin-lists");
 
-    public Task<List<Dictionary<string, object>>> AppPartsAsync() => _scripts.ReadAsync("admin-app-parts.sql");
+    public Task<List<Dictionary<string, object>>> AppPartsAsync() => Read("membership.admin-app-parts");
 
-    public Task<List<Dictionary<string, object>>> RecentAuditAsync() => _scripts.ReadAsync("admin-audit-recent.sql");
+    public Task<List<Dictionary<string, object>>> RecentAuditAsync() => Read("membership.admin-audit-recent");
 
     public Task<List<Dictionary<string, object>>> AuditAsync(string entity, int id) =>
-        _scripts.ReadAsync("admin-audit.sql", ("Entity", entity, SqlDbType.VarChar), ("Id", id, SqlDbType.Int));
+        Read("membership.admin-audit", ("Entity", entity), ("Id", id));
 
     public static List<string> Validate(ApplicationSave request)
     {
@@ -67,36 +70,36 @@ public class MembershipAdmin
     }
 
     public Task<WriteResult> SaveApplicationAsync(int? id, ApplicationSave r, Actor actor) =>
-        _scripts.WriteAsync("application-save.sql", actor,
-            ("Id", (object)id ?? DBNull.Value, SqlDbType.Int),
-            ("Identifier", r.Identifier.Trim(), SqlDbType.NVarChar),
-            ("Name", r.Name.Trim(), SqlDbType.NVarChar),
-            ("Tags", (r.Tags ?? "").Trim(), SqlDbType.NVarChar),
-            ("Disposition", r.Disposition.Trim(), SqlDbType.NVarChar),
-            ("ApplicationTypeId", r.ApplicationTypeId, SqlDbType.Int),
-            ("Settings", string.IsNullOrWhiteSpace(r.Settings) ? "{ \"settings\":null}" : r.Settings, SqlDbType.NVarChar));
+        Write("membership.application-save", actor,
+            ("Id", (object)id ?? DBNull.Value),
+            ("Identifier", r.Identifier.Trim()),
+            ("Name", r.Name.Trim()),
+            ("Tags", (r.Tags ?? "").Trim()),
+            ("Disposition", r.Disposition.Trim()),
+            ("ApplicationTypeId", r.ApplicationTypeId),
+            ("Settings", string.IsNullOrWhiteSpace(r.Settings) ? "{ \"settings\":null}" : r.Settings));
 
     public Task<WriteResult> SaveMemberAsync(int? id, MemberSave r, Actor actor) =>
-        _scripts.WriteAsync("member-save.sql", actor,
-            ("Id", (object)id ?? DBNull.Value, SqlDbType.Int),
-            ("Identifier", r.Identifier.Trim(), SqlDbType.NVarChar),
-            ("WindowsIdentity", r.WindowsIdentity.Trim(), SqlDbType.NVarChar),
-            ("FirstName", r.FirstName.Trim(), SqlDbType.NVarChar),
-            ("LastName", r.LastName.Trim(), SqlDbType.NVarChar),
-            ("Email", (r.Email ?? "").Trim(), SqlDbType.NVarChar));
+        Write("membership.member-save", actor,
+            ("Id", (object)id ?? DBNull.Value),
+            ("Identifier", r.Identifier.Trim()),
+            ("WindowsIdentity", r.WindowsIdentity.Trim()),
+            ("FirstName", r.FirstName.Trim()),
+            ("LastName", r.LastName.Trim()),
+            ("Email", (r.Email ?? "").Trim()));
 
     public Task<WriteResult> SaveGrantAsync(GrantSave r, bool revoke, Actor actor) =>
-        _scripts.WriteAsync("grant-save.sql", actor,
-            ("MemberId", r.MemberId, SqlDbType.Int),
-            ("ApplicationId", r.ApplicationId, SqlDbType.Int),
-            ("RoleId", r.RoleId, SqlDbType.Int),
-            ("Revoke", revoke, SqlDbType.Bit));
+        Write("membership.grant-save", actor,
+            ("MemberId", r.MemberId),
+            ("ApplicationId", r.ApplicationId),
+            ("RoleId", r.RoleId),
+            ("Revoke", revoke));
 
     public Task<WriteResult> DeleteApplicationAsync(int id, Actor actor) =>
-        _scripts.WriteAsync("application-delete.sql", actor, ("Id", id, SqlDbType.Int));
+        Write("membership.application-delete", actor, ("Id", id));
 
     public Task<WriteResult> DeleteMemberAsync(int id, Actor actor) =>
-        _scripts.WriteAsync("member-delete.sql", actor, ("Id", id, SqlDbType.Int));
+        Write("membership.member-delete", actor, ("Id", id));
 
     // An application's parts (personas.md §6.3, E-3): the roles it uses, its stages, its services.
     public static List<string> Validate(AppPartSave r)
@@ -125,16 +128,22 @@ public class MembershipAdmin
         return errors;
     }
 
-    public Task<WriteResult> SavePartAsync(AppPartSave r, Actor actor) => _scripts.WriteAsync("app-part-save.sql", actor,
-        ("Part", r.Part, SqlDbType.VarChar), ("ApplicationId", r.ApplicationId, SqlDbType.Int), ("OldKey", (object)r.OldKey, SqlDbType.Int),
-        ("RoleId", r.RoleId, SqlDbType.Int), ("Alias", string.IsNullOrWhiteSpace(r.Alias) ? null : r.Alias.Trim(), SqlDbType.NVarChar),
-        ("StageId", r.StageId, SqlDbType.Int), ("Name", (r.Name ?? "").Trim(), SqlDbType.NVarChar),
-        ("ServiceTypeId", r.ServiceTypeId, SqlDbType.Int),
-        ("StartOn", DateOnly.TryParse(r.StartOn, out var d) ? d.ToDateTime(TimeOnly.MinValue) : null, SqlDbType.Date),
-        ("Status", (r.Status ?? "").Trim(), SqlDbType.NVarChar));
+    public Task<WriteResult> SavePartAsync(AppPartSave r, Actor actor) => Write("membership.app-part-save", actor,
+        ("Part", r.Part), ("ApplicationId", r.ApplicationId), ("OldKey", (object)r.OldKey),
+        ("RoleId", r.RoleId), ("Alias", string.IsNullOrWhiteSpace(r.Alias) ? null : r.Alias.Trim()),
+        ("StageId", r.StageId), ("Name", (r.Name ?? "").Trim()),
+        ("ServiceTypeId", r.ServiceTypeId),
+        ("StartOn", DateOnly.TryParse(r.StartOn, out var d) ? d.ToDateTime(TimeOnly.MinValue) : null),
+        ("Status", (r.Status ?? "").Trim()));
 
-    public Task<WriteResult> DeletePartAsync(AppPartSave r, Actor actor) => _scripts.WriteAsync("app-part-delete.sql", actor,
-        ("Part", r.Part, SqlDbType.VarChar), ("ApplicationId", r.ApplicationId, SqlDbType.Int), ("Key", (object)r.OldKey ?? 0, SqlDbType.Int));
+    public Task<WriteResult> DeletePartAsync(AppPartSave r, Actor actor) => Write("membership.app-part-delete", actor,
+        ("Part", r.Part), ("ApplicationId", r.ApplicationId), ("PartKey", (object)r.OldKey ?? 0));
+
+    private async Task<List<Dictionary<string, object>>> Read(string key, params (string Name, object Value)[] values) =>
+        (await _queries.QueryAsync(ResponseExtensions.Key(key, values))).Rows();
+
+    private async Task<WriteResult> Write(string key, Actor actor, params (string Name, object Value)[] values) =>
+        (await _commands.ExecuteAsync(ResponseExtensions.Key(key, values).By(actor), null)).ToWriteResult();
 
     private static void Require(List<string> errors, string value, string label, int max)
     {

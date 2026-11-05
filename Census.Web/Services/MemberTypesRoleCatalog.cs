@@ -9,5 +9,5 @@ namespace Census.Web.Services;
 public class MemberTypesRoleCatalog(MoveItQuestions questions) : IRoleCatalog
 {
     public async Task<IReadOnlyList<string>> GetRoleNamesAsync() =>
-        (await questions.RunAsync("fm/roles.sql")).Select(r => (string)r["Identifier"]).ToList();
+        (await questions.RunAsync("membership.roles")).Select(r => (string)r["Identifier"]).ToList();
 }

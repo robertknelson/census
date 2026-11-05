@@ -34,6 +34,62 @@ The reset keys on this table. Every new table must be placed in it in the same c
   in a slice of its own. File-backed stores move when their data does (§6).
 - Every new endpoint gets its gate in the same commit, and both halves are enforced (UX and server).
 
+### 3.1 C-1, built (2026-11-05): every Census SQL path on command/query
+
+Robert, 2026-11-05: "Let's get census moved into command query." Every service that ran SQL now does so through the
+handlers: Move It's questions, board, entry and curate writes; membership and the role list; the reset; Log Explorer,
+Trace and Usage. Feature access keeps the data layer of its FM2280 copy (CA-3: it converges on FM2280 itself).
+
+| File | What |
+|------|------|
+| `CommandQuery/Abstractions.cs`, `Parameters.cs`, `Response.cs` | Gatehouse's ports of xf-dashboard's contracts, signatures kept. `IInitializerLocator.GetShape` and `ResultShape` added. |
+| `CommandQuery/Initializers.cs` | The base initializer with `Script(key, file, shape, parameters)`, the container (it refuses two claims on one key, a key with no shape, and a parameter named `@Key`), and the key extensions |
+| `CommandQuery/JsonHandlers.cs` | `JsonQueryHandler`, `JsonCommandHandler` (with `TransactionAsync` for several keys in one transaction), `LogsQueryHandler`, and `SqlScripts` |
+| `CommandQuery/CensusInitializers.cs` | 80 keys in six areas: `board.*`, `question.*`, `moveit.lists`; `entry.*`; `edit.*`; `membership.*`; `reset.*`; `logs.*`, `trace.*`, `usage.*` |
+| `CommandQuery/ResponseExtensions.cs` | `Key(...)`, `.By(actor)`, `.Rows()`, `.Json()`, `.ToWriteResult()`, so the services return what their controllers already return |
+| `Services/*` | `MoveItQuestions`, `MoveItEntry`, `MoveItEdit`, `MembershipAdmin`, `AssertionReset`, `LogReader`, `TraceReader` and `UsageReader` call keys. `ScriptRunner` is gone; `WriteResult` stays. |
+| `apptrak/sql/membership/app-part-delete.sql` | `@Key` renamed `@PartKey` (see below) |
+| `tests/Capture-Api.ps1`, `tests/Capture-Entry.ps1` | Save every SQL-backed read, and a run of every Move It entry write (inside a reset and restore), so before and after can be compared |
+
+**Different from Gatehouse, and why:**
+- **The result shape is declared with each key** (Rows, Json, Scalar), not guessed from the script's text. Gatehouse's
+  guess (its G3, Potemkin's anti-pattern 3) would have misread the reset script, which mentions `FOR JSON` only inside
+  dynamic SQL.
+- **A row keeps each column's name as the script wrote it**, where Gatehouse camel-cases it. Census's pages read the
+  names as written, and this was a move, not a redesign.
+- **A Json answer is SQL Server's text**, served byte for byte (feature picture).
+- **Scripts stay in `apptrak/sql` and are read from disk**, not embedded. `sqlcmd` setup runs the same files. They are
+  cached once read, except in Development, where an edited script takes effect on the next call, as before.
+- **THROW 50410 maps to 409**, as Potemkin's refusal contract has it.
+- **Two connections by settings section**: `MoveIt` for AppTrak and `Logs` for the log tables, which falls back to
+  AppTrak's as the readers did.
+
+**Found on the way:** `app-part-delete.sql` took `@Key`, which is the same name as the bag's dispatch `key` (the
+bag ignores case), so the delete overwrote its own command key. It is renamed `@PartKey`, and the container now
+refuses a parameter named `@Key` at start-up.
+
+**Verified (2026-11-05, local AppTrak and CensusLogsDemo):**
+- **Reads.** `Capture-Api.ps1` before the move and after: all 59 answers are identical, except two kinds of
+  difference that are not the code's:
+  - `daysThere` in the feature picture is computed from now, and an hour passed between the runs.
+  - Four lists (membership members and applications, the two recent-audit lists) changed because the test suites
+    ran between the captures. `Test-Membership` re-seeds the demo members and applications, so the same rows come
+    back with new ids and the same counts.
+  - Two runs before the move, minutes apart, were byte-identical, which shows the capture itself is deterministic.
+- **Writes.** `Capture-Entry.ps1`: every Move It entry write's answer and every row left behind are identical
+  before and after (21 calls, refusals included).
+- **Rollback.** A `name-build` whose second step fails (a title longer than the column) answers 500 and leaves no
+  release behind: the transaction rolled back.
+- **Suites.** `Test-Identity` 21, `Test-Reset` 23, `Test-Edit` 30, `Test-Membership` 32.
+- **`Test-Identity` hardening.** Its anonymous checks now use a fresh client. Negotiate authenticates the connection,
+  so a pooled connection signed in by an earlier suite in the same PowerShell process passed as anonymous.
+
+**Not done:**
+- Controllers still call services, which call keys. Moving the controllers to build the parameters themselves, as
+  xf-dashboard's do, is a later step if you want the services gone.
+- Feature access stays on its own data layer (CA-3).
+- No unit tests for the container's start-up refusals: Census.Web has no test project yet.
+
 ## 4. One list of roles
 
 - `core.SelectItem` `member-types` is the only definition of a role. `membership.MemberApplicationRole.RoleId` and

@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Census.Web.CommandQuery;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.SqlClient;
@@ -17,18 +18,18 @@ namespace Census.Web.Services;
 // DeleteReleaseAsync, kept for stabilization.
 public class MoveItEntry
 {
-    private readonly string _sqlPath;
-    private readonly string _connectionString;
+    private readonly JsonQueryHandler _queries;
+    private readonly JsonCommandHandler _commands;
     private readonly string _by;
 
-    public MoveItEntry(IOptions<MoveItOptions> options, IWebHostEnvironment env)
+    public MoveItEntry(JsonQueryHandler queries, JsonCommandHandler commands, IOptions<MoveItOptions> options)
     {
-        _sqlPath = Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.SqlPath, "manifest"));
-        _connectionString = options.Value.ConnectionString;
+        _queries = queries;
+        _commands = commands;
         _by = string.IsNullOrWhiteSpace(options.Value.By) ? "census-board" : options.Value.By;
     }
 
-    public bool Enabled => !string.IsNullOrWhiteSpace(_connectionString);
+    public bool Enabled => _queries.Enabled;
 
     public async Task<List<string>> ValidateAsync(NameBuildRequest request)
     {
@@ -56,70 +57,68 @@ public class MoveItEntry
         var build = Text(request.Build);
         var result = new NameBuildResult();
 
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        await using var tx = connection.BeginTransaction();
-
-        var release = await RunAsync(connection, tx, "release-upsert",
-            ("ApplicationId", request.ApplicationId, SqlDbType.Int),
-            ("Name", request.Release.Name.Trim(), SqlDbType.NVarChar),
-            ("Kind", request.Release.Kind, SqlDbType.NVarChar),
-            ("TargetDate", request.Release.TargetDate == null ? null : DateOnly.Parse(request.Release.TargetDate).ToDateTime(TimeOnly.MinValue), SqlDbType.Date),
-            ("Note", Text(request.Release.Note), SqlDbType.NVarChar),
-            ("By", _by, SqlDbType.NVarChar));
-        result.ReleaseId = (int)release["Id"];
-        result.Release = (string)release["Outcome"];
-
-        if (build != null)
+        return await _commands.TransactionAsync(async tx =>
         {
-            var attributed = await RunAsync(connection, tx, "build-upsert",
-                ("ReleaseId", result.ReleaseId, SqlDbType.Int),
-                ("Build", build, SqlDbType.NVarChar),
-                ("Note", null, SqlDbType.NVarChar),
-                ("By", _by, SqlDbType.NVarChar));
-            result.Build = (string)attributed["Outcome"];
-        }
+            var release = await RunAsync(tx, "release-upsert",
+                ("ApplicationId", request.ApplicationId),
+                ("Name", request.Release.Name.Trim()),
+                ("Kind", request.Release.Kind),
+                ("TargetDate", request.Release.TargetDate == null ? null : DateOnly.Parse(request.Release.TargetDate).ToDateTime(TimeOnly.MinValue)),
+                ("Note", Text(request.Release.Note)),
+                ("By", _by));
+            result.ReleaseId = (int)release["Id"];
+            result.Release = (string)release["Outcome"];
 
-        foreach (var item in request.Items ?? [])
-        {
-            var row = await RunAsync(connection, tx, "workitem-upsert",
-                ("ApplicationId", request.ApplicationId, SqlDbType.Int),
-                ("ReleaseId", result.ReleaseId, SqlDbType.Int),
-                ("Kind", item.Kind, SqlDbType.NVarChar),
-                ("Title", item.Title.Trim(), SqlDbType.NVarChar),
-                ("Description", null, SqlDbType.NVarChar),
-                ("BuiltBy", Text(item.BuiltBy), SqlDbType.NVarChar),
-                ("ExternalRef", Text(item.ExternalRef), SqlDbType.NVarChar),
-                ("IncludedInBuild", item.InThisBuild ? build : null, SqlDbType.NVarChar),
-                ("FoundInStage", Text(item.FoundInStage), SqlDbType.NVarChar),
-                ("RemovedAt", null, SqlDbType.DateTimeOffset),
-                ("RemovedNote", null, SqlDbType.NVarChar),
-                ("By", _by, SqlDbType.NVarChar));
-            result.Items[(string)row["Outcome"]]++;
-        }
+            if (build != null)
+            {
+                var attributed = await RunAsync(tx, "build-upsert",
+                    ("ReleaseId", result.ReleaseId),
+                    ("Build", build),
+                    ("Note", (string)null),
+                    ("By", _by));
+                result.Build = (string)attributed["Outcome"];
+            }
 
-        // Notebook items picked into this release (§20); with a build in context they are
-        // also attached, since naming the build is the moment the heard thing became real.
-        foreach (var id in request.Schedule ?? [])
-        {
-            var row = await RunAsync(connection, tx, "workitem-schedule",
-                ("Id", id, SqlDbType.Int),
-                ("ApplicationId", request.ApplicationId, SqlDbType.Int),
-                ("ReleaseId", result.ReleaseId, SqlDbType.Int));
-            if ((string)row["Outcome"] == "scheduled") result.Scheduled++;
-        }
+            foreach (var item in request.Items ?? [])
+            {
+                var row = await RunAsync(tx, "workitem-upsert",
+                    ("ApplicationId", request.ApplicationId),
+                    ("ReleaseId", result.ReleaseId),
+                    ("Kind", item.Kind),
+                    ("Title", item.Title.Trim()),
+                    ("Description", null),
+                    ("BuiltBy", Text(item.BuiltBy)),
+                    ("ExternalRef", Text(item.ExternalRef)),
+                    ("IncludedInBuild", item.InThisBuild ? build : null),
+                    ("FoundInStage", Text(item.FoundInStage)),
+                    ("RemovedAt", null),
+                    ("RemovedNote", null),
+                    ("By", _by));
+                result.Items[(string)row["Outcome"]]++;
+            }
 
-        foreach (var id in (request.Attach ?? []).Concat(build == null ? [] : request.Schedule ?? []))
-        {
-            var row = await RunAsync(connection, tx, "workitem-attach",
-                ("Id", id, SqlDbType.Int),
-                ("ReleaseId", result.ReleaseId, SqlDbType.Int),
-                ("Build", build, SqlDbType.NVarChar));
-            if ((string)row["Outcome"] == "attached") result.Attached++;
-        }
+            // Notebook items picked into this release (§20); with a build in context they are
+            // also attached, since naming the build is the moment the heard thing became real.
+            foreach (var id in request.Schedule ?? [])
+            {
+                var row = await RunAsync(tx, "workitem-schedule",
+                    ("Id", id),
+                    ("ApplicationId", request.ApplicationId),
+                    ("ReleaseId", result.ReleaseId));
+                if ((string)row["Outcome"] == "scheduled") result.Scheduled++;
+            }
 
-        await tx.CommitAsync();
-        return result;
+            foreach (var id in (request.Attach ?? []).Concat(build == null ? [] : request.Schedule ?? []))
+            {
+                var row = await RunAsync(tx, "workitem-attach",
+                    ("Id", id),
+                    ("ReleaseId", result.ReleaseId),
+                    ("Build", build));
+                if ((string)row["Outcome"] == "attached") result.Attached++;
+            }
+
+            return result;
+        });
     }
 
     // The notebook's entry (§20): a feature or fix heard about for an application, no release.
@@ -136,14 +135,12 @@ public class MoveItEntry
 
     public async Task<Dictionary<string, object>> AddItemAsync(AddItemRequest request)
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        return await RunAsync(connection, null, "workitem-add",
-            ("ApplicationId", request.ApplicationId, SqlDbType.Int),
-            ("Kind", request.Kind, SqlDbType.NVarChar),
-            ("Title", request.Title.Trim(), SqlDbType.NVarChar),
-            ("Description", Text(request.Note), SqlDbType.NVarChar),
-            ("By", _by, SqlDbType.NVarChar));
+        return await RunAsync(null, "workitem-add",
+            ("ApplicationId", request.ApplicationId),
+            ("Kind", request.Kind),
+            ("Title", request.Title.Trim()),
+            ("Description", Text(request.Note)),
+            ("By", _by));
     }
 
     public async Task<List<string>> ValidateEventAsync(EventRequest request)
@@ -162,37 +159,31 @@ public class MoveItEntry
     // Events are history (§14): inserted if absent by (release, kind, stage, build, at), never updated.
     public async Task<string> RecordEventAsync(EventRequest request)
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        var row = await RunAsync(connection, null, "event-insert",
-            ("ReleaseId", request.ReleaseId, SqlDbType.Int),
-            ("Kind", request.Kind, SqlDbType.NVarChar),
-            ("Stage", Text(request.Stage), SqlDbType.NVarChar),
-            ("Build", Text(request.Build), SqlDbType.NVarChar),
-            ("At", DateTimeOffset.Parse(request.At), SqlDbType.DateTimeOffset),
-            ("EventBy", request.By.Trim(), SqlDbType.NVarChar),
-            ("Note", Text(request.Note), SqlDbType.NVarChar),
-            ("By", _by, SqlDbType.NVarChar));
+        var row = await RunAsync(null, "event-insert",
+            ("ReleaseId", request.ReleaseId),
+            ("Kind", request.Kind),
+            ("Stage", Text(request.Stage)),
+            ("Build", Text(request.Build)),
+            ("At", DateTimeOffset.Parse(request.At)),
+            ("EventBy", request.By.Trim()),
+            ("Note", Text(request.Note)),
+            ("By", _by));
         return (string)row["Outcome"];
     }
 
     public async Task<string> PullItemAsync(ItemRequest request)
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        var row = await RunAsync(connection, null, "workitem-pull",
-            ("Id", request.WorkItemId, SqlDbType.Int),
-            ("Note", Text(request.Note), SqlDbType.NVarChar));
+        var row = await RunAsync(null, "workitem-pull",
+            ("Id", request.WorkItemId),
+            ("Note", Text(request.Note)));
         return (string)row["Outcome"];
     }
 
     public async Task<string> RetitleAsync(ItemRequest request)
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        var row = await RunAsync(connection, null, "workitem-retitle",
-            ("Id", request.WorkItemId, SqlDbType.Int),
-            ("Title", request.Title.Trim(), SqlDbType.NVarChar));
+        var row = await RunAsync(null, "workitem-retitle",
+            ("Id", request.WorkItemId),
+            ("Title", request.Title.Trim()));
         return (string)row["Outcome"];
     }
 
@@ -210,109 +201,72 @@ public class MoveItEntry
 
     public async Task<string> ClaimBuildAsync(BuildClaimRequest request)
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        var row = await RunAsync(connection, null, "build-upsert",
-            ("ReleaseId", request.ReleaseId, SqlDbType.Int),
-            ("Build", request.Build.Trim(), SqlDbType.NVarChar),
-            ("Note", Text(request.Note), SqlDbType.NVarChar),
-            ("By", _by, SqlDbType.NVarChar));
+        var row = await RunAsync(null, "build-upsert",
+            ("ReleaseId", request.ReleaseId),
+            ("Build", request.Build.Trim()),
+            ("Note", Text(request.Note)),
+            ("By", _by));
         return (string)row["Outcome"];
     }
 
     public async Task<string> ReleaseBuildAsync(BuildClaimRequest request)
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        await using var tx = connection.BeginTransaction();
-        var outcome = await ReleaseClaimAsync(connection, tx, request.ReleaseId, request.Build.Trim(), request.By.Trim(), Text(request.Note));
-        await tx.CommitAsync();
-        return outcome;
+        return await _commands.TransactionAsync(tx => ReleaseClaimAsync(tx, request.ReleaseId, request.Build.Trim(), request.By.Trim(), Text(request.Note)));
     }
 
     public async Task<string> MoveBuildAsync(BuildClaimRequest request)
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        await using var tx = connection.BeginTransaction();
         var build = request.Build.Trim();
-        var released = await ReleaseClaimAsync(connection, tx, request.ReleaseId, build, request.By.Trim(),
-            Text(request.Note) ?? $"moved to release {request.ToReleaseId}");
-        var claimed = await RunAsync(connection, tx, "build-upsert",
-            ("ReleaseId", request.ToReleaseId, SqlDbType.Int),
-            ("Build", build, SqlDbType.NVarChar),
-            ("Note", (string)null, SqlDbType.NVarChar),
-            ("By", _by, SqlDbType.NVarChar));
-        await tx.CommitAsync();
-        return $"{released}, {(string)claimed["Outcome"]} on the other";
+        return await _commands.TransactionAsync(async tx =>
+        {
+            var released = await ReleaseClaimAsync(tx, request.ReleaseId, build, request.By.Trim(),
+                Text(request.Note) ?? $"moved to release {request.ToReleaseId}");
+            var claimed = await RunAsync(tx, "build-upsert",
+                ("ReleaseId", request.ToReleaseId),
+                ("Build", build),
+                ("Note", (string)null),
+                ("By", _by));
+            return $"{released}, {(string)claimed["Outcome"]} on the other";
+        });
     }
 
-    private async Task<string> ReleaseClaimAsync(SqlConnection connection, SqlTransaction tx, int releaseId, string build, string by, string note)
+    private async Task<string> ReleaseClaimAsync(ICommandBatch tx, int releaseId, string build, string by, string note)
     {
-        var row = await RunAsync(connection, tx, "build-release",
-            ("ReleaseId", releaseId, SqlDbType.Int),
-            ("Build", build, SqlDbType.NVarChar));
+        var row = await RunAsync(tx, "build-release",
+            ("ReleaseId", releaseId),
+            ("Build", build));
         var outcome = (string)row["Outcome"];
         if (outcome != "released") return outcome;
-        await RunAsync(connection, tx, "event-insert",
-            ("ReleaseId", releaseId, SqlDbType.Int),
-            ("Kind", "build-released", SqlDbType.NVarChar),
-            ("Stage", (string)null, SqlDbType.NVarChar),
-            ("Build", build, SqlDbType.NVarChar),
-            ("At", DateTimeOffset.Now, SqlDbType.DateTimeOffset),
-            ("EventBy", by, SqlDbType.NVarChar),
-            ("Note", note, SqlDbType.NVarChar),
-            ("By", _by, SqlDbType.NVarChar));
+        await RunAsync(tx, "event-insert",
+            ("ReleaseId", releaseId),
+            ("Kind", "build-released"),
+            ("Stage", (string)null),
+            ("Build", build),
+            ("At", DateTimeOffset.Now),
+            ("EventBy", by),
+            ("Note", note),
+            ("By", _by));
         return outcome;
     }
 
     // Stabilization only (move-it.md §16): the release and everything asserted under it, in one transaction.
     public async Task<Dictionary<string, object>> DeleteReleaseAsync(int releaseId)
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        await using var tx = connection.BeginTransaction();
-        var row = await RunAsync(connection, tx, "release-delete", ("Id", releaseId, SqlDbType.Int));
-        await tx.CommitAsync();
-        return row;
+        return await _commands.TransactionAsync(tx => RunAsync(tx, "release-delete", ("Id", releaseId)));
     }
 
     private async Task<Dictionary<string, string[]>> ListsAsync()
     {
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync();
-        var rows = await ReadAsync(connection, null, "lists");
+        var rows = (await _queries.QueryAsync(ResponseExtensions.Key("moveit.lists"))).Rows();
         return rows.GroupBy(r => (string)r["List"]).ToDictionary(g => g.Key, g => g.Select(r => (string)r["Member"]).ToArray());
     }
 
-    private async Task<Dictionary<string, object>> RunAsync(SqlConnection connection, SqlTransaction tx, string file, params (string Name, object Value, SqlDbType Type)[] parameters)
+    // One entry key's first row, inside a transaction when one is given (census-on-apptrak.md §3).
+    private async Task<Dictionary<string, object>> RunAsync(ICommandBatch tx, string name, params (string Name, object Value)[] values)
     {
-        var rows = await ReadAsync(connection, tx, file, parameters);
-        return rows[0];
-    }
-
-    private async Task<List<Dictionary<string, object>>> ReadAsync(SqlConnection connection, SqlTransaction tx, string file, params (string Name, object Value, SqlDbType Type)[] parameters)
-    {
-        var sql = await File.ReadAllTextAsync(Path.Combine(_sqlPath, file + ".sql"));
-        await using var command = new SqlCommand(sql, connection, tx);
-        foreach (var (name, value, type) in parameters)
-        {
-            var p = command.Parameters.Add("@" + name, type);
-            if (type == SqlDbType.NVarChar) p.Size = -1;
-            p.Value = value ?? DBNull.Value;
-        }
-        await using var reader = await command.ExecuteReaderAsync();
-        var rows = new List<Dictionary<string, object>>();
-        while (await reader.ReadAsync())
-        {
-            var row = new Dictionary<string, object>(reader.FieldCount);
-            for (var i = 0; i < reader.FieldCount; i++)
-            {
-                row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
-            }
-            rows.Add(row);
-        }
-        return rows;
+        var parameters = ResponseExtensions.Key($"entry.{name}", values);
+        var response = tx != null ? await tx.ExecuteAsync(parameters) : await _commands.ExecuteAsync(parameters, null);
+        return response.Rows()[0];
     }
 
     private static string Text(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

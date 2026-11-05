@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Census.Web.CommandQuery;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
@@ -18,69 +19,71 @@ public class UsageReader
     // Setting: the most sessions the path trees read (usage.md §4.3); the newest are kept, and the page says so.
     public const int PathSessions = 5000;
 
-    private readonly ScriptRunner _scripts;
+    private readonly LogsQueryHandler _queries;
     private readonly string _schema;
     private readonly int _slowMs;
     private readonly FrictionOptions _friction;
 
-    public UsageReader(IOptions<LogsOptions> logs, IOptions<UsageOptions> usage, IOptions<MoveItOptions> moveIt, IWebHostEnvironment env)
+    public UsageReader(LogsQueryHandler queries, IOptions<LogsOptions> logs, IOptions<UsageOptions> usage)
     {
         _friction = usage.Value.Friction;
-        var connection = string.IsNullOrWhiteSpace(logs.Value.ConnectionString) ? moveIt.Value.ConnectionString : logs.Value.ConnectionString;
         _schema = logs.Value.Schema;
         _slowMs = logs.Value.SlowMs;
-        _scripts = new ScriptRunner(Path.GetFullPath(Path.Combine(env.ContentRootPath, moveIt.Value.SqlPath, "logs")), connection);
+        _queries = queries;
     }
 
-    public bool Enabled => _scripts.Enabled;
+    public bool Enabled => _queries.Enabled;
+
+    private async Task<List<Dictionary<string, object>>> Read(string key, params (string Name, object Value)[] values) =>
+        (await _queries.QueryAsync(ResponseExtensions.Key(key, values))).Rows();
 
     public Task<List<Dictionary<string, object>>> ApplicationsAsync(DateTimeOffset from, DateTimeOffset to) =>
-        _scripts.ReadAsync("usage-applications.sql",
-            ("Schema", _schema, SqlDbType.NVarChar),
-            ("From", from, SqlDbType.DateTimeOffset),
-            ("To", to, SqlDbType.DateTimeOffset));
+        Read("usage.applications",
+            ("Schema", _schema),
+            ("From", from),
+            ("To", to));
 
     // Every application's figures at once (usage.md §5, U5): the period view's row per application.
     public Task<string> SummaryAsync(string stage, DateTimeOffset from, DateTimeOffset to) =>
-        JsonAsync("usage-summary.sql", "[]",
-            ("Schema", _schema, SqlDbType.NVarChar),
-            ("Stage", stage, SqlDbType.NVarChar),
-            ("From", from, SqlDbType.DateTimeOffset),
-            ("To", to, SqlDbType.DateTimeOffset),
-            ("EndedWithinMinutes", _friction.EndedWithinMinutes, SqlDbType.Int));
+        JsonAsync("usage.summary", "[]",
+            ("Schema", _schema),
+            ("Stage", stage),
+            ("From", from),
+            ("To", to),
+            ("EndedWithinMinutes", _friction.EndedWithinMinutes));
 
     public Task<string> SectionAsync(string section, UsageScope scope, string page = null)
     {
-        var parameters = new List<(string, object, SqlDbType)>
+        var parameters = new List<(string, object)>
         {
-            ("Schema", _schema, SqlDbType.NVarChar),
-            ("Application", scope.Application, SqlDbType.NVarChar),
-            ("Stage", scope.Stage, SqlDbType.NVarChar),
-            ("From", scope.From, SqlDbType.DateTimeOffset),
-            ("To", scope.To, SqlDbType.DateTimeOffset),
-            ("OffsetMinutes", scope.OffsetMinutes, SqlDbType.Int),
-            ("SlowMs", _slowMs, SqlDbType.Int),
+            ("Schema", _schema),
+            ("Application", scope.Application),
+            ("Stage", scope.Stage),
+            ("From", scope.From),
+            ("To", scope.To),
+            ("OffsetMinutes", scope.OffsetMinutes),
+            ("SlowMs", _slowMs),
         };
-        if (section == "page") parameters.Add(("Page", page, SqlDbType.NVarChar));
-        if (section == "paths") parameters.Add(("Cap", PathSessions, SqlDbType.Int));
+        if (section == "page") parameters.Add(("Page", page));
+        if (section == "paths") parameters.Add(("Cap", PathSessions));
         if (section == "friction")
         {
-            parameters.Add(("EndedWithinMinutes", _friction.EndedWithinMinutes, SqlDbType.Int));
-            parameters.Add(("RefusedTimes", _friction.RefusedTimes, SqlDbType.Int));
-            parameters.Add(("LoopLoads", _friction.LoopLoads, SqlDbType.Int));
-            parameters.Add(("LoopSeconds", _friction.LoopSeconds, SqlDbType.Int));
-            parameters.Add(("RetrySeconds", _friction.RetrySeconds, SqlDbType.Int));
-            parameters.Add(("SlowMinRequests", _friction.SlowMinRequests, SqlDbType.Int));
-            parameters.Add(("DeadEndFactor", _friction.DeadEndFactor, SqlDbType.Float));
-            parameters.Add(("DeadEndMinRate", _friction.DeadEndMinRate, SqlDbType.Float));
-            parameters.Add(("DeadEndMinViews", _friction.DeadEndMinViews, SqlDbType.Int));
+            parameters.Add(("EndedWithinMinutes", _friction.EndedWithinMinutes));
+            parameters.Add(("RefusedTimes", _friction.RefusedTimes));
+            parameters.Add(("LoopLoads", _friction.LoopLoads));
+            parameters.Add(("LoopSeconds", _friction.LoopSeconds));
+            parameters.Add(("RetrySeconds", _friction.RetrySeconds));
+            parameters.Add(("SlowMinRequests", _friction.SlowMinRequests));
+            parameters.Add(("DeadEndFactor", _friction.DeadEndFactor));
+            parameters.Add(("DeadEndMinRate", _friction.DeadEndMinRate));
+            parameters.Add(("DeadEndMinViews", _friction.DeadEndMinViews));
         }
-        return JsonAsync($"usage-{section}.sql", section is "overview" or "page" or "paths" or "friction" ? "{}" : "[]", parameters.ToArray());
+        return JsonAsync($"usage.{section}", section is "overview" or "page" or "paths" or "friction" ? "{}" : "[]", parameters.ToArray());
     }
 
-    private async Task<string> JsonAsync(string file, string empty, params (string Name, object Value, SqlDbType Type)[] parameters)
+    private async Task<string> JsonAsync(string file, string empty, params (string Name, object Value)[] parameters)
     {
-        var rows = await _scripts.ReadAsync(file, parameters);
+        var rows = await Read(file, parameters);
         return rows.Count > 0 && rows[0]["JsonNode"] is string json && json.Length > 0 ? json : empty;
     }
 }

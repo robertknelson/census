@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Census.Web.CommandQuery;
 using Census.Web.Identity;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
@@ -19,28 +20,30 @@ namespace Census.Web.Services;
 // signed-in user's own role, which carries through impersonation (census-on-apptrak.md §10).
 public class AssertionReset
 {
-    private readonly ScriptRunner _scripts;
+    private readonly JsonQueryHandler _queries;
+    private readonly JsonCommandHandler _commands;
     private readonly bool _setting;
 
-    public AssertionReset(IOptions<MoveItOptions> options, IWebHostEnvironment env, IConfiguration configuration)
+    public AssertionReset(JsonQueryHandler queries, JsonCommandHandler commands, IConfiguration configuration)
     {
-        _scripts = new ScriptRunner(Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.SqlPath)), options.Value.ConnectionString);
+        _queries = queries;
+        _commands = commands;
         _setting = configuration.GetValue<bool>("Reset:Allowed");
     }
 
-    public bool Enabled => _scripts.Enabled;
+    public bool Enabled => _queries.Enabled;
 
     // admin: the signed-in user is a system administrator on Census (the real user; it carries through impersonation).
     public async Task<ResetStatus> StatusAsync(bool admin)
     {
-        var armed = (bool)(await _scripts.ReadAsync("reset/armed.sql"))[0]["Armed"];
+        var armed = (bool)(await Read("reset.armed"))[0]["Armed"];
         var why = new List<string>();
         if (!admin) why.Add("Only a system administrator on Census may reset.");
         if (!_setting) why.Add("This Census is not allowed to reset: the setting Reset:Allowed is off.");
         if (!armed) why.Add("This database is not armed for a reset (apptrak/sql/reset/002-arm-reset.sql, by hand, never on production).");
 
-        var tables = await _scripts.ReadAsync("reset/tables.sql");
-        var resets = await _scripts.ReadAsync("reset/resets.sql");
+        var tables = await Read("reset.tables");
+        var resets = await Read("reset.resets");
         return new ResetStatus
         {
             Allowed = why.Count == 0,
@@ -63,10 +66,16 @@ public class AssertionReset
     public bool SettingAllows => _setting;
 
     public Task<WriteResult> ResetAsync(string reason, Actor actor) =>
-        _scripts.WriteAsync("reset/reset-assertions.sql", actor, ("Reason", reason, SqlDbType.NVarChar));
+        Write("reset.reset", actor, ("Reason", reason));
 
     public Task<WriteResult> RestoreAsync(int resetId, Actor actor) =>
-        _scripts.WriteAsync("reset/restore-assertions.sql", actor, ("ResetId", resetId, SqlDbType.Int));
+        Write("reset.restore", actor, ("ResetId", resetId));
+
+    private async Task<List<Dictionary<string, object>>> Read(string key) =>
+        (await _queries.QueryAsync(ResponseExtensions.Key(key))).Rows();
+
+    private async Task<WriteResult> Write(string key, Actor actor, params (string Name, object Value)[] values) =>
+        (await _commands.ExecuteAsync(ResponseExtensions.Key(key, values).By(actor), null)).ToWriteResult();
 }
 
 public class ResetStatus

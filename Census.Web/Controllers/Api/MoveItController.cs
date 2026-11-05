@@ -11,57 +11,57 @@ namespace Census.Web.Controllers.Api;
 public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : ControllerBase
 {
     [HttpGet("stages")]
-    public Task<IActionResult> Stages() => Run("board/stages.sql");
+    public Task<IActionResult> Stages() => Run("board.stages");
 
     [HttpGet("applications")]
-    public Task<IActionResult> Applications() => Run("board/applications.sql");
+    public Task<IActionResult> Applications() => Run("board.applications");
 
     [HttpGet("releases")]
-    public Task<IActionResult> Releases() => Run("board/releases.sql");
+    public Task<IActionResult> Releases() => Run("board.releases");
 
     [HttpGet("history")]
-    public Task<IActionResult> History() => Run("board/history.sql");
+    public Task<IActionResult> History() => Run("board.history");
 
     [HttpGet("events")]
-    public Task<IActionResult> Events() => Run("board/events.sql");
+    public Task<IActionResult> Events() => Run("board.events");
 
     [HttpGet("release-builds")]
-    public Task<IActionResult> ReleaseBuilds() => Run("board/release-builds.sql");
+    public Task<IActionResult> ReleaseBuilds() => Run("board.release-builds");
 
     // The release page's build claims (move-it.md §29).
     [HttpGet("release-build-history")]
-    public Task<IActionResult> ReleaseBuildHistory() => Run("board/release-build-history.sql");
+    public Task<IActionResult> ReleaseBuildHistory() => Run("board.release-build-history");
 
     [HttpGet("builds-seen")]
-    public Task<IActionResult> BuildsSeen() => Run("board/builds-seen.sql");
+    public Task<IActionResult> BuildsSeen() => Run("board.builds-seen");
 
     [HttpGet("coverage")]
-    public Task<IActionResult> Coverage() => Run("board/coverage.sql");
+    public Task<IActionResult> Coverage() => Run("board.coverage");
 
     [HttpGet("calendar")]
-    public Task<IActionResult> Calendar() => Run("board/calendar.sql");
+    public Task<IActionResult> Calendar() => Run("board.calendar");
 
     [HttpGet("lists")]
-    public Task<IActionResult> Lists() => Run("manifest/lists.sql");
+    public Task<IActionResult> Lists() => Run("moveit.lists");
 
     [HttpGet("where-is-everything")]
-    public Task<IActionResult> WhereIsEverything() => Run("questions/01-where-is-everything.sql");
+    public Task<IActionResult> WhereIsEverything() => Run("question.01-where-is-everything");
 
     [HttpGet("release-status")]
-    public Task<IActionResult> ReleaseStatus() => Run("questions/02-release-status.sql");
+    public Task<IActionResult> ReleaseStatus() => Run("question.02-release-status");
 
     [HttpGet("ready-to-approve")]
-    public Task<IActionResult> ReadyToApprove() => Run("questions/04-ready-to-approve.sql");
+    public Task<IActionResult> ReadyToApprove() => Run("question.04-ready-to-approve");
 
     [HttpGet("approval-vs-prod")]
-    public Task<IActionResult> ApprovalVsProd() => Run("questions/12-approval-vs-prod.sql");
+    public Task<IActionResult> ApprovalVsProd() => Run("question.12-approval-vs-prod");
 
     // The feature picture (§28): one document, every item, served whole; the register indexes it.
     [HttpGet("feature-picture")]
     public async Task<IActionResult> FeaturePicture()
     {
         if (!questions.Enabled) return NotFound();
-        return Content(await questions.RunJsonAsync("questions/13-feature-picture.sql"), "application/json");
+        return Content(await questions.RunJsonAsync("question.13-feature-picture"), "application/json");
     }
 
     [HttpPost("name-build")]
@@ -143,9 +143,9 @@ public class MoveItController(MoveItQuestions questions, MoveItEntry entry) : Co
         return Ok(await entry.DeleteReleaseAsync(request.ReleaseId));
     }
 
-    private async Task<IActionResult> Run(string file)
+    private async Task<IActionResult> Run(string key)
     {
         if (!questions.Enabled) return NotFound();
-        return Ok(await questions.RunAsync(file));
+        return Ok(await questions.RunAsync(key));
     }
 }

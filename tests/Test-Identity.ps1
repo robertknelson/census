@@ -33,6 +33,12 @@ function Assert-That {
 }
 function Call {
     param([string]$Method, [string]$Path, $Body, [hashtable]$Headers = @{}, [switch]$Anonymous)
+    if ($Anonymous) {
+        # A fresh client: Negotiate signs in the connection, and a pooled one from an earlier signed-in call would pass.
+        $client = [System.Net.Http.HttpClient]::new([System.Net.Http.HttpClientHandler]@{ UseDefaultCredentials = $false })
+        try { return @{ Status = [int]$client.Send([System.Net.Http.HttpRequestMessage]::new($Method, "$BaseUrl$Path")).StatusCode; Body = $null } }
+        finally { $client.Dispose() }
+    }
     $a = @{ Uri = "$BaseUrl$Path"; Method = $Method; Headers = $Headers; SkipHttpErrorCheck = $true }
     if (-not $Anonymous) { $a.UseDefaultCredentials = $true; $a.AllowUnencryptedAuthentication = $true }
     if ($null -ne $Body) { $a.ContentType = 'application/json'; $a.Body = ($Body | ConvertTo-Json -Depth 5) }

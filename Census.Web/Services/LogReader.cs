@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Census.Web.CommandQuery;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
@@ -23,28 +24,30 @@ public class LogReader
         ["message"] = "Message",
     };
 
-    private readonly ScriptRunner _scripts;
+    private readonly LogsQueryHandler _queries;
     private readonly string _schema;
 
-    public LogReader(IOptions<LogsOptions> logs, IOptions<MoveItOptions> moveIt, IWebHostEnvironment env)
+    public LogReader(LogsQueryHandler queries, IOptions<LogsOptions> logs)
     {
-        var connection = string.IsNullOrWhiteSpace(logs.Value.ConnectionString) ? moveIt.Value.ConnectionString : logs.Value.ConnectionString;
         _schema = logs.Value.Schema;
-        _scripts = new ScriptRunner(Path.GetFullPath(Path.Combine(env.ContentRootPath, moveIt.Value.SqlPath, "logs")), connection);
+        _queries = queries;
     }
 
-    public bool Enabled => _scripts.Enabled;
+    public bool Enabled => _queries.Enabled;
+
+    private async Task<List<Dictionary<string, object>>> Read(string key, params (string Name, object Value)[] values) =>
+        (await _queries.QueryAsync(ResponseExtensions.Key(key, values))).Rows();
 
     public async Task<List<Dictionary<string, object>>> FacetsAsync(string table, DateTimeOffset start, DateTimeOffset end, IEnumerable<string> columns, int offsetMinutes, bool hideHandshake)
     {
-        var rows = await _scripts.ReadAsync("facets.sql",
-            ("Schema", _schema, SqlDbType.NVarChar),
-            ("Table", table, SqlDbType.NVarChar),
-            ("Start", start, SqlDbType.DateTimeOffset),
-            ("End", end, SqlDbType.DateTimeOffset),
-            ("Columns", JsonSerializer.Serialize(columns), SqlDbType.NVarChar),
-            ("OffsetMinutes", offsetMinutes, SqlDbType.Int),
-            ("HideHandshake", hideHandshake, SqlDbType.Bit));
+        var rows = await Read("logs.facets",
+            ("Schema", _schema),
+            ("Table", table),
+            ("Start", start),
+            ("End", end),
+            ("Columns", JsonSerializer.Serialize(columns)),
+            ("OffsetMinutes", offsetMinutes),
+            ("HideHandshake", hideHandshake));
         return rows
             .GroupBy(r => (string)r["Facet"])
             .Select(g => new Dictionary<string, object>
@@ -57,21 +60,21 @@ public class LogReader
 
     public async Task<(List<Dictionary<string, object>> Items, int Total)> SearchAsync(string table, LogSearch search)
     {
-        var rows = await _scripts.ReadAsync("search.sql",
-            ("Schema", _schema, SqlDbType.NVarChar),
-            ("Table", table, SqlDbType.NVarChar),
-            ("Start", search.Start, SqlDbType.DateTimeOffset),
-            ("End", search.End, SqlDbType.DateTimeOffset),
-            ("Filters", JsonSerializer.Serialize(search.Filters.Select(f => new { column = f.Column, @in = f.In, values = f.Values })), SqlDbType.NVarChar),
-            ("Operator", search.Operator, SqlDbType.NVarChar),
-            ("HideHandshake", search.HideHandshake, SqlDbType.Bit),
-            ("Writes", search.Writes, SqlDbType.Bit),
-            ("Refused", search.Refused, SqlDbType.Bit),
-            ("MinElapsed", search.MinElapsed, SqlDbType.Int),
-            ("SortColumn", search.SortColumn, SqlDbType.NVarChar),
-            ("SortDescending", search.SortDescending, SqlDbType.Bit),
-            ("PageIndex", search.PageIndex, SqlDbType.Int),
-            ("PageSize", search.PageSize, SqlDbType.Int));
+        var rows = await Read("logs.search",
+            ("Schema", _schema),
+            ("Table", table),
+            ("Start", search.Start),
+            ("End", search.End),
+            ("Filters", JsonSerializer.Serialize(search.Filters.Select(f => new { column = f.Column, @in = f.In, values = f.Values }))),
+            ("Operator", search.Operator),
+            ("HideHandshake", search.HideHandshake),
+            ("Writes", search.Writes),
+            ("Refused", search.Refused),
+            ("MinElapsed", search.MinElapsed),
+            ("SortColumn", search.SortColumn),
+            ("SortDescending", search.SortDescending),
+            ("PageIndex", search.PageIndex),
+            ("PageSize", search.PageSize));
         var total = rows.Count > 0 ? Convert.ToInt32(rows[0]["Total"]) : 0;
         var items = rows.Select(r => r.Where(kv => kv.Key != "Total").ToDictionary(kv => Camel(kv.Key), kv => kv.Value)).ToList();
         return (items, total);

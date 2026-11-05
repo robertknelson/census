@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Census.Web.CommandQuery;
 using Census.Web.Identity;
 using Census.Web.Options;
 using Microsoft.AspNetCore.Hosting;
@@ -18,21 +19,23 @@ namespace Census.Web.Services;
 // and uniqueness are the scripts'.
 public class MoveItEdit
 {
-    private readonly ScriptRunner _scripts;
+    private readonly JsonQueryHandler _queries;
+    private readonly JsonCommandHandler _commands;
 
-    public MoveItEdit(IOptions<MoveItOptions> options, IWebHostEnvironment env)
+    public MoveItEdit(JsonQueryHandler queries, JsonCommandHandler commands)
     {
-        _scripts = new ScriptRunner(Path.GetFullPath(Path.Combine(env.ContentRootPath, options.Value.SqlPath)), options.Value.ConnectionString);
+        _queries = queries;
+        _commands = commands;
     }
 
-    public bool Enabled => _scripts.Enabled;
+    public bool Enabled => _queries.Enabled;
 
     public static readonly string[] Reads = ["releases", "workitems", "builds", "events", "links", "audit-recent"];
 
-    public Task<List<Dictionary<string, object>>> ReadAsync(string name) => _scripts.ReadAsync($"edit/{name}.sql");
+    public async Task<List<Dictionary<string, object>>> ReadAsync(string name) => (await _queries.QueryAsync(ResponseExtensions.Key($"edit.{name}"))).Rows();
 
-    public Task<List<Dictionary<string, object>>> ReleaseAuditAsync(int releaseId) =>
-        _scripts.ReadAsync("edit/audit.sql", ("ReleaseId", releaseId, SqlDbType.Int));
+    public async Task<List<Dictionary<string, object>>> ReleaseAuditAsync(int releaseId) =>
+        (await _queries.QueryAsync(ResponseExtensions.Key("edit.audit", ("ReleaseId", releaseId)))).Rows();
 
     public async Task<List<string>> ValidateAsync(ReleaseEdit r)
     {
@@ -93,38 +96,41 @@ public class MoveItEdit
         return errors;
     }
 
-    public Task<WriteResult> SaveAsync(int? id, ReleaseEdit r, Actor actor) => _scripts.WriteAsync("edit/release-save.sql", actor,
-        ("Id", (object)id, SqlDbType.Int), ("ApplicationId", r.ApplicationId, SqlDbType.Int), ("Name", r.Name.Trim(), SqlDbType.NVarChar),
-        ("Kind", r.Kind, SqlDbType.NVarChar), ("TargetDate", DateOrNull(r.TargetDate), SqlDbType.Date), ("Note", Text(r.Note), SqlDbType.NVarChar));
+    public Task<WriteResult> SaveAsync(int? id, ReleaseEdit r, Actor actor) => Write("edit.release-save", actor,
+        ("Id", (object)id), ("ApplicationId", r.ApplicationId), ("Name", r.Name.Trim()),
+        ("Kind", r.Kind), ("TargetDate", DateOrNull(r.TargetDate)), ("Note", Text(r.Note)));
 
-    public Task<WriteResult> SaveAsync(int? id, WorkItemEdit r, Actor actor) => _scripts.WriteAsync("edit/workitem-save.sql", actor,
-        ("Id", (object)id, SqlDbType.Int), ("ApplicationId", r.ApplicationId, SqlDbType.Int), ("ReleaseId", (object)r.ReleaseId, SqlDbType.Int),
-        ("Kind", r.Kind, SqlDbType.NVarChar), ("Title", r.Title.Trim(), SqlDbType.NVarChar), ("Description", Text(r.Description), SqlDbType.NVarChar),
-        ("BuiltBy", Text(r.BuiltBy), SqlDbType.NVarChar), ("ExternalRef", Text(r.ExternalRef), SqlDbType.NVarChar),
-        ("IncludedInBuild", Text(r.IncludedInBuild), SqlDbType.NVarChar), ("FoundInStage", Text(r.FoundInStage), SqlDbType.NVarChar),
-        ("RemovedAt", MomentOrNull(r.RemovedAt), SqlDbType.DateTimeOffset), ("RemovedNote", Text(r.RemovedNote), SqlDbType.NVarChar));
+    public Task<WriteResult> SaveAsync(int? id, WorkItemEdit r, Actor actor) => Write("edit.workitem-save", actor,
+        ("Id", (object)id), ("ApplicationId", r.ApplicationId), ("ReleaseId", (object)r.ReleaseId),
+        ("Kind", r.Kind), ("Title", r.Title.Trim()), ("Description", Text(r.Description)),
+        ("BuiltBy", Text(r.BuiltBy)), ("ExternalRef", Text(r.ExternalRef)),
+        ("IncludedInBuild", Text(r.IncludedInBuild)), ("FoundInStage", Text(r.FoundInStage)),
+        ("RemovedAt", MomentOrNull(r.RemovedAt)), ("RemovedNote", Text(r.RemovedNote)));
 
-    public Task<WriteResult> SaveAsync(int? id, BuildEdit r, Actor actor) => _scripts.WriteAsync("edit/build-save.sql", actor,
-        ("Id", (object)id, SqlDbType.Int), ("ReleaseId", r.ReleaseId, SqlDbType.Int), ("Build", r.Build.Trim(), SqlDbType.NVarChar), ("Note", Text(r.Note), SqlDbType.NVarChar));
+    public Task<WriteResult> SaveAsync(int? id, BuildEdit r, Actor actor) => Write("edit.build-save", actor,
+        ("Id", (object)id), ("ReleaseId", r.ReleaseId), ("Build", r.Build.Trim()), ("Note", Text(r.Note)));
 
-    public Task<WriteResult> SaveAsync(int? id, EventEdit r, Actor actor) => _scripts.WriteAsync("edit/event-save.sql", actor,
-        ("Id", (object)id, SqlDbType.Int), ("ReleaseId", r.ReleaseId, SqlDbType.Int), ("Kind", r.Kind, SqlDbType.NVarChar),
-        ("Stage", Text(r.Stage), SqlDbType.NVarChar), ("Build", Text(r.Build), SqlDbType.NVarChar), ("At", MomentOrNull(r.At), SqlDbType.DateTimeOffset),
-        ("EventBy", r.By.Trim(), SqlDbType.NVarChar), ("Note", Text(r.Note), SqlDbType.NVarChar));
+    public Task<WriteResult> SaveAsync(int? id, EventEdit r, Actor actor) => Write("edit.event-save", actor,
+        ("Id", (object)id), ("ReleaseId", r.ReleaseId), ("Kind", r.Kind),
+        ("Stage", Text(r.Stage)), ("Build", Text(r.Build)), ("At", MomentOrNull(r.At)),
+        ("EventBy", r.By.Trim()), ("Note", Text(r.Note)));
 
-    public Task<WriteResult> SaveAsync(int? id, LinkEdit r, Actor actor) => _scripts.WriteAsync("edit/link-save.sql", actor,
-        ("Id", (object)id, SqlDbType.Int), ("WorkItemId", r.WorkItemId, SqlDbType.Int), ("LinkedWorkItemId", r.LinkedWorkItemId, SqlDbType.Int),
-        ("Kind", r.Kind, SqlDbType.NVarChar), ("Note", Text(r.Note), SqlDbType.NVarChar));
+    public Task<WriteResult> SaveAsync(int? id, LinkEdit r, Actor actor) => Write("edit.link-save", actor,
+        ("Id", (object)id), ("WorkItemId", r.WorkItemId), ("LinkedWorkItemId", r.LinkedWorkItemId),
+        ("Kind", r.Kind), ("Note", Text(r.Note)));
 
     public Task<WriteResult> DeleteAsync(string entity, int id, Actor actor) => entity switch
     {
-        "release" => _scripts.WriteAsync("edit/release-delete.sql", actor, ("Id", id, SqlDbType.Int)),
-        "workitem" => _scripts.WriteAsync("edit/workitem-delete.sql", actor, ("Id", id, SqlDbType.Int)),
-        _ => _scripts.WriteAsync("edit/row-delete.sql", actor, ("Entity", entity, SqlDbType.VarChar), ("Id", id, SqlDbType.Int)),
+        "release" => Write("edit.release-delete", actor, ("Id", id)),
+        "workitem" => Write("edit.workitem-delete", actor, ("Id", id)),
+        _ => Write("edit.row-delete", actor, ("Entity", entity), ("Id", id)),
     };
 
+    private async Task<WriteResult> Write(string key, Actor actor, params (string Name, object Value)[] values) =>
+        (await _commands.ExecuteAsync(ResponseExtensions.Key(key, values).By(actor), null)).ToWriteResult();
+
     private async Task<ILookup<string, string>> ListsAsync() =>
-        (await _scripts.ReadAsync("manifest/lists.sql")).ToLookup(r => (string)r["List"], r => (string)r["Member"], StringComparer.OrdinalIgnoreCase);
+        (await _queries.QueryAsync(ResponseExtensions.Key("moveit.lists"))).Rows().ToLookup(r => (string)r["List"], r => (string)r["Member"], StringComparer.OrdinalIgnoreCase);
 
     private static void In(List<string> errors, ILookup<string, string> lists, string list, string value, string label, bool required)
     {

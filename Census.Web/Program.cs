@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Census.Web.CommandQuery;
 using Census.Web.FeatureAccess;
 using Census.Web.Identity;
 using Microsoft.AspNetCore.Authentication;
@@ -36,6 +37,24 @@ builder.Services.AddSingleton<GraphComposer>();
 builder.Services.AddSingleton<EntityTagsEvaluator>();
 builder.Services.AddSingleton<FindingsEngine>();
 builder.Services.Configure<MoveItOptions>(builder.Configuration.GetSection(MoveItOptions.SectionName));
+
+// Command/query (census-on-apptrak.md §3): xf-dashboard's handlers as Gatehouse ported them, each key's script under
+// apptrak/sql with its shape declared. Stateless, so singletons beside the singleton services that use them.
+SqlScripts.Configure(Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath,
+    builder.Configuration.GetSection(MoveItOptions.SectionName).Get<MoveItOptions>()?.SqlPath ?? "../apptrak/sql")),
+    keep: !builder.Environment.IsDevelopment());
+builder.Services.AddSingleton<ISqlCommandInitializer, MoveItSqlCommandInitializer>();
+builder.Services.AddSingleton<ISqlCommandInitializer, EntrySqlCommandInitializer>();
+builder.Services.AddSingleton<ISqlCommandInitializer, EditSqlCommandInitializer>();
+builder.Services.AddSingleton<ISqlCommandInitializer, MembershipSqlCommandInitializer>();
+builder.Services.AddSingleton<ISqlCommandInitializer, ResetSqlCommandInitializer>();
+builder.Services.AddSingleton<ISqlCommandInitializer, LogsSqlCommandInitializer>();
+builder.Services.AddSingleton<IInitializerLocator, SqlCommandInitializerContainer>();
+builder.Services.AddSingleton<JsonQueryHandler>();
+builder.Services.AddSingleton<JsonCommandHandler>();
+builder.Services.AddSingleton<LogsQueryHandler>();
+builder.Services.AddSingleton<IJsonQueryHandler>(sp => sp.GetRequiredService<JsonQueryHandler>());
+builder.Services.AddSingleton<IJsonCommandHandler>(sp => sp.GetRequiredService<JsonCommandHandler>());
 builder.Services.AddSingleton<MoveItQuestions>();
 builder.Services.AddSingleton<MoveItEntry>();
 builder.Services.Configure<PersonasOptions>(builder.Configuration.GetSection(PersonasOptions.SectionName));

@@ -21,7 +21,7 @@ public class MemberAccess(MoveItQuestions questions, IFeatureManager features, I
 
     public async Task<List<MemberSummary>> MembersAsync()
     {
-        var rows = await questions.RunAsync("membership/members.sql");
+        var rows = await questions.RunAsync("membership.members");
         return rows.GroupBy(r => (int)r["MemberId"])
             .Select(g => Summary(g.First(), g))
             .ToList();
@@ -29,14 +29,14 @@ public class MemberAccess(MoveItQuestions questions, IFeatureManager features, I
 
     public async Task<MemberAccessResult> AccessAsync(string identifier)
     {
-        var rows = (await questions.RunAsync("membership/members.sql"))
+        var rows = (await questions.RunAsync("membership.members"))
             .Where(r => string.Equals((string)r["Identifier"], identifier, StringComparison.OrdinalIgnoreCase))
             .ToList();
         if (rows.Count == 0) return null;
 
         var grants = rows.Where(r => r["Role"] != null).ToList();
         var estateRoles = grants.Where(IsEstate).Select(r => (string)r["Role"]).Distinct().ToList();
-        var registry = await questions.RunAsync("membership/applications.sql");
+        var registry = await questions.RunAsync("membership.applications");
 
         var seen = estateRoles.Count > 0
             ? registry.Where(a => !string.Equals((string)a["Identifier"], _estate, StringComparison.OrdinalIgnoreCase))

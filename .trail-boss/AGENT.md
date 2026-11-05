@@ -1,7 +1,7 @@
 ---
-trail_boss_contract: 8
+trail_boss_contract: 10
 ---
-<!-- trail-boss agent contract v8 — app-generated, regenerated on enlist / `tb refit`. Do not hand-edit; the report you own is dispatch.md. -->
+<!-- trail-boss agent contract v10 — app-generated, regenerated on enlist / `tb refit`. Do not hand-edit; the report you own is dispatch.md. -->
 
 # Trail Boss agent contract
 
@@ -26,8 +26,9 @@ working in this repo, follow these rules **before ending your session**:
    `dispatch.md` (`discovery`|`planning`|`execution`|`monitoring`|`closure`).
    That is a recommendation the human ratifies on the board — it **never**
    changes `phase` in `project.md`.
-5. **Validate before you leave: run `tb check`.** It re-reads both files
-   exactly as the board will. A `project.md` that does not parse shows as a
+5. **Validate before you leave: run `tb check`.** It re-reads the files
+   exactly as the board will — `project.md`, `dispatch.md`, and the decisions
+   file of rule 13 when the repo keeps one. A `project.md` that does not parse shows as a
    broken card; a dispatch that does not parse drops this project's report off
    the board. The check is the safety net under the syntax rules below — a
    *break* means fix it now; a *hole* is a nudge (a Windows path in double
@@ -62,6 +63,52 @@ working in this repo, follow these rules **before ending your session**:
     real, safe-to-run command.
 12. **Preserve unknown fields** everywhere in these files: read what you
     know, keep the rest byte-for-byte.
+13. **Record decisions where they are made, when they are made.** A pivotal or
+    load-bearing decision — one that would cost real rework to reverse — is written
+    to this repo's `.docs/decisions.md` **at the moment it is decided**, whether the
+    human answered a question or said "go" to a recommendation (the "go" IS the
+    decision). Newest first. The two lines Trail Boss reads, then prose:
+
+    ```markdown
+    ## D-NNN — <title>
+    - **YYYY-MM-DD · pivotal|load-bearing · proposed|accepted|rejected|superseded by D-NNN · asked|ratified|ruled|call**
+    ```
+
+    The last word is how it came: `asked` (you stopped and they answered) ·
+    `ratified` (their "go" on your recommendation) · `ruled` (they directed, no lean
+    on the table) · `call` (you decided under the GO default — its status stays
+    `proposed`; **never set `accepted` on their behalf**). The body carries the
+    options with what each would have cost, the one taken, their words quoted, the
+    reason in their terms, what it precludes. An accepted entry is never rewritten:
+    a new entry supersedes it and the old stamp gains `superseded by D-NNN`.
+    Non-pivotal calls go in `.docs/calls-made-for-you.md`. `tb check` reads the
+    decisions file too; the board shows the entries and queues the proposed ones.
+14. **Read `stops:` in `project.md` at session start.** GO is the default: decide,
+    build, record (rule 13). When `stops:` is present (free text, one of the
+    project's own fields) it says where this project wants more, or fewer, stops
+    right now — follow it for the session. Absent means GO. The human may also say
+    it in session; that holds for the session.
+15. **An app gets a window, an ignite, and a link** (v10). If this project runs an
+    app (anything you start that prints a `localhost` address), its `dispatch.md`
+    declares all three:
+    - **a window**, so plinth can show it on the owner's phone:
+
+      ```yaml
+      windows:
+        - host: <short-name>             # lowercase letters, digits, hyphens
+          at: http://127.0.0.1:<port>    # the address the app prints
+          audience: [robert]
+      ```
+
+    - **an `ignite:` line** (rule 11) that starts the app on that same port —
+      usually a `.bat` in the repo, since ignite runs blind in cmd.exe;
+    - **its own port**: `tb ports` shows who holds what; a new app takes
+      `tb ports --free`. Never a framework default (5173, 3000, 5000…) unless the
+      register gives it to you; pin it so the app fails rather than wanders.
+
+    When there is something worth seeing, start the app on that port and give the
+    owner the plinth link — he is often driving the session from his phone. `tb
+    check` prints a `note` for an app missing a window or an ignite.
 
 ## File syntax — get this wrong and the project vanishes from the board
 

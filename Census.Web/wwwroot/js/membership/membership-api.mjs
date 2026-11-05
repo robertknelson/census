@@ -14,6 +14,7 @@ export class MembershipApi {
     lists() { return this.#get('/api/membership/lists'); }
     recent() { return this.#get('/api/membership/audit/recent'); }
     appParts() { return this.#get('/api/membership/app-parts'); }
+    roleDrift() { return this.#get('/api/membership/role-drift'); }
     audit(entity, id) { return this.#get(`/api/membership/audit/${entity}/${id}`); }
 
     saveApplication(id, body) { return this.#post(id ? `/api/membership/applications/${id}` : '/api/membership/applications', body); }

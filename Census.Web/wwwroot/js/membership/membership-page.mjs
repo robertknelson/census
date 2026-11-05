@@ -1,6 +1,6 @@
 import { escapeHtml, isoDate } from '../moveit/format.mjs';
 import { MembershipApi } from './membership-api.mjs';
-import { describeAudit, findGaps, groupMembers } from './membership-model.mjs';
+import { describeAudit, describeDrift, findGaps, groupMembers } from './membership-model.mjs';
 import { readForm, renderForm, toPayload } from '../curate/record-form.mjs';
 
 // The membership page (personas.md §6.2): AppTrak's applications, members, and who holds which role
@@ -28,7 +28,8 @@ class MembershipPage {
     async load() {
         this.root.innerHTML = '<p class="ps-none">Reading membership…</p>';
         try {
-            const [applications, memberRows, lists, recent, parts] = await Promise.all([this.api.applications(), this.api.members(), this.api.lists(), this.api.recent(), this.api.appParts()]);
+            const [applications, memberRows, lists, recent, parts, drift] = await Promise.all([this.api.applications(), this.api.members(), this.api.lists(), this.api.recent(), this.api.appParts(), this.api.roleDrift()]);
+            this.drift = drift;
             this.parts = parts;
             this.stages = lists.filter((l) => l.List === 'stages');
             this.serviceTypes = lists.filter((l) => l.List === 'service-types');
@@ -88,6 +89,7 @@ class MembershipPage {
         else if (gaps.estateNobody) needs.push('<li><strong>No one is system-administrator on Census.</strong> Without one, no one is offered this page from a sign-in.</li>');
         if (gaps.noRoles.length) needs.push(`<li><strong>${gaps.noRoles.length} member${gaps.noRoles.length === 1 ? ' holds' : 's hold'} no role anywhere</strong>, so ${gaps.noRoles.length === 1 ? 'sees' : 'see'} nothing: ${gaps.noRoles.map(memberLink).join(', ')}</li>`);
         if (gaps.nobodyOn.length) needs.push(`<li><strong>${gaps.nobodyOn.length} application${gaps.nobodyOn.length === 1 ? ' has' : 's have'} nobody</strong> holding a role: ${gaps.nobodyOn.map(appLink).join(', ')}</li>`);
+        if (this.drift.length) needs.push(`<li><strong>${this.drift.length} role${this.drift.length === 1 ? ' is' : 's are'} named that the member-types list does not offer</strong>, so roles, membership and feature access disagree: <ul class="mb-needs">${this.drift.map((d) => `<li>${escapeHtml(describeDrift(d))}</li>`).join('')}</ul></li>`);
         if (gaps.noOwner.length) needs.push(`<li><strong>${gaps.noOwner.length} application${gaps.noOwner.length === 1 ? ' has' : 's have'} no owner</strong> (application-owner or product-owner): ${gaps.noOwner.map(appLink).join(', ')}</li>`);
         return `
             <section class="ps-section">

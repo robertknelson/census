@@ -1,7 +1,7 @@
 // The membership page's arithmetic (personas.md §6.2): members folded from grant rows, the gaps the
 // landing page names, and audit rows in words.
 //   node tests/Test-Membership.mjs
-import { describeAudit, findGaps, groupMembers } from '../Census.Web/wwwroot/js/membership/membership-model.mjs';
+import { describeAudit, describeDrift, findGaps, groupMembers } from '../Census.Web/wwwroot/js/membership/membership-model.mjs';
 
 let passed = 0, failed = 0;
 const assert = (name, condition, actual = '') => {
@@ -45,6 +45,11 @@ const gone = { Entity: 'member', Action: 'deleted', EntityKey: '9', PreviousValu
 assert('a delete in words', describeAudit(gone) === 'Deleted member tess', describeAudit(gone));
 const part = { Entity: 'application-stage', Action: 'created', EntityKey: '3:42', NewValue: JSON.stringify({ ApplicationId: 3, StageId: 42, Name: 'Val' }) };
 assert('an application part in words', describeAudit(part) === 'Added stage 42 named Val on application 3', describeAudit(part));
+
+// Role drift (census-on-apptrak.md §4): a role named where the member-types list does not offer it, in words.
+assert('drift: a feature granted to a role not on the list', describeDrift({ Place: 'feature', Role: 'ghost', Problem: 'not on the list', Detail: 'view.week' }) === 'ghost (not on the list): feature view.week is granted to it');
+assert('drift: a member holding a retired role', describeDrift({ Place: 'grant', Role: 'old', Problem: 'retired', Detail: 'demo-max on Reporting' }) === 'old (retired): demo-max on Reporting holds it');
+assert('drift: an application offering a role not on the list', describeDrift({ Place: 'application', Role: '#9', Problem: 'not on the list', Detail: 'WidgetCore' }) === '#9 (not on the list): WidgetCore offers it');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed) process.exit(1);

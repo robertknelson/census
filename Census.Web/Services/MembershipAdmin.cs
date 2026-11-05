@@ -39,6 +39,9 @@ public class MembershipAdmin
 
     public Task<List<Dictionary<string, object>>> RecentAuditAsync() => Read("membership.admin-audit-recent");
 
+    // Roles named in fm or membership that the member-types list does not offer (census-on-apptrak.md §4).
+    public Task<List<Dictionary<string, object>>> RoleDriftAsync() => Read("membership.role-drift");
+
     public Task<List<Dictionary<string, object>>> AuditAsync(string entity, int id) =>
         Read("membership.admin-audit", ("Entity", entity), ("Id", id));
 

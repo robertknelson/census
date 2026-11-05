@@ -85,6 +85,7 @@ public class MembershipSqlCommandInitializer : SqlCommandInitializer
         Script("membership.members", "membership/members.sql", ResultShape.Rows);
         Script("membership.applications", "membership/applications.sql", ResultShape.Rows);
         Script("membership.roles", "fm/roles.sql", ResultShape.Rows);
+        Script("membership.role-drift", "membership/role-drift.sql", ResultShape.Rows);
         Script("membership.admin-applications", "membership/admin-applications.sql", ResultShape.Rows);
         Script("membership.admin-lists", "membership/admin-lists.sql", ResultShape.Rows);
         Script("membership.admin-app-parts", "membership/admin-app-parts.sql", ResultShape.Rows);

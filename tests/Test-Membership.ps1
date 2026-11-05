@@ -141,6 +141,16 @@ Seed
 $left = Get-Api '/api/membership/applications' | Where-Object { $_.Identifier -like 'demo-test*' }
 Assert-That 'the membership seed removes what the test made' (@($left).Count -eq 0) @($left).Count
 
+Write-Host 'Role drift (census-on-apptrak.md section 4)'
+Assert-That 'no drift in the demo: an empty report' (@(Get-Api '/api/membership/role-drift').Count -eq 0)
+& sqlcmd -S $Server -d $Database -E -b -I -Q "INSERT fm.FeatureRole (FeatureId, RoleName, GrantedBy) SELECT FeatureId, 'ghost-role', 'test' FROM fm.Feature WHERE Name = 'view.week' AND IsVoided = 0" | Out-Null
+try {
+    $drift = @(Get-Api '/api/membership/role-drift')
+    Assert-That 'a feature granted to a role not on the list is reported' ($drift.Count -eq 1 -and $drift[0].Place -eq 'feature' -and $drift[0].Role -eq 'ghost-role' -and $drift[0].Problem -eq 'not on the list' -and $drift[0].Detail -eq 'view.week') ($drift | ConvertTo-Json -Compress)
+}
+finally { & sqlcmd -S $Server -d $Database -E -b -I -Q "DELETE FROM fm.FeatureRole WHERE RoleName = 'ghost-role'" | Out-Null }
+Assert-That '  and gone once the grant is' (@(Get-Api '/api/membership/role-drift').Count -eq 0)
+
 Write-Host ''
 Write-Host "$($script:passed) passed, $($script:failed) failed" -ForegroundColor ($(if ($script:failed) { 'Red' } else { 'Green' }))
 Invoke-WebRequest -Uri "$BaseUrl/api/impersonation/stop" -Method Post -ContentType 'application/json' -Body '{}' | Out-Null

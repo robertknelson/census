@@ -42,6 +42,14 @@ export function findGaps({ applications, members, estate }) {
     };
 }
 
+// A role named somewhere the member-types list does not offer it (census-on-apptrak.md §4), in words.
+export function describeDrift(row) {
+    const where = row.Place === 'feature' ? `feature ${row.Detail} is granted to it`
+        : row.Place === 'grant' ? `${row.Detail} holds it`
+        : `${row.Detail} offers it`;
+    return `${row.Role} (${row.Problem}): ${where}`;
+}
+
 function parse(json) {
     try { return json ? JSON.parse(json) : null; } catch { return null; }
 }

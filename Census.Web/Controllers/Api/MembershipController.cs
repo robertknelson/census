@@ -29,6 +29,9 @@ public class MembershipController(MembershipAdmin membership) : ControllerBase
     [HttpGet("app-parts")]
     public Task<IActionResult> AppParts() => Read(membership.AppPartsAsync);
 
+    [HttpGet("role-drift")]
+    public Task<IActionResult> RoleDrift() => Read(membership.RoleDriftAsync);
+
     [HttpGet("audit/recent")]
     public Task<IActionResult> RecentAudit() => Read(membership.RecentAuditAsync);
 

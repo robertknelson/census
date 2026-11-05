@@ -98,6 +98,17 @@ refuses a parameter named `@Key` at start-up.
   from the list shows on the membership page's **Needs a word**, never silently dropped. A check script reports any
   drift (CA-4).
 
+### 4.1 S-1, built (2026-11-05)
+
+- **`apptrak/sql/membership/role-drift.sql`** (key `membership.role-drift`) reports every place a role is named that
+  `member-types` does not offer: a feature granted to it, a member holding it, an application offering it. Each is
+  marked "not on the list", or "retired" when `IsShow = 0`. It is a report, not a constraint (CA-4).
+- **`GET api/membership/role-drift`** is for administrators only, like the rest of Membership. Its rows show under
+  *Needs a word* on Membership's overview, one line each, in words (`describeDrift`).
+- **Verified.** On the demo the report is empty. A planted grant of `view.week` to `ghost-role` was reported as
+  exactly that, and was gone once the grant was removed (`Test-Membership.ps1`, 35 passed). `Test-Membership.mjs`
+  has 3 wording checks, 18 passed in all. The local overview showed the line in a screenshot.
+
 ## 5. The reset (D-003)
 
 - **One call:** `POST api/admin/reset`, and a script `apptrak/sql/reset/reset-assertions.sql` that does the same,

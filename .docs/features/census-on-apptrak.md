@@ -465,7 +465,10 @@ three audit tables).
 - **The banner is on the persona shell only.** The other pages (Estate, Atlas, Day, Move It, Logs, Trace, Usage) now
   require sign-in, but they neither scope by user nor show the banner.
 - **The identity resolution reads membership through `MemberAccess`**, not command/query. C-1 brings the plumbing.
-- **`ImpersonatedBy` is recorded but not yet shown** in the history lists (curate, membership, feature access).
+- ~~**`ImpersonatedBy` is recorded but not yet shown** in the history lists.~~ **Shown, 2026-11-05.** The five audit
+  reads return it. A change made while impersonating reads "member (by you)" in a release's history (curate),
+  Membership's history, and the Feature access drawer. Verified through the API: 28 of the last 30 Move It corrections
+  carry it. The rendered line was not seen in a browser; the template change parses (`node --check`).
 
 **Verified (2026-11-05, local AppTrak, signed in as yourself):**
 - `Test-Identity.ps1`:

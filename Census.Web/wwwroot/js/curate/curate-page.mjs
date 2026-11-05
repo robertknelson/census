@@ -291,7 +291,7 @@ class CuratePage {
         };
         return `<ul class="ps-list">${entries.map((e) => `
             <li><span class="ps-list-main">${escapeHtml(what(e))}</span>
-                <span class="ps-list-end">${escapeHtml(isoDate(e.ChangedAt))} ${escapeHtml(new Date(e.ChangedAt).toTimeString().slice(0, 5))} · ${escapeHtml(e.ChangedBy)}</span></li>`).join('')}</ul>`;
+                <span class="ps-list-end">${escapeHtml(isoDate(e.ChangedAt))} ${escapeHtml(new Date(e.ChangedAt).toTimeString().slice(0, 5))} · ${escapeHtml(e.ChangedBy)}${e.ImpersonatedBy ? ` <span class="ps-imp-by" title="Done by ${escapeHtml(e.ImpersonatedBy)} while acting as ${escapeHtml(e.ChangedBy)}">(by ${escapeHtml(e.ImpersonatedBy)})</span>` : ''}</span></li>`).join('')}</ul>`;
     }
 
     fieldsFor(entity) {

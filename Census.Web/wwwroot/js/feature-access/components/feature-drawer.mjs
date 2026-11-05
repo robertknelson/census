@@ -199,7 +199,7 @@ export class FeatureDrawer {
             body = `<ol class="fa-timeline">${entries.map(entry => `
                 <li class="fa-timeline-item fa-timeline-item--${entry.action.replace('.', '-')}">
                     <p>${escapeHtml(describeAuditEntry(entry))}</p>
-                    <p class="fa-muted">${escapeHtml(entry.changedBy)},
+                    <p class="fa-muted">${escapeHtml(entry.changedBy)}${entry.impersonatedBy ? ` (by ${escapeHtml(entry.impersonatedBy)})` : ''},
                         <time datetime="${escapeHtml(entry.changedAt)}" title="${escapeHtml(formatDateTime(entry.changedAt))}">${escapeHtml(relativeTime(entry.changedAt))}</time></p>
                 </li>`).join('')}</ol>`;
         }

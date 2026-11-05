@@ -2,7 +2,7 @@
 -- it, the grants that name it, and (an application) its roles, stages and services. @Entity is
 -- 'application' or 'member'; @Id its Id. Read-only.
 
-SELECT TOP 50 a.MembershipAuditId, a.Entity, a.EntityKey, a.Action, a.PreviousValue, a.NewValue, a.ChangedBy, a.ChangedAt
+SELECT TOP 50 a.MembershipAuditId, a.Entity, a.EntityKey, a.Action, a.PreviousValue, a.NewValue, a.ChangedBy, a.ImpersonatedBy, a.ChangedAt
 FROM membership.MembershipAudit a
 WHERE (a.Entity = @Entity AND a.EntityKey = CAST(@Id AS nvarchar(100)))
    OR (a.Entity = 'grant' AND @Entity = 'member'      AND a.EntityKey LIKE CAST(@Id AS nvarchar(20)) + ':%')

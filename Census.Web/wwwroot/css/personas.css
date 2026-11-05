@@ -39,6 +39,7 @@ html, body { margin: 0; background: var(--ps-paper); }
 .ps-imp strong { color: #fff; font-weight: 600; }
 .ps-imp-stop { padding: 0.1rem 0.7rem; border: 1px solid #e8710a; border-radius: 999px; background: transparent; color: #ffd2a8; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
 .ps-imp-stop:hover { background: #e8710a; color: #fff; }
+.ps-imp-by { color: #b45309; }
 .ps-as-error { color: #ffb4a8; font-size: 12.5px; }
 .ps-as { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; font-size: 12.5px; color: rgba(255, 255, 255, 0.75); }
 .ps-as select { max-width: 22rem; padding: 0.25rem 0.4rem; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; background: #2a3240; color: #fff; font: inherit; }

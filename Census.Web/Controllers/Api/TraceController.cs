@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using Census.Web.Identity;
 using Census.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -11,6 +12,7 @@ namespace Census.Web.Controllers.Api;
 // the first, sent by the browser for its own day and month.
 [ApiController]
 [Route("api/trace")]
+[RequireFeature("view.trace")]
 public class TraceController(TraceReader trace) : ControllerBase
 {
     // Settings: the longest windows one request reads.

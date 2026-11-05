@@ -96,6 +96,12 @@ try {
     Assert-That 'delete her release: 200' ((Post "/api/edit/release/$ownId/delete").Status -eq 200)
     Assert-That 'a release that is gone: 403, as one that is not hers' ((Post "/api/edit/release/$ownId/delete").Status -eq 403)
 
+    Write-Host '  The pages her features do not offer, refused on the server too'
+    $status = { param($p) [int](Invoke-WebRequest -Uri "$BaseUrl$p" @c).StatusCode }
+    Assert-That 'Log Explorer page and API: 403' ((& $status '/logs') -eq 403 -and (& $status '/api/logs/api-request/search?log-start=2026-10-01&log-end=2026-10-02') -eq 403)
+    Assert-That 'Trace page and API: 403' ((& $status '/trace') -eq 403 -and (& $status '/api/trace/people?from=2026-10-01&to=2026-10-02') -eq 403)
+    Assert-That 'Usage, which she holds: 200' ((& $status '/usage') -eq 200 -and (& $status '/api/usage/applications?from=2026-10-01&to=2026-10-02') -eq 200)
+
     Write-Host 'As demo-max: product owner on MortgageGateway (4), technical lead on Reporting (5)'
     Assert-That 'impersonate demo-max' ((Post '/api/impersonation' @{ identifier = 'demo-max' }).Status -eq 200)
     $seen = Apps (Get-Api '/api/moveit/releases').Rows
@@ -111,6 +117,8 @@ finally {
     $all = Apps (Get-Api '/api/moveit/releases').Rows
     $db = Apps (Sql 'SELECT ApplicationId FROM moveit.Release')
     Assert-That 'every application''s releases, untrimmed' (($all -join ',') -eq ($db -join ',')) "$($all -join ',') vs $($db -join ',')"
+    $refused = @(@('/logs', '/trace', '/usage', '/api/trace/people?from=2026-10-01&to=2026-10-02') | Where-Object { [int](Invoke-WebRequest -Uri "$BaseUrl$_" @c).StatusCode -ne 200 })
+    Assert-That 'Log Explorer, Trace and Usage answer you' ($refused.Count -eq 0) ($refused -join ', ')
     $w = (Invoke-WebRequest "$BaseUrl/api/moveit/writes" @c).Content | ConvertFrom-Json
     Assert-That 'writes: all, for every feature' ($w.'curate.releases' -eq 'all' -and $w.'curate.events' -eq 'all')
 }

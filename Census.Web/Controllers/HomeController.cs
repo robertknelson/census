@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Census.Web.Models;
+using Census.Web.Identity;
 using Census.Web.Services;
 
 namespace Census.Web.Controllers;
@@ -135,6 +136,7 @@ public class HomeController : Controller
     // Log Explorer (log-explorer-and-trace.md §4): its own page, full width, reached from the
     // persona UX's Troubleshoot group. Not mounted without a log database.
     [HttpGet("/logs")]
+    [RequireFeature("view.log-explorer")]
     public IActionResult Logs([FromServices] LogReader logs)
     {
         if (!logs.Enabled) return NotFound();
@@ -144,6 +146,7 @@ public class HomeController : Controller
     // Trace (log-explorer-and-trace.md §5): an identifier's month, day and sessions, from the same
     // log tables. ?person=&day=&session= keep the place, so a trace can be sent.
     [HttpGet("/trace")]
+    [RequireFeature("view.trace")]
     public IActionResult Trace([FromServices] TraceReader trace)
     {
         if (!trace.Enabled) return NotFound();
@@ -153,6 +156,7 @@ public class HomeController : Controller
     // Usage (usage.md): how one application is used over a period, from its click streams.
     // ?application=&stage=&grain=&on= keep the place.
     [HttpGet("/usage")]
+    [RequireFeature("view.usage")]
     public IActionResult Usage([FromServices] UsageReader usage)
     {
         if (!usage.Enabled) return NotFound();

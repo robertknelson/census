@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Census.Web.Identity;
 using Census.Web.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,7 @@ namespace Census.Web.Controllers.Api;
 // A facet pick arrives as <Column>-in=a,b or <Column>-nin=a,b; the script checks the column.
 [ApiController]
 [Route("api/logs")]
+[RequireFeature("view.log-explorer")]
 public class LogsController(LogReader logs) : ControllerBase
 {
     private static readonly string[] NotFacets = ["log-start", "log-end", "logical-operator", "hide-handshake", "min-elapsed", "profile-fields"];

@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using Census.Web.Identity;
 using Census.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -11,6 +12,7 @@ namespace Census.Web.Controllers.Api;
 // sends for its own period, at most a quarter and a few days. No gate (R5).
 [ApiController]
 [Route("api/usage")]
+[RequireFeature("view.usage")]
 public class UsageController(UsageReader usage) : ControllerBase
 {
     // Setting: the longest window one request reads (a quarter, with room for the browser's offset).

@@ -344,6 +344,12 @@ Robert: "Keep going."
   - **Paula's History:** only her two applications, with Name it, Add to and New release.
   - **You:** every control.
 
+**Found on the way, fixed (2026-11-05):** Log Explorer, Trace and Usage were offered by feature in the persona menu
+but answered anyone signed in, pages and APIs alike. `Identity/RequireFeatureAttribute.cs` now refuses (403) a member
+who does not hold `view.log-explorer`, `view.trace` or `view.usage`, by the same union the menu uses. A system
+administrator signed in as themselves passes. `Test-Ownership.ps1` (54) pins it: as Paula, Log Explorer and Trace are
+403 and Usage is 200; as you, all of them answer.
+
 **Open, for you:**
 - **The feature picture lists an item's links with the linked item's title, even when that item belongs to an
   application the member does not see.** A dependency names what it depends on. Say if those should be hidden.

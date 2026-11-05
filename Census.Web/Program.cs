@@ -72,6 +72,7 @@ builder.Services.AddSingleton<IRoleCatalog, MemberTypesRoleCatalog>();
 builder.Services.AddSingleton<MemberAccess>();
 builder.Services.AddSingleton<MembershipAdmin>();
 builder.Services.AddSingleton<MoveItEdit>();
+builder.Services.AddSingleton<MoveItScope>();
 builder.Services.AddSingleton<AssertionReset>();
 
 // Identity and impersonation (census-on-apptrak.md §10): Windows sign-in, every request signed in unless an endpoint

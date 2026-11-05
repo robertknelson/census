@@ -184,6 +184,65 @@ refuses a parameter named `@Key` at start-up.
   scope gets 403, and the save scripts refuse it too. The UX offers only applications in scope on *New release*.
 - Every Move It write records its author: `CreatedBy` already exists, and `EditAudit` keeps `ChangedBy`.
 
+### 7.1 O-1, built (2026-11-05)
+
+Robert: "Keep going."
+
+**The rule as built:**
+- **Reads.** A member sees the applications they hold any role on, and every application with an estate-wide role,
+  as the persona UX already did.
+- **Writes.** A write needs the curate feature for that kind of row on the row's application:
+  - `curate.releases` for a release and for naming a build;
+  - `curate.feature-sets` for features, fixes and links;
+  - `curate.associations` for build claims;
+  - `curate.events` for events.
+- **Feature access's grants are the authority (D-002).** CA-1 holds: "their own" is by role on the application. The
+  role reaches the write through the feature.
+- **Grants.** `apptrak/sql/fm/003-owners-curate.sql` grants `curate.releases` and `curate.feature-sets` to
+  product-owner and application-owner. It is insert-only and audited, and **must be run once on the real AppTrak**.
+  The other two curate features stay with the administrators; you can grant them on the Feature access page.
+- **Administrators.** A system administrator signed in as themselves sees and changes everything. Impersonating, they
+  get exactly that member's scope.
+
+| File | What |
+|------|------|
+| `Services/MoveItScope.cs` | Per request: the member acted as, which applications they see, which features they hold where. Each read key declares how its rows reach an application: an `ApplicationId` column, a `ReleaseId`, a `WorkItemId`, the audit's entity, or application names (order violations). A row that reaches none is left out. The feature picture is trimmed by each item's application. |
+| `MoveItController`, `EditController`, `PersonasController` | Reads trimmed. Writes refused with 403 and the feature named, checked on the target application and, for a correction, on the row's current application too (a release cannot be moved out of or into someone else's). `GET api/moveit/writes` returns where the member may write. |
+| `wwwroot/js/moveit/writes.mjs`, `release-page.mjs`, `history-page.mjs`, `moveit-page.mjs`, `features-page.mjs` | Forms and buttons only where the server would accept them. The persona curate and Needs-you pages already offered actions only where the feature is held. |
+| `tests/Test-Ownership.ps1` | 50 checks, as demo-paula and demo-max, then as you |
+
+**Deviations from §7 as written, and why:**
+- **Trimmed in C#, by a rule declared per key, not in SQL.** Twenty-four scripts stay untouched. One place decides,
+  and a key with no declared rule throws rather than leaking.
+- **The scripts do not refuse.** The server's two-halves rule is met by the endpoints' 403. Moving the check into the
+  scripts would mean passing the member's scope to every write.
+- **A row that is gone answers 403 to a scoped member**, the same as a row that is not theirs, so the answer does not
+  tell which. Someone who sees everything still gets the script's own answer ("unchanged", 404).
+
+**Verified (2026-11-05):**
+- `Test-Ownership.ps1`, 50 passed:
+  - As Paula, 19 reads hold only WidgetCore and Reporting, and another application's release history is 404.
+  - 11 refused writes on the curate API, and 7 on Move It's entry. Her own release and item are created, renamed
+    and deleted.
+  - As Max, a release on Reporting, where he leads but does not own, is 403; on MortgageGateway it is 200.
+  - As you, the releases are untrimmed and `writes` is "all".
+- **Administrator reads unchanged.** As you, all 24 Move It reads are identical to C-1's baseline (`Capture-Api.ps1`).
+- **Entry writes unchanged.** `Capture-Entry.ps1` is identical too, once a release that is gone gets the script's
+  answer again for administrators.
+- `Test-Identity` 21 (Paula's features now include the two curate features, by D-004), `Test-Edit` 30,
+  `Test-Reset` 23, `Test-Membership` 32. The node suites pass.
+- Headless Edge:
+  - **Paula on her release:** Rename, Pull and Delete release are there; no claim, release or move buttons and no
+    event form.
+  - **Paula on a MortgageGateway release:** "No release has that id."
+  - **Paula's History:** only her two applications, with Name it, Add to and New release.
+  - **You:** every control.
+
+**Open, for you:**
+- **The feature picture lists an item's links with the linked item's title, even when that item belongs to an
+  application the member does not see.** A dependency names what it depends on. Say if those should be hidden.
+- **Run `003-owners-curate.sql` on the real AppTrak** for owners to write there.
+
 ## 8. Slices
 
 | Slice | What | Verified by |

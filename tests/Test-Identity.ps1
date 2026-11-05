@@ -102,7 +102,7 @@ else {
     Assert-That 'requests now run as her; you are still the real user' ($as.identifier -eq 'demo-paula' -and $as.impersonating -and $as.canonical.identifier -eq $self) ($as | ConvertTo-Json -Compress -Depth 4)
     $apps = @($as.access.applications | ForEach-Object { $_.name }) | Sort-Object
     Assert-That 'her applications, and only hers' (($apps -join ',') -eq 'Reporting,WidgetCore') ($apps -join ',')
-    Assert-That 'her features: no curate, no Log Explorer' (-not ($as.access.features -match '^curate\.|view\.log-explorer')) ($as.access.features -join ',')
+    Assert-That 'her features: releases and features to curate (D-004), no other curate, no Log Explorer' (($as.access.features -contains 'curate.releases') -and ($as.access.features -contains 'curate.feature-sets') -and -not ($as.access.features -match '^curate\.(associations|events|queue)$|view\.log-explorer')) ($as.access.features -join ',')
     Assert-That 'Administer carries through (the way out)' ($as.administer -and $as.canImpersonate)
     $again = Call Post '/api/impersonation' @{ identifier = 'demo-sam' }
     Assert-That 'switch straight to another member: 200' ($again.Status -eq 200 -and (Me).identifier -eq 'demo-sam')

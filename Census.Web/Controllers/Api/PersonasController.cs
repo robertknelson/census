@@ -11,7 +11,7 @@ namespace Census.Web.Controllers.Api;
 // pick and any one member's access.
 [ApiController]
 [Route("api/personas")]
-public class PersonasController(MemberAccess access, MoveItQuestions questions, IOptions<ImpersonationOptions> impersonation) : ControllerBase
+public class PersonasController(MemberAccess access, MoveItQuestions questions, MoveItScope scope, IOptions<ImpersonationOptions> impersonation) : ControllerBase
 {
     // Everything the shell needs about the user, decided here: the access of the member acted as (null when the
     // signed-in user is not a member), whether Administer is offered, and whether View as is.
@@ -63,6 +63,6 @@ public class PersonasController(MemberAccess access, MoveItQuestions questions, 
     private async Task<IActionResult> Run(string key)
     {
         if (!questions.Enabled) return NotFound();
-        return Ok(await questions.RunAsync(key));
+        return Ok(await (await scope.ForAsync(User)).TrimAsync(key, await questions.RunAsync(key)));
     }
 }

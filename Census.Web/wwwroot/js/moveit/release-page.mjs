@@ -2,6 +2,7 @@ import { fetchApplications, fetchBuildsSeen, fetchEvents, fetchLists, fetchRelea
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { stageHue } from './stage-hues.mjs';
 import { EventForm } from './event-form.mjs';
+import { ASSOCIATIONS, EVENTS, ITEMS, RELEASES, fetchWrites, may } from './writes.mjs';
 import { renderTabs } from './tabs.mjs';
 
 // The release page (move-it.md §16, level 3): one release in depth — what is in it and where
@@ -53,7 +54,16 @@ class ReleasePage {
     // Stabilization only (move-it.md §16): the release and everything under it, gone — except
     // items recorded before the release existed, which came from the notebook (§20) and go
     // back to Coming with no release.
+    // Offered only where the server would accept it (census-on-apptrak.md §7).
+    may(feature) {
+        return may(this.writes, feature, this.release?.ApplicationId);
+    }
+
     renderDelete() {
+        if (!this.may(RELEASES)) {
+            this.deleteEl.innerHTML = '';
+            return;
+        }
         const releaseAt = Date.parse(this.release?.CreatedAt ?? 0);
         const reverting = this.items.filter((i) => Date.parse(i.CreatedAt) < releaseAt).length;
         const going = this.items.length - reverting;
@@ -78,7 +88,7 @@ class ReleasePage {
     async load() {
         this.mainEl.innerHTML = '<p class="mi-status">Asking the tracking database…</p>';
         try {
-            [this.stages, this.applications, this.lists] = await Promise.all([fetchStages(), fetchApplications(), fetchLists()]);
+            [this.stages, this.applications, this.lists, this.writes] = await Promise.all([fetchStages(), fetchApplications(), fetchLists(), fetchWrites()]);
             await this.reload();
         } catch (err) {
             this.mainEl.innerHTML = `<p class="mi-status is-error">${escapeHtml(err.message)}</p>`;
@@ -142,10 +152,14 @@ class ReleasePage {
         this.bindItems();
         this.bindBuilds();
         this.renderDelete();
-        this.eventForm.render(this.entryEl, {
-            releaseId: this.releaseId, lists: this.lists, stages: this.stages,
-            builds: [...new Set(this.builds.map((b) => b.Build))],
-        });
+        if (this.may(EVENTS)) {
+            this.eventForm.render(this.entryEl, {
+                releaseId: this.releaseId, lists: this.lists, stages: this.stages,
+                builds: [...new Set(this.builds.map((b) => b.Build))],
+            });
+        } else {
+            this.entryEl.innerHTML = '';
+        }
     }
 
     renderItems() {
@@ -163,7 +177,7 @@ class ReleasePage {
         const titleCell = edit === 'rename'
             ? `<span class="mi-inline"><input name="title" value="${escapeHtml(i.Title)}" /><button type="button" class="mi-button is-primary" data-save="${i.WorkItemId}">Save</button><button type="button" class="mi-button is-quiet" data-cancel>Cancel</button></span>`
             : `<span>${escapeHtml(i.Title)}</span>${i.ExternalRef ? ` <span class="mi-muted">${escapeHtml(i.ExternalRef)}</span>` : ''}`;
-        const actions = pulled ? '' : edit === 'pull'
+        const actions = pulled || !this.may(ITEMS) ? '' : edit === 'pull'
             ? `<span class="mi-inline"><input name="note" placeholder="why it is pulled" /><button type="button" class="mi-button is-primary" data-confirm-pull="${i.WorkItemId}">Pull</button><button type="button" class="mi-button is-quiet" data-cancel>Cancel</button></span>`
             : `<button type="button" class="mi-button is-quiet" data-rename="${i.WorkItemId}">Rename</button> <button type="button" class="mi-button is-quiet" data-pull="${i.WorkItemId}">Pull</button>`;
         return `
@@ -227,7 +241,7 @@ class ReleasePage {
                     const rows = this.history.filter((h) => h.Build === build);
                     const open = this.historyOpen.has(build);
                     const edit = this.editing?.build === build ? this.editing.mode : null;
-                    const actions = edit === 'release'
+                    const actions = !this.may(ASSOCIATIONS) ? '' : edit === 'release'
                         ? `<span class="mi-inline"><input name="by" placeholder="who" /><input name="note" placeholder="why it is released" /><button type="button" class="mi-button is-primary" data-confirm-release="${escapeHtml(build)}">Release</button><button type="button" class="mi-button is-quiet" data-cancel>Cancel</button></span>`
                         : edit === 'move'
                         ? `<span class="mi-inline"><select name="to">${others.map((r) => `<option value="${r.ReleaseId}">${escapeHtml(r.Name)}</option>`).join('')}</select><input name="by" placeholder="who" /><button type="button" class="mi-button is-primary" data-confirm-move="${escapeHtml(build)}">Move</button><button type="button" class="mi-button is-quiet" data-cancel>Cancel</button></span>`
@@ -286,7 +300,7 @@ class ReleasePage {
                             <span class="mi-build-where">${b.Stages ? b.Stages.split(', ').map((st) => `<span class="mi-stage" style="--lane: ${stageHue(st)}">${escapeHtml(st)}</span>`).join(' ') : ''}
                                 <span class="mi-muted">first seen ${escapeHtml(shortDate(b.FirstSeen))}${b.IsCurrent ? ', on a box now' : ''}</span>
                                 ${b.ClaimedBy ? `<span class="mi-muted">· claimed by ${escapeHtml(b.ClaimedBy)}</span>` : '<span class="mi-flag is-hold">unclaimed</span>'}</span>
-                            <span class="mi-build-actions"><button type="button" class="mi-button is-quiet" data-claim="${escapeHtml(b.Build)}">${b.ClaimedBy ? 'Claim here too' : 'Claim'}</button></span>
+                            ${this.may(ASSOCIATIONS) ? `<span class="mi-build-actions"><button type="button" class="mi-button is-quiet" data-claim="${escapeHtml(b.Build)}">${b.ClaimedBy ? 'Claim here too' : 'Claim'}</button></span>` : ''}
                         </div>
                     </li>`).join('')}
             </ul>`;

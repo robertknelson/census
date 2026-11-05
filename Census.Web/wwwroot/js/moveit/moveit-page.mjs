@@ -5,6 +5,7 @@ import { CountsPanel } from './counts-panel.mjs';
 import { BoardPanel, renderDetail } from './board-panel.mjs';
 import { ReleasePanel, renderReleaseDetail } from './release-panel.mjs';
 import { ComingUpForm } from './coming-up-form.mjs';
+import { ITEMS, fetchWrites, writable } from './writes.mjs';
 import { renderTabs } from './tabs.mjs';
 import { AppRail } from './app-rail.mjs';
 import { PopOver } from './pop-over.mjs';
@@ -94,8 +95,8 @@ class MoveItPage {
     async load() {
         this.mainEl.innerHTML = '<p class="mi-status">Asking the tracking database…</p>';
         try {
-            [this.stages, this.applications, this.items, this.releases, this.candidates, this.lists] = await Promise.all([
-                fetchStages(), fetchApplications(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchReadyToApprove(), fetchLists(),
+            [this.stages, this.applications, this.items, this.releases, this.candidates, this.lists, this.writes] = await Promise.all([
+                fetchStages(), fetchApplications(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchReadyToApprove(), fetchLists(), fetchWrites(),
             ]);
         } catch (err) {
             this.mainEl.innerHTML = `<p class="mi-status is-error">${escapeHtml(err.message)}</p>`;
@@ -143,7 +144,12 @@ class MoveItPage {
         data.laneCounts = this.counts.laneCounts(data);
         this.counts.render(this.countsEl, data);
         this.coming.hide(this.view !== 'items');
-        if (this.view === 'items') this.comingUp.render(this.comingEl, { applications: this.applications, lists: this.lists, applicationId: this.apps.length === 1 ? this.apps[0] : null });
+        if (this.view === 'items') {
+            // Adding what is coming is offered only where the server would accept it (census-on-apptrak.md §7).
+            const open = writable(this.writes, ITEMS, this.applications);
+            if (open.length) this.comingUp.render(this.comingEl, { applications: open, lists: this.lists, applicationId: this.apps.length === 1 && open.some((a) => a.ApplicationId === this.apps[0]) ? this.apps[0] : null });
+            else this.comingEl.innerHTML = '';
+        }
         const empty = this.view === 'releases' ? data.releases.length === 0 : data.items.length === 0;
         if (empty) {
             this.mainEl.innerHTML = `<p class="mi-status">Nothing is recorded for ${this.apps.length > 1 ? 'these applications' : 'this application'} yet. Releases and their features and fixes are named on the History page; the board fills in from there.</p>`;

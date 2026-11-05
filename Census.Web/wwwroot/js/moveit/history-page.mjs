@@ -2,6 +2,7 @@ import { fetchApplications, fetchApprovalVsProd, fetchEvents, fetchHistory, fetc
 import { appLabel, days, daysAgo, escapeHtml, shortDate } from './format.mjs';
 import { stageHue } from './stage-hues.mjs';
 import { NameBuildForm } from './name-build-form.mjs';
+import { RELEASES, fetchWrites, may, writable } from './writes.mjs';
 import { findNeeds, renderNeeds } from './needs-a-word.mjs';
 import { renderTabs } from './tabs.mjs';
 import { AppRail } from './app-rail.mjs';
@@ -58,10 +59,12 @@ class HistoryPage {
     async load() {
         this.mainEl.innerHTML = '<p class="mi-status">Asking the tracking database…</p>';
         try {
-            [this.stages, this.applications, this.lists, this.history, this.releases, this.items, this.status, this.events, this.approvals] = await Promise.all([
+            [this.stages, this.applications, this.lists, this.history, this.releases, this.items, this.status, this.events, this.approvals, this.writes] = await Promise.all([
                 fetchStages(), fetchApplications(), fetchLists(), fetchHistory(), fetchReleases(), fetchWhereIsEverything(),
-                fetchReleaseStatus(), fetchEvents(), fetchApprovalVsProd(),
+                fetchReleaseStatus(), fetchEvents(), fetchApprovalVsProd(), fetchWrites(),
             ]);
+            // Naming a build or starting a release is offered only where the server would accept it (census-on-apptrak.md §7).
+            this.root.querySelector('[data-ref="new"]').hidden = writable(this.writes, RELEASES, this.applications).length === 0;
         } catch (err) {
             this.mainEl.innerHTML = `<p class="mi-status is-error">${escapeHtml(err.message)}</p>`;
             return;
@@ -91,7 +94,7 @@ class HistoryPage {
 
     data() {
         return {
-            applications: this.applications, releases: this.releases, items: this.items,
+            applications: writable(this.writes, RELEASES, this.applications), releases: this.releases, items: this.items,
             stages: this.stages, lists: this.lists,
         };
     }
@@ -151,8 +154,8 @@ class HistoryPage {
                 <td>
                     ${r.ReleaseId
                         ? `<a class="mi-release-link" href="/moveit/release/${r.ReleaseId}">${escapeHtml(r.Release)}</a>${r.Claims > 1 ? `<span class="mi-muted"> +${r.Claims - 1}</span>` : ''}
-                           <button type="button" class="mi-button is-quiet" data-name="${r.DeploymentId}">Add to</button>`
-                        : `<button type="button" class="mi-button" data-name="${r.DeploymentId}">Name it</button>`}
+                           ${may(this.writes, RELEASES, r.ApplicationId) ? `<button type="button" class="mi-button is-quiet" data-name="${r.DeploymentId}">Add to</button>` : ''}`
+                        : may(this.writes, RELEASES, r.ApplicationId) ? `<button type="button" class="mi-button" data-name="${r.DeploymentId}">Name it</button>` : ''}
                 </td>
             </tr>`;
     }

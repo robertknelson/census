@@ -6,6 +6,7 @@ import { renderTabs } from './tabs.mjs';
 import { AppRail } from './app-rail.mjs';
 import { PopOver } from './pop-over.mjs';
 import { ComingUpForm } from './coming-up-form.mjs';
+import { ITEMS, fetchWrites, writable } from './writes.mjs';
 import { Register } from './register.mjs';
 
 // The Features register (move-it.md §28.1): every feature and fix as one flat list — find,
@@ -61,8 +62,8 @@ class FeaturesPage {
     async load() {
         this.mainEl.innerHTML = '<p class="mi-status">Asking the tracking database…</p>';
         try {
-            [this.stages, this.applications, this.items, this.releases, this.lists, this.pictures] = await Promise.all([
-                fetchStages(), fetchApplications(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchLists(), fetchFeaturePicture(),
+            [this.stages, this.applications, this.items, this.releases, this.lists, this.pictures, this.writes] = await Promise.all([
+                fetchStages(), fetchApplications(), fetchWhereIsEverything(), fetchReleaseStatus(), fetchLists(), fetchFeaturePicture(), fetchWrites(),
             ]);
         } catch (err) {
             this.mainEl.innerHTML = `<p class="mi-status is-error">${escapeHtml(err.message)}</p>`;
@@ -116,7 +117,12 @@ class FeaturesPage {
         const inScope = (r) => this.apps.length === 0 || this.apps.includes(r.item.ApplicationId);
         this.rail.render(this.applications, this.apps,
             (id) => this.rows.filter((r) => !r.removed && (id == null || r.item.ApplicationId === id)).length);
-        this.comingUp.render(this.comingEl, { applications: this.applications, lists: this.lists, applicationId: this.apps.length === 1 ? this.apps[0] : null });
+        {
+            // Adding what is coming is offered only where the server would accept it (census-on-apptrak.md §7).
+            const open = writable(this.writes, ITEMS, this.applications);
+            if (open.length) this.comingUp.render(this.comingEl, { applications: open, lists: this.lists, applicationId: this.apps.length === 1 && open.some((a) => a.ApplicationId === this.apps[0]) ? this.apps[0] : null });
+            else this.comingEl.innerHTML = '';
+        }
         this.register.setRows(this.rows.filter(inScope));
     }
 
